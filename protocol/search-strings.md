@@ -87,23 +87,46 @@ AND
 
 ## Pilot Testing Log
 
-| Database | Date Tested | Query Used | Results Count | Notes |
-|----------|------------|------------|---------------|-------|
-| IEEE Xplore | | | | |
-| ACM DL | | | | |
-| Scopus | | | | |
-| Web of Science | | | | |
-| arXiv | | | | |
-| Google Scholar | | | | |
+Pilot performed via Brave Search API (site-restricted queries) on March 15, 2026. Full database searches to be executed directly on each platform during Phase 2.
+
+| Database | Date Tested | Query Method | Relevant Results Found | Notes |
+|----------|------------|-------------|----------------------|-------|
+| IEEE Xplore | 2026-03-15 | Brave site:ieeexplore.ieee.org | ~3-5 relevant | Found: "Repairing IaC using LLMs" (IEEE conf), IaC quality metrics. Some noise from general LLM/infrastructure papers. Need tighter IaC terms |
+| ACM DL | 2026-03-15 | Brave site:dl.acm.org | ~3-4 relevant | Found: "LLM-driven Framework for Dynamic IaC Generation" (Middleware 2024), "Automated Microservice Pattern Detection using IaC and LLMs" (ICSA-C 2025). Heavy noise from general code LLM papers |
+| arXiv | 2026-03-15 | Brave site:arxiv.org | ~8-12 relevant | Richest source. Found all core papers plus: Multi-IaC-Eval (2509.05303), Deployability-Centric IaCGen (2506.05623), Feedback Loop IaC (2411.19043), Security Smells taxonomy (2509.18761). arXiv dominates this field |
+| Scopus | | Direct search needed | | Cannot pilot via Brave; requires institutional access |
+| Web of Science | | Direct search needed | | Cannot pilot via Brave; requires institutional access |
+| Google Scholar | 2026-03-15 | Brave search | Broad coverage | Confirms all known papers discoverable; useful for snowballing |
+
+### New Papers Discovered During Pilot
+
+| Paper | Venue | Relevance |
+|-------|-------|-----------|
+| "Repairing Infrastructure-as-Code using Large Language Models" | IEEE conf 2024 | High - LLM for IaC repair (new problem type) |
+| "An LLM-driven Framework for Dynamic IaC Generation" | ACM Middleware 2024 | High - RAG-based IaC generation |
+| "Multi-IaC-Eval: Benchmarking Cloud IaC Across Multiple Formats" | arXiv 2025 | High - extends IaC-Eval to CloudFormation + CDK (already known) |
+| "Deployability-Centric IaC Generation (IaCGen)" | arXiv 2025 | High - iterative deployment feedback loop (already known) |
+| "Using a Feedback Loop for LLM-based IaC Generation" | arXiv 2024 | High - deployment feedback on CloudFormation |
+| "Security Smells in IaC Scripts: A Taxonomy" | arXiv 2025 | Medium-High - LLM-assisted IaC security smell detection across 7 tools |
+| "Automated Microservice Pattern Detection using IaC and LLMs" | ICSA-C 2025 | Medium - adjacent: LLM + IaC for architecture detection |
+
+### Pilot Assessment
+
+**Search string effectiveness:** The concept blocks capture all known core papers. arXiv is clearly the dominant source (8-12 directly relevant results). IEEE and ACM yield fewer but include peer-reviewed work not on arXiv.
+
+**Noise level:** Moderate on IEEE/ACM due to papers about "LLM infrastructure" (deployment/serving) matching "infrastructure" keyword. The IaC-specific terms (Terraform, CloudFormation, HCL, Bicep) are effective discriminators.
+
+**Estimated total pool:** ~25-35 unique candidates from database search + ~10-15 from snowballing = ~35-50 total before screening. This aligns with the CLAUDE.md estimate of 15-20 core + 20-25 adjacent = ~40+ papers.
+
+---
 
 ## Refinement Notes
 
-Record any changes made to search strings after pilot testing:
-
 | Date | Change | Reason |
 |------|--------|--------|
-| | | |
+| 2026-03-15 | No changes to search strings after pilot | Core papers all discoverable. Noise manageable via screening. IaC-specific terms effective as discriminators |
 
 ---
 
 *Created: March 15, 2026*
+*Pilot tested: March 15, 2026*
