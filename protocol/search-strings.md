@@ -1,4 +1,4 @@
-# Search Strings -- Paper 6: LLM-Assisted IaC Systematic Review
+# Search Strings -- LLM-Assisted IaC Systematic Review
 
 ## Concept Blocks
 

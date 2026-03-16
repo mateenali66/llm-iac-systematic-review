@@ -1,6 +1,6 @@
 # PRISMA 2020 Review Protocol
 
-## Paper 6: Towards Reliable LLM-Assisted Infrastructure as Code: A Systematic Review of Generation, Evaluation, and Security
+## Towards Reliable LLM-Assisted Infrastructure as Code: A Systematic Review of Generation, Evaluation, and Security
 
 ---
 

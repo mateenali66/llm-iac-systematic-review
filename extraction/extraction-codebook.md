@@ -1,4 +1,4 @@
-# Extraction Codebook -- Paper 6
+# Extraction Codebook -- LLM-Assisted IaC Systematic Review
 
 This document defines the controlled vocabulary and coding rules for every field in the extraction form.
 
