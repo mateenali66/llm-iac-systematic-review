@@ -1,7 +1,7 @@
 # Candidate Pool -- Literature Search Results
 
 Search executed: March 16, 2026
-Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of Science pending (require institutional access).
+Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API), Scopus (direct search). Web of Science not accessible.
 
 ---
 
@@ -29,6 +29,10 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 | C18 | Automated Microservice Pattern Detection using IaC Artifacts and LLMs | (unknown) | 2025 | ICSA-C 2025 | IEEE | IEEE, pilot |
 | C19 | Evaluating LLMs for Infrastructure as Code (GFT Engineering) | Lu Mao | 2024 | Medium (industry) | N/A | web, NEW |
 | C20 | Automated code generation for IT tasks in YAML through LLMs | Pujar et al. | 2023 | DAC 2023 | IEEE | ref in C06 |
+| C21 | Artificial Intelligence for Infrastructure-as-Code: A Systematic Literature Review | (unknown) | 2026 | Electronics (MDPI) | 10.3390/electronics15040755 | Scopus, NEW |
+| C22 | Generative AI as an infrastructure copilot: automating IaC across the DevSecOps lifecycle | (unknown) | 2026 | Automated Software Engineering (Springer) | 10.1007/s10515-026-00600-5 | Scopus, NEW |
+| C23 | ARPaCCino: An Agentic-RAG for Policy as Code Compliance | (unknown) | 2026 | CCIS (Springer) | 10.1007/978-3-032-05727-3_39 | Scopus, NEW |
+| C24 | Prompt-Driven Container Orchestration | (unknown) | 2026 | CCIS (Springer) | 10.1007/978-3-032-17286-0_4 | Scopus, NEW |
 
 ## Adjacent Papers (LLM + Cloud/DevOps Security, Potentially In-Scope)
 
@@ -37,6 +41,8 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 | A01 | Guiding AI to Fix Its Own Flaws: LLM-Driven Secure Code Generation | (unknown) | 2025 | arXiv | 2506.23034 | Adjacent - secure code gen, not IaC-specific |
 | A02 | A Survey on LLM-based Code Generation for Low-Resource and Domain-Specific PLs | (unknown) | 2025 | arXiv | 2410.03981 | Adjacent - mentions IaC-Eval, covers domain-specific code gen |
 | A03 | Test-suite-guided discovery of least privilege for cloud IaC | (unknown) | 2024 | ASE journal | ACM | Adjacent - IaC security but not LLM generation |
+| A04 | Next-Generation Cloud Automation with Generative AI | Gadani | 2026 | Book chapter (Springer) | 10.1007/978-3-032-07479-9_14 | Adjacent - gen AI + cloud automation overview, not IaC generation study |
+| A05 | The Future of Generative AI in Cloud Infrastructure | (unknown) | 2026 | Book chapter (Springer) | 10.1007/978-3-032-07479-9_8 | Adjacent - overview chapter, no methodology |
 
 ---
 
@@ -44,9 +50,9 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 
 | Category | Count |
 |----------|-------|
-| Core candidates | 20 |
-| Adjacent candidates | 3 |
-| **Total before screening** | **23** |
+| Core candidates | 24 |
+| Adjacent candidates | 5 |
+| **Total before screening** | **29** |
 
 ### By Source
 | Source | Count |
@@ -58,9 +64,21 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 | Industry/blog | 1 |
 | Journal | 1 |
 
+### By Source (updated)
+| Source | Count |
+|--------|-------|
+| arXiv | 15 |
+| Scopus (unique) | 4 |
+| IEEE conferences | 3 |
+| ACM conferences | 2 |
+| NeurIPS | 1 |
+| Industry/blog | 1 |
+| Book chapters (adjacent) | 2 |
+| Journal (adjacent) | 1 |
+
 ### Status
-- Scopus search: PENDING (requires institutional login)
-- Web of Science search: PENDING (requires institutional login)
+- Scopus search: DONE (10 results, 4 new core + 2 new adjacent after dedup)
+- Web of Science: NOT ACCESSIBLE (documented as limitation)
 - Google Scholar snowballing: PENDING (execute after core screening)
 
 ---
@@ -71,6 +89,9 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 |--------|--------|--------|
 | C07 (IaCGen) | v1 vs v2 vs v3 on arXiv | Use v3 (Jan 2026) as primary |
 | C19 (Medium post) | Exclude at screening | Not peer-reviewed, no methodology; industry blog post |
+| Scopus #2 (carbohydrate counting) | Excluded (false positive) | Not IaC-related; keyword match on "infrastructure" was noise |
+| Scopus #7 (geochemistry) | Excluded (false positive) | Not IaC-related; keyword match on "IaC" abbreviation was noise |
+| Scopus #1,3 (CAMS-X, CAMS-F) | Excluded | Mention Terraform/Pulumi for deployment, but study is about context-aware mobile apps, not LLM-based IaC generation |
 
 ---
 
@@ -84,7 +105,15 @@ Databases: arXiv, IEEE Xplore, ACM DL (via Brave Search API). Scopus and Web of 
 
 4. **The field is growing faster than expected.** Papers from 2025-2026 are multiplying. The ~40+ estimate seems achievable with snowballing.
 
-5. **Scopus/WoS may add 5-10 more.** Especially IEEE/ACM papers not discoverable via web search.
+5. **Scopus added 4 new core papers.** Most important finds:
+   - **C21** is another SLR on AI for IaC (MDPI Electronics). Direct competitor to our review. Must differentiate.
+   - **C22** is a journal article in Automated Software Engineering on generative AI as IaC copilot across DevSecOps. Highly relevant.
+   - **C23** (ARPaCCino) is agentic RAG for policy-as-code compliance. Relevant to our security lens.
+   - **C24** is prompt-driven container orchestration. Relevant to K8s/Helm scope.
+
+6. **Web of Science not accessible.** Documented as limitation. Coverage from arXiv + IEEE + ACM + Scopus is sufficient for this fast-moving field where arXiv dominates.
+
+7. **C21 is a competitive threat.** Another SLR on "AI for IaC" published in Electronics (MDPI) in 2026. We need to read it carefully, position our review as deeper (security lens, quality assessment, formal methodology) and note that Electronics is an MDPI journal (lower prestige than JSS).
 
 ---
 
