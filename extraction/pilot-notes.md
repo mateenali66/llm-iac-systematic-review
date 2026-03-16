@@ -44,7 +44,7 @@
 
 ### Updated IaC-Eval venue note
 
-IaC-Eval was published at **NeurIPS 2024** (Datasets and Benchmarks Track), NOT ICLR as previously noted in the CLAUDE.md. Must be corrected.
+IaC-Eval was published at **NeurIPS 2024** (Datasets and Benchmarks Track), NOT ICLR as previously noted. Must be corrected.
 
 ---
 

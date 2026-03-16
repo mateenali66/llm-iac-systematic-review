@@ -116,7 +116,7 @@ Pilot performed via Brave Search API (site-restricted queries) on March 15, 2026
 
 **Noise level:** Moderate on IEEE/ACM due to papers about "LLM infrastructure" (deployment/serving) matching "infrastructure" keyword. The IaC-specific terms (Terraform, CloudFormation, HCL, Bicep) are effective discriminators.
 
-**Estimated total pool:** ~25-35 unique candidates from database search + ~10-15 from snowballing = ~35-50 total before screening. This aligns with the CLAUDE.md estimate of 15-20 core + 20-25 adjacent = ~40+ papers.
+**Estimated total pool:** ~25-35 unique candidates from database search + ~10-15 from snowballing = ~35-50 total before screening. This aligns with the initial estimate of 15-20 core + 20-25 adjacent = ~40+ papers.
 
 ---
 
