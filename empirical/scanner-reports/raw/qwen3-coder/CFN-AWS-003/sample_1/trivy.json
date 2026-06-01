@@ -1,0 +1,688 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:25:26.403568799Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 40,
+        "Failures": 5
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0078",
+          "AVDID": "AVD-AWS-0078",
+          "Title": "Performance Insights encryption should use Customer Managed Keys",
+          "Description": "Amazon RDS uses the AWS managed key for your new DB instance. For complete control over KMS keys, including establishing and maintaining their key policies, IAM policies, and grants, enabling and disabling them, and rotating their cryptographic material, use a customer managed keys.\nThe encryption key specified in `performance_insights_kms_key_id` references a KMS ARN\n",
+          "Message": "Cluster instance Performance Insights enctyption does not use a customer-managed KMS key.",
+          "Namespace": "builtin.aws.rds.aws0078",
+          "Query": "data.builtin.aws.rds.aws0078.deny",
+          "Resolution": "Use Customer Managed Keys to encrypt Performance Insights data",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0078",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.access-control.html#USER_PerfInsights.access-control.cmk-policy",
+            "https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-mgmt",
+            "https://avd.aquasec.com/misconfig/avd-aws-0078"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:132-151",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 132,
+            "EndLine": 151,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 132,
+                  "Content": "  AuroraPrimaryInstance:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAuroraPrimaryInstance\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 133,
+                  "Content": "    Type: AWS::RDS::DBInstance",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::RDS::DBInstance",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 134,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 135,
+                  "Content": "      DBInstanceClass: db.serverless",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBInstanceClass\u001b[0m: db.serverless",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 136,
+                  "Content": "      Engine: aurora-postgresql",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: aurora-postgresql",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 137,
+                  "Content": "      EngineVersion: '14.7'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.7'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 138,
+                  "Content": "      DBClusterIdentifier: !Ref AuroraCluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Ref AuroraCluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 139,
+                  "Content": "      DBParameterGroupName: !Ref AuroraDBParameterGroup",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBParameterGroupName\u001b[0m: !Ref AuroraDBParameterGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 140,
+                  "Content": "      PubliclyAccessible: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mPubliclyAccessible\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 141,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0078",
+          "AVDID": "AVD-AWS-0078",
+          "Title": "Performance Insights encryption should use Customer Managed Keys",
+          "Description": "Amazon RDS uses the AWS managed key for your new DB instance. For complete control over KMS keys, including establishing and maintaining their key policies, IAM policies, and grants, enabling and disabling them, and rotating their cryptographic material, use a customer managed keys.\nThe encryption key specified in `performance_insights_kms_key_id` references a KMS ARN\n",
+          "Message": "Cluster instance Performance Insights enctyption does not use a customer-managed KMS key.",
+          "Namespace": "builtin.aws.rds.aws0078",
+          "Query": "data.builtin.aws.rds.aws0078.deny",
+          "Resolution": "Use Customer Managed Keys to encrypt Performance Insights data",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0078",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights.access-control.html#USER_PerfInsights.access-control.cmk-policy",
+            "https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-mgmt",
+            "https://avd.aquasec.com/misconfig/avd-aws-0078"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:153-173",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 153,
+            "EndLine": 173,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 153,
+                  "Content": "  AuroraReaderInstance:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAuroraReaderInstance\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 154,
+                  "Content": "    Type: AWS::RDS::DBInstance",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::RDS::DBInstance",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 155,
+                  "Content": "    Condition: IsNotDevelopment",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mCondition\u001b[0m: IsNotDevelopment",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 156,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 157,
+                  "Content": "      DBInstanceClass: db.serverless",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBInstanceClass\u001b[0m: db.serverless",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 158,
+                  "Content": "      Engine: aurora-postgresql",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: aurora-postgresql",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 159,
+                  "Content": "      EngineVersion: '14.7'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.7'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 160,
+                  "Content": "      DBClusterIdentifier: !Ref AuroraCluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Ref AuroraCluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 161,
+                  "Content": "      DBParameterGroupName: !Ref AuroraDBParameterGroup",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBParameterGroupName\u001b[0m: !Ref AuroraDBParameterGroup",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 162,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0079",
+          "AVDID": "AVD-AWS-0079",
+          "Title": "There is no encryption specified or encryption is disabled on the RDS Cluster.",
+          "Description": "Encryption should be enabled for an RDS Aurora cluster.\nWhen enabling encryption by setting the kms_key_id, the storage_encrypted must also be set to true.\n",
+          "Message": "Cluster does not specify a customer managed key for storage encryption.",
+          "Namespace": "builtin.aws.rds.aws0079",
+          "Query": "data.builtin.aws.rds.aws0079.deny",
+          "Resolution": "Enable encryption for RDS clusters",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0079",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0079"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:106-130",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 106,
+            "EndLine": 130,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 106,
+                  "Content": "  AuroraCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAuroraCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 107,
+                  "Content": "    Type: AWS::RDS::DBCluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::RDS::DBCluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 108,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 109,
+                  "Content": "      Engine: aurora-postgresql",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: aurora-postgresql",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "      EngineVersion: '14.7'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.7'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "      EngineMode: provisioned",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineMode\u001b[0m: provisioned",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "      DatabaseName: !Ref DatabaseName",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDatabaseName\u001b[0m: !Ref DatabaseName",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "      MasterUsername: !Ref MasterUsername",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUsername\u001b[0m: !Ref MasterUsername",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "      MasterUserPassword: !Ref MasterUserPassword",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUserPassword\u001b[0m: !Ref MasterUserPassword",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 115,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0098",
+          "AVDID": "AVD-AWS-0098",
+          "Title": "Secrets Manager should use customer managed keys",
+          "Description": "Secrets Manager encrypts secrets by default using a default key created by AWS. To ensure control and granularity of secret encryption, CMK's should be used explicitly.\n",
+          "Message": "Secret is not encrypted with a customer managed key.",
+          "Namespace": "builtin.aws.ssm.aws0098",
+          "Query": "data.builtin.aws.ssm.aws0098.deny",
+          "Resolution": "Use customer managed keys",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0098",
+          "References": [
+            "https://docs.aws.amazon.com/kms/latest/developerguide/services-secrets-manager.html#asm-encrypt",
+            "https://avd.aquasec.com/misconfig/avd-aws-0098"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:191-207",
+            "Provider": "AWS",
+            "Service": "ssm",
+            "StartLine": 191,
+            "EndLine": 207,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 191,
+                  "Content": "  AuroraSecret:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAuroraSecret\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 192,
+                  "Content": "    Type: AWS::SecretsManager::Secret",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::SecretsManager::Secret",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 193,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 194,
+                  "Content": "      Description: Aurora PostgreSQL credentials",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDescription\u001b[0m: Aurora PostgreSQL credentials",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 195,
+                  "Content": "      Name: !Sub \"/${EnvironmentName}/aurora/postgres/credentials\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mName\u001b[0m: !Sub \"/${EnvironmentName}/aurora/postgres/credentials\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 196,
+                  "Content": "      SecretString: !Sub |",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSecretString\u001b[0m: !Sub |",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 197,
+                  "Content": "        {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 198,
+                  "Content": "          \"username\": \"${MasterUsername}\",",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33m\"username\": \u001b[0m\u001b[38;5;37m\"${MasterUsername}\"\u001b[0m,",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 199,
+                  "Content": "          \"password\": \"${MasterUserPassword}\",",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33m\"password\": \u001b[0m\u001b[38;5;37m\"${MasterUserPassword}\"\u001b[0m,",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 200,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "AuroraSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 56,
+            "EndLine": 59,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 50,
+                  "Content": "  AuroraSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAuroraSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 51,
+                  "Content": "    Type: AWS::EC2::SecurityGroup",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::EC2::SecurityGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 53,
+                  "Content": "      GroupDescription: Security group for Aurora PostgreSQL Serverless v2",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mGroupDescription\u001b[0m: Security group for Aurora PostgreSQL Serverless v2",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 54,
+                  "Content": "      VpcId: !Ref VpcId",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mVpcId\u001b[0m: !Ref VpcId",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 55,
+                  "Content": "      SecurityGroupIngress:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSecurityGroupIngress\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 56,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 57,
+                  "Content": "          FromPort: 5432",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m5432",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 58,
+                  "Content": "          ToPort: 5432",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m5432",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 59,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "AuroraSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 50,
+                  "EndLine": 62
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

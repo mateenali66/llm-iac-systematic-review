@@ -1,0 +1,189 @@
+# FILE: Chart.yaml
+name: multi-tier-app
+version: 1.0.0
+description: A Helm chart for a multi-tier application
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+frontend:
+  image:
+    repository: frontend
+    tag: latest
+  port: 80
+backend:
+  image:
+    repository: backend
+    tag: latest
+  port: 8080
+postgres:
+  image:
+    repository: postgres
+    tag: latest
+  port: 5432
+  username: postgres
+  password: postgres
+  database: mydb
+configMaps:
+  frontend:
+    key: value
+  backend:
+    key: value
+secrets:
+  postgres:
+    username: postgres
+    password: postgres
+
+---
+# FILE: templates/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.frontend.port }}
+        env:
+        - name: BACKEND_URL
+          value: "http://backend:{{ .Values.backend.port }}"
+
+---
+# FILE: templates/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+        env:
+        - name: DATABASE_URL
+          value: "postgres://{{ .Values.postgres.username }}:{{ .Values.postgres.password }}@postgres:{{ .Values.postgres.port }}/{{ .Values.postgres.database }}"
+
+---
+# FILE: templates/postgres-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.postgres.port }}
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.postgres.username }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.postgres.password }}
+        - name: POSTGRES_DB
+          value: {{ .Values.postgres.database }}
+
+---
+# FILE: templates/frontend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  key: {{ .Values.configMaps.frontend.key }}
+
+---
+# FILE: templates/backend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  key: {{ .Values.configMaps.backend.key }}
+
+---
+# FILE: templates/postgres-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  username: {{ .Values.secrets.postgres.username | b64enc }}
+  password: {{ .Values.secrets.postgres.password | b64enc }}
+
+---
+# FILE: templates/frontend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    port: {{ .Values.frontend.port }}
+    targetPort: {{ .Values.frontend.port }}
+  type: LoadBalancer
+
+---
+# FILE: templates/backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - name: http
+    port: {{ .Values.backend.port }}
+    targetPort: {{ .Values.backend.port }}
+  type: ClusterIP
+
+---
+# FILE: templates/postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+  - name: postgres
+    port: {{ .Values.postgres.port }}
+    targetPort: {{ .Values.postgres.port }}
+  type: ClusterIP

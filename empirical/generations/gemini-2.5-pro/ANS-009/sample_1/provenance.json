@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-009",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Ansible playbook that installs the OpenTelemetry Collector (binary or yum/apt repository), configures it to receive OTLP on port 4317 and export to a remote endpoint, and starts it as a systemd service.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Create an Ansible playbook that installs the OpenTelemetry Collector (binary or yum/apt repository), configures it to receive OTLP on port 4317 and export to a remote endpoint, and starts it as a systemd service.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- hosts: all\n  become: true\n  vars:\n    otel_version: \"0.105.0\"\n    otel_config_dir: /etc/otelcol\n    otel_config_file: \"{{ otel_config_dir }}/config.yaml\"\n    otel_exporter_otlp_endpoint: \"your-remote-endpoint",
+  "cleaned_response": "- hosts: all\n  become: true\n  vars:\n    otel_version: \"0.105.0\"\n    otel_config_dir: /etc/otelcol\n    otel_config_file: \"{{ otel_config_dir }}/config.yaml\"\n    otel_exporter_otlp_endpoint: \"your-remote-endpoint",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- hosts: all\n  become: true\n  vars:\n    otel_version: \"0.105.0\"\n    otel_config_dir: /etc/otelcol\n    otel_config_file: \"{{ otel_config_dir }}/config.yaml\"\n    otel_exporter_otlp_endpoint: \"your-remote-endpoint",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779724114,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 146,
+      "output_tokens": 2044,
+      "raw_input_tokens": 146
+    }
+  },
+  "started_at": "2026-05-25T15:48:13.263281+00:00",
+  "elapsed_seconds": 21.558
+}

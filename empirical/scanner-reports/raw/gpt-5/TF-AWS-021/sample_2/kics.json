@@ -1,0 +1,328 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 431,
+	"files_parsed": 1,
+	"lines_parsed": 415,
+	"lines_ignored": 16,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 6,
+		"INFO": 8,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 16,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:22:57.232199378Z",
+	"end": "2026-05-26T05:23:20.303012708Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Sensitive Port Is Exposed To Entire Network",
+			"query_id": "381c3f2a-ef6f-4eff-99f7-b169cda3422c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for the whole network in either TCP or UDP protocol",
+			"description_id": "5be78364",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "399c497c2bb5fa4bc61c6833a92b95ad8616c5ee67e40c0dbd15c11fc67fbcfb",
+					"line": 114,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb].ingress",
+					"search_line": -1,
+					"search_value": "TCP,443",
+					"expected_value": "HTTPS (TCP:443) should not be allowed",
+					"actual_value": "HTTPS (TCP:443) is allowed"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "89e43b030388ca3111633fb5d107cddc5fb0edac9bec1373b49350dd1425c510",
+					"line": 114,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb].ingress",
+					"search_line": -1,
+					"search_value": "TCP,80",
+					"expected_value": "HTTP (TCP:80) should not be allowed",
+					"actual_value": "HTTP (TCP:80) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4728cd65-a20c-49da-8b31-9c08b423e4db",
+			"query_url": "https://www.terraform.io/docs/providers/aws/r/security_group.html",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Security groups allow ingress from 0.0.0.0:0 and/or ::/0",
+			"description_id": "ce3ee5e0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fb97dd02b422594821978ef329a58c07829190d86b791979ebe71dacc342b017",
+					"line": 119,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 119,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b6590388aff4937b1d92c163bef5766ece3d4af21e07e6a2f2d08bd17c657d39",
+					"line": 120,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 120,
+					"search_value": "",
+					"expected_value": "One of 'ingress.ipv6_cidr_blocks' should not be equal to '::/0'",
+					"actual_value": "One of 'ingress.ipv6_cidr_blocks' is equal '::/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "521dada391b88144512a781103498ea7b6a0d0a6164b70779d234c323a9a15b9",
+					"line": 129,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 129,
+					"search_value": "",
+					"expected_value": "One of 'ingress.ipv6_cidr_blocks' should not be equal to '::/0'",
+					"actual_value": "One of 'ingress.ipv6_cidr_blocks' is equal '::/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4d12965a1334972431596372d3c233e511b9050abfb2a8dbd4b436620e4a1c15",
+					"line": 128,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 128,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				}
+			]
+		},
+		{
+			"query_name": "HTTP Port Open To Internet",
+			"query_id": "ffac8a12-322e-42c1-b9b9-81ff85c39ef7",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "319",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The HTTP port is open to the internet in a Security Group",
+			"description_id": "a829609b",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "238094fb7e66385aad1ef02dfc8b2b1f7cbaf359ee74e19d31a76cf352154ad4",
+					"line": 109,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group.ingress shouldn't open the HTTP port (80)",
+					"actual_value": "aws_security_group.ingress opens the HTTP port (80)"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 109,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "45c6e394207912237d4b75aecb151558812a20001597c847b2158f3afec5843e",
+					"line": 173,
+					"resource_type": "aws_iam_role",
+					"resource_name": "${local.name_prefix}-eb-service-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{eb_service}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{eb_service}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{eb_service}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a67aa212d44c924e9797fcdaaa51c5bd5f2943742ed5ab78153eab1b94589786",
+					"line": 252,
+					"resource_type": "aws_elastic_beanstalk_application",
+					"resource_name": "${local.name_prefix}",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_application[{{app}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_application[{{app}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_elastic_beanstalk_application[{{app}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a1b873b96147797b06e0e5f3b1ced0794c5c9c9d96642d3f9fd4f03139c02cc8",
+					"line": 421,
+					"resource_type": "aws_elastic_beanstalk_environment",
+					"resource_name": "${local.name_prefix}-env",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_environment[{{env}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_environment[{{env}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_elastic_beanstalk_environment[{{env}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "47290fbf1f98b555b3a0a8992dedad6fbc435cd7200c37a09061f860ab09c354",
+					"line": 166,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-instances-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{instances}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{instances}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{instances}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fae5a5be41338a7ecf83091a76db5a793e848992d2adba5a54b714e84924843a",
+					"line": 238,
+					"resource_type": "aws_iam_instance_profile",
+					"resource_name": "${local.name_prefix}-eb-instance-profile",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_instance_profile[{{eb_instance_profile}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_instance_profile[{{eb_instance_profile}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_instance_profile[{{eb_instance_profile}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "725086f35c4aed2fb4462166f37284cc0f81a9d8407edade5a491e1b402af79f",
+					"line": 206,
+					"resource_type": "aws_iam_role",
+					"resource_name": "${local.name_prefix}-eb-instance-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{eb_instance}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{eb_instance}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{eb_instance}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8df7f42cd3d65dd2dad8115acb09836859cbc66890497ac69a85f3b78e755c92",
+					"line": 141,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-alb-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{alb}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{alb}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{alb}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Not Used",
+			"query_id": "4849211b-ac39-479e-ae78-5694d506cb24",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Security group must be used or not declared",
+			"description_id": "eff2383a",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "f0da73a320d1024ab11b47e5f2587d26da511676fc475fc3bc47704cfde74a48",
+					"line": 144,
+					"resource_type": "aws_security_group",
+					"resource_name": "${local.name_prefix}-instances-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[instances]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_security_group[instances]' should be used",
+					"actual_value": "'aws_security_group[instances]' is not used"
+				}
+			]
+		}
+	]
+}

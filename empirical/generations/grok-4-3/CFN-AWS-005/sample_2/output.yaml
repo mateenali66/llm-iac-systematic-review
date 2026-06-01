@@ -1,0 +1,252 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Three-tier VPC with public, application, and database subnets across three AZs
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+  AvailabilityZones:
+    Type: List<AWS::EC2::AvailabilityZone::Name>
+    Default: us-east-1a,us-east-1b,us-east-1c
+  PublicSubnetCidrs:
+    Type: List<String>
+    Default: 10.0.0.0/24,10.0.3.0/24,10.0.6.0/24
+  AppSubnetCidrs:
+    Type: List<String>
+    Default: 10.0.1.0/24,10.0.4.0/24,10.0.7.0/24
+  DbSubnetCidrs:
+    Type: List<String>
+    Default: 10.0.2.0/24,10.0.5.0/24,10.0.8.0/24
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: three-tier-vpc
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: three-tier-igw
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: public-rt
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  NatEIP1:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatEIP2:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatEIP3:
+    Type: AWS::EC2::EIP
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      Domain: vpc
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: nat-az1
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: nat-az2
+  NatGateway3:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEIP3.AllocationId
+      SubnetId: !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: nat-az3
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-rt-az1
+  PrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-rt-az2
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-rt-az3
+  PrivateRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [0, !Ref PublicSubnetCidrs]
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: public-subnet-az1
+        - Key: Tier
+          Value: public
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [1, !Ref PublicSubnetCidrs]
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: public-subnet-az2
+        - Key: Tier
+          Value: public
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [2, !Ref PublicSubnetCidrs]
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: public-subnet-az3
+        - Key: Tier
+          Value: public
+  AppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [0, !Ref AppSubnetCidrs]
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: app-subnet-az1
+        - Key: Tier
+          Value: application
+  AppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [1, !Ref AppSubnetCidrs]
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: app-subnet-az2
+        - Key: Tier
+          Value: application
+  AppSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [2, !Ref AppSubnetCidrs]
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: app-subnet-az3
+        - Key: Tier
+          Value: application
+  DbSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [0, !Ref DbSubnetCidrs]
+      AvailabilityZone: !Select [0, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: db-subnet-az1
+        - Key: Tier
+          Value: database
+  DbSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [1, !Ref DbSubnetCidrs]
+      AvailabilityZone: !Select [1, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: db-subnet-az2
+        - Key: Tier
+          Value: database
+  DbSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [2, !Ref DbSubnetCidrs]
+      AvailabilityZone: !Select [2, !Ref AvailabilityZones]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: db-subnet-az3
+        - Key: Tier
+          Value: database
+  PublicSubnet1Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet2Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  PublicSubnet3Association:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:

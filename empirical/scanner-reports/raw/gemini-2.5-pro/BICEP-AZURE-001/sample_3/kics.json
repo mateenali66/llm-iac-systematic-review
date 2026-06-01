@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 138,
+	"files_parsed": 1,
+	"lines_parsed": 138,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:51:52.276045542Z",
+	"end": "2026-05-26T04:51:53.334969001Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "e89499b8dbd61491966566697c75d3000ce0b4ed8695bfcce159729105d0c8d0",
+					"line": 39,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.publicNetworkAccess",
+					"search_line": 39,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess is not set (default is 'Enabled')"
+				}
+			]
+		},
+		{
+			"query_name": "Azure Instance Using Basic Authentication",
+			"query_id": "6797f581-0433-4768-ae3e-7ceb2f8b138e",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?tabs=json#linuxconfiguration-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "522",
+			"cloud_provider": "AZURE",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Azure Instances should use SSH Key instead of basic authentication",
+			"description_id": "98ba05ca",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "1b135f8fca3ff6ef2deb713aa8ee04b3dc547b7e1b9a15124fdc017ca10278c1",
+					"line": 133,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "[variables('virtualMachineName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('virtualMachineName')]",
+					"search_line": 133,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'linuxConfiguration.disablePasswordAuthentication' is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "8b4f123a7439ce0ee9e6cb6733a476e0b16aaaf54c01eecbb7b9f7da27311cd6",
+					"line": 39,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('storageAccountName')].properties",
+					"search_line": 39,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' should have the 'properties.networkAcls.defaultAction' defined",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' doesn't have 'properties.networkAcls.defaultAction' defined"
+				}
+			]
+		}
+	]
+}

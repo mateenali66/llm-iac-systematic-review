@@ -1,0 +1,143 @@
+---
+- name: Deploy Java application as a systemd service
+  hosts: all
+  become: true
+
+  vars:
+    java_package: openjdk-21-jre-headless
+    app_name: javaapp
+    app_user: "{{ app_name }}"
+    app_group: "{{ app_name }}"
+    app_home: "/opt/{{ app_name }}"
+    app_jar_src: "files/{{ app_name }}.jar"
+    app_jar_dest: "{{ app_home }}/{{ app_name }}.jar"
+    app_log_dir: "/var/log/{{ app_name }}"
+    java_opts: "-Xms256m -Xmx512m"
+    app_args: ""
+    service_name: "{{ app_name }}"
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart application
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        state: restarted
+
+  tasks:
+    - name: Update apt cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Install OpenJDK 21 (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: "{{ java_package }}"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install OpenJDK 21 (RedHat)
+      ansible.builtin.dnf:
+        name: java-21-openjdk-headless
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure service group exists
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        system: true
+        state: present
+
+    - name: Ensure service user exists
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ app_home }}"
+        create_home: false
+        state: present
+
+    - name: Create application home directory
+      ansible.builtin.file:
+        path: "{{ app_home }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0750"
+
+    - name: Create application log directory
+      ansible.builtin.file:
+        path: "{{ app_log_dir }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0750"
+
+    - name: Deploy application JAR
+      ansible.builtin.copy:
+        src: "{{ app_jar_src }}"
+        dest: "{{ app_jar_dest }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0640"
+      notify: Restart application
+
+    - name: Install systemd unit file
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description={{ app_name }} Java Application
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_group }}
+          WorkingDirectory={{ app_home }}
+          ExecStart=/usr/bin/java {{ java_opts }} -jar {{ app_jar_dest }} {{ app_args }}
+          SuccessExitStatus=143
+          Restart=on-failure
+          RestartSec=10
+          StandardOutput=append:{{ app_log_dir }}/{{ app_name }}.log
+          StandardError=append:{{ app_log_dir }}/{{ app_name }}.err
+          # Security hardening
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ReadWritePaths={{ app_log_dir }} {{ app_home }}
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          ProtectControlGroups=true
+          RestrictSUIDSGID=true
+          LockPersonality=true
+          RestrictRealtime=true
+          RestrictNamespaces=true
+          MemoryDenyWriteExecute=false
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+          SystemCallArchitectures=native
+          UMask=0027
+          LimitNOFILE=65536
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Restart application
+
+    - name: Ensure application service is enabled and started
+      ansible.builtin.systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true

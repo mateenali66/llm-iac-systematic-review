@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-022",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_elasticache_subnet_group\" \"redis_subnet_group\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = var.subnet_ids\n\n  tags = {\n    Name = \"redis-subnet-group\"\n  }\n}\n\nresource \"aws_security_group\" \"redis_sg\" {\n  name        = \"redis-security-group\"\n  description = \"Security group for Redis ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-security-group\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis6.x\"\n  engine_version       = \"6.2\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis_subnet_group.name\n  security_group_ids   = [aws_security_group.redis_sg.id]\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-05:00\"\n  snapshot_retention_limit = 7\n\n  apply_immediately = true\n\n  tags = {\n    Name = \"redis-cluster\"\n    Environment = var.environment\n  }\n}",
+  "cleaned_response": "resource \"aws_elasticache_subnet_group\" \"redis_subnet_group\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = var.subnet_ids\n\n  tags = {\n    Name = \"redis-subnet-group\"\n  }\n}\n\nresource \"aws_security_group\" \"redis_sg\" {\n  name        = \"redis-security-group\"\n  description = \"Security group for Redis ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-security-group\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis6.x\"\n  engine_version       = \"6.2\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis_subnet_group.name\n  security_group_ids   = [aws_security_group.redis_sg.id]\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-05:00\"\n  snapshot_retention_limit = 7\n\n  apply_immediately = true\n\n  tags = {\n    Name = \"redis-cluster\"\n    Environment = var.environment\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_elasticache_subnet_group\" \"redis_subnet_group\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = var.subnet_ids\n\n  tags = {\n    Name = \"redis-subnet-group\"\n  }\n}\n\nresource \"aws_security_group\" \"redis_sg\" {\n  name        = \"redis-security-group\"\n  description = \"Security group for Redis ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-security-group\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis6.x\"\n  engine_version       = \"6.2\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis_subnet_group.name\n  security_group_ids   = [aws_security_group.redis_sg.id]\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-05:00\"\n  snapshot_retention_limit = 7\n\n  apply_immediately = true\n\n  tags = {\n    Name = \"redis-cluster\"\n    Environment = var.environment\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726792,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 138,
+      "output_tokens": 384,
+      "raw_input_tokens": 138
+    }
+  },
+  "started_at": "2026-05-25T16:33:04.869311+00:00",
+  "elapsed_seconds": 7.254
+}

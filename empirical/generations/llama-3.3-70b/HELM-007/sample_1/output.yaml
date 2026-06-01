@@ -1,0 +1,134 @@
+# FILE: Chart.yaml
+name: stateful-app
+version: 1.0.0
+description: A Helm chart for a stateful application
+type: application
+appVersion: 1.0.0
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: stateful-app
+  tag: latest
+  pullPolicy: IfNotPresent
+database:
+  name: stateful-app
+  user: stateful-app
+  password: stateful-app
+  host: localhost
+  port: 5432
+migration:
+  image:
+    repository: stateful-app-migration
+    tag: latest
+  command: ["migrate"]
+volume:
+  size: 1Gi
+  storageClass: standard
+---
+# FILE: templates/_helpers.tpl
+{{- define "stateful-app.fullname" -}}
+{{- printf "%s-%s" .Chart.Name .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "stateful-app.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "stateful-app.fullname" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: DATABASE_NAME
+          value: {{ .Values.database.name }}
+        - name: DATABASE_USER
+          value: {{ .Values.database.user }}
+        - name: DATABASE_PASSWORD
+          value: {{ .Values.database.password }}
+        - name: DATABASE_HOST
+          value: {{ .Values.database.host }}
+        - name: DATABASE_PORT
+          value: {{ .Values.database.port | quote }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "stateful-app.fullname" . }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  selector:
+    app: {{ include "stateful-app.fullname" . }}
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  clusterIP: None
+  type: ClusterIP
+---
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.volume.size }}
+  storageClassName: {{ .Values.volume.storageClass }}
+---
+# FILE: templates/pre-install-migration.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migration
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": hook-failed
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag }}"
+        command: {{ .Values.migration.command }}
+      restartPolicy: OnFailure
+  backoffLimit: 4
+---
+# FILE: templates/pre-upgrade-migration.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migration
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": hook-failed
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag }}"
+        command: {{ .Values.migration.command }}
+      restartPolicy: OnFailure
+  backoffLimit: 4

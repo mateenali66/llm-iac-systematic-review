@@ -1,0 +1,259 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Fargate cluster with two microservices behind an internal NLB'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the resources
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of private subnet IDs for Fargate tasks
+  ContainerImage1:
+    Type: String
+    Description: ECR image URI for microservice 1
+    Default: 'nginx:latest'
+  ContainerImage2:
+    Type: String
+    Description: ECR image URI for microservice 2
+    Default: 'nginx:latest'
+  ContainerPort1:
+    Type: Number
+    Description: Container port for microservice 1
+    Default: 80
+  ContainerPort2:
+    Type: Number
+    Description: Container port for microservice 2
+    Default: 80
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: fargate-cluster
+      CapacityProviders:
+        - FARGATE
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/fargate-microservices
+      RetentionInDays: 30
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ECS tasks
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort1
+          ToPort: !Ref ContainerPort1
+          SourceSecurityGroupId: !Ref NlbSecurityGroup
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort2
+          ToPort: !Ref ContainerPort2
+          SourceSecurityGroupId: !Ref NlbSecurityGroup
+
+  NlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for NLB
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort1
+          ToPort: !Ref ContainerPort1
+          CidrIp: 10.0.0.0/8
+        - IpProtocol: tcp
+          FromPort: !Ref ContainerPort2
+          ToPort: !Ref ContainerPort2
+          CidrIp: 10.0.0.0/8
+
+  TaskDefinition1:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: microservice1
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: microservice1
+          Image: !Ref ContainerImage1
+          Essential: true
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort1
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: microservice1
+
+  TaskDefinition2:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: microservice2
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: microservice2
+          Image: !Ref ContainerImage2
+          Essential: true
+          PortMappings:
+            - ContainerPort: !Ref ContainerPort2
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: microservice2
+
+  Service1:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref TaskDefinition1
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref SecurityGroup
+          Subnets: !Ref SubnetIds
+      LoadBalancers:
+        - ContainerName: microservice1
+          ContainerPort: !Ref ContainerPort1
+          TargetGroupArn: !Ref TargetGroup1
+
+  Service2:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref TaskDefinition2
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          SecurityGroups:
+            - !Ref SecurityGroup
+          Subnets: !Ref SubnetIds
+      LoadBalancers:
+        - ContainerName: microservice2
+          ContainerPort: !Ref ContainerPort2
+          TargetGroupArn: !Ref TargetGroup2
+
+  Nlb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: network
+      Scheme: internal
+      SecurityGroups:
+        - !Ref NlbSecurityGroup
+      Subnets: !Ref SubnetIds
+      Name: internal-nlb
+
+  Listener1:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup1
+      LoadBalancerArn: !Ref Nlb
+      Port: !Ref ContainerPort1
+      Protocol: TCP
+
+  Listener2:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup2
+      LoadBalancerArn: !Ref Nlb
+      Port: !Ref ContainerPort2
+      Protocol: TCP
+
+  TargetGroup1:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: !Ref ContainerPort1
+      Protocol: TCP
+      TargetType: ip
+      VpcId: !Ref VpcId
+      HealthCheckEnabled: true
+      HealthCheckProtocol: TCP
+      HealthCheckPort: traffic-port
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  TargetGroup2:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: !Ref ContainerPort2
+      Protocol: TCP
+      TargetType: ip
+      VpcId: !Ref VpcId
+      HealthCheckEnabled: true
+      HealthCheckProtocol: TCP
+      HealthCheckPort: traffic-port
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+Outputs:
+  ClusterName:
+    Description: ECS Cluster name
+    Value: !Ref ECSCluster
+  NlbDnsName:
+    Description: NLB DNS name
+    Value: !GetAtt Nlb.DNSName
+  Service1Name:
+    Description: ECS Service 1 name
+    Value: !Ref Service1
+  Service2Name:
+    Description: ECS Service 2 name
+    Value: !Ref Service2

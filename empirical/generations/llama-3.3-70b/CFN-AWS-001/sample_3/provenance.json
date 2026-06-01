@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CFN-AWS-001",
+  "language": "cloudformation",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudFormation template that provisions an S3 bucket suitable for hosting application user uploads with appropriate access controls.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Create a CloudFormation template that provisions an S3 bucket suitable for hosting application user uploads with appropriate access controls.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket to host application user uploads\n\nResources:\n  UploadsBucket:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: !Sub 'uploads-${AWS::AccountId}-${AWS::Region}'\n      VersioningConfiguration:\n        Status: Enabled\n      PublicAccessBlockConfiguration:\n        BlockPublicAcls: true\n        BlockPublicPolicy: true\n        IgnorePublicAcls: true\n        RestrictPublicBuckets: true\n\n  UploadsBucketPolicy:\n    Type: AWS::S3::BucketPolicy\n    Properties:\n      Bucket: !Ref UploadsBucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: AllowGetAndPutForAuthorizedUsers\n            Effect: Allow\n            Principal:\n              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ApplicationRole'\n            Action:\n              - s3:GetObject\n              - s3:PutObject\n              - s3:DeleteObject\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/uploads/*'\n          - Sid: DenyInsecureConnections\n            Effect: Deny\n            Principal: '*'\n            Action: '*'\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/*'\n            Condition:\n              StringNotEquals:\n                'aws:SecureTransport': 'true'\n\nOutputs:\n  UploadsBucketName:\n    Value: !Ref UploadsBucket\n    Description: Name of the S3 bucket for application user uploads",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket to host application user uploads\n\nResources:\n  UploadsBucket:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: !Sub 'uploads-${AWS::AccountId}-${AWS::Region}'\n      VersioningConfiguration:\n        Status: Enabled\n      PublicAccessBlockConfiguration:\n        BlockPublicAcls: true\n        BlockPublicPolicy: true\n        IgnorePublicAcls: true\n        RestrictPublicBuckets: true\n\n  UploadsBucketPolicy:\n    Type: AWS::S3::BucketPolicy\n    Properties:\n      Bucket: !Ref UploadsBucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: AllowGetAndPutForAuthorizedUsers\n            Effect: Allow\n            Principal:\n              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ApplicationRole'\n            Action:\n              - s3:GetObject\n              - s3:PutObject\n              - s3:DeleteObject\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/uploads/*'\n          - Sid: DenyInsecureConnections\n            Effect: Deny\n            Principal: '*'\n            Action: '*'\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/*'\n            Condition:\n              StringNotEquals:\n                'aws:SecureTransport': 'true'\n\nOutputs:\n  UploadsBucketName:\n    Value: !Ref UploadsBucket\n    Description: Name of the S3 bucket for application user uploads",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket to host application user uploads\n\nResources:\n  UploadsBucket:\n    Type: AWS::S3::Bucket\n    Properties:\n      BucketName: !Sub 'uploads-${AWS::AccountId}-${AWS::Region}'\n      VersioningConfiguration:\n        Status: Enabled\n      PublicAccessBlockConfiguration:\n        BlockPublicAcls: true\n        BlockPublicPolicy: true\n        IgnorePublicAcls: true\n        RestrictPublicBuckets: true\n\n  UploadsBucketPolicy:\n    Type: AWS::S3::BucketPolicy\n    Properties:\n      Bucket: !Ref UploadsBucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: AllowGetAndPutForAuthorizedUsers\n            Effect: Allow\n            Principal:\n              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ApplicationRole'\n            Action:\n              - s3:GetObject\n              - s3:PutObject\n              - s3:DeleteObject\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/uploads/*'\n          - Sid: DenyInsecureConnections\n            Effect: Deny\n            Principal: '*'\n            Action: '*'\n            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/*'\n            Condition:\n              StringNotEquals:\n                'aws:SecureTransport': 'true'\n\nOutputs:\n  UploadsBucketName:\n    Value: !Ref UploadsBucket\n    Description: Name of the S3 bucket for application user uploads",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723679,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 157,
+      "output_tokens": 340,
+      "raw_input_tokens": 157
+    }
+  },
+  "started_at": "2026-05-25T15:41:18.192494+00:00",
+  "elapsed_seconds": 1.689
+}

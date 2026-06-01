@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-021",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs18\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 (.*) running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = \"nodejs-app\"\n  description = \"Production Node.js 18 application\"\n}\n\nresource \"aws_elastic_beanstalk_environment\" \"env\" {\n  name                = \"nodejs-prod\"\n  application         = aws_elastic_beanstalk_application.app.name\n  solution_stack_name = data.aws_elastic_beanstalk_solution_stack.nodejs18.name\n  tier                = \"WebServer\"\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"InstanceType\"\n    value     = \"t3.small\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"IamInstanceProfile\"\n    value     = \"aws-elasticbeanstalk-ec2-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment\"\n    name      = \"ServiceRole\"\n    value     = \"aws-elasticbeanstalk-service-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"ManagedActionsEnabled\"\n    value     = \"true\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"PreferredStartTime\"\n    value     = \"Sun:02:00\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions:platformupdate\"\n    name      = \"UpdateLevel\"\n    value     = \"minor\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment:process:default\"\n    name      = \"HealthCheckPath\"\n    value     = \"/\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"SecurityGroups\"\n    value     = \"\"\n  }\n\n  tags = {\n    Environment = \"production\"\n    Application = \"nodejs\"\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs18\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 (.*) running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = \"nodejs-app\"\n  description = \"Production Node.js 18 application\"\n}\n\nresource \"aws_elastic_beanstalk_environment\" \"env\" {\n  name                = \"nodejs-prod\"\n  application         = aws_elastic_beanstalk_application.app.name\n  solution_stack_name = data.aws_elastic_beanstalk_solution_stack.nodejs18.name\n  tier                = \"WebServer\"\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"InstanceType\"\n    value     = \"t3.small\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"IamInstanceProfile\"\n    value     = \"aws-elasticbeanstalk-ec2-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment\"\n    name      = \"ServiceRole\"\n    value     = \"aws-elasticbeanstalk-service-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"ManagedActionsEnabled\"\n    value     = \"true\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"PreferredStartTime\"\n    value     = \"Sun:02:00\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions:platformupdate\"\n    name      = \"UpdateLevel\"\n    value     = \"minor\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment:process:default\"\n    name      = \"HealthCheckPath\"\n    value     = \"/\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"SecurityGroups\"\n    value     = \"\"\n  }\n\n  tags = {\n    Environment = \"production\"\n    Application = \"nodejs\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs18\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 (.*) running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = \"nodejs-app\"\n  description = \"Production Node.js 18 application\"\n}\n\nresource \"aws_elastic_beanstalk_environment\" \"env\" {\n  name                = \"nodejs-prod\"\n  application         = aws_elastic_beanstalk_application.app.name\n  solution_stack_name = data.aws_elastic_beanstalk_solution_stack.nodejs18.name\n  tier                = \"WebServer\"\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"InstanceType\"\n    value     = \"t3.small\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"IamInstanceProfile\"\n    value     = \"aws-elasticbeanstalk-ec2-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment\"\n    name      = \"ServiceRole\"\n    value     = \"aws-elasticbeanstalk-service-role\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"ManagedActionsEnabled\"\n    value     = \"true\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions\"\n    name      = \"PreferredStartTime\"\n    value     = \"Sun:02:00\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:managedactions:platformupdate\"\n    name      = \"UpdateLevel\"\n    value     = \"minor\"\n  }\n\n  setting {\n    namespace = \"aws:elasticbeanstalk:environment:process:default\"\n    name      = \"HealthCheckPath\"\n    value     = \"/\"\n  }\n\n  setting {\n    namespace = \"aws:autoscaling:launchconfiguration\"\n    name      = \"SecurityGroups\"\n    value     = \"\"\n  }\n\n  tags = {\n    Environment = \"production\"\n    Application = \"nodejs\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726994,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 91,
+      "output_tokens": 461,
+      "reasoning_tokens": 766,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 61
+    }
+  },
+  "started_at": "2026-05-25T16:36:23.269000+00:00",
+  "elapsed_seconds": 11.088
+}

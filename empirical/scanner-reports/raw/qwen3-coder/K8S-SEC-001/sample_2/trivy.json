@@ -1,0 +1,754 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:30:24.151749964Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 92,
+        "Failures": 7
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV020",
+          "AVDID": "AVD-KSV-0020",
+          "Title": "Runs with UID \u003c= 10000",
+          "Description": "Force the container to run with user ID \u003e 10000 to avoid conflicts with the host’s user table.",
+          "Message": "Container 'nginx' of Pod 'secure-nginx' should set 'securityContext.runAsUser' \u003e 10000",
+          "Namespace": "builtin.kubernetes.KSV020",
+          "Query": "data.builtin.kubernetes.KSV020.deny",
+          "Resolution": "Set 'containers[].securityContext.runAsUser' to an integer \u003e 10000.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv020",
+          "References": [
+            "https://kubesec.io/basics/containers-securitycontext-runasuser/",
+            "https://avd.aquasec.com/misconfig/ksv020"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 9,
+            "EndLine": 31,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 9,
+                  "Content": "  - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    image: nginx:1.25.3",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mimage\u001b[0m: nginx:1.25.3",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "    securityContext:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33msecurityContext\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "      runAsNonRoot: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mrunAsNonRoot\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "      runAsUser: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsUser\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "      runAsGroup: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsGroup\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      capabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mcapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "        drop:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdrop\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "        - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - ALL",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 18,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV021",
+          "AVDID": "AVD-KSV-0021",
+          "Title": "Runs with GID \u003c= 10000",
+          "Description": "Force the container to run with group ID \u003e 10000 to avoid conflicts with the host’s user table.",
+          "Message": "Container 'nginx' of Pod 'secure-nginx' should set 'securityContext.runAsGroup' \u003e 10000",
+          "Namespace": "builtin.kubernetes.KSV021",
+          "Query": "data.builtin.kubernetes.KSV021.deny",
+          "Resolution": "Set 'containers[].securityContext.runAsGroup' to an integer \u003e 10000.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv021",
+          "References": [
+            "https://kubesec.io/basics/containers-securitycontext-runasuser/",
+            "https://avd.aquasec.com/misconfig/ksv021"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 9,
+            "EndLine": 31,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 9,
+                  "Content": "  - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    image: nginx:1.25.3",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mimage\u001b[0m: nginx:1.25.3",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "    securityContext:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33msecurityContext\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "      runAsNonRoot: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mrunAsNonRoot\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "      runAsUser: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsUser\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "      runAsGroup: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsGroup\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      capabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mcapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "        drop:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdrop\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "        - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - ALL",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 18,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV032",
+          "AVDID": "AVD-KSV-0032",
+          "Title": "All container images must start with the *.azurecr.io domain",
+          "Description": "Containers should only use images from trusted registries.",
+          "Message": "container nginx of pod secure-nginx in default namespace should restrict container image to your specific registry domain. For Azure any domain ending in 'azurecr.io'",
+          "Namespace": "builtin.kubernetes.KSV032",
+          "Query": "data.builtin.kubernetes.KSV032.deny",
+          "Resolution": "Use images from trusted Azure registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv032",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv032"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 9,
+            "EndLine": 31,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 9,
+                  "Content": "  - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    image: nginx:1.25.3",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mimage\u001b[0m: nginx:1.25.3",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "    securityContext:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33msecurityContext\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "      runAsNonRoot: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mrunAsNonRoot\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "      runAsUser: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsUser\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "      runAsGroup: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsGroup\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      capabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mcapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "        drop:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdrop\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "        - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - ALL",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 18,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV033",
+          "AVDID": "AVD-KSV-0033",
+          "Title": "All container images must start with a GCR domain",
+          "Description": "Containers should only use images from trusted GCR registries.",
+          "Message": "container nginx of pod secure-nginx in default namespace should restrict container image to your specific registry domain. See the full GCR list here: https://cloud.google.com/container-registry/docs/overview#registries",
+          "Namespace": "builtin.kubernetes.KSV033",
+          "Query": "data.builtin.kubernetes.KSV033.deny",
+          "Resolution": "Use images from trusted GCR registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv033",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv033"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 9,
+            "EndLine": 31,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 9,
+                  "Content": "  - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    image: nginx:1.25.3",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mimage\u001b[0m: nginx:1.25.3",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "    securityContext:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33msecurityContext\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "      runAsNonRoot: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mrunAsNonRoot\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "      runAsUser: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsUser\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "      runAsGroup: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsGroup\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      capabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mcapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "        drop:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdrop\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "        - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - ALL",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 18,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV035",
+          "AVDID": "AVD-KSV-0035",
+          "Title": "All container images must start with an ECR domain",
+          "Description": "Container images from non-ECR registries should be forbidden.",
+          "Message": "Container 'nginx' of Pod 'secure-nginx' should restrict images to own ECR repository. See the full ECR list here: https://docs.aws.amazon.com/general/latest/gr/ecr.html",
+          "Namespace": "builtin.kubernetes.KSV035",
+          "Query": "data.builtin.kubernetes.KSV035.deny",
+          "Resolution": "Container image should be used from Amazon container Registry",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv035",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv035"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 9,
+            "EndLine": 31,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 9,
+                  "Content": "  - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    image: nginx:1.25.3",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mimage\u001b[0m: nginx:1.25.3",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "    securityContext:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33msecurityContext\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "      runAsNonRoot: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mrunAsNonRoot\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "      runAsUser: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsUser\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "      runAsGroup: 101",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mrunAsGroup\u001b[0m: \u001b[38;5;37m101",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      capabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mcapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "        drop:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdrop\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "        - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - ALL",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 18,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV110",
+          "AVDID": "AVD-KSV-0110",
+          "Title": "Workloads in the default namespace",
+          "Description": "Checks whether a workload is running in the default namespace.",
+          "Message": "pod secure-nginx in default namespace should set metadata.namespace to a non-default namespace",
+          "Namespace": "builtin.kubernetes.KSV110",
+          "Query": "data.builtin.kubernetes.KSV110.deny",
+          "Resolution": "Set 'metadata.namespace' to a non-default namespace.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv110",
+          "References": [
+            "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+            "https://avd.aquasec.com/misconfig/ksv110"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 4,
+            "EndLine": 6,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 4,
+                  "Content": "  name: secure-nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mname\u001b[0m: secure-nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 5,
+                  "Content": "  labels:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mlabels\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 6,
+                  "Content": "    app: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mapp\u001b[0m: nginx",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV117",
+          "AVDID": "AVD-KSV-0117",
+          "Title": "Prevent binding to privileged ports",
+          "Description": "The ports which are lower than 1024 receive and transmit various sensitive and privileged data. Allowing containers to use them can bring serious implications.",
+          "Message": "pod secure-nginx in default namespace should not set spec.template.spec.containers.ports.containerPort to less than 1024",
+          "Namespace": "builtin.kubernetes.KSV117",
+          "Query": "data.builtin.kubernetes.KSV117.deny",
+          "Resolution": "Do not map the container ports to privileged host ports when starting a container.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv117",
+          "References": [
+            "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+            "https://www.stigviewer.com/stig/kubernetes/2022-12-02/finding/V-242414",
+            "https://avd.aquasec.com/misconfig/ksv117"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "Code": {
+              "Lines": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

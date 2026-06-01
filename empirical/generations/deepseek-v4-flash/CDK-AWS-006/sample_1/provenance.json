@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "CDK-AWS-006",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    aws_iam as iam,\n    aws_lambda as lambda_,\n    Stack,\n    aws_ssm as ssm,\n    CfnOutput,\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaInvokerStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Configuration - adjust these values as needed\n        partner_account_id = ssm.StringParameter.from_string_parameter_name(\n            self, \"PartnerAccountIdParam\",\n            string_parameter_name=\"/cross-account/partner-account-id\"\n        ).string_value\n\n        lambda_function_arns = [\n            ssm.StringParameter.from_string_parameter_name(\n                self, f\"LambdaArnParam{i}\",\n                string_parameter_name=f\"/cross-account/lambda-arn-{i}\"\n            ).string_value\n            for i in range(1, 4)  # Adjust range for number of functions\n        ]\n\n        # Create the IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokerRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role for cross-account Lambda invocation\",\n            role_name=\"CrossAccountLambdaInvokerRole\",\n            max_session_duration=iam.Duration.hours(1),\n        )\n\n        # Grant invoke permissions on each Lambda function\n        for i, function_arn in enumerate(lambda_function_arns):\n            lambda_function = lambda_.Function.from_function_arn(\n                self, f\"TargetLambda{i}\",\n                function_arn=function_arn\n            )\n            lambda_function.grant_invoke(cross_account_role)\n\n        # Output the role ARN for reference\n        CfnOutput(\n            self, \"CrossAccountRoleArn\",\n            value=cross_account_role.role_arn,\n            description=\"ARN of the cross-account IAM role\"\n        )",
+  "cleaned_response": "from aws_cdk import (\n    aws_iam as iam,\n    aws_lambda as lambda_,\n    Stack,\n    aws_ssm as ssm,\n    CfnOutput,\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaInvokerStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Configuration - adjust these values as needed\n        partner_account_id = ssm.StringParameter.from_string_parameter_name(\n            self, \"PartnerAccountIdParam\",\n            string_parameter_name=\"/cross-account/partner-account-id\"\n        ).string_value\n\n        lambda_function_arns = [\n            ssm.StringParameter.from_string_parameter_name(\n                self, f\"LambdaArnParam{i}\",\n                string_parameter_name=f\"/cross-account/lambda-arn-{i}\"\n            ).string_value\n            for i in range(1, 4)  # Adjust range for number of functions\n        ]\n\n        # Create the IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokerRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role for cross-account Lambda invocation\",\n            role_name=\"CrossAccountLambdaInvokerRole\",\n            max_session_duration=iam.Duration.hours(1),\n        )\n\n        # Grant invoke permissions on each Lambda function\n        for i, function_arn in enumerate(lambda_function_arns):\n            lambda_function = lambda_.Function.from_function_arn(\n                self, f\"TargetLambda{i}\",\n                function_arn=function_arn\n            )\n            lambda_function.grant_invoke(cross_account_role)\n\n        # Output the role ARN for reference\n        CfnOutput(\n            self, \"CrossAccountRoleArn\",\n            value=cross_account_role.role_arn,\n            description=\"ARN of the cross-account IAM role\"\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    aws_iam as iam,\n    aws_lambda as lambda_,\n    Stack,\n    aws_ssm as ssm,\n    CfnOutput,\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaInvokerStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Configuration - adjust these values as needed\n        partner_account_id = ssm.StringParameter.from_string_parameter_name(\n            self, \"PartnerAccountIdParam\",\n            string_parameter_name=\"/cross-account/partner-account-id\"\n        ).string_value\n\n        lambda_function_arns = [\n            ssm.StringParameter.from_string_parameter_name(\n                self, f\"LambdaArnParam{i}\",\n                string_parameter_name=f\"/cross-account/lambda-arn-{i}\"\n            ).string_value\n            for i in range(1, 4)  # Adjust range for number of functions\n        ]\n\n        # Create the IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokerRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role for cross-account Lambda invocation\",\n            role_name=\"CrossAccountLambdaInvokerRole\",\n            max_session_duration=iam.Duration.hours(1),\n        )\n\n        # Grant invoke permissions on each Lambda function\n        for i, function_arn in enumerate(lambda_function_arns):\n            lambda_function = lambda_.Function.from_function_arn(\n                self, f\"TargetLambda{i}\",\n                function_arn=function_arn\n            )\n            lambda_function.grant_invoke(cross_account_role)\n\n        # Output the role ARN for reference\n        CfnOutput(\n            self, \"CrossAccountRoleArn\",\n            value=cross_account_role.role_arn,\n            description=\"ARN of the cross-account IAM role\"\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728036,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 128,
+      "output_tokens": 426,
+      "raw_input_tokens": 128
+    }
+  },
+  "started_at": "2026-05-25T16:53:52.221371+00:00",
+  "elapsed_seconds": 4.281
+}

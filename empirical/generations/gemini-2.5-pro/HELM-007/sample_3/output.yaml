@@ -1,0 +1,81 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: my-stateful-app
+description: A Helm chart for a stateful application with a pre-install migration job
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Default values for my-stateful-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 3
+
+image:
+  repository: my-app-image
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  runAsUser: 1001
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Headless service for the StatefulSet
+headlessService:
+  port: 80
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  # storageClassName: ""
+  # existingClaim: ""
+
+# Database configuration
+# It is strongly recommended to use an existing secret
+database:
+  existingSecret: "" # e.g., "my-app-db-credentials"
+  # If not using an existing secret, you can specify the values here.
+  # This is not recommended for production.
+  # secretValues:
+  #   username: "user"
+  #   password: "password"
+  #   host: "postgres.default.svc.cluster.local"
+  #   port: "5432"
+  #   name: "appdb"
+
+# Pre-install/pre-upgrade migration job
+migration:
+  enabled: true
+  image:
+    repository: my-app-image
+    pull

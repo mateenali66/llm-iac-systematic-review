@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-OBS-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes Deployment manifest for the Prometheus Node Exporter, running as a DaemonSet on every node in the cluster.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes Deployment manifest for the Prometheus Node Exporter, running as a DaemonSet on every node in the cluster.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n  labels:\n    app.kubernetes.io/name: node-exporter\n    app.kubernetes.io/component: exporter\nspec:\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: node-exporter\n  updateStrategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 10%\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: node-exporter\n        app.kubernetes.io/component: exporter\n    spec:\n      hostNetwork: true\n      hostPID: true\n      tolerations:\n      - key: node-role.kubernetes.io/master\n        operator: Exists\n        effect: NoSchedule\n      - key: node-role.kubernetes.io/control-plane\n        operator: Exists\n        effect: NoSchedule\n      containers:\n      - name: node-exporter\n        image: prom/node-exporter:v1.7.0\n        args:\n        - --path.procfs=/host/proc\n        - --path.sysfs=/host/sys\n        - --path.rootfs=/host/root\n        - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)\n        ports:\n        - name: metrics\n          containerPort: 9100\n          hostPort: 9100\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 10\n          periodSeconds: 30\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 5\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 500m\n            memory: 256Mi\n        securityContext:\n          runAsUser: 0\n          runAsGroup: 0\n          readOnlyRootFilesystem: true\n          allowPrivilegeEscalation: false\n          capabilities:\n            drop:\n            - ALL\n            add:\n            - SYS_TIME\n        volumeMounts:\n        - name: proc\n          mountPath: /host/proc\n          readOnly: true\n        - name: sys\n          mountPath: /host/sys\n          readOnly: true\n        - name: root\n          mountPath: /host/root\n          readOnly: true\n      volumes:\n      - name: proc\n        hostPath:\n          path: /proc\n      - name: sys\n        hostPath:\n          path: /sys\n      - name: root\n        hostPath:\n          path: /\n      serviceAccountName: node-exporter\n      automountServiceAccountToken: false\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: node-exporter\nrules: []\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: node-exporter\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: node-exporter\nsubjects:\n- kind: ServiceAccount\n  name: node-exporter\n  namespace: monitoring",
+  "cleaned_response": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n  labels:\n    app.kubernetes.io/name: node-exporter\n    app.kubernetes.io/component: exporter\nspec:\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: node-exporter\n  updateStrategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 10%\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: node-exporter\n        app.kubernetes.io/component: exporter\n    spec:\n      hostNetwork: true\n      hostPID: true\n      tolerations:\n      - key: node-role.kubernetes.io/master\n        operator: Exists\n        effect: NoSchedule\n      - key: node-role.kubernetes.io/control-plane\n        operator: Exists\n        effect: NoSchedule\n      containers:\n      - name: node-exporter\n        image: prom/node-exporter:v1.7.0\n        args:\n        - --path.procfs=/host/proc\n        - --path.sysfs=/host/sys\n        - --path.rootfs=/host/root\n        - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)\n        ports:\n        - name: metrics\n          containerPort: 9100\n          hostPort: 9100\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 10\n          periodSeconds: 30\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 5\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 500m\n            memory: 256Mi\n        securityContext:\n          runAsUser: 0\n          runAsGroup: 0\n          readOnlyRootFilesystem: true\n          allowPrivilegeEscalation: false\n          capabilities:\n            drop:\n            - ALL\n            add:\n            - SYS_TIME\n        volumeMounts:\n        - name: proc\n          mountPath: /host/proc\n          readOnly: true\n        - name: sys\n          mountPath: /host/sys\n          readOnly: true\n        - name: root\n          mountPath: /host/root\n          readOnly: true\n      volumes:\n      - name: proc\n        hostPath:\n          path: /proc\n      - name: sys\n        hostPath:\n          path: /sys\n      - name: root\n        hostPath:\n          path: /\n      serviceAccountName: node-exporter\n      automountServiceAccountToken: false\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: node-exporter\nrules: []\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: node-exporter\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: node-exporter\nsubjects:\n- kind: ServiceAccount\n  name: node-exporter\n  namespace: monitoring",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n  labels:\n    app.kubernetes.io/name: node-exporter\n    app.kubernetes.io/component: exporter\nspec:\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: node-exporter\n  updateStrategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 10%\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name: node-exporter\n        app.kubernetes.io/component: exporter\n    spec:\n      hostNetwork: true\n      hostPID: true\n      tolerations:\n      - key: node-role.kubernetes.io/master\n        operator: Exists\n        effect: NoSchedule\n      - key: node-role.kubernetes.io/control-plane\n        operator: Exists\n        effect: NoSchedule\n      containers:\n      - name: node-exporter\n        image: prom/node-exporter:v1.7.0\n        args:\n        - --path.procfs=/host/proc\n        - --path.sysfs=/host/sys\n        - --path.rootfs=/host/root\n        - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|run|var/lib/docker/.+|var/lib/kubelet/.+)($|/)\n        ports:\n        - name: metrics\n          containerPort: 9100\n          hostPort: 9100\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 10\n          periodSeconds: 30\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 9100\n          initialDelaySeconds: 5\n          periodSeconds: 10\n        resources:\n          requests:\n            cpu: 100m\n            memory: 128Mi\n          limits:\n            cpu: 500m\n            memory: 256Mi\n        securityContext:\n          runAsUser: 0\n          runAsGroup: 0\n          readOnlyRootFilesystem: true\n          allowPrivilegeEscalation: false\n          capabilities:\n            drop:\n            - ALL\n            add:\n            - SYS_TIME\n        volumeMounts:\n        - name: proc\n          mountPath: /host/proc\n          readOnly: true\n        - name: sys\n          mountPath: /host/sys\n          readOnly: true\n        - name: root\n          mountPath: /host/root\n          readOnly: true\n      volumes:\n      - name: proc\n        hostPath:\n          path: /proc\n      - name: sys\n        hostPath:\n          path: /sys\n      - name: root\n        hostPath:\n          path: /\n      serviceAccountName: node-exporter\n      automountServiceAccountToken: false\n---\napiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: node-exporter\n  namespace: monitoring\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: node-exporter\nrules: []\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: node-exporter\nroleRef:\n  apiGroup: rbac.authorization.k8s.io\n  kind: ClusterRole\n  name: node-exporter\nsubjects:\n- kind: ServiceAccount\n  name: node-exporter\n  namespace: monitoring",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725962,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 87,
+      "output_tokens": 720,
+      "reasoning_tokens": 820,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 57
+    }
+  },
+  "started_at": "2026-05-25T16:19:11.094887+00:00",
+  "elapsed_seconds": 11.027
+}

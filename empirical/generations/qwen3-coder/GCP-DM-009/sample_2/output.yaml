@@ -1,0 +1,154 @@
+resources:
+- name: logging-sink-bigquery-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: logging_sink_dataset
+    location: US
+    description: "Dataset for storing exported Cloud Logging data"
+    defaultTableExpirationMs: 2592000000
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: READER
+      specialGroup: projectReaders
+    - role: WRITER
+      specialGroup: projectWriters
+
+- name: logging-sink-bigquery-table
+  type: gcp-types/bigquery-v2:tables
+  properties:
+    datasetId: $(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    tableReference:
+      tableId: log_entries
+    schema:
+      fields:
+      - name: timestamp
+        type: TIMESTAMP
+        mode: REQUIRED
+      - name: logName
+        type: STRING
+        mode: NULLABLE
+      - name: resource
+        type: RECORD
+        mode: NULLABLE
+        fields:
+        - name: type
+          type: STRING
+          mode: NULLABLE
+        - name: labels
+          type: RECORD
+          mode: REPEATED
+          fields:
+          - name: key
+            type: STRING
+            mode: NULLABLE
+          - name: value
+            type: STRING
+            mode: NULLABLE
+      - name: jsonPayload
+        type: STRING
+        mode: NULLABLE
+      - name: textPayload
+        type: STRING
+        mode: NULLABLE
+      - name: severity
+        type: STRING
+        mode: NULLABLE
+      - name: insertId
+        type: STRING
+        mode: NULLABLE
+      - name: httpRequest
+        type: RECORD
+        mode: NULLABLE
+        fields:
+        - name: requestMethod
+          type: STRING
+          mode: NULLABLE
+        - name: requestUrl
+          type: STRING
+          mode: NULLABLE
+        - name: status
+          type: INTEGER
+          mode: NULLABLE
+        - name: userAgent
+          type: STRING
+          mode: NULLABLE
+        - name: remoteIp
+          type: STRING
+          mode: NULLABLE
+        - name: referer
+          type: STRING
+          mode: NULLABLE
+        - name: latency
+          type: STRING
+          mode: NULLABLE
+        - name: cacheLookup
+          type: BOOLEAN
+          mode: NULLABLE
+        - name: cacheHit
+          type: BOOLEAN
+          mode: NULLABLE
+        - name: cacheValidatedWithOriginServer
+          type: BOOLEAN
+          mode: NULLABLE
+        - name: cacheFillBytes
+          type: INTEGER
+          mode: NULLABLE
+        - name: protocol
+          type: STRING
+          mode: NULLABLE
+    timePartitioning:
+      type: DAY
+      expirationMs: 2592000000
+    clustering:
+      fields:
+      - severity
+      - resource.type
+
+- name: logging-sink-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: logging-sink-sa
+    displayName: "Service account for Cloud Logging sink to BigQuery"
+
+- name: logging-sink-bigquery-dataset-iam
+  type: gcp-types/bigquery-v2:datasets/setIamPolicy
+  properties:
+    datasetId: $(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    policy:
+      bindings:
+      - role: roles/bigquery.dataEditor
+        members:
+        - serviceAccount: $(ref.logging-sink-service-account.email)
+      - role: roles/bigquery.user
+        members:
+        - serviceAccount: $(ref.logging-sink-service-account.email)
+
+- name: project-logging-sink
+  type: gcp-types/logging-v2:sinks
+  properties:
+    name: project-log-export-to-bigquery
+    destination: bigquery.googleapis.com/projects/{{ env["project"] }}/datasets/$(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    filter: "resource.type=\"gce_instance\" OR resource.type=\"gae_app\" OR resource.type=\"cloud_function\""
+    writerIdentity: $(ref.logging-sink-service-account.email)
+    bigqueryOptions:
+      usePartitionedTables: true
+      usesTimestampColumnPartitioning: true
+
+- name: logging-sink-service-account-iam
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    projectId: {{ env["project"] }}
+    member: $(ref.project-logging-sink.writerIdentity)
+    role: roles/logging.logWriter
+
+outputs:
+- name: bigqueryDatasetId
+  value: $(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+- name: bigqueryTableId
+  value: $(ref.logging-sink-bigquery-table.tableReference.tableId)
+- name: serviceAccountEmail
+  value: $(ref.logging-sink-service-account.email)
+- name: loggingSinkName
+  value: $(ref.project-logging-sink.name)

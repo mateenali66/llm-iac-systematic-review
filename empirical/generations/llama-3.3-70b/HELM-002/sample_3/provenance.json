@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "HELM-002",
+  "language": "helm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Helm chart deploying a Redis cache: StatefulSet, headless Service, PersistentVolumeClaim, and a Secret for the Redis password.",
+  "user_message_sent": "Target IaC language: Helm chart templates (YAML; provide Chart.yaml, values.yaml, and templates/ as separate files concatenated with '---' YAML document separators and clearly labeled '# FILE: <path>' comments)\n\nTask: Write a Helm chart deploying a Redis cache: StatefulSet, headless Service, PersistentVolumeClaim, and a Secret for the Redis password.\n\nOutput only the Helm chart templates (YAML; provide Chart.yaml, values.yaml, and templates/ as separate files concatenated with '---' YAML document separators and clearly labeled '# FILE: <path>' comments) code, no commentary or markdown fences.",
+  "raw_response": "# FILE: Chart.yaml\nname: redis-cache\nversion: 1.0.0\ndescription: A Helm chart for deploying a Redis cache\ntype: application\n\n---\n# FILE: values.yaml\nreplicaCount: 1\nimage:\n  repository: redis\n  tag: latest\n  pullPolicy: IfNotPresent\nservice:\n  port: 6379\npersistentVolumeClaim:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nsecret:\n  password: changeme\n\n---\n# FILE: templates/statefulset.yaml\napiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels:\n      app: {{ include \"redis-cache.name\" . }}\n  template:\n    metadata:\n      labels:\n        app: {{ include \"redis-cache.name\" . }}\n    spec:\n      containers:\n      - name: {{ .Chart.Name }}\n        image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n        imagePullPolicy: {{ .Values.image.pullPolicy }}\n        ports:\n        - containerPort: {{ .Values.service.port }}\n        env:\n        - name: REDIS_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: {{ include \"redis-cache.fullname\" . }}\n              key: password\n        volumeMounts:\n        - name: data\n          mountPath: /data\n      volumes:\n      - name: data\n        persistentVolumeClaim:\n          claimName: {{ include \"redis-cache.fullname\" . }}-pvc\n\n---\n# FILE: templates/service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  clusterIP: None\n  ports:\n  - port: {{ .Values.service.port }}\n    targetPort: {{ .Values.service.port }}\n  selector:\n    app: {{ include \"redis-cache.name\" . }}\n\n---\n# FILE: templates/persistentvolumeclaim.yaml\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}-pvc\nspec:\n  accessModes:\n    {{- range .Values.persistentVolumeClaim.accessModes }}\n    - {{ . }}\n    {{- end }}\n  resources:\n    requests:\n      storage: {{ .Values.persistentVolumeClaim.resources.requests.storage }}\n\n---\n# FILE: templates/secret.yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\ntype: Opaque\ndata:\n  password: {{ .Values.secret.password | b64enc }}",
+  "cleaned_response": "# FILE: Chart.yaml\nname: redis-cache\nversion: 1.0.0\ndescription: A Helm chart for deploying a Redis cache\ntype: application\n\n---\n# FILE: values.yaml\nreplicaCount: 1\nimage:\n  repository: redis\n  tag: latest\n  pullPolicy: IfNotPresent\nservice:\n  port: 6379\npersistentVolumeClaim:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nsecret:\n  password: changeme\n\n---\n# FILE: templates/statefulset.yaml\napiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels:\n      app: {{ include \"redis-cache.name\" . }}\n  template:\n    metadata:\n      labels:\n        app: {{ include \"redis-cache.name\" . }}\n    spec:\n      containers:\n      - name: {{ .Chart.Name }}\n        image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n        imagePullPolicy: {{ .Values.image.pullPolicy }}\n        ports:\n        - containerPort: {{ .Values.service.port }}\n        env:\n        - name: REDIS_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: {{ include \"redis-cache.fullname\" . }}\n              key: password\n        volumeMounts:\n        - name: data\n          mountPath: /data\n      volumes:\n      - name: data\n        persistentVolumeClaim:\n          claimName: {{ include \"redis-cache.fullname\" . }}-pvc\n\n---\n# FILE: templates/service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  clusterIP: None\n  ports:\n  - port: {{ .Values.service.port }}\n    targetPort: {{ .Values.service.port }}\n  selector:\n    app: {{ include \"redis-cache.name\" . }}\n\n---\n# FILE: templates/persistentvolumeclaim.yaml\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}-pvc\nspec:\n  accessModes:\n    {{- range .Values.persistentVolumeClaim.accessModes }}\n    - {{ . }}\n    {{- end }}\n  resources:\n    requests:\n      storage: {{ .Values.persistentVolumeClaim.resources.requests.storage }}\n\n---\n# FILE: templates/secret.yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\ntype: Opaque\ndata:\n  password: {{ .Values.secret.password | b64enc }}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "# FILE: Chart.yaml\nname: redis-cache\nversion: 1.0.0\ndescription: A Helm chart for deploying a Redis cache\ntype: application\n\n---\n# FILE: values.yaml\nreplicaCount: 1\nimage:\n  repository: redis\n  tag: latest\n  pullPolicy: IfNotPresent\nservice:\n  port: 6379\npersistentVolumeClaim:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi\nsecret:\n  password: changeme\n\n---\n# FILE: templates/statefulset.yaml\napiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  replicas: {{ .Values.replicaCount }}\n  selector:\n    matchLabels:\n      app: {{ include \"redis-cache.name\" . }}\n  template:\n    metadata:\n      labels:\n        app: {{ include \"redis-cache.name\" . }}\n    spec:\n      containers:\n      - name: {{ .Chart.Name }}\n        image: \"{{ .Values.image.repository }}:{{ .Values.image.tag }}\"\n        imagePullPolicy: {{ .Values.image.pullPolicy }}\n        ports:\n        - containerPort: {{ .Values.service.port }}\n        env:\n        - name: REDIS_PASSWORD\n          valueFrom:\n            secretKeyRef:\n              name: {{ include \"redis-cache.fullname\" . }}\n              key: password\n        volumeMounts:\n        - name: data\n          mountPath: /data\n      volumes:\n      - name: data\n        persistentVolumeClaim:\n          claimName: {{ include \"redis-cache.fullname\" . }}-pvc\n\n---\n# FILE: templates/service.yaml\napiVersion: v1\nkind: Service\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\nspec:\n  clusterIP: None\n  ports:\n  - port: {{ .Values.service.port }}\n    targetPort: {{ .Values.service.port }}\n  selector:\n    app: {{ include \"redis-cache.name\" . }}\n\n---\n# FILE: templates/persistentvolumeclaim.yaml\napiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}-pvc\nspec:\n  accessModes:\n    {{- range .Values.persistentVolumeClaim.accessModes }}\n    - {{ . }}\n    {{- end }}\n  resources:\n    requests:\n      storage: {{ .Values.persistentVolumeClaim.resources.requests.storage }}\n\n---\n# FILE: templates/secret.yaml\napiVersion: v1\nkind: Secret\nmetadata:\n  name: {{ include \"redis-cache.fullname\" . }}\ntype: Opaque\ndata:\n  password: {{ .Values.secret.password | b64enc }}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723830,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 228,
+      "output_tokens": 571,
+      "raw_input_tokens": 228
+    }
+  },
+  "started_at": "2026-05-25T15:43:49.236812+00:00",
+  "elapsed_seconds": 1.413
+}

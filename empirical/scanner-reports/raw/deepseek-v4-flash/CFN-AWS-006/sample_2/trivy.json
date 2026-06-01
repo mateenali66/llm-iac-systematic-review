@@ -1,0 +1,509 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:38:05.110615549Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 48,
+        "Failures": 4
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0017",
+          "AVDID": "AVD-AWS-0017",
+          "Title": "CloudWatch log groups should be encrypted using CMK",
+          "Description": "CloudWatch log groups are encrypted by default, however, to get the full benefit of controlling key rotation and other KMS aspects a KMS CMK should be used.\n",
+          "Message": "Log group is not encrypted.",
+          "Namespace": "builtin.aws.cloudwatch.aws0017",
+          "Query": "data.builtin.aws.cloudwatch.aws0017.deny",
+          "Resolution": "Enable CMK encryption of CloudWatch Log Groups",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0017",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0017"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:42-46",
+            "Provider": "AWS",
+            "Service": "cloudwatch",
+            "StartLine": 42,
+            "EndLine": 46,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 42,
+                  "Content": "  CloudWatchLogsGroup:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mCloudWatchLogsGroup\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 43,
+                  "Content": "    Type: AWS::Logs::LogGroup",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::Logs::LogGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 44,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 45,
+                  "Content": "      LogGroupName: /ecs/fargate-cluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mLogGroupName\u001b[0m: /ecs/fargate-cluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 46,
+                  "Content": "      RetentionInDays: 30",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mRetentionInDays\u001b[0m: \u001b[38;5;37m30\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0034",
+          "AVDID": "AVD-AWS-0034",
+          "Title": "ECS clusters should have container insights enabled",
+          "Description": "Cloudwatch Container Insights provide more metrics and logs for container based applications and micro services.\n",
+          "Message": "Cluster does not have container insights enabled.",
+          "Namespace": "builtin.aws.ecs.aws0034",
+          "Query": "data.builtin.aws.ecs.aws0034.deny",
+          "Resolution": "Enable Container Insights",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0034",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0034"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:32-40",
+            "Provider": "AWS",
+            "Service": "ecs",
+            "StartLine": 32,
+            "EndLine": 40,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 32,
+                  "Content": "  ECSCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mECSCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 33,
+                  "Content": "    Type: AWS::ECS::Cluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::ECS::Cluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 34,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 35,
+                  "Content": "      ClusterName: fargate-cluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mClusterName\u001b[0m: fargate-cluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 36,
+                  "Content": "      CapacityProviders:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mCapacityProviders\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 37,
+                  "Content": "        - FARGATE",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - FARGATE",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 38,
+                  "Content": "      DefaultCapacityProviderStrategy:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDefaultCapacityProviderStrategy\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 39,
+                  "Content": "        - CapacityProvider: FARGATE",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mCapacityProvider\u001b[0m: FARGATE",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 40,
+                  "Content": "          Weight: 1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mWeight\u001b[0m: \u001b[38;5;37m1\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "SecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 95,
+            "EndLine": 98,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 85,
+                  "Content": "  SecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 86,
+                  "Content": "    Type: AWS::EC2::SecurityGroup",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::EC2::SecurityGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 87,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 88,
+                  "Content": "      GroupDescription: Security group for ECS tasks",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mGroupDescription\u001b[0m: Security group for ECS tasks",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 89,
+                  "Content": "      VpcId: !Ref VpcId",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mVpcId\u001b[0m: !Ref VpcId",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 90,
+                  "Content": "      SecurityGroupIngress:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSecurityGroupIngress\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 91,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 92,
+                  "Content": "          FromPort: !Ref ContainerPort1",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: !Ref ContainerPort1",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 93,
+                  "Content": "          ToPort: !Ref ContainerPort1",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mToPort\u001b[0m: !Ref ContainerPort1",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 94,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "SecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 85,
+                  "EndLine": 98
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "SecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 91,
+            "EndLine": 94,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 85,
+                  "Content": "  SecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 86,
+                  "Content": "    Type: AWS::EC2::SecurityGroup",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::EC2::SecurityGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 87,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 88,
+                  "Content": "      GroupDescription: Security group for ECS tasks",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mGroupDescription\u001b[0m: Security group for ECS tasks",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 89,
+                  "Content": "      VpcId: !Ref VpcId",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mVpcId\u001b[0m: !Ref VpcId",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 90,
+                  "Content": "      SecurityGroupIngress:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSecurityGroupIngress\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 91,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 92,
+                  "Content": "          FromPort: !Ref ContainerPort1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: !Ref ContainerPort1",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 93,
+                  "Content": "          ToPort: !Ref ContainerPort1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mToPort\u001b[0m: !Ref ContainerPort1",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 94,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "SecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 85,
+                  "EndLine": 98
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

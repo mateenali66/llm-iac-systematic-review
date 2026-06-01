@@ -1,0 +1,58 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 82,
+	"files_parsed": 1,
+	"lines_parsed": 82,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 1,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:27:23.77201521Z",
+	"end": "2026-05-26T05:27:24.343396668Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Storage Blob Service Container With Public Access",
+			"query_id": "a0ab985d-660b-41f7-ac81-70957ee8e627",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts/blobservices/containers?tabs=json#containerproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The Storage Blob Service Container should not be publicly accessible",
+			"description_id": "49e52e15",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "7fa879f142ee3091331c563fe0bea650ef87cdeb632899c0102a602a6a2d67f7",
+					"line": 42,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[parameters('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[parameters('storageAccountName')].resources.name=default.resources.name=uploads.properties.publicAccess",
+					"search_line": 42,
+					"search_value": "",
+					"expected_value": "resource with type 'containers' shouldn't have 'publicAccess' property value set to 'Container' or 'Blob'",
+					"actual_value": "resource with type 'containers' has 'publicAccess' property set to 'Blob'"
+				}
+			]
+		}
+	]
+}

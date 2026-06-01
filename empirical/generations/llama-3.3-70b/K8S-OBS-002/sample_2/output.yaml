@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics-monitor
+spec:
+  selector:
+    matchLabels:
+      app: api-metrics
+  endpoints:
+  - port: metrics
+    interval: 30s
+    honorLabels: true
+  namespaceSelector:
+    matchNames:
+    - default
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-metrics
+spec:
+  selector:
+    app: api-metrics
+  ports:
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP

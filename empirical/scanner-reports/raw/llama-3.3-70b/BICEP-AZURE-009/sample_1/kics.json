@@ -1,0 +1,170 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 54,
+	"files_parsed": 1,
+	"lines_parsed": 54,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:04:09.442079097Z",
+	"end": "2026-05-26T06:04:10.160675014Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Web App Not Using TLS Last Version",
+			"query_id": "b5c851d5-00f1-43dc-a8de-3218fd6f71be",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteconfig-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "327",
+			"cloud_provider": "AZURE",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Resources of type 'Microsoft.Web/sites' should define 'properties.siteConfig.minTlsVersion' with '1.2'",
+			"description_id": "1a442064",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ebc606e94f96073034e8e65f937ac10d199f399dd3783088e84b9cc3dc069fbd",
+					"line": 31,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('appServiceName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('appServiceName')]",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Not Forcing HTTPS",
+			"query_id": "488847ff-6031-487c-bf42-98fd6ac5c9a0",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should force the use of HTTPS",
+			"description_id": "3af52329",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "942312ec064c9d42930e89dcde70e2445e6792da616c0b8e59d90051036067fc",
+					"line": 33,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('appServiceName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('appServiceName')]}}.properties",
+					"search_line": 33,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'httpsOnly' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'httpsOnly' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "5fe973708723f66d61474526bd15f78fb258b797bc0433a0b05480afeb6f6b9c",
+					"line": 33,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('appServiceName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('appServiceName')]}}.properties",
+					"search_line": 33,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Azure Active Directory Disabled",
+			"query_id": "e9c133e5-c2dd-4b7b-8fff-40f2de367b56",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/2019-08-01/sites?tabs=json#ManagedServiceIdentity",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "WebApp should have Azure Active Directory enabled with 'identity.type' set to 'SystemAssigned' or 'userAssignedIdentities' set to 'true'",
+			"description_id": "f50ec4cb",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "dc3679c216ec87575b885d2f8c9e9fdb29a384a6b5dc448dcce854fc59ef9e78",
+					"line": 31,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('appServiceName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('appServiceName')]}}",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'identity' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'identity' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with 'Http20Enabled' Disabled",
+			"query_id": "70111098-7f85-48f0-b1b4-e4261cf5f61b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "757",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have 'Http20Enabled' enabled",
+			"description_id": "e0cdbc75",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "76363798f06552f3e9ddebcb6f7dce5cf0533eceb0d40b0268c694f13b6331b1",
+					"line": 33,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('appServiceName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('appServiceName')]}}.properties.siteConfig",
+					"search_line": 33,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'http20Enabled' property defined in siteConfig",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'http20Enabled' property defined in siteConfig"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role for EC2 instances with CloudWatch logs write and Parameter Store read access
+
+Resources:
+  EC2CloudWatchParameterStoreRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EC2CloudWatchParameterStoreRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: EC2CloudWatchParameterStorePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                Resource: arn:aws:ssm:*:*:parameter/*
+      Tags:
+        - Key: Name
+          Value: EC2CloudWatchParameterStoreRole
+        - Key: Environment
+          Value: Production
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: EC2CloudWatchParameterStoreInstanceProfile
+      Path: /
+      Roles:
+        - !Ref EC2CloudWatchParameterStoreRole
+
+Outputs:
+  RoleArn:
+    Description: ARN of the IAM role
+    Value: !GetAtt EC2CloudWatchParameterStoreRole.Arn
+  InstanceProfileName:
+    Description: Name of the instance profile
+    Value: !Ref EC2InstanceProfile

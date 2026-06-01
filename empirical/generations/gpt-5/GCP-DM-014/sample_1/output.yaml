@@ -1,0 +1,112 @@
+resources:
+  - name: project-info
+    type: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.get
+    properties:
+      projectId: $(project.projectId)
+
+  - name: enable-run-api
+    type: gcp-types/serviceusage-v1:services.enable
+    properties:
+      name: projects/$(ref.project-info.projectNumber)/services/run.googleapis.com
+
+  - name: enable-artifactregistry-api
+    type: gcp-types/serviceusage-v1:services.enable
+    properties:
+      name: projects/$(ref.project-info.projectNumber)/services/artifactregistry.googleapis.com
+
+  - name: enable-iamcredentials-api
+    type: gcp-types/serviceusage-v1:services.enable
+    properties:
+      name: projects/$(ref.project-info.projectNumber)/services/iamcredentials.googleapis.com
+
+  - name: github-actions-deployer-sa
+    type: gcp-types/iam-v1:projects.serviceAccounts
+    properties:
+      name: projects/$(project.projectId)
+      accountId: github-actions-deployer
+      serviceAccount:
+        displayName: GitHub Actions Deployer (WIF)
+
+  - name: cloud-run-runtime-sa
+    type: gcp-types/iam-v1:projects.serviceAccounts
+    properties:
+      name: projects/$(project.projectId)
+      accountId: cloud-run-runtime
+      serviceAccount:
+        displayName: Cloud Run Runtime
+
+  - name: github-wif-pool
+    type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+    properties:
+      parent: projects/$(ref.project-info.projectNumber)/locations/global
+      workloadIdentityPoolId: github-pool
+      displayName: GitHub Actions Pool
+      description: Workload Identity Pool for GitHub Actions OIDC
+
+  - name: github-wif-provider
+    type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+    properties:
+      parent: $(ref.github-wif-pool.name)
+      workloadIdentityPoolProviderId: github-oidc
+      displayName: GitHub Actions OIDC Provider
+      description: OIDC provider for token.actions.githubusercontent.com
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.repository: assertion.repository
+        attribute.ref: assertion.ref
+        attribute.actor: assertion.actor
+        attribute.aud: assertion.aud
+      attributeCondition: assertion.repository == 'OWNER/REPO' && assertion.ref == 'refs/heads/main'
+    metadata:
+      dependsOn:
+        - github-wif-pool
+
+  - name: bind-wif-to-deployer-sa
+    type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+    properties:
+      resource: projects/$(project.projectId)/serviceAccounts/github-actions-deployer@$(project.projectId).iam.gserviceaccount.com
+      role: roles/iam.workloadIdentityUser
+      member: principalSet://iam.googleapis.com/$(ref.github-wif-pool.name)/attribute.repository/OWNER/REPO
+      condition:
+        title: restrict-github-branch
+        description: Allow from GitHub OIDC only for specific repo and branch
+        expression: attribute.repository == 'OWNER/REPO' && attribute.ref == 'refs/heads/main'
+    metadata:
+      dependsOn:
+        - github-actions-deployer-sa
+        - github-wif-provider
+
+  - name: project-iam-run-admin
+    type: gcp-types/cloudresourcemanager-v1:projects.iamMemberBinding
+    properties:
+      resource: projects/$(project.projectId)
+      role: roles/run.admin
+      member: serviceAccount:github-actions-deployer@$(project.projectId).iam.gserviceaccount.com
+    metadata:
+      dependsOn:
+        - github-actions-deployer-sa
+        - enable-run-api
+
+  - name: project-iam-artifactregistry-writer
+    type: gcp-types/cloudresourcemanager-v1:projects.iamMemberBinding
+    properties:
+      resource: projects/$(project.projectId)
+      role: roles/artifactregistry.writer
+      member: serviceAccount:github-actions-deployer@$(project.projectId).iam.gserviceaccount.com
+    metadata:
+      dependsOn:
+        - github-actions-deployer-sa
+        - enable-artifactregistry-api
+
+  - name: runtime-sa-impersonation-binding
+    type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+    properties:
+      resource: projects/$(project.projectId)/serviceAccounts/cloud-run-runtime@$(project.projectId).iam.gserviceaccount.com
+      role: roles/iam.serviceAccountUser
+      member: serviceAccount:github-actions-deployer@$(project.projectId).iam.gserviceaccount.com
+    metadata:
+      dependsOn:
+        - cloud-run-runtime-sa
+        - github-actions-deployer-sa

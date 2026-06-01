@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-008",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook installing and configuring a PostgreSQL 15 server: package install, pg_hba.conf with allowed CIDRs, postgresql.conf tuning for production, service start, and a database+user creation step.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook installing and configuring a PostgreSQL 15 server: package install, pg_hba.conf with allowed CIDRs, postgresql.conf tuning for production, service start, and a database+user creation step.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- hosts: postgresql_servers\n  become: true\n  vars:\n    postgresql_version: \"15\"\n    db_name: \"my_app_db\"\n    db_user: \"my_app_user\"\n    db_password: \"CHANGEME_IN_VAULT\" # Use Ansible Vault for this in production\n    pg_hba_allowed_cidrs:\n      - \"10.0.0.0/8\"\n      - \"192.168.1.0/24\"\n    postgresql_conf_settings:\n      - { option: \"listen_addresses\", value: \"'*'\" }\n      - { option: \"max_connections\", value: \"250\" }\n      - { option: \"shared_buffers\", value: \"1GB\" }\n      - { option: \"effective_cache_size\", value: \"3GB\" }\n      - { option: \"maintenance_work_mem\", value: \"256MB\" }\n      - { option: \"checkpoint_completion_target\", value: \"0.9\" }\n      - { option: \"wal_buffers\", value: \"16MB\" }\n      - { option: \"default_statistics_target\", value: \"100\" }\n      - { option: \"random_page_cost\", value: \"1.1\" }\n      - { option: \"effective_io_concurrency\", value: \"200\" }\n      - { option: \"work_mem\", value: \"8MB\" }\n      - { option: \"min_wal_size\", value: \"1GB\" }\n      - { option: \"max_wal_size\", value: \"4GB\" }\n      - { option: \"max_worker_processes\", value: \"4\" }\n      - { option: \"max_parallel_workers_per_gather\", value: \"2\" }\n      - { option: \"max_parallel_workers\", value: \"4\" }\n      - { option: \"max_parallel_maintenance_workers\", value: \"2\" }\n\n  pre_tasks:\n    - name: Ensure dependencies are installed\n      ansible.builtin.apt:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - gnupg\n          - python3-psycopg2\n        state: present\n        update_cache: true\n\n  tasks:\n    - name: Add",
+  "cleaned_response": "- hosts: postgresql_servers\n  become: true\n  vars:\n    postgresql_version: \"15\"\n    db_name: \"my_app_db\"\n    db_user: \"my_app_user\"\n    db_password: \"CHANGEME_IN_VAULT\" # Use Ansible Vault for this in production\n    pg_hba_allowed_cidrs:\n      - \"10.0.0.0/8\"\n      - \"192.168.1.0/24\"\n    postgresql_conf_settings:\n      - { option: \"listen_addresses\", value: \"'*'\" }\n      - { option: \"max_connections\", value: \"250\" }\n      - { option: \"shared_buffers\", value: \"1GB\" }\n      - { option: \"effective_cache_size\", value: \"3GB\" }\n      - { option: \"maintenance_work_mem\", value: \"256MB\" }\n      - { option: \"checkpoint_completion_target\", value: \"0.9\" }\n      - { option: \"wal_buffers\", value: \"16MB\" }\n      - { option: \"default_statistics_target\", value: \"100\" }\n      - { option: \"random_page_cost\", value: \"1.1\" }\n      - { option: \"effective_io_concurrency\", value: \"200\" }\n      - { option: \"work_mem\", value: \"8MB\" }\n      - { option: \"min_wal_size\", value: \"1GB\" }\n      - { option: \"max_wal_size\", value: \"4GB\" }\n      - { option: \"max_worker_processes\", value: \"4\" }\n      - { option: \"max_parallel_workers_per_gather\", value: \"2\" }\n      - { option: \"max_parallel_workers\", value: \"4\" }\n      - { option: \"max_parallel_maintenance_workers\", value: \"2\" }\n\n  pre_tasks:\n    - name: Ensure dependencies are installed\n      ansible.builtin.apt:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - gnupg\n          - python3-psycopg2\n        state: present\n        update_cache: true\n\n  tasks:\n    - name: Add",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- hosts: postgresql_servers\n  become: true\n  vars:\n    postgresql_version: \"15\"\n    db_name: \"my_app_db\"\n    db_user: \"my_app_user\"\n    db_password: \"CHANGEME_IN_VAULT\" # Use Ansible Vault for this in production\n    pg_hba_allowed_cidrs:\n      - \"10.0.0.0/8\"\n      - \"192.168.1.0/24\"\n    postgresql_conf_settings:\n      - { option: \"listen_addresses\", value: \"'*'\" }\n      - { option: \"max_connections\", value: \"250\" }\n      - { option: \"shared_buffers\", value: \"1GB\" }\n      - { option: \"effective_cache_size\", value: \"3GB\" }\n      - { option: \"maintenance_work_mem\", value: \"256MB\" }\n      - { option: \"checkpoint_completion_target\", value: \"0.9\" }\n      - { option: \"wal_buffers\", value: \"16MB\" }\n      - { option: \"default_statistics_target\", value: \"100\" }\n      - { option: \"random_page_cost\", value: \"1.1\" }\n      - { option: \"effective_io_concurrency\", value: \"200\" }\n      - { option: \"work_mem\", value: \"8MB\" }\n      - { option: \"min_wal_size\", value: \"1GB\" }\n      - { option: \"max_wal_size\", value: \"4GB\" }\n      - { option: \"max_worker_processes\", value: \"4\" }\n      - { option: \"max_parallel_workers_per_gather\", value: \"2\" }\n      - { option: \"max_parallel_workers\", value: \"4\" }\n      - { option: \"max_parallel_maintenance_workers\", value: \"2\" }\n\n  pre_tasks:\n    - name: Ensure dependencies are installed\n      ansible.builtin.apt:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - gnupg\n          - python3-psycopg2\n        state: present\n        update_cache: true\n\n  tasks:\n    - name: Add",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779724043,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 144,
+      "output_tokens": 2044,
+      "raw_input_tokens": 144
+    }
+  },
+  "started_at": "2026-05-25T15:46:50.015936+00:00",
+  "elapsed_seconds": 33.599
+}

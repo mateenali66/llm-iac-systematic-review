@@ -1,0 +1,97 @@
+- name: Configure static network with Netplan on Debian 12
+  hosts: all
+  become: true
+  gather_facts: true
+  collections:
+    - community.general
+  vars:
+    interface_name: eth0
+    ip_address: 192.0.2.10
+    prefix_length: 24
+    gateway4: 192.0.2.1
+    dns_servers:
+      - 1.1.1.1
+      - 8.8.8.8
+    dns_search_domains: []
+  pre_tasks:
+    - name: Assert running on Debian 12
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == "Debian"
+          - ansible_facts.distribution_major_version is version('12', '==')
+        fail_msg: "This playbook is intended for Debian 12 only."
+    - name: Ensure apt cache is up to date
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+  tasks:
+    - name: Install netplan.io
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+
+    - name: Ensure /etc/netplan directory exists
+      ansible.builtin.file:
+        path: /etc/netplan
+        state: directory
+        mode: '0755'
+
+    - name: Enable and start systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        state: started
+        enabled: true
+
+    - name: Enable and start systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: started
+        enabled: true
+
+    - name: Ensure resolv.conf is symlinked to systemd-resolved stub
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        state: link
+        force: true
+        src: /run/systemd/resolve/stub-resolv.conf
+
+    - name: Configure static interface with netplan
+      community.general.netplan:
+        state: present
+        network:
+          version: 2
+          renderer: networkd
+          ethernets:
+            "{{ interface_name }}":
+              dhcp4: false
+              dhcp6: false
+              addresses:
+                - "{{ ip_address }}/{{ prefix_length }}"
+              nameservers:
+                addresses: "{{ dns_servers }}"
+                search: "{{ dns_search_domains | default([]) }}"
+              routes:
+                - to: default
+                  via: "{{ gateway4 }}"
+      notify:
+        - Apply netplan
+
+    - meta: flush_handlers
+
+    - name: Disable legacy ifupdown networking service
+      ansible.builtin.systemd:
+        name: networking
+        enabled: false
+        state: stopped
+      ignore_errors: true
+
+  handlers:
+    - name: netplan generate
+      ansible.builtin.command: netplan generate
+      changed_when: false
+      listen: Apply netplan
+
+    - name: netplan apply
+      ansible.builtin.command: netplan apply
+      listen: Apply netplan

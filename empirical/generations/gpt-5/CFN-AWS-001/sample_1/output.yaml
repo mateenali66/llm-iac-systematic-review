@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for application user uploads with secure defaults and access controls.
+
+Parameters:
+  UploadsBucketName:
+    Type: String
+    Description: Globally unique name for the S3 bucket to store application user uploads.
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$'
+    ConstraintDescription: S3 bucket name must be 3-63 characters, lowercase letters, numbers, dots, and hyphens.
+  AllowedCorsOrigins:
+    Type: CommaDelimitedList
+    Default: https://app.example.com
+    Description: Comma-separated list of allowed origins for CORS on the uploads bucket.
+  NoncurrentVersionExpirationDays:
+    Type: Number
+    Default: 180
+    MinValue: 1
+    MaxValue: 3650
+    Description: Days to retain noncurrent object versions before permanent deletion.
+  IncompleteMultipartUploadExpirationDays:
+    Type: Number
+    Default: 7
+    MinValue: 1
+    MaxValue: 365
+    Description: Days after which incomplete multipart uploads are aborted.
+
+Resources:
+  AccessLogsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AccessControl: LogDeliveryWrite
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldLogs
+            Status: Enabled
+            ExpirationInDays: 365
+            NoncurrentVersionExpirationInDays: 365
+
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref UploadsBucketName
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+            BucketKeyEnabled: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: ['GET', 'PUT', 'POST', 'HEAD']
+            AllowedOrigins: !Ref AllowedCorsOrigins
+            ExposedHeaders: ['ETag', 'x-amz-version-id']
+            MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: !Ref IncompleteMultipartUploadExpirationDays
+          - Id: NoncurrentVersionExpiration
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: !Ref NoncurrentVersionExpirationDays
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogsBucket
+        LogFilePrefix: !Sub "s3-access-logs/${UploadsBucketName}/"
+
+  UploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: EnforceTLS12OrHigher
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}/*'
+            Condition:
+              NumericLessThan:
+                s3:TlsVersion: 1.2
+          - Sid: DenyNonSigV4
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}/*'
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4'
+          - Sid: DenyIncorrectEncryptionHeaderIfPresent
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - s3:PutObject
+            Resource: !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}/*'
+            Condition:
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption: aws:kms
+          - Sid: DenyPublicACLs
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - s3:PutObject
+              - s3:PutObjectAcl
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}'
+            Condition:
+              StringEqualsIfExists:
+                s3:x-amz-acl:
+                  - public-read
+                  - public-read-write
+                  - authenticated-read
+
+Outputs:
+  UploadsBucketName:
+    Description: Name of the S3 bucket for application user uploads.
+    Value: !Ref UploadsBucket
+  UploadsBucketArn:
+    Description: ARN of the S3 bucket for application user uploads.
+    Value: !Sub 'arn:${AWS::Partition}:s3:::${UploadsBucket}'
+  AccessLogsBucketName:
+    Description: Name of the S3 bucket that stores access logs.
+    Value: !Ref AccessLogsBucket

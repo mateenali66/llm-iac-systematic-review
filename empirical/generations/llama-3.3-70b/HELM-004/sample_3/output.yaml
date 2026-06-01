@@ -1,0 +1,193 @@
+# FILE: Chart.yaml
+name: python-flask-microservice
+version: 1.0.0
+description: A Helm chart for deploying a Python Flask microservice
+type: application
+appVersion: 1.0.0
+
+---
+# FILE: values.yaml
+replicaCount: 2
+image:
+  repository: python
+  tag: 3.9-slim
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5000
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - "/"
+  tls:
+    - hosts:
+        - chart-example.local
+      secretName: tls-secret
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+prometheus:
+  enabled: true
+  scrapeInterval: 15s
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "python-flask-microservice.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "python-flask-microservice.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "python-flask-microservice.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "python-flask-microservice.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "python-flask-microservice.labels" . | nindent 4 }}
+
+---
+# FILE: templates/ingress.yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "python-flask-microservice.fullname" . }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  tls:
+    - hosts:
+        {{- range .Values.ingress.tls }}
+        - {{ .hosts | first }}
+        {{- end }}
+      secretName: {{ .Values.ingress.tls | first | .secretName }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ . | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "python-flask-microservice.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+
+---
+# FILE: templates/hpa.yaml
+{{- if .Values.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "python-flask-microservice.fullname" . }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "python-flask-microservice.fullname" . }}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
+  metrics:
+    {{- range .Values.hpa.metrics }}
+    - type: {{ .type }}
+      {{- if eq .type "Resource" }}
+      resource:
+        name: {{ .resource.name }}
+        target:
+          type: {{ .resource.target.type }}
+          {{- if eq .resource.target.type "Utilization" }}
+          averageUtilization: {{ .resource.target.averageUtilization }}
+          {{- end }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+
+---
+# FILE: templates/servicemonitor.yaml
+{{- if .Values.prometheus.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "python-flask-microservice.fullname" . }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "python-flask-microservice.labels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      interval: {{ .Values.prometheus.scrapeInterval }}
+      honorLabels: true
+{{- end }}
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "python-flask-microservice.fullname" -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s" $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "python-flask-microservice.labels" -}}
+app.kubernetes.io/name: {{ include "python-flask-microservice.fullname" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

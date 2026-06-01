@@ -1,0 +1,375 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 166,
+	"files_parsed": 2,
+	"lines_parsed": 166,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 2,
+		"LOW": 9,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 14,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:24:59.578491838Z",
+	"end": "2026-05-26T04:25:02.549201964Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ae54e6fbfb559fe6ffac6ca1a55703fb06ad89c15d7a9ab430ae3be61e0428d7",
+					"line": 16,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "73d8f3dcc603fbf5922e862b2ce3d34b0b28ec67adfcc89f5f41efdc5f812d73",
+					"line": 5,
+					"resource_type": "Secret",
+					"resource_name": "postgres-credentials",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{postgres-credentials}}.namespace",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'metadata.namespace' should not be set to default, kube-system or kube-public",
+					"actual_value": "'metadata.namespace' is set to default"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5ca90547ac86c436fee69ad0b0f7972f3f574dfe3afea7f9ef8adc6ef2f5194f",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.namespace",
+					"search_line": 22,
+					"search_value": "",
+					"expected_value": "'metadata.namespace' should not be set to default, kube-system or kube-public",
+					"actual_value": "'metadata.namespace' is set to default"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a604377ff5fdb1e25a2ac9c96f348ce4d69b1042e871738b6114c9f447e6b956",
+					"line": 35,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{app}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=app is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=app is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "47339eac6c5dc38fe6348c70d265e59788cb4b79eada0bb78ec5527c8bdfa1f0",
+					"line": 54,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0633f3f8e8537c0828e4f8e9f53ed02d189479e00531dd90c406a3258166edba",
+					"line": 53,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{app}}.spec.template.spec.containers.name={{app}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "413be0fb89426427f4f550978cfb42beb0b9e8076a2625bd680764aaa5487655",
+					"line": 38,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{app}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{app}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{app}}",
+					"actual_value": "metadata.name={{app}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{app}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a1e96385ac30846ef129d9dda9a91540aad88d7e83395a707068101d61e00174",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{app}}",
+					"search_line": 22,
+					"search_value": "",
+					"expected_value": "metadata.name={{app}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{app}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2ff9648698e795d2b8e6d7dafb23deaa56bdb7337a4552ed513d999b3178fe70",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{app}}",
+					"search_line": 22,
+					"search_value": "",
+					"expected_value": "metadata.name={{app}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{app}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Secrets As Environment Variables",
+			"query_id": "3d658f8b-d988-41a0-a841-40043121de1e",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets-as-environment-variables",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "526",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Container should not use secrets as environment variables",
+			"description_id": "99365a7d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2268561b1c354896ae31d210f892ededbab6f66618f3fc0942753248e5c5da4b",
+					"line": 71,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.spec.template.spec.containers.env.name={{POSTGRES_DB}}.valueFrom.secretKeyRef",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_DB}}.valueFrom.secretKeyRef' should be undefined",
+					"actual_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_DB}}.valueFrom.secretKeyRef' is defined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f0c6d124e68d241bc619690fd235b08a22425d66634ce98af25583011e393287",
+					"line": 66,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.spec.template.spec.containers.env.name={{POSTGRES_USER}}.valueFrom.secretKeyRef",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_USER}}.valueFrom.secretKeyRef' should be undefined",
+					"actual_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_USER}}.valueFrom.secretKeyRef' is defined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a5db1093b0ffe3d2e3a1c092e06d81d2dd21f808f56261f56c124fcde3f003e5",
+					"line": 76,
+					"resource_type": "Deployment",
+					"resource_name": "app",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{app}}.spec.template.spec.containers.env.name={{POSTGRES_PASSWORD}}.valueFrom.secretKeyRef",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_PASSWORD}}.valueFrom.secretKeyRef' should be undefined",
+					"actual_value": "'spec.template.spec.containers.name={{app}}.env.name={{POSTGRES_PASSWORD}}.valueFrom.secretKeyRef' is defined"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ed5e0a8aa8c636451b6979137d7682e70f0329d68690275cf85de76f3d343629",
+					"line": 5,
+					"resource_type": "Secret",
+					"resource_name": "postgres-credentials",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{default}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: default"
+				}
+			]
+		},
+		{
+			"query_name": "Using Kubernetes Native Secret Management",
+			"query_id": "b9c83569-459b-4110-8f79-6305aa33cb37",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "311",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Kubernetes External Secret Storage and Management System usage should be considered if you have more complex secret management needs, rather than using Kubernetes Secrets directly. Additionally, ensure that access to secrets is carefully limited",
+			"description_id": "3d7b569c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b04860bdd114f53005c4e3d678d1bad3fc5ba43247cbf46d7dd3ae9395e779c6",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "postgres-credentials",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{postgres-credentials}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "External secret storage should be used",
+					"actual_value": "External secret storage is not in use"
+				}
+			]
+		}
+	]
+}

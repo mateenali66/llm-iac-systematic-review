@@ -1,0 +1,250 @@
+- name: Harden CentOS 9 server
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Ensure this playbook runs on CentOS/RHEL 9 family
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['os_family'] == "RedHat"
+          - ansible_facts['distribution_major_version'] is version('9', '==')
+        fail_msg: "This playbook is intended for CentOS/RHEL 9 only."
+
+  tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - epel-release
+          - libpwquality
+          - audit
+          - fail2ban
+          - firewalld
+        state: present
+
+    - name: Ensure firewalld is enabled and running (required for fail2ban firewall actions)
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Harden SSH - create drop-in directory
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Harden SSH - disable root login and apply secure defaults
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-hardening.conf
+        owner: root
+        group: root
+        mode: '0600'
+        backup: true
+        content: |
+          # Ansible managed: SSH hardening
+          PermitRootLogin no
+          Protocol 2
+          UsePAM yes
+          X11Forwarding no
+          ChallengeResponseAuthentication no
+          PermitEmptyPasswords no
+          LoginGraceTime 30
+          MaxAuthTries 5
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+      notify: Reload sshd
+
+    - name: Enforce password complexity - update pwquality.conf
+      ansible.builtin.lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: '^(#\s*)?{{ item.key }}\s*='
+        line: "{{ item.key }} = {{ item.value }}"
+        state: present
+        create: false
+        backrefs: false
+        backup: true
+      loop:
+        - { key: 'minlen', value: '14' }
+        - { key: 'minclass', value: '3' }
+        - { key: 'dcredit', value: '-1' }
+        - { key: 'ucredit', value: '-1' }
+        - { key: 'lcredit', value: '-1' }
+        - { key: 'ocredit', value: '-1' }
+        - { key: 'maxrepeat', value: '3' }
+        - { key: 'maxclassrepeat', value: '4' }
+        - { key: 'retry', value: '3' }
+        - { key: 'dictcheck', value: '1' }
+        - { key: 'gecoscheck', value: '1' }
+
+    - name: Check current authselect configuration
+      ansible.builtin.command: authselect current
+      register: authselect_current
+      failed_when: false
+      changed_when: false
+
+    - name: Select authselect 'sssd' profile if none is configured
+      ansible.builtin.command: authselect select sssd --force
+      when: authselect_current.rc != 0
+      register: authselect_select_sssd
+      changed_when: authselect_select_sssd.rc == 0
+
+    - name: Enable authselect 'with-pwquality' feature
+      ansible.builtin.command: authselect enable-feature with-pwquality
+      when: authselect_current.rc != 0 or ('with-pwquality' not in authselect_current.stdout)
+      register: authselect_enable_pwq
+      changed_when: authselect_enable_pwq.rc == 0
+
+    - name: Apply authselect changes
+      ansible.builtin.command: authselect apply-changes -b
+      when: authselect_select_sssd is changed or authselect_enable_pwq is changed
+
+    - name: Configure fail2ban defaults and enable sshd jail
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+        backup: true
+        content: |
+          # Ansible managed: fail2ban configuration
+          [DEFAULT]
+          backend = systemd
+          banaction = firewallcmd-rich-rules
+          bantime = 1h
+          findtime = 10m
+          maxretry = 5
+          ignoreip = 127.0.0.1/8 ::1
+
+          [sshd]
+          enabled = true
+          port = ssh
+          logpath = %(sshd_log)s
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban is enabled and running
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Configure auditd - auditd.conf
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^(#\s*)?{{ item.key }}\s*='
+        line: "{{ item.key }} = {{ item.value }}"
+        state: present
+        backrefs: false
+        backup: true
+      loop:
+        - { key: 'local_events', value: 'yes' }
+        - { key: 'write_logs', value: 'yes' }
+        - { key: 'log_file', value: '/var/log/audit/audit.log' }
+        - { key: 'log_group', value: 'root' }
+        - { key: 'flush', value: 'incremental_async' }
+        - { key: 'freq', value: '50' }
+        - { key: 'num_logs', value: '10' }
+        - { key: 'max_log_file', value: '50' }
+        - { key: 'max_log_file_action', value: 'rotate' }
+        - { key: 'space_left', value: '25%' }
+        - { key: 'admin_space_left', value: '10%' }
+        - { key: 'space_left_action', value: 'SYSLOG' }
+        - { key: 'admin_space_left_action', value: 'SUSPEND' }
+        - { key: 'disk_full_action', value: 'SUSPEND' }
+        - { key: 'disk_error_action', value: 'SUSPEND' }
+        - { key: 'name_format', value: 'HOSTNAME' }
+      notify: Restart auditd
+
+    - name: Deploy comprehensive audit rules
+      ansible.builtin.copy:
+        dest: /etc/audit/rules.d/10-hardening.rules
+        owner: root
+        group: root
+        mode: '0640'
+        backup: true
+        content: |
+          # Ansible managed: auditd hardening rules
+
+          ## Time change monitoring
+          -a always,exit -F arch=b64 -S adjtimex -S settimeofday -S clock_settime -k time-change
+          -a always,exit -F arch=b32 -S adjtimex -S settimeofday -S clock_settime -k time-change
+          -w /etc/localtime -p wa -k time-change
+
+          ## Identity files monitoring
+          -w /etc/passwd -p wa -k identity
+          -w /etc/group -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/gshadow -p wa -k identity
+          -w /etc/security/opasswd -p wa -k identity
+
+          ## Sudo and privilege escalation
+          -w /bin/su -p x -k priv_esc
+          -w /usr/bin/sudo -p x -k priv_esc
+          -w /etc/sudoers -p wa -k priv_esc
+          -w /etc/sudoers.d/ -p wa -k priv_esc
+
+          ## Login/logout events
+          -w /var/log/lastlog -p wa -k logins
+          -w /var/log/wtmp -p wa -k logins
+          -w /var/log/btmp -p wa -k logins
+          -w /var/run/faillock/ -p wa -k logins
+
+          ## Network/system identification
+          -w /etc/issue -p wa -k system-locale
+          -w /etc/issue.net -p wa -k system-locale
+          -w /etc/hosts -p wa -k system-locale
+          -w /etc/sysconfig/network -p wa -k system-locale
+
+          ## MAC policy changes (SELinux)
+          -w /usr/share/selinux/ -p wa -k MAC-policy
+
+          ## Kernel module loading/unloading
+          -w /sbin/insmod -p x -k modules
+          -w /sbin/rmmod -p x -k modules
+          -w /sbin/modprobe -p x -k modules
+          -a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+
+          ## Unsuccessful file access (permission denied)
+          -a always,exit -F arch=b64 -S open,openat,creat,truncate,ftruncate,unlink,unlinkat -F exit=-EACCES -k access
+          -a always,exit -F arch=b64 -S open,openat,creat,truncate,ftruncate,unlink,unlinkat -F exit=-EPERM -k access
+          -a always,exit -F arch=b32 -S open,openat,creat,truncate,ftruncate,unlink,unlinkat -F exit=-EACCES -k access
+          -a always,exit -F arch=b32 -S open,openat,creat,truncate,ftruncate,unlink,unlinkat -F exit=-EPERM -k access
+
+          ## Permission and ownership changes by regular users
+          -a always,exit -F arch=b64 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod
+          -a always,exit -F arch=b32 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod
+          -a always,exit -F arch=b64 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -k perm_mod
+          -a always,exit -F arch=b32 -S setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -k perm_mod
+
+          ## Ensure auditing is enabled
+          -e 1
+      notify:
+        - Load audit rules
+        - Restart auditd
+
+    - name: Ensure auditd is enabled and running
+      ansible.builtin.service:
+        name: auditd
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Reload sshd
+      ansible.builtin.service:
+        name: sshd
+        state: reloaded
+
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
+
+    - name: Load audit rules
+      ansible.builtin.command: augenrules --load
+
+    - name: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted

@@ -1,0 +1,272 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: worker-service
+description: A generic worker service that consumes messages from a Redis queue
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - worker
+  - redis
+  - queue
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: your-registry/worker-service
+  tag: latest
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+redis:
+  host: "redis-master"
+  port: 6379
+  queueName: "default"
+  existingSecret: ""
+  existingSecretKey: "redis-password"
+
+env:
+  - name: LOG_LEVEL
+    value: "info"
+  - name: WORKER_CONCURRENCY
+    value: "5"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+podLabels: {}
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+
+serviceAccount:
+  create: true
+  name: ""
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+  successThreshold: 1
+
+configMap:
+  data: {}
+---
+# FILE: templates/_helpers.tpl
+{{- define "worker-service.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "worker-service.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "worker-service.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "worker-service.labels" -}}
+helm.sh/chart: {{ include "worker-service.chart" . }}
+{{ include "worker-service.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "worker-service.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "worker-service.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "worker-service.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "worker-service.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worker-service.fullname" . }}-config
+  labels:
+    {{- include "worker-service.labels" . | nindent 4 }}
+data:
+  REDIS_HOST: {{ .Values.redis.host | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+  REDIS_QUEUE_NAME: {{ .Values.redis.queueName | quote }}
+  {{- range $key, $value := .Values.env }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+  {{- if .Values.configMap.data }}
+  {{- toYaml .Values.configMap.data | nindent 2 }}
+  {{- end }}
+---
+# FILE: templates/secret.yaml
+{{- if not .Values.redis.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "worker-service.fullname" . }}-redis
+  labels:
+    {{- include "worker-service.labels" . | nindent 4 }}
+type: Opaque
+data:
+  redis-password: {{ .Values.redis.password | b64enc | quote }}
+{{- end }}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "worker-service.serviceAccountName" . }}
+  labels:
+    {{- include "worker-service.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worker-service.fullname" . }}
+  labels:
+    {{- include "worker-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "worker-service.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker-service.fullname" . }}
+  labels:
+    {{- include "worker-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worker-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "worker-service.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "worker-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "worker-service.fullname" . }}-config
+            - secretRef:
+                name: {{ if .Values.redis.existingSecret }}{{ .Values.redis.existingSecret }}{{ else }}{{ include "worker-service.fullname" . }}-redis{{ end }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if .Values.redis.existingSecret }}{{ .Values.redis.existingSecret }}{{ else }}{{ include "worker-service.fullname" . }}-redis{{ end }}
+                  key: {{ if .Values.redis.existingSecretKey }}{{ .Values.redis.existingSecretKey }}{{ else }}redis-password{{ end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path

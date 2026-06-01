@@ -1,0 +1,279 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:03:09.0271498Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 39,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0017",
+          "AVDID": "AVD-AWS-0017",
+          "Title": "CloudWatch log groups should be encrypted using CMK",
+          "Description": "CloudWatch log groups are encrypted by default, however, to get the full benefit of controlling key rotation and other KMS aspects a KMS CMK should be used.\n",
+          "Message": "Log group is not encrypted.",
+          "Namespace": "builtin.aws.cloudwatch.aws0017",
+          "Query": "data.builtin.aws.cloudwatch.aws0017.deny",
+          "Resolution": "Enable CMK encryption of CloudWatch Log Groups",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0017",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0017"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudwatch_log_group.lambda_log_group",
+            "Provider": "AWS",
+            "Service": "cloudwatch",
+            "StartLine": 28,
+            "EndLine": 35,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 28,
+                  "Content": "resource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudwatch_log_group\"\u001b[0m \u001b[38;5;37m\"lambda_log_group\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "  name              = \"/aws/lambda/webhook-handler\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mname\u001b[0m              = \u001b[38;5;37m\"/aws/lambda/webhook-handler\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "  retention_in_days = 14",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mretention_in_days\u001b[0m = \u001b[38;5;37m14",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "  tags = {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtags\u001b[0m = {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 33,
+                  "Content": "    Name = \"webhook-handler-log-group\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mName\u001b[0m = \u001b[38;5;37m\"webhook-handler-log-group\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 34,
+                  "Content": "  }",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 35,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0066",
+          "AVDID": "AVD-AWS-0066",
+          "Title": "Lambda functions should have X-Ray tracing enabled",
+          "Description": "X-Ray tracing enables end-to-end debugging and analysis of all function activity. This will allow for identifying bottlenecks, slow downs and timeouts.\n",
+          "Message": "Function does not have tracing enabled.",
+          "Namespace": "builtin.aws.lambda.aws0066",
+          "Query": "data.builtin.aws.lambda.aws0066.deny",
+          "Resolution": "Enable tracing",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0066",
+          "References": [
+            "https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0066"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_lambda_function.webhook_handler",
+            "Provider": "AWS",
+            "Service": "lambda",
+            "StartLine": 61,
+            "EndLine": 86,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 61,
+                  "Content": "resource \"aws_lambda_function\" \"webhook_handler\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_lambda_function\"\u001b[0m \u001b[38;5;37m\"webhook_handler\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "  function_name    = \"webhook-handler\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mfunction_name\u001b[0m    = \u001b[38;5;37m\"webhook-handler\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "  role             = aws_iam_role.lambda_exec_role.arn",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mrole\u001b[0m             = aws_iam_role.lambda_exec_role.arn",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "  handler          = \"handler.lambda_handler\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mhandler\u001b[0m          = \u001b[38;5;37m\"handler.lambda_handler\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "  runtime          = \"python3.12\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mruntime\u001b[0m          = \u001b[38;5;37m\"python3.12\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "  architectures    = [\"arm64\"]",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245marchitectures\u001b[0m    = [\u001b[38;5;37m\"arm64\"\u001b[0m]",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 67,
+                  "Content": "  filename         = data.archive_file.lambda_zip.output_path",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mfilename\u001b[0m         = \u001b[38;5;33mdata\u001b[0m.archive_file.lambda_zip.output_path",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 68,
+                  "Content": "  source_code_hash = data.archive_file.lambda_zip.output_base64sha256",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245msource_code_hash\u001b[0m = \u001b[38;5;33mdata\u001b[0m.archive_file.lambda_zip.output_base64sha256",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 69,
+                  "Content": "  timeout          = 10",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtimeout\u001b[0m          = \u001b[38;5;37m10",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 70,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

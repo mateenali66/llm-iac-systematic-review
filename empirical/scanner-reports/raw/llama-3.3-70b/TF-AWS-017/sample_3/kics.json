@@ -1,0 +1,183 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 96,
+	"files_parsed": 1,
+	"lines_parsed": 96,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 4,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 7,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:17:34.569619427Z",
+	"end": "2026-05-26T06:17:53.142152672Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EBS Volume Encryption Disabled",
+			"query_id": "cc997676-481b-4e93-aa81-d19f8c5e9b12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume#encrypted",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "EBS volumes should be encrypted",
+			"description_id": "977695a1",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8d1d9435230bf1ae8c170fb897b445985dd264efb388dbcee573ec7389dd11fd",
+					"line": 1,
+					"resource_type": "aws_ebs_volume",
+					"resource_name": "database-ebs-volume",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_ebs_volume[database]",
+					"search_line": 1,
+					"search_value": "",
+					"expected_value": "One of 'aws_ebs_volume.encrypted' should be defined",
+					"actual_value": "One of 'aws_ebs_volume.encrypted' is undefined",
+					"remediation": "encrypted = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "EBS Volume Snapshot Not Encrypted",
+			"query_id": "e6b4b943-6883-47a9-9739-7ada9568f8ca",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ebs_snapshot#encrypted",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "The value on AWS EBS Volume Snapshot Encryptation must be true",
+			"description_id": "b36765a7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "643b78c79c21b0e672c844dab763a300867797306da4bad344526f28cd2ae37f",
+					"line": 11,
+					"resource_type": "aws_ebs_snapshot",
+					"resource_name": "database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_ebs_snapshot[database]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_ebs_volume[database].encrypted' associated with aws_ebs_snapshot[database] should be set",
+					"actual_value": "'aws_ebs_volume[database].encrypted' associated with aws_ebs_snapshot[database] is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1c71a806d97aad6ef94dcbea16d508f694fe4cf9f884d2ee98cc85413abf21ec",
+					"line": 24,
+					"resource_type": "aws_backup_plan",
+					"resource_name": "database-backup-plan",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_plan[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_plan[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_backup_plan[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "145ad23a64a64468985ea429245fbb811dcae58c7c9de419c0ce7a24446dcbbc",
+					"line": 20,
+					"resource_type": "aws_backup_vault",
+					"resource_name": "database-backup-vault",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_vault[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_vault[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_backup_vault[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "42f78b59d08c90eb15ab7de104f1a7508cc40d01e93d54d7099fc710368ace34",
+					"line": 69,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "database-backup-policy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_iam_policy[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "dcd24c705d8dd8e73f4c5b924bf23da34f9fe53728e2bc7f408a906229c2b65c",
+					"line": 51,
+					"resource_type": "aws_iam_role",
+					"resource_name": "database-backup-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_iam_role[{{database}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

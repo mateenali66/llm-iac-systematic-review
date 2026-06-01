@@ -1,0 +1,241 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 102,
+	"files_parsed": 1,
+	"lines_parsed": 101,
+	"lines_ignored": 1,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 2,
+		"LOW": 2,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 8,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:49:20.971155208Z",
+	"end": "2026-05-26T04:49:43.329884261Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CloudFront Logging Disabled",
+			"query_id": "94690d79-b3b0-43de-b656-84ebef5753e5",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "AWS CloudFront distributions should have logging enabled to collect all viewer requests, which means the attribute 'logging_config' should be defined",
+			"description_id": "9cf96455",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "29289a5ee8d20ed9d3dc5593ab0d26cf3dc11c8e74693f97246cffe2ba84a346",
+					"line": 67,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudfront_distribution[main]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_cloudfront_distribution[main].logging_config should be defined",
+					"actual_value": "aws_cloudfront_distribution[main].logging_config is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "CloudFront Without Minimum Protocol TLS 1.2",
+			"query_id": "00e5e55e-c2ff-46b3-a757-a7a1cd802456",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "CloudFront Minimum Protocol version should be at least TLS 1.2",
+			"description_id": "0b620722",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3e937d7edb5959e33929670438568f419ddec2dd06bcbcaac4343ae4edfc080e",
+					"line": 100,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "IncorrectValue",
+					"search_key": "resource.aws_cloudfront_distribution[main].viewer_certificate.cloudfront_default_certificate",
+					"search_line": 100,
+					"search_value": "",
+					"expected_value": "resource.aws_cloudfront_distribution[main].viewer_certificate.cloudfront_default_certificate' should be 'false'",
+					"actual_value": "resource.aws_cloudfront_distribution[main].viewer_certificate.cloudfront_default_certificate' is 'true'",
+					"remediation": "{\"after\":\"false\",\"before\":\"true\"}",
+					"remediation_type": "replacement"
+				}
+			]
+		},
+		{
+			"query_name": "CloudFront Without WAF",
+			"query_id": "1419b4c6-6d5c-4534-9cf6-6a5266085333",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "All AWS CloudFront distributions should be integrated with the Web Application Firewall (AWS WAF) service",
+			"description_id": "8fa5ef1b",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "cc8c0da59c24caa0f58706a5de1032a8322283da847938ca08f5439de8f1c267",
+					"line": 67,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudfront_distribution[main].web_acl_id",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'web_acl_id'  should exist",
+					"actual_value": "'web_acl_id' is missing"
+				}
+			]
+		},
+		{
+			"query_name": "Vulnerable Default SSL Certificate",
+			"query_id": "3a1e94df-6847-4c0e-a3b6-6c6af4e128ef",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "295",
+			"cloud_provider": "AWS",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "CloudFront web distributions should use custom (and not default) SSL certificates. Custom SSL certificates allow only defined users to access content by using an alternate domain name instead of the default one.",
+			"description_id": "38579a53",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "bdac45d8574d8a1ec3db393268b79fa2b8c17225dc7454c597ebf4f8436d5747",
+					"line": 99,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_cloudfront_distribution[main].viewer_certificate",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Attribute 'cloudfront_default_certificate' should be 'false' or not defined",
+					"actual_value": "Attribute 'cloudfront_default_certificate' is 'true'"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "084c6686-2a70-4710-91b1-000393e54c12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/shield_protection#resource_arn",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "e09b31c7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a10e6459528a0b398ff4ca8a051b984944923186cb66f420e56c9d07b02ff059",
+					"line": 67,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudfront_distribution[main]",
+					"search_line": 67,
+					"search_value": "",
+					"expected_value": "aws_cloudfront_distribution has shield advanced associated",
+					"actual_value": "aws_cloudfront_distribution does not have shield advanced associated"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a0600c989fc4130f874eff322f8a271fcec546e9b5d05d3c9a9484cfe778211b",
+					"line": 67,
+					"resource_type": "aws_cloudfront_distribution",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudfront_distribution[{{main}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_cloudfront_distribution[{{main}}].tags should be defined and not null",
+					"actual_value": "aws_cloudfront_distribution[{{main}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "95fa4118887adaf607859e26b4c9cb4baef3993fab7e68157b0aa14314afeb0f",
+					"line": 1,
+					"resource_type": "aws_wafv2_web_acl",
+					"resource_name": "cloudfront-waf-web-acl",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_wafv2_web_acl[{{cloudfront_waf}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_wafv2_web_acl[{{cloudfront_waf}}].tags should be defined and not null",
+					"actual_value": "aws_wafv2_web_acl[{{cloudfront_waf}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,137 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: Non-production Postgres with StatefulSet, headless service, PVC, secret and init job
+type: application
+version: 0.1.0
+appVersion: "16"
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: postgres
+  tag: "16-alpine"
+  pullPolicy: IfNotPresent
+service:
+  port: 5432
+persistence:
+  storageClassName: ""
+  size: 10Gi
+secret:
+  postgresUser: postgres
+  postgresPassword: change-me-in-prod
+  appDatabase: appdb
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  fsGroup: 999
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}-secret
+  labels:
+    app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.secret.postgresUser }}
+  POSTGRES_PASSWORD: {{ .Values.secret.postgresPassword }}
+  POSTGRES_DB: postgres
+  APP_DATABASE: {{ .Values.secret.appDatabase }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 5432
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+spec:
+  serviceName: {{ include "postgres-nonprod.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ include "postgres-nonprod.fullname" . }}-secret
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.persistence.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+---
+# FILE: templates/init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}-init-db
+  labels:
+    app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init-db
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          envFrom:
+            - secretRef:
+                name: {{ include "postgres-nonprod.fullname" . }}-secret
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until pg_isready -h {{ include "postgres-nonprod.fullname" . }} -U $POSTGRES_USER; do sleep 2; done
+              psql -h {{ include "postgres-nonprod.fullname" . }} -U $POSTGRES_USER -c "CREATE DATABASE $APP_DATABASE;" || true
+---
+# FILE: templates/_helpers.tpl
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- define "postgres-nonprod.fullname" -}}
+{{- printf "%s-%s" .Release.Name (include "postgres-nonprod.name" .) | trunc 63 | trimSuffix "-" }}
+{{- end }}

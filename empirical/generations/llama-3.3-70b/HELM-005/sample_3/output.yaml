@@ -1,0 +1,101 @@
+# FILE: Chart.yaml
+name: multi-container-pod
+version: 1.0.0
+description: A Helm chart for deploying a multi-container Pod with a main application container and a Fluent Bit log-shipping sidecar
+
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+fluentBit:
+  image:
+    repository: fluent/fluent-bit
+    tag: latest
+  config:
+    input:
+      tail:
+        - name: container_logs
+          path: /var/log/containers/*.log
+          db: /var/log/flb_kube.db
+          mem_buf_limit: 10MB
+          skip_long_lines: On
+    output:
+      es:
+        - name: es
+          host: elasticsearch
+          port: 9200
+          index: logs
+          type: log
+volume:
+  size: 1Gi
+
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-container-pod.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "multi-container-pod.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+      - name: fluent-bit
+        image: "{{ .Values.fluentBit.image.repository }}:{{ .Values.fluentBit.image.tag }}"
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+        - name: flb-config
+          mountPath: /fluent-bit/etc/
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: flb-config
+        configMap:
+          name: {{ include "multi-container-pod.fullname" . }}-flb-config
+
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}-flb-config
+data:
+  fluent-bit.conf: |
+    [INPUT]
+      name = tail
+      tag = kube.*
+      path = /var/log/containers/*.log
+      db = /var/log/flb_kube.db
+      mem_buf_limit = 10MB
+      skip_long_lines = On
+    [OUTPUT]
+      name = es
+      host = elasticsearch
+      port = 9200
+      index = logs
+      type = log
+
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.volume.size }}

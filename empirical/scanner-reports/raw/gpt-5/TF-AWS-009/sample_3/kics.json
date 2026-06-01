@@ -1,0 +1,285 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 373,
+	"files_parsed": 1,
+	"lines_parsed": 373,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 3,
+		"INFO": 8,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 13,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:19:58.603573129Z",
+	"end": "2026-05-26T05:20:19.01810093Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "KMS Key With Vulnerable Policy",
+			"query_id": "7ebc9038-0bde-479a-acc4-6ed7b6758899",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Checks if the policy is vulnerable and needs updating.",
+			"description_id": "32b2985e",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9062713bc68bc4bfe5828fe2bec53440127621fbdfb2b11adb9fc65ea640d826",
+					"line": 158,
+					"resource_type": "aws_kms_key",
+					"resource_name": "rds",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[rds]",
+					"search_line": 158,
+					"search_value": "",
+					"expected_value": "aws_kms_key[rds].policy should be defined and not null",
+					"actual_value": "aws_kms_key[rds].policy is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6f6db3c744a1a08140e59ef527dcc274c7b900b9a877b2c0c1c4eb5f7e8aadeb",
+					"line": 273,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a40948991600928a5aaac5a6307b9a9baecb6d775327e5ff7bc055f1c5cca568",
+					"line": 285,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Secretsmanager Secret Without KMS",
+			"query_id": "a2f548f2-188c-4fff-b172-e9a6acb216bd",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret#kms_key_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS Secretmanager should use AWS KMS customer master key (CMK) to encrypt the secret values in the versions stored in the secret",
+			"description_id": "c9c95b59",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "82fd96a5fe77a893e1a373f8507327419c17635b7ebc001c36c8685fd59c5962",
+					"line": 265,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "rds/${var.db_identifier}/master",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{db_master}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret.kms_key_id should be defined and not null",
+					"actual_value": "aws_secretsmanager_secret.kms_key_id is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 158,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9f0d59475a144d08dc26ce2bf5fab270003426ee3e8990bacfcd9b07b0309297",
+					"line": 327,
+					"resource_type": "aws_db_instance",
+					"resource_name": "primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[{{primary}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_instance[{{primary}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_instance[{{primary}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "12b47371f4cf0eee5adca041d89e0e6d91d7e3e025965dd4d4018e8044b6ec19",
+					"line": 215,
+					"resource_type": "aws_db_subnet_group",
+					"resource_name": "${var.db_identifier}-db-subnets",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_subnet_group[{{this}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_subnet_group[{{this}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_subnet_group[{{this}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "32986f13e83ebc63478bd50b2d7403e44a35a9eb5c73704a1266ab968559f7f8",
+					"line": 180,
+					"resource_type": "aws_iam_role",
+					"resource_name": "${var.db_identifier}-rds-enhanced-monitoring",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{rds_enhanced_monitoring}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{rds_enhanced_monitoring}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{rds_enhanced_monitoring}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d2f20bdd2106b3577f3733d7bc40e5d1fa30a936bbed9c3b93534e01b1645ba2",
+					"line": 162,
+					"resource_type": "aws_kms_key",
+					"resource_name": "rds",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{rds}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{rds}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_kms_key[{{rds}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "80abcef6ce0ab290189273f2b8bb26770482589c08b57efb8962d28571f81646",
+					"line": 268,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "rds/${var.db_identifier}/master",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{db_master}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret[{{db_master}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_secretsmanager_secret[{{db_master}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6dc63fa6e778d22652cef0e4f3b16856fe0b112654f0fa25e33f6a9bebf649d8",
+					"line": 231,
+					"resource_type": "aws_security_group",
+					"resource_name": "${var.db_identifier}-rds-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{rds}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{rds}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{rds}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a45b435cf0f70e16c58d6ed75f522d582be055ef21ae8464703abd7d8c34296a",
+					"line": 209,
+					"resource_type": "aws_db_parameter_group",
+					"resource_name": "${var.db_identifier}-pg15-params",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_parameter_group[{{pg15}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_parameter_group[{{pg15}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_parameter_group[{{pg15}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "68eb4bf3-f9bf-463d-b5cf-e029bb446d2e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#description",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for all rules in AWS Security Group to have a description",
+			"description_id": "cee242dd",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "7dc62e7a2cf6972308aa8bc1995cd6c2369b6032e5092b980ef5c6e1d9ebfe29",
+					"line": 223,
+					"resource_type": "aws_security_group",
+					"resource_name": "${var.db_identifier}-rds-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{rds}}].egress",
+					"search_line": 223,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{rds}}].egress description should be defined and not null",
+					"actual_value": "aws_security_group[{{rds}}].egress description is undefined or null"
+				}
+			]
+		}
+	]
+}

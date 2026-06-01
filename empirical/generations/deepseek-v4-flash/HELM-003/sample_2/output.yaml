@@ -1,0 +1,268 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: A Helm chart for deploying a PostgreSQL database in a non-production environment
+type: application
+version: 0.1.0
+appVersion: "16.2"
+---
+# FILE: values.yaml
+# Default values for postgres-nonprod.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "16.2"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 5432
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# PostgreSQL configuration
+postgresql:
+  database: myapp
+  username: myapp
+  # Password will be auto-generated if not provided
+  password: ""
+  # Existing secret name (if password is managed externally)
+  existingSecret: ""
+  postgresPassword: ""
+  initdbArgs: ""
+  config:
+    max_connections: "100"
+    shared_buffers: "128MB"
+
+# Init job configuration
+initJob:
+  enabled: true
+  backoffLimit: 5
+  activeDeadlineSeconds: 300
+---
+# FILE: templates/_helpers.tpl
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "postgres-nonprod.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "postgres-nonprod.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "postgres-nonprod.labels" -}}
+helm.sh/chart: {{ include "postgres-nonprod.chart" . }}
+{{ include "postgres-nonprod.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "postgres-nonprod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "postgres-nonprod.serviceAccountName" -}}
+{{- default (include "postgres-nonprod.fullname" .) .Values.serviceAccount.name }}
+{{- end }}
+
+{{- define "postgres-nonprod.secretName" -}}
+{{- if .Values.postgresql.existingSecret }}
+{{- .Values.postgresql.existingSecret }}
+{{- else }}
+{{- include "postgres-nonprod.fullname" . }}
+{{- end }}
+{{- end }}
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres-nonprod.secretName" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+type: Opaque
+data:
+  {{- if not .Values.postgresql.existingSecret }}
+  postgres-password: {{ .Values.postgresql.postgresPassword | default (randAlphaNum 32) | b64enc | quote }}
+  password: {{ .Values.postgresql.password | default (randAlphaNum 32) | b64enc | quote }}
+  {{- end }}
+  database: {{ .Values.postgresql.database | b64enc | quote }}
+  username: {{ .Values.postgresql.username | b64enc | quote }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}-headless
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: postgresql
+      protocol: TCP
+      name: postgresql
+  selector:
+    {{- include "postgres-nonprod.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/pvc.yaml
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "postgres-nonprod.fullname" . }}-headless
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres-nonprod.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres-nonprod.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "postgres-nonprod.serviceAccountName" . }}
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+        runAsGroup: 999
+      containers:
+        - name: postgresql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres-nonprod.secretName" . }}
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres-nonprod.secretName" . }}
+                  key: password
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres-nonprod.secretName" . }}
+                  key: database
+            - name: POSTGRES_INITDB_ARGS
+              value: {{ .Values.postgresql.initdbArgs | quote }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -U
+                - postgres
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -h
+                - localhost
+                - -U
+                - postgres
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          {{-

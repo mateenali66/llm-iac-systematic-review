@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-011",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n- path: instance-template.jinja\n\nresources:\n- name: mig-instance-template\n  type: instance-template.jinja\n  properties:\n    machineType: e2-medium\n    imageFamily: ubuntu-2004-lts\n    imageProject: ubuntu-os-cloud\n    network: default\n    subnetwork: default\n    tags:\n      - http-server\n      - https-server\n    metadata:\n      items:\n        - key: startup-script\n          value: |\n            #!/bin/bash\n            apt-get update\n            apt-get install -y nginx\n            systemctl start nginx\n            systemctl enable nginx\n\n- name: mig-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.mig-instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: mig-instance\n    namedPorts:\n      - name: http\n        port: 80\n\n- name: mig-autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.mig-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n      coolDownPeriodSec: 60\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n    checkIntervalSec: 5\n    timeoutSec: 5\n    healthyThreshold: 2\n    unhealthyThreshold: 3\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n      - group: $(ref.mig-instance-group.instanceGroup)\n    healthChecks:\n      - $(ref.health-check.selfLink)\n    protocol: HTTP\n    portName: http\n    timeoutSec: 30\n    connectionDraining:\n      drainingTimeoutSec: 300\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    certificate: |\n      -----BEGIN CERTIFICATE-----\n      MIICljCCAX4CCQD+dummy+certificate+data+replace+with+real+cert\n      -----END CERTIFICATE-----\n    privateKey: |\n      -----BEGIN PRIVATE KEY-----\n      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7+dummy+key\n      -----END PRIVATE KEY-----\n\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n    sslCertificates:\n      - $(ref.ssl-certificate.selfLink)\n\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)",
+  "cleaned_response": "imports:\n- path: instance-template.jinja\n\nresources:\n- name: mig-instance-template\n  type: instance-template.jinja\n  properties:\n    machineType: e2-medium\n    imageFamily: ubuntu-2004-lts\n    imageProject: ubuntu-os-cloud\n    network: default\n    subnetwork: default\n    tags:\n      - http-server\n      - https-server\n    metadata:\n      items:\n        - key: startup-script\n          value: |\n            #!/bin/bash\n            apt-get update\n            apt-get install -y nginx\n            systemctl start nginx\n            systemctl enable nginx\n\n- name: mig-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.mig-instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: mig-instance\n    namedPorts:\n      - name: http\n        port: 80\n\n- name: mig-autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.mig-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n      coolDownPeriodSec: 60\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n    checkIntervalSec: 5\n    timeoutSec: 5\n    healthyThreshold: 2\n    unhealthyThreshold: 3\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n      - group: $(ref.mig-instance-group.instanceGroup)\n    healthChecks:\n      - $(ref.health-check.selfLink)\n    protocol: HTTP\n    portName: http\n    timeoutSec: 30\n    connectionDraining:\n      drainingTimeoutSec: 300\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    certificate: |\n      -----BEGIN CERTIFICATE-----\n      MIICljCCAX4CCQD+dummy+certificate+data+replace+with+real+cert\n      -----END CERTIFICATE-----\n    privateKey: |\n      -----BEGIN PRIVATE KEY-----\n      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7+dummy+key\n      -----END PRIVATE KEY-----\n\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n    sslCertificates:\n      - $(ref.ssl-certificate.selfLink)\n\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n- path: instance-template.jinja\n\nresources:\n- name: mig-instance-template\n  type: instance-template.jinja\n  properties:\n    machineType: e2-medium\n    imageFamily: ubuntu-2004-lts\n    imageProject: ubuntu-os-cloud\n    network: default\n    subnetwork: default\n    tags:\n      - http-server\n      - https-server\n    metadata:\n      items:\n        - key: startup-script\n          value: |\n            #!/bin/bash\n            apt-get update\n            apt-get install -y nginx\n            systemctl start nginx\n            systemctl enable nginx\n\n- name: mig-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.mig-instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: mig-instance\n    namedPorts:\n      - name: http\n        port: 80\n\n- name: mig-autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.mig-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n      coolDownPeriodSec: 60\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n    checkIntervalSec: 5\n    timeoutSec: 5\n    healthyThreshold: 2\n    unhealthyThreshold: 3\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n      - group: $(ref.mig-instance-group.instanceGroup)\n    healthChecks:\n      - $(ref.health-check.selfLink)\n    protocol: HTTP\n    portName: http\n    timeoutSec: 30\n    connectionDraining:\n      drainingTimeoutSec: 300\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    certificate: |\n      -----BEGIN CERTIFICATE-----\n      MIICljCCAX4CCQD+dummy+certificate+data+replace+with+real+cert\n      -----END CERTIFICATE-----\n    privateKey: |\n      -----BEGIN PRIVATE KEY-----\n      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7+dummy+key\n      -----END PRIVATE KEY-----\n\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n    sslCertificates:\n      - $(ref.ssl-certificate.selfLink)\n\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725191,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 148,
+      "output_tokens": 678,
+      "raw_input_tokens": 148
+    }
+  },
+  "started_at": "2026-05-25T16:06:19.633125+00:00",
+  "elapsed_seconds": 12.221
+}

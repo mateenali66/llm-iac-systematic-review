@@ -1,0 +1,430 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:19:21.190024583Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 54,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 3
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_security_group_rule.egress_all",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 129,
+            "EndLine": 129,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 124,
+                  "Content": "resource \"aws_security_group_rule\" \"egress_all\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_security_group_rule\"\u001b[0m \u001b[38;5;37m\"egress_all\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 125,
+                  "Content": "  type              = \"egress\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtype\u001b[0m              = \u001b[38;5;37m\"egress\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 126,
+                  "Content": "  from_port         = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mfrom_port\u001b[0m         = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 127,
+                  "Content": "  to_port           = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mto_port\u001b[0m           = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 128,
+                  "Content": "  protocol          = \"-1\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mprotocol\u001b[0m          = \u001b[38;5;37m\"-1\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 129,
+                  "Content": "  cidr_blocks       = [\"0.0.0.0/0\"]",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mcidr_blocks\u001b[0m       = [\u001b[38;5;37m\"0.0.0.0/0\"\u001b[0m]",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 130,
+                  "Content": "  security_group_id = aws_security_group.web.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245msecurity_group_id\u001b[0m = aws_security_group.web.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 131,
+                  "Content": "  description       = \"Allow all outbound traffic\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdescription\u001b[0m       = \u001b[38;5;37m\"Allow all outbound traffic\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 132,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_security_group_rule.egress_all",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 124,
+                  "EndLine": 132
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_subnet.public",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 89,
+            "EndLine": 89,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 85,
+                  "Content": "resource \"aws_subnet\" \"public\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_subnet\"\u001b[0m \u001b[38;5;37m\"public\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 86,
+                  "Content": "  vpc_id                  = aws_vpc.main.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mvpc_id\u001b[0m                  = aws_vpc.main.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 87,
+                  "Content": "  cidr_block              = var.public_subnet_cidr",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mcidr_block\u001b[0m              = \u001b[38;5;33mvar\u001b[0m.public_subnet_cidr",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 88,
+                  "Content": "  availability_zone       = data[\"aws_availability_zones\"].available.names[0]",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mavailability_zone\u001b[0m       = \u001b[38;5;33mdata\u001b[0m[\u001b[38;5;37m\"aws_availability_zones\"\u001b[0m].available.names[\u001b[38;5;37m0\u001b[0m]",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 89,
+                  "Content": "  map_public_ip_on_launch = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mmap_public_ip_on_launch\u001b[0m = \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 90,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 91,
+                  "Content": "  tags = {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtags\u001b[0m = {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 92,
+                  "Content": "    Name = \"${var.project_name}-public-subnet\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mName\u001b[0m = \u001b[38;5;37m\"\u001b[0m\u001b[38;5;37m${\u001b[0m\u001b[38;5;33mvar\u001b[0m.project_name\u001b[38;5;37m}\u001b[0m\u001b[38;5;37m-public-subnet\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 93,
+                  "Content": "  }",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 94,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_subnet.public",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 85,
+                  "EndLine": 94
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "aws-autoscaling-enable-at-rest-encryption",
+          "AVDID": "AVD-AWS-0178",
+          "Title": "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. After you've created a flow log, you can view and retrieve its data in Amazon CloudWatch Logs. It is recommended that VPC Flow Logs be enabled for packet \"Rejects\" for VPCs.",
+          "Description": "VPC Flow Logs provide visibility into network traffic that traverses the VPC and can be used to detect anomalous traffic or insight during security workflows.\n",
+          "Message": "VPC does not have VPC Flow Logs enabled.",
+          "Namespace": "builtin.aws.ec2.aws0178",
+          "Query": "data.builtin.aws.ec2.aws0178.deny",
+          "Resolution": "Enable flow logs for VPC",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-autoscaling-enable-at-rest-encryption",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/RootDeviceStorage.html",
+            "https://avd.aquasec.com/misconfig/aws-autoscaling-enable-at-rest-encryption"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_vpc.main",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 67,
+            "EndLine": 75,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 67,
+                  "Content": "resource \"aws_vpc\" \"main\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_vpc\"\u001b[0m \u001b[38;5;37m\"main\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 68,
+                  "Content": "  cidr_block           = var.vpc_cidr",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mcidr_block\u001b[0m           = \u001b[38;5;33mvar\u001b[0m.vpc_cidr",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 69,
+                  "Content": "  enable_dns_support   = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245menable_dns_support\u001b[0m   = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 70,
+                  "Content": "  enable_dns_hostnames = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245menable_dns_hostnames\u001b[0m = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 71,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 72,
+                  "Content": "  tags = {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtags\u001b[0m = {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 73,
+                  "Content": "    Name = \"${var.project_name}-vpc\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mName\u001b[0m = \u001b[38;5;37m\"\u001b[0m\u001b[38;5;37m${\u001b[0m\u001b[38;5;33mvar\u001b[0m.project_name\u001b[38;5;37m}\u001b[0m\u001b[38;5;37m-vpc\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 74,
+                  "Content": "  }",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 75,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

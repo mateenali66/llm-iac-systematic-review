@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Dashboard summarizing Lambda-based API metrics (invocations, errors, throttles, average duration).
+Parameters:
+  DashboardName:
+    Type: String
+    Default: !Sub '${AWS::StackName}-lambda-api-health'
+    Description: Name of the CloudWatch Dashboard.
+  DefaultFunctionFilter:
+    Type: String
+    Default: '*'
+    Description: Default filter for Lambda FunctionName variable (e.g., *, api-*, my-func).
+Resources:
+  LambdaApiHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "start": "-PT6H",
+          "periodOverride": "inherit",
+          "variables": [
+            {
+              "id": "fn",
+              "type": "query",
+              "label": "Lambda Function",
+              "default": "${DefaultFunctionFilter}",
+              "definition": "SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Invocations\"', 'Sum', 300)"
+            }
+          ],
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "region": "${AWS::Region}",
+                "title": "Lambda Invocations",
+                "view": "timeSeries",
+                "stacked": false,
+                "legend": { "position": "bottom" },
+                "metrics": [
+                  [ { "expression": "SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Invocations\" FunctionName=\"${fn}\"', 'Sum', 60)", "id": "e1" } ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "region": "${AWS::Region}",
+                "title": "Lambda Errors",
+                "view": "timeSeries",
+                "stacked": false,
+                "legend": { "position": "bottom" },
+                "metrics": [
+                  [ { "expression": "SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Errors\" FunctionName=\"${fn}\"', 'Sum', 60)", "id": "e2" } ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "region": "${AWS::Region}",
+                "title": "Lambda Throttles",
+                "view": "timeSeries",
+                "stacked": false,
+                "legend": { "position": "bottom" },
+                "metrics": [
+                  [ { "expression": "SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Throttles\" FunctionName=\"${fn}\"', 'Sum', 60)", "id": "e3" } ]
+                ]
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "region": "${AWS::Region}",
+                "title": "Lambda Duration (Average, ms)",
+                "view": "timeSeries",
+                "stacked": false,
+                "legend": { "position": "bottom" },
+                "metrics": [
+                  [ { "expression": "SEARCH('{AWS/Lambda,FunctionName} MetricName=\"Duration\" FunctionName=\"${fn}\"', 'Average', 60)", "id": "e4" } ]
+                ],
+                "yAxis": {
+                  "left": { "label": "ms", "min": 0 }
+                }
+              }
+            }
+          ]
+        }
+Outputs:
+  DashboardName:
+    Description: Name of the created CloudWatch Dashboard.
+    Value: !Ref DashboardName
+  DashboardResource:
+    Description: CloudFormation logical resource ID.
+    Value: !Ref LambdaApiHealthDashboard

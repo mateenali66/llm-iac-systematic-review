@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-009",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-analysis-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_analysis_dataset\n      location: US\n      description: \"Dataset for long-term log analysis\"\n      defaultTableExpirationMs: 31536000000  # 1 year in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-sink\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_analysis_dataset\"\n      filter: \"severity >= WARNING\"\n      description: \"Export logs to BigQuery for analysis\"\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      includeChildren: false\n      disabled: false\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: sink-writer-permission\n    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding\n    properties:\n      resource: projects/${PROJECT_ID}\n      role: roles/bigquery.dataEditor\n      member: $(ref.log-export-sink.writerIdentity)",
+  "cleaned_response": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-analysis-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_analysis_dataset\n      location: US\n      description: \"Dataset for long-term log analysis\"\n      defaultTableExpirationMs: 31536000000  # 1 year in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-sink\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_analysis_dataset\"\n      filter: \"severity >= WARNING\"\n      description: \"Export logs to BigQuery for analysis\"\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      includeChildren: false\n      disabled: false\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: sink-writer-permission\n    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding\n    properties:\n      resource: projects/${PROJECT_ID}\n      role: roles/bigquery.dataEditor\n      member: $(ref.log-export-sink.writerIdentity)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-analysis-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_analysis_dataset\n      location: US\n      description: \"Dataset for long-term log analysis\"\n      defaultTableExpirationMs: 31536000000  # 1 year in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-sink\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_analysis_dataset\"\n      filter: \"severity >= WARNING\"\n      description: \"Export logs to BigQuery for analysis\"\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      includeChildren: false\n      disabled: false\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: sink-writer-permission\n    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding\n    properties:\n      resource: projects/${PROJECT_ID}\n      role: roles/bigquery.dataEditor\n      member: $(ref.log-export-sink.writerIdentity)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728491,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 135,
+      "output_tokens": 306,
+      "raw_input_tokens": 135
+    }
+  },
+  "started_at": "2026-05-25T17:01:27.158927+00:00",
+  "elapsed_seconds": 3.964
+}

@@ -1,0 +1,95 @@
+resources:
+- name: enable-compute
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/$(project)/services/compute.googleapis.com
+
+- name: enable-servicenetworking
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/$(project)/services/servicenetworking.googleapis.com
+
+- name: enable-sqladmin
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/$(project)/services/sqladmin.googleapis.com
+
+- name: saas-vpc
+  type: gcp-types/compute-v1:networks
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+  dependsOn:
+  - enable-compute
+
+- name: private-service-range
+  type: gcp-types/compute-v1:globalAddresses
+  properties:
+    addressType: INTERNAL
+    prefixLength: 24
+    purpose: VPC_PEERING
+    network: $(ref.saas-vpc.selfLink)
+  dependsOn:
+  - saas-vpc
+
+- name: vpc-peering-connection
+  type: gcp-types/servicenetworking-v1:services.connections
+  properties:
+    parent: services/servicenetworking.googleapis.com
+    network: $(ref.saas-vpc.selfLink)
+    reservedPeeringRanges:
+    - $(ref.private-service-range.name)
+  dependsOn:
+  - enable-servicenetworking
+  - private-service-range
+
+- name: saas-postgres15
+  type: gcp-types/sqladmin-v1beta4:instances
+  properties:
+    name: saas-postgres15
+    databaseVersion: POSTGRES_15
+    region: us-central1
+    settings:
+      tier: db-custom-2-7680
+      activationPolicy: ALWAYS
+      availabilityType: REGIONAL
+      dataDiskType: PD_SSD
+      dataDiskSizeGb: 200
+      storageAutoResize: true
+      maintenanceWindow:
+        day: 7
+        hour: 3
+        updateTrack: stable
+      backupConfiguration:
+        enabled: true
+        startTime: "03:00"
+        pointInTimeRecoveryEnabled: true
+        transactionLogRetentionDays: 7
+        backupRetentionSettings:
+          retainedBackups: 7
+          retentionUnit: COUNT
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: $(ref.saas-vpc.selfLink)
+        requireSsl: true
+      locationPreference:
+        zone: us-central1-a
+        secondaryZone: us-central1-b
+      insightsConfig:
+        queryInsightsEnabled: true
+        queryStringLength: 1024
+        recordApplicationTags: true
+        recordClientAddress: true
+      databaseFlags:
+      - name: cloudsql.iam_authentication
+        value: on
+      - name: log_min_duration_statement
+        value: "2000"
+      userLabels:
+        env: prod
+        app: saas
+    deletionProtectionEnabled: true
+  dependsOn:
+  - enable-sqladmin
+  - vpc-peering-connection

@@ -1,0 +1,86 @@
+---
+- name: Deploy Java application as systemd service
+  hosts: all
+  become: true
+  vars:
+    app_name: myapp
+    app_user: myapp
+    app_group: myapp
+    app_home: /opt/myapp
+    jar_name: myapp.jar
+    java_opts: "-Xmx512m -XX:+UseG1GC"
+  tasks:
+    - name: Install OpenJDK 21
+      ansible.builtin.apt:
+        name: openjdk-21-jdk
+        state: present
+        update_cache: true
+    - name: Create application group
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        system: true
+    - name: Create application user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ app_home }}"
+        create_home: false
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ app_home }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0750"
+    - name: Copy application JAR
+      ansible.builtin.copy:
+        src: "{{ jar_name }}"
+        dest: "{{ app_home }}/{{ jar_name }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0750"
+    - name: Create systemd unit file
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ app_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description={{ app_name }} Java Application
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_group }}
+          WorkingDirectory={{ app_home }}
+          ExecStart=/usr/bin/java {{ java_opts }} -jar {{ app_home }}/{{ jar_name }}
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=10
+
+          # Security hardening
+          PrivateTmp=true
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ReadWritePaths={{ app_home }}
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: systemd daemon-reload and restart
+    - name: Ensure service is started and enabled
+      ansible.builtin.systemd:
+        name: "{{ app_name }}.service"
+        state: started
+        enabled: true
+        daemon_reload: true
+  handlers:
+    - name: systemd daemon-reload and restart
+      ansible.builtin.systemd:
+        name: "{{ app_name }}.service"
+        state: restarted
+        daemon_reload: true

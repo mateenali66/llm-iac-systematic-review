@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-011",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Lambda function named 'webhook-handler' running Python 3.12 that processes incoming webhook events. The function code is at ./lambda/handler.py.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Lambda function named 'webhook-handler' running Python 3.12 that processes incoming webhook events. The function code is at ./lambda/handler.py.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "data \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = \"${path.module}/webhook-handler.zip\"\n}\n\nresource \"aws_iam_role\" \"lambda_exec_role\" {\n  name = \"webhook-handler-lambda-exec-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = \"sts:AssumeRole\"\n      Effect = \"Allow\"\n      Principal = {\n        Service = \"lambda.amazonaws.com\"\n      }\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-exec-role\"\n  }\n}\n\nresource \"aws_iam_policy\" \"lambda_logging_policy\" {\n  name        = \"webhook-handler-lambda-logging-policy\"\n  description = \"IAM policy for logging from the webhook-handler Lambda function.\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = [\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ]\n      Effect   = \"Allow\"\n      Resource = \"${aws_cloudwatch_log_group.lambda_log_group.arn}:*\"\n      },\n      {\n        Action   = \"logs:CreateLogGroup\"\n        Effect   = \"Allow\"\n        Resource = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*\"\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-logging-policy\"\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_logs_attach\" {\n  role       = aws_iam_role.lambda_exec_role.name\n  policy_arn = aws_iam_policy.lambda_logging_policy.arn\n}\n\ndata \"aws_region\" \"current\" {}\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 14\n\n  tags = {\n    Name = \"webhook-handler-lambda-log-group\"\n  }\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name = \"webhook-handler\"\n  role          = aws_iam_role.lambda_exec_role.arn\n  handler       = \"handler.lambda_handler\"\n  runtime       = \"python3.12\"\n  publish       = true\n\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  depends_on = [\n    aws_iam_role_policy_attachment.lambda_logs_attach,\n    aws_cloudwatch_log_group.lambda_log_group,\n  ]\n\n  tags = {\n    Name = \"webhook-handler\"\n  }\n}",
+  "cleaned_response": "data \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = \"${path.module}/webhook-handler.zip\"\n}\n\nresource \"aws_iam_role\" \"lambda_exec_role\" {\n  name = \"webhook-handler-lambda-exec-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = \"sts:AssumeRole\"\n      Effect = \"Allow\"\n      Principal = {\n        Service = \"lambda.amazonaws.com\"\n      }\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-exec-role\"\n  }\n}\n\nresource \"aws_iam_policy\" \"lambda_logging_policy\" {\n  name        = \"webhook-handler-lambda-logging-policy\"\n  description = \"IAM policy for logging from the webhook-handler Lambda function.\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = [\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ]\n      Effect   = \"Allow\"\n      Resource = \"${aws_cloudwatch_log_group.lambda_log_group.arn}:*\"\n      },\n      {\n        Action   = \"logs:CreateLogGroup\"\n        Effect   = \"Allow\"\n        Resource = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*\"\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-logging-policy\"\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_logs_attach\" {\n  role       = aws_iam_role.lambda_exec_role.name\n  policy_arn = aws_iam_policy.lambda_logging_policy.arn\n}\n\ndata \"aws_region\" \"current\" {}\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 14\n\n  tags = {\n    Name = \"webhook-handler-lambda-log-group\"\n  }\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name = \"webhook-handler\"\n  role          = aws_iam_role.lambda_exec_role.arn\n  handler       = \"handler.lambda_handler\"\n  runtime       = \"python3.12\"\n  publish       = true\n\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  depends_on = [\n    aws_iam_role_policy_attachment.lambda_logs_attach,\n    aws_cloudwatch_log_group.lambda_log_group,\n  ]\n\n  tags = {\n    Name = \"webhook-handler\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "data \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = \"${path.module}/webhook-handler.zip\"\n}\n\nresource \"aws_iam_role\" \"lambda_exec_role\" {\n  name = \"webhook-handler-lambda-exec-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = \"sts:AssumeRole\"\n      Effect = \"Allow\"\n      Principal = {\n        Service = \"lambda.amazonaws.com\"\n      }\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-exec-role\"\n  }\n}\n\nresource \"aws_iam_policy\" \"lambda_logging_policy\" {\n  name        = \"webhook-handler-lambda-logging-policy\"\n  description = \"IAM policy for logging from the webhook-handler Lambda function.\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action = [\n        \"logs:CreateLogStream\",\n        \"logs:PutLogEvents\"\n      ]\n      Effect   = \"Allow\"\n      Resource = \"${aws_cloudwatch_log_group.lambda_log_group.arn}:*\"\n      },\n      {\n        Action   = \"logs:CreateLogGroup\"\n        Effect   = \"Allow\"\n        Resource = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*\"\n    }]\n  })\n\n  tags = {\n    Name = \"webhook-handler-lambda-logging-policy\"\n  }\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_logs_attach\" {\n  role       = aws_iam_role.lambda_exec_role.name\n  policy_arn = aws_iam_policy.lambda_logging_policy.arn\n}\n\ndata \"aws_region\" \"current\" {}\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_log_group\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 14\n\n  tags = {\n    Name = \"webhook-handler-lambda-log-group\"\n  }\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name = \"webhook-handler\"\n  role          = aws_iam_role.lambda_exec_role.arn\n  handler       = \"handler.lambda_handler\"\n  runtime       = \"python3.12\"\n  publish       = true\n\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  depends_on = [\n    aws_iam_role_policy_attachment.lambda_logs_attach,\n    aws_cloudwatch_log_group.lambda_log_group,\n  ]\n\n  tags = {\n    Name = \"webhook-handler\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779730501,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 139,
+      "output_tokens": 1905,
+      "raw_input_tokens": 139
+    }
+  },
+  "started_at": "2026-05-25T17:34:36.760224+00:00",
+  "elapsed_seconds": 24.453
+}

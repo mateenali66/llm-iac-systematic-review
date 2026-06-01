@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-NET-004",
+  "language": "k8s_yaml",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Kubernetes NetworkPolicy manifest restricting ingress traffic to a Pod labeled 'app=database' to only Pods labeled 'app=api' on port 5432.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Write a Kubernetes NetworkPolicy manifest restricting ingress traffic to a Pod labeled 'app=database' to only Pods labeled 'app=api' on port 5432.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: database-allow-api-ingress\n  namespace: default\n  labels:\n    app: database\n    managed-by: platform\nspec:\n  podSelector:\n    matchLabels:\n      app: database\n  policyTypes:\n    - Ingress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: api\n      ports:\n        - protocol: TCP\n          port: 5432",
+  "cleaned_response": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: database-allow-api-ingress\n  namespace: default\n  labels:\n    app: database\n    managed-by: platform\nspec:\n  podSelector:\n    matchLabels:\n      app: database\n  policyTypes:\n    - Ingress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: api\n      ports:\n        - protocol: TCP\n          port: 5432",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: database-allow-api-ingress\n  namespace: default\n  labels:\n    app: database\n    managed-by: platform\nspec:\n  podSelector:\n    matchLabels:\n      app: database\n  policyTypes:\n    - Ingress\n  ingress:\n    - from:\n        - podSelector:\n            matchLabels:\n              app: api\n      ports:\n        - protocol: TCP\n          port: 5432",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727726,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 267,
+      "output_tokens": 171,
+      "raw_input_tokens": 267
+    }
+  },
+  "started_at": "2026-05-25T16:48:42.653397+00:00",
+  "elapsed_seconds": 3.644
+}

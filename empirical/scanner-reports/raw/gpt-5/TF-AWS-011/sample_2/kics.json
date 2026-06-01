@@ -1,0 +1,181 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 174,
+	"files_parsed": 1,
+	"lines_parsed": 174,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 4,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 7,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:20:09.081695842Z",
+	"end": "2026-05-26T05:20:28.787786045Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "KMS Key With Vulnerable Policy",
+			"query_id": "7ebc9038-0bde-479a-acc4-6ed7b6758899",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Checks if the policy is vulnerable and needs updating.",
+			"description_id": "32b2985e",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1bb62695204a8c71acf3f764ff7a88c45b682d55545415b33155c8dfb9e5b1b4",
+					"line": 109,
+					"resource_type": "aws_kms_key",
+					"resource_name": "lambda_env",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_kms_key[lambda_env].policy",
+					"search_line": 109,
+					"search_value": "",
+					"expected_value": "aws_kms_key[lambda_env].policy should not have wildcard in 'Action' and 'Principal'",
+					"actual_value": "aws_kms_key[lambda_env].policy has wildcard in 'Action' or 'Principal'"
+				}
+			]
+		},
+		{
+			"query_name": "CloudWatch Log Group Without KMS",
+			"query_id": "0afbcfe9-d341-4b92-a64c-7e6de0543879",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS CloudWatch Log groups should be encrypted using KMS",
+			"description_id": "4258abe6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "e87ff269868b0f89e290381eeb3cb39a4e0db898260fe4023536f711c3bd9c4c",
+					"line": 136,
+					"resource_type": "aws_cloudwatch_log_group",
+					"resource_name": "/aws/lambda/webhook-handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudwatch_log_group[lambda]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Attribute 'kms_key_id' should be set",
+					"actual_value": "Attribute 'kms_key_id' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 53,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "43bab2d767e8e159730a55faff036df790808f3ca498073c0267e95be5ca3451",
+					"line": 139,
+					"resource_type": "aws_cloudwatch_log_group",
+					"resource_name": "/aws/lambda/webhook-handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudwatch_log_group[{{lambda}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_cloudwatch_log_group[{{lambda}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_cloudwatch_log_group[{{lambda}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "baf86f5f05e9fc437a29260d0d328310b16f5d7ad8d59ffb39cbd9df2b15b29b",
+					"line": 56,
+					"resource_type": "aws_iam_role",
+					"resource_name": "webhook-handler-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{lambda}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{lambda}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{lambda}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fd0a96ce953447ee30011bcda304d6513a557b83d973392e37ad8a9ba8c0dc0b",
+					"line": 111,
+					"resource_type": "aws_kms_key",
+					"resource_name": "lambda_env",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{lambda_env}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{lambda_env}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_kms_key[{{lambda_env}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fc649ee4e23fc3dada3fd545c5a2a226df122730484a1895da66a3c80d652daf",
+					"line": 173,
+					"resource_type": "aws_lambda_function",
+					"resource_name": "webhook_handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lambda_function[{{webhook_handler}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_lambda_function[{{webhook_handler}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_lambda_function[{{webhook_handler}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

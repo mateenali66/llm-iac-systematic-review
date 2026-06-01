@@ -1,0 +1,65 @@
+---
+- name: Harden CentOS 9 server
+  hosts: centos9
+  become: yes
+
+  tasks:
+  - name: Disable root SSH login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: '^PermitRootLogin'
+      line: 'PermitRootLogin no'
+      state: present
+    notify: restart sshd
+
+  - name: Enforce password complexity
+    template:
+      src: templates/pam.d/password-auth.j2
+      dest: /etc/pam.d/password-auth
+      mode: '0644'
+    notify: restart auth
+
+  - name: Install fail2ban
+    dnf:
+      name: fail2ban
+      state: present
+
+  - name: Configure fail2ban
+    template:
+      src: templates/jail.local.j2
+      dest: /etc/fail2ban/jail.local
+      mode: '0644'
+    notify: restart fail2ban
+
+  - name: Install auditd
+    dnf:
+      name: audit
+      state: present
+
+  - name: Configure auditd
+    template:
+      src: templates/auditd.conf.j2
+      dest: /etc/audit/auditd.conf
+      mode: '0644'
+    notify: restart auditd
+
+  handlers:
+  - name: restart sshd
+    service:
+      name: sshd
+      state: restarted
+
+  - name: restart auth
+    service:
+      name: auth
+      state: restarted
+
+  - name: restart fail2ban
+    service:
+      name: fail2ban
+      state: restarted
+
+  - name: restart auditd
+    service:
+      name: auditd
+      state: restarted

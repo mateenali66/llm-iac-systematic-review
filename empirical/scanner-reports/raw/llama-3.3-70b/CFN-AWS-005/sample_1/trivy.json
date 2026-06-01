@@ -1,0 +1,361 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:06:44.974046752Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 42,
+        "Failures": 3
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "PublicSubnet1",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 24,
+            "EndLine": 24,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 19,
+                  "Content": "  PublicSubnet1:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mPublicSubnet1\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 20,
+                  "Content": "    Type: 'AWS::EC2::Subnet'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::EC2::Subnet'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 21,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 22,
+                  "Content": "      AvailabilityZone: !Select [0, !GetAZs '']",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mAvailabilityZone\u001b[0m: !Select [0, !GetAZs '']",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 23,
+                  "Content": "      CidrBlock: 10.0.1.0/24",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mCidrBlock\u001b[0m: \u001b[38;5;37m10.0.1.0\u001b[0m/24",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 24,
+                  "Content": "      MapPublicIpOnLaunch: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMapPublicIpOnLaunch\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 25,
+                  "Content": "      VpcId: !Ref VPC",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mVpcId\u001b[0m: !Ref VPC",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "PublicSubnet1",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 19,
+                  "EndLine": 25
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "PublicSubnet2",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 32,
+            "EndLine": 32,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 27,
+                  "Content": "  PublicSubnet2:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mPublicSubnet2\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 28,
+                  "Content": "    Type: 'AWS::EC2::Subnet'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::EC2::Subnet'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "      AvailabilityZone: !Select [1, !GetAZs '']",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mAvailabilityZone\u001b[0m: !Select [1, !GetAZs '']",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "      CidrBlock: 10.0.2.0/24",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mCidrBlock\u001b[0m: \u001b[38;5;37m10.0.2.0\u001b[0m/24",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "      MapPublicIpOnLaunch: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMapPublicIpOnLaunch\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 33,
+                  "Content": "      VpcId: !Ref VPC",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mVpcId\u001b[0m: !Ref VPC",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "PublicSubnet2",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 27,
+                  "EndLine": 33
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "PublicSubnet3",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 40,
+            "EndLine": 40,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 35,
+                  "Content": "  PublicSubnet3:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mPublicSubnet3\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 36,
+                  "Content": "    Type: 'AWS::EC2::Subnet'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::EC2::Subnet'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 37,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 38,
+                  "Content": "      AvailabilityZone: !Select [2, !GetAZs '']",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mAvailabilityZone\u001b[0m: !Select [2, !GetAZs '']",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 39,
+                  "Content": "      CidrBlock: 10.0.3.0/24",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mCidrBlock\u001b[0m: \u001b[38;5;37m10.0.3.0\u001b[0m/24",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 40,
+                  "Content": "      MapPublicIpOnLaunch: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMapPublicIpOnLaunch\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 41,
+                  "Content": "      VpcId: !Ref VPC",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mVpcId\u001b[0m: !Ref VPC",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "PublicSubnet3",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 35,
+                  "EndLine": 41
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

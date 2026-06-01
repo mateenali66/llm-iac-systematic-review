@@ -1,0 +1,82 @@
+---
+- name: Configure static network interface via Netplan on Debian 12
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    netplan_interface: "{{ network_interface | default('eth0') }}"
+    netplan_ip_address: "{{ ip_address | default('192.168.1.50/24') }}"
+    netplan_gateway: "{{ gateway | default('192.168.1.1') }}"
+    netplan_dns_servers: "{{ dns_servers | default(['1.1.1.1', '8.8.8.8']) }}"
+    netplan_search_domains: "{{ search_domains | default([]) }}"
+    netplan_config_file: /etc/netplan/01-static-{{ netplan_interface }}.yaml
+    netplan_renderer: networkd
+
+  pre_tasks:
+    - name: Assert running on Debian 12
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == 'Debian'
+          - ansible_distribution_major_version == '12'
+        fail_msg: "This playbook only supports Debian 12 (bookworm)."
+
+    - name: Ensure netplan.io package is installed
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Ensure /etc/netplan directory exists with secure permissions
+      ansible.builtin.file:
+        path: /etc/netplan
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+  tasks:
+    - name: Deploy Netplan configuration for {{ netplan_interface }}
+      ansible.builtin.copy:
+        dest: "{{ netplan_config_file }}"
+        owner: root
+        group: root
+        mode: '0600'
+        content: |
+          # Managed by Ansible - do not edit manually
+          network:
+            version: 2
+            renderer: {{ netplan_renderer }}
+            ethernets:
+              {{ netplan_interface }}:
+                dhcp4: false
+                dhcp6: false
+                accept-ra: false
+                addresses:
+                  - {{ netplan_ip_address }}
+                routes:
+                  - to: default
+                    via: {{ netplan_gateway }}
+                nameservers:
+                  addresses:
+          {% for dns in netplan_dns_servers %}
+                    - {{ dns }}
+          {% endfor %}
+          {% if netplan_search_domains | length > 0 %}
+                  search:
+          {% for domain in netplan_search_domains %}
+                    - {{ domain }}
+          {% endfor %}
+          {% endif %}
+      notify: Apply netplan configuration
+
+    - name: Validate netplan configuration syntax
+      ansible.builtin.command: netplan generate
+      changed_when: false
+
+  handlers:
+    - name: Apply netplan configuration
+      ansible.builtin.command: netplan apply
+      async: 45
+      poll: 0

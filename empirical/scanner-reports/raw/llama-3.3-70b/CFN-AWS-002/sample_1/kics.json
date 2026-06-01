@@ -1,0 +1,528 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 202,
+	"files_parsed": 2,
+	"lines_parsed": 202,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 5,
+		"INFO": 2,
+		"LOW": 3,
+		"MEDIUM": 11,
+		"TRACE": 0
+	},
+	"total_counter": 21,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:06:03.716624052Z",
+	"end": "2026-05-26T06:06:10.851605Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "ELB Sensitive Port Is Exposed To Entire Network",
+			"query_id": "78055456-f670-4d2e-94d5-392d1cf4f5e4",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The load balancer of the application with a sensitive port connection is exposed to the entire internet.",
+			"description_id": "f26797b1",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0c94cf288a292d59acf1fd7cc323303f192c9f7cd669653ffa5910223c7ec6ff",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "TCP,80",
+					"expected_value": "HTTP (TCP:80) should not be allowed in application load balancer LoadBalancer",
+					"actual_value": "HTTP (TCP:80) is allowed in application load balancer LoadBalancer"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e56f0bf44a9f84545dc3fbfc05b1ed1a7980c54db569e8a55faaad7332cca436",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "TCP,22",
+					"expected_value": "SSH (TCP:22) should not be allowed in application load balancer LoadBalancer",
+					"actual_value": "SSH (TCP:22) is allowed in application load balancer LoadBalancer"
+				}
+			]
+		},
+		{
+			"query_name": "Security Groups With Exposed Admin Ports",
+			"query_id": "cdbb0467-2957-4a77-9992-7b55b29df7b7",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Security Groups should not have ports open in (20, 21, 22, 23, 115, 137, 138, 139, 2049, 3389)",
+			"description_id": "e14121d4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "827e74f75320dac7c39f52c4ed964eb42b43073caab8fe5dc67f5983c029005d",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "None of the Resources.SecurityGroup.Properties.SecurityGroupIngress should have an exposed port",
+					"actual_value": "One of the Resources.SecurityGroup.Properties.SecurityGroupIngress has a exposed port (20,21,22,23,115,137,138,2049,3389)"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4a1e6b34-1008-4e61-a5f2-1f7c276f8d14",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Security Group Ingress CIDR should not be open to the world",
+			"description_id": "08256d31",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f1ebac46c7c3ea3350ed8f9c6bdc24ecf313b3caf12557416c3031bfc017cc88",
+					"line": 66,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 66,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].CidrIp should not be open to the world (0.0.0.0/0)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].CidrIp is open to the world (0.0.0.0/0)"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "378ba057c64a8cd1391eb6f5df481739854c23e271a58a4d833989ca94cf89ed",
+					"line": 70,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1].CidrIp should not be open to the world (0.0.0.0/0)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1].CidrIp is open to the world (0.0.0.0/0)"
+				}
+			]
+		},
+		{
+			"query_name": "ALB Is Not Integrated With WAF",
+			"query_id": "105ba098-1e34-48cd-b0f2-a8a43a51bf9b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafregional-webaclassociation.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "All Application Load Balancers (ALB) must be protected with Web Application Firewall (WAF) service",
+			"description_id": "2cad71a7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bb82ea14af7a6575242117a3a4a40210959b8cc7d24a3e136dec2027529ba2e4",
+					"line": 97,
+					"resource_type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+					"resource_name": "my-load-balancer",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.LoadBalancer",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.LoadBalancer' should not have an 'internal' scheme and should have a 'WebACLAssociation' associated",
+					"actual_value": "'Resources.LoadBalancer' does not have an 'internal' scheme and a 'WebACLAssociation' associated"
+				}
+			]
+		},
+		{
+			"query_name": "ALB Listening on HTTP",
+			"query_id": "275a3217-ca37-40c1-a6cf-bb57d245ab32",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-elb-listener.html#cfn-ec2-elb-listener-protocol",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "319",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Application Load Balancer (alb) should not listen on HTTP",
+			"description_id": "55f05412",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "23eb81a53d444ed45991fa36fe7e4b8b05bf47dd13117fc4461945bafab7d98e",
+					"line": 128,
+					"resource_type": "AWS::ElasticLoadBalancingV2::Listener",
+					"resource_name": "Listener",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.Listener.Properties.Protocol=HTTP",
+					"search_line": 128,
+					"search_value": "",
+					"expected_value": "'Resources.Listener.Protocol' should not equal to 'HTTP'",
+					"actual_value": "'Resources.Listener.Protocol' equals to 'HTTP'"
+				}
+			]
+		},
+		{
+			"query_name": "Auto Scaling Group With No Associated ELB",
+			"query_id": "ad21e616-5026-4b9d-990d-5b007bfe679c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-as-group.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "400",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "AWS Auto Scaling Groups must have associated ELBs to ensure high availability and improve application performance. This means the attribute 'LoadBalancerNames' must be defined and not empty.",
+			"description_id": "99966f58",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e589a90595d6396941b060ff8584d39b047d0000ef71114f8b60fe2832f7b393",
+					"line": 89,
+					"resource_type": "AWS::AutoScaling::AutoScalingGroup",
+					"resource_name": "AutoScalingGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AutoScalingGroup.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.AutoScalingGroup.Properties.LoadBalancerNames' should be defined",
+					"actual_value": "'Resources.AutoScalingGroup.Properties.LoadBalancerNames' is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "ELB With Security Group Without Outbound Rules",
+			"query_id": "01d5a458-a6c4-452a-ac50-054d59275b7c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html#cfn-ec2-securitygroup-securitygroupegress",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "An AWS Elastic Load Balancer (ELB) shouldn't have security groups without outbound rules",
+			"description_id": "7b876844",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "08e1d8f16a275bfe4c23da446e3966278bf302c8e0319b15aaf6c660d345d1b5",
+					"line": 59,
+					"resource_type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+					"resource_name": "my-load-balancer",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroup.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.SecurityGroup.Properties.SecurityGroupEgress' is defined",
+					"actual_value": "'Resources.SecurityGroup.Properties.SecurityGroupEgress' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "ELBv2 ALB Access Log Disabled",
+			"query_id": "c62e8b7d-1fdf-4050-ac4c-76ba9e1d9621",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-loadbalancer-loadbalancerattributes.html#cfn-elasticloadbalancingv2-loadbalancer-loadbalancerattributes-key",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "ELBv2 ALBs should have access log enabled to capture detailed information about requests sent to your load balancer.",
+			"description_id": "1b941e35",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "282862b3c38d63e4580f0a9b3a6e35c525dc8bf7b9c8bfbbc87712d2c318a9b4",
+					"line": 99,
+					"resource_type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+					"resource_name": "my-load-balancer",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.LoadBalancer.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.LoadBalancer.Properties' has LoadBalancerAttributes defined",
+					"actual_value": "'Resources.LoadBalancer.Properties' doesn't have LoadBalancerAttributes defined"
+				}
+			]
+		},
+		{
+			"query_name": "HTTP Port Open To Internet",
+			"query_id": "ddfc4eaa-af23-409f-b96c-bf5c45dc4daa",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The HTTP port is open to the internet in a Security Group",
+			"description_id": "a39efd21",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8777aa1a5a7494f79c24edc178fd8700a757431dc29ec54cf6df44d3e365290d",
+					"line": 68,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 68,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1] should not open the HTTP port (80)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1] opens the HTTP port (80)"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b53541ad36783591bf986993d45833797ff8e0d20a8a94488493c5f144bec7d7",
+					"line": 64,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 64,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] should not open the HTTP port (80)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] opens the HTTP port (80)"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3b6f8da3b25a67b897bfe99b85d64895f3493caecc9a411dfd6a49ab190d25e0",
+					"line": 65,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 65,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] should not open the HTTP port (80)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] opens the HTTP port (80)"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group With Unrestricted Access To SSH",
+			"query_id": "6e856af2-62d7-4ba2-adc1-73b62cef9cc1",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'SSH' (TCP:22) should not be public in AWS Security Group",
+			"description_id": "d515d6dc",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "85e759d4268da43a6a649dcf0cffc45d593486ceb81d19ea9f8300647c3a4587",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "None of the Resources.SecurityGroup.Properties.SecurityGroupIngress has port 22",
+					"actual_value": "One of the Resources.SecurityGroup.Properties.SecurityGroupIngress has port 22"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 5,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b2257dd0f56746e7c53eae455a712fc0daaa60e06c1509244ddf51b1368ed031",
+					"line": 5,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 4,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RouterTable with Default Routing",
+			"query_id": "4f0908b9-eb66-433f-9145-134274e1e944",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "NAT gateways are recommended, and not the default route which permits all traffic, in Route Tables.",
+			"description_id": "1f341247",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0f7a5c2f6dc1fbeadb23077de4615a29cf27967fc305b800795134d1d4dc4b1a",
+					"line": 40,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicRoute",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.PublicRoute.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicRoute.Properties.NatGatewayId should be defined",
+					"actual_value": "Resources.PublicRoute.Properties.NatGatewayId is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6ff02ba2762a8bbccd659f2ed3deb9c475e5847cdee7d1e0cda7ce9deaa37513",
+					"line": 42,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicRoute",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicRoute.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicRoute.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.PublicRoute.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a7945f510656954b54ca9e04965686273ffb1fcbb1b8a3e71c2897f0caa08bb",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1].Description should be set",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[1].Description is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a7945f510656954b54ca9e04965686273ffb1fcbb1b8a3e71c2897f0caa08bb",
+					"line": 62,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

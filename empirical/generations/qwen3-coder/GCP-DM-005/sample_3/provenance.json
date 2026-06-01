@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-005",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: saas-postgres-instance\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      backupConfiguration:\n        enabled: true\n        startTime: \"02:00\"\n        pointInTimeRecoveryEnabled: true\n      ipConfiguration:\n        ipv4Enabled: true\n        authorizedNetworks:\n        - name: default\n          value: 0.0.0.0/0\n      locationPreference:\n        zone: us-central1-a\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 50\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      databaseFlags:\n      - name: log_checkpoints\n        value: 'on'\n      - name: log_connections\n        value: 'on'\n      - name: log_disconnections\n        value: 'on'\n      - name: log_lock_waits\n        value: 'on'\n      - name: log_min_messages\n        value: 'warning'\n      - name: log_temp_files\n        value: '0'\n      storageAutoResize: true\n      storageAutoResizeLimit: 500\n      activationPolicy: ALWAYS\n      availabilityType: ZONAL\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryPlansPerMinute: 5\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n    rootPassword: $(ref.saas-postgres-password.password)\n    \n- name: saas-postgres-password\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    replication:\n      automatic: {}\n      \n- name: saas-postgres-password-version\n  type: gcp-types/secretmanager-v1:projects.secrets.versions\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    payload:\n      stringData: {{ properties[\"rootPassword\"] | default(\"GENERATE_RANDOM_PASSWORD\") }}\n  metadata:\n    dependsOn:\n    - saas-postgres-password\n    \n- name: saas-database\n  type: gcp-types/sqladmin-v1beta4:databases\n  properties:\n    instance: $(ref.saas-postgres-instance.name)\n    name: saas_application\n  metadata:\n    dependsOn:\n    - saas-postgres-instance\n\noutputs:\n- name: instanceConnectionName\n  value: $(ref.saas-postgres-instance.connectionName)\n- name: instanceIp\n  value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)\n- name: databaseName\n  value: saas_application\n- name: secretName\n  value: saas-postgres-root-password",
+  "cleaned_response": "resources:\n- name: saas-postgres-instance\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      backupConfiguration:\n        enabled: true\n        startTime: \"02:00\"\n        pointInTimeRecoveryEnabled: true\n      ipConfiguration:\n        ipv4Enabled: true\n        authorizedNetworks:\n        - name: default\n          value: 0.0.0.0/0\n      locationPreference:\n        zone: us-central1-a\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 50\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      databaseFlags:\n      - name: log_checkpoints\n        value: 'on'\n      - name: log_connections\n        value: 'on'\n      - name: log_disconnections\n        value: 'on'\n      - name: log_lock_waits\n        value: 'on'\n      - name: log_min_messages\n        value: 'warning'\n      - name: log_temp_files\n        value: '0'\n      storageAutoResize: true\n      storageAutoResizeLimit: 500\n      activationPolicy: ALWAYS\n      availabilityType: ZONAL\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryPlansPerMinute: 5\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n    rootPassword: $(ref.saas-postgres-password.password)\n    \n- name: saas-postgres-password\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    replication:\n      automatic: {}\n      \n- name: saas-postgres-password-version\n  type: gcp-types/secretmanager-v1:projects.secrets.versions\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    payload:\n      stringData: {{ properties[\"rootPassword\"] | default(\"GENERATE_RANDOM_PASSWORD\") }}\n  metadata:\n    dependsOn:\n    - saas-postgres-password\n    \n- name: saas-database\n  type: gcp-types/sqladmin-v1beta4:databases\n  properties:\n    instance: $(ref.saas-postgres-instance.name)\n    name: saas_application\n  metadata:\n    dependsOn:\n    - saas-postgres-instance\n\noutputs:\n- name: instanceConnectionName\n  value: $(ref.saas-postgres-instance.connectionName)\n- name: instanceIp\n  value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)\n- name: databaseName\n  value: saas_application\n- name: secretName\n  value: saas-postgres-root-password",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: saas-postgres-instance\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      backupConfiguration:\n        enabled: true\n        startTime: \"02:00\"\n        pointInTimeRecoveryEnabled: true\n      ipConfiguration:\n        ipv4Enabled: true\n        authorizedNetworks:\n        - name: default\n          value: 0.0.0.0/0\n      locationPreference:\n        zone: us-central1-a\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 50\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      databaseFlags:\n      - name: log_checkpoints\n        value: 'on'\n      - name: log_connections\n        value: 'on'\n      - name: log_disconnections\n        value: 'on'\n      - name: log_lock_waits\n        value: 'on'\n      - name: log_min_messages\n        value: 'warning'\n      - name: log_temp_files\n        value: '0'\n      storageAutoResize: true\n      storageAutoResizeLimit: 500\n      activationPolicy: ALWAYS\n      availabilityType: ZONAL\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryPlansPerMinute: 5\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n    rootPassword: $(ref.saas-postgres-password.password)\n    \n- name: saas-postgres-password\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    replication:\n      automatic: {}\n      \n- name: saas-postgres-password-version\n  type: gcp-types/secretmanager-v1:projects.secrets.versions\n  properties:\n    projectId: {{ env[\"project\"] }}\n    secretId: saas-postgres-root-password\n    payload:\n      stringData: {{ properties[\"rootPassword\"] | default(\"GENERATE_RANDOM_PASSWORD\") }}\n  metadata:\n    dependsOn:\n    - saas-postgres-password\n    \n- name: saas-database\n  type: gcp-types/sqladmin-v1beta4:databases\n  properties:\n    instance: $(ref.saas-postgres-instance.name)\n    name: saas_application\n  metadata:\n    dependsOn:\n    - saas-postgres-instance\n\noutputs:\n- name: instanceConnectionName\n  value: $(ref.saas-postgres-instance.connectionName)\n- name: instanceIp\n  value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)\n- name: databaseName\n  value: saas_application\n- name: secretName\n  value: saas-postgres-root-password",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725048,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 150,
+      "output_tokens": 637,
+      "raw_input_tokens": 150
+    }
+  },
+  "started_at": "2026-05-25T16:03:58.791935+00:00",
+  "elapsed_seconds": 9.4
+}

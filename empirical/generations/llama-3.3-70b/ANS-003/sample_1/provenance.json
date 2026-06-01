@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "ANS-003",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook hardening a CentOS 9 server: disables root SSH login, enforces password complexity, installs fail2ban, and configures auditd.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook hardening a CentOS 9 server: disables root SSH login, enforces password complexity, installs fail2ban, and configures auditd.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Harden CentOS 9 server\n  hosts: centos9\n  become: yes\n\n  tasks:\n  - name: Disable root SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      regexp: '^PermitRootLogin'\n      line: 'PermitRootLogin no'\n      state: present\n    notify: restart sshd\n\n  - name: Enforce password complexity\n    template:\n      src: templates/pam.d/password-auth.j2\n      dest: /etc/pam.d/password-auth\n      mode: '0644'\n    notify: restart auth\n\n  - name: Install fail2ban\n    dnf:\n      name: fail2ban\n      state: present\n\n  - name: Configure fail2ban\n    template:\n      src: templates/jail.local.j2\n      dest: /etc/fail2ban/jail.local\n      mode: '0644'\n    notify: restart fail2ban\n\n  - name: Install auditd\n    dnf:\n      name: audit\n      state: present\n\n  - name: Configure auditd\n    template:\n      src: templates/auditd.conf.j2\n      dest: /etc/audit/auditd.conf\n      mode: '0644'\n    notify: restart auditd\n\n  handlers:\n  - name: restart sshd\n    service:\n      name: sshd\n      state: restarted\n\n  - name: restart auth\n    service:\n      name: auth\n      state: restarted\n\n  - name: restart fail2ban\n    service:\n      name: fail2ban\n      state: restarted\n\n  - name: restart auditd\n    service:\n      name: auditd\n      state: restarted",
+  "cleaned_response": "---\n- name: Harden CentOS 9 server\n  hosts: centos9\n  become: yes\n\n  tasks:\n  - name: Disable root SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      regexp: '^PermitRootLogin'\n      line: 'PermitRootLogin no'\n      state: present\n    notify: restart sshd\n\n  - name: Enforce password complexity\n    template:\n      src: templates/pam.d/password-auth.j2\n      dest: /etc/pam.d/password-auth\n      mode: '0644'\n    notify: restart auth\n\n  - name: Install fail2ban\n    dnf:\n      name: fail2ban\n      state: present\n\n  - name: Configure fail2ban\n    template:\n      src: templates/jail.local.j2\n      dest: /etc/fail2ban/jail.local\n      mode: '0644'\n    notify: restart fail2ban\n\n  - name: Install auditd\n    dnf:\n      name: audit\n      state: present\n\n  - name: Configure auditd\n    template:\n      src: templates/auditd.conf.j2\n      dest: /etc/audit/auditd.conf\n      mode: '0644'\n    notify: restart auditd\n\n  handlers:\n  - name: restart sshd\n    service:\n      name: sshd\n      state: restarted\n\n  - name: restart auth\n    service:\n      name: auth\n      state: restarted\n\n  - name: restart fail2ban\n    service:\n      name: fail2ban\n      state: restarted\n\n  - name: restart auditd\n    service:\n      name: auditd\n      state: restarted",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Harden CentOS 9 server\n  hosts: centos9\n  become: yes\n\n  tasks:\n  - name: Disable root SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      regexp: '^PermitRootLogin'\n      line: 'PermitRootLogin no'\n      state: present\n    notify: restart sshd\n\n  - name: Enforce password complexity\n    template:\n      src: templates/pam.d/password-auth.j2\n      dest: /etc/pam.d/password-auth\n      mode: '0644'\n    notify: restart auth\n\n  - name: Install fail2ban\n    dnf:\n      name: fail2ban\n      state: present\n\n  - name: Configure fail2ban\n    template:\n      src: templates/jail.local.j2\n      dest: /etc/fail2ban/jail.local\n      mode: '0644'\n    notify: restart fail2ban\n\n  - name: Install auditd\n    dnf:\n      name: audit\n      state: present\n\n  - name: Configure auditd\n    template:\n      src: templates/auditd.conf.j2\n      dest: /etc/audit/auditd.conf\n      mode: '0644'\n    notify: restart auditd\n\n  handlers:\n  - name: restart sshd\n    service:\n      name: sshd\n      state: restarted\n\n  - name: restart auth\n    service:\n      name: auth\n      state: restarted\n\n  - name: restart fail2ban\n    service:\n      name: fail2ban\n      state: restarted\n\n  - name: restart auditd\n    service:\n      name: auditd\n      state: restarted",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723510,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 169,
+      "output_tokens": 364,
+      "raw_input_tokens": 169
+    }
+  },
+  "started_at": "2026-05-25T15:38:29.466742+00:00",
+  "elapsed_seconds": 0.994
+}

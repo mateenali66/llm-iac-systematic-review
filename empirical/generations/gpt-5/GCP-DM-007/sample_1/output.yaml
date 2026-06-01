@@ -1,0 +1,139 @@
+resources:
+- name: prod-gke-net
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: prod-gke-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.prod-gke-net.selfLink)
+    region: us-central1
+    ipCidrRange: 10.10.0.0/20
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+    logConfig:
+      aggregationInterval: INTERVAL_5_MIN
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    secondaryIpRanges:
+    - rangeName: pods
+      ipCidrRange: 10.20.0.0/14
+    - rangeName: services
+      ipCidrRange: 10.30.0.0/20
+
+- name: prod-gke-router
+  type: compute.v1.router
+  properties:
+    network: $(ref.prod-gke-net.selfLink)
+    region: us-central1
+    bgp:
+      asn: 64514
+    nats:
+    - name: prod-gke-nat
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.prod-gke-subnet.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+        secondaryIpRangeNames:
+        - pods
+        - services
+      enableEndpointIndependentMapping: true
+      minPortsPerVm: 128
+      logConfig:
+        enable: true
+        filter: ALL
+
+- name: prod-gke-master-to-nodes
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.prod-gke-net.selfLink)
+    direction: INGRESS
+    priority: 1000
+    targetTags:
+    - gke-prod
+    sourceRanges:
+    - 172.16.0.0/28
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - '443'
+      - '10250'
+    - IPProtocol: icmp
+
+- name: prod-gke-cluster
+  type: container.v1.cluster
+  properties:
+    zone: us-central1-b
+    cluster:
+      name: prod-gke-cluster
+      network: $(ref.prod-gke-net.selfLink)
+      subnetwork: $(ref.prod-gke-subnet.selfLink)
+      releaseChannel:
+        channel: STABLE
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        networkPolicyConfig:
+          disabled: false
+      networkPolicy:
+        provider: CALICO
+        enabled: true
+      legacyAbac:
+        enabled: false
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterSecondaryRangeName: pods
+        servicesSecondaryRangeName: services
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: true
+        masterIpv4CidrBlock: 172.16.0.0/28
+      shieldedNodes:
+        enabled: true
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 110
+      nodePools:
+      - name: prod-pool
+        initialNodeCount: 3
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0
+        config:
+          machineType: n2-standard-4
+          imageType: COS_CONTAINERD
+          diskSizeGb: 100
+          diskType: pd-balanced
+          metadata:
+            disable-legacy-endpoints: "true"
+          shieldedInstanceConfig:
+            enableSecureBoot: true
+            enableIntegrityMonitoring: true
+          workloadMetadataConfig:
+            mode: GKE_METADATA
+          oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/trace.append
+          tags:
+          - gke-prod
+          labels:
+            env: prod

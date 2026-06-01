@@ -1,0 +1,239 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:16:18.827435795Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 44,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0004",
+          "AVDID": "AVD-AWS-0004",
+          "Title": "No unauthorized access to API Gateway methods",
+          "Description": "API Gateway methods should generally be protected by authorization or api key. OPTION verb calls can be used without authorization\n",
+          "Message": "Authorization is not enabled for this method.",
+          "Namespace": "builtin.aws.apigateway.aws0004",
+          "Query": "data.builtin.aws.apigateway.aws0004.deny",
+          "Resolution": "Use and authorization method or require API Key",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0004",
+          "References": [
+            "https://avd.aquasec.com/misconfig/avd-aws-0004"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_api_gateway_method.webhook_handler_method",
+            "Provider": "AWS",
+            "Service": "apigateway",
+            "StartLine": 82,
+            "EndLine": 82,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 78,
+                  "Content": "resource \"aws_api_gateway_method\" \"webhook_handler_method\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_api_gateway_method\"\u001b[0m \u001b[38;5;37m\"webhook_handler_method\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 79,
+                  "Content": "  rest_api_id = aws_api_gateway_rest_api.webhook_handler_api.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mrest_api_id\u001b[0m = aws_api_gateway_rest_api.webhook_handler_api.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 80,
+                  "Content": "  resource_id = aws_api_gateway_resource.webhook_handler_resource.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mresource_id\u001b[0m = aws_api_gateway_resource.webhook_handler_resource.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 81,
+                  "Content": "  http_method = \"POST\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mhttp_method\u001b[0m = \u001b[38;5;37m\"POST\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 82,
+                  "Content": "  authorization = \"NONE\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mauthorization\u001b[0m = \u001b[38;5;37m\"NONE\"",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 83,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_api_gateway_method.webhook_handler_method",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 78,
+                  "EndLine": 83
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0066",
+          "AVDID": "AVD-AWS-0066",
+          "Title": "Lambda functions should have X-Ray tracing enabled",
+          "Description": "X-Ray tracing enables end-to-end debugging and analysis of all function activity. This will allow for identifying bottlenecks, slow downs and timeouts.\n",
+          "Message": "Function does not have tracing enabled.",
+          "Namespace": "builtin.aws.lambda.aws0066",
+          "Query": "data.builtin.aws.lambda.aws0066.deny",
+          "Resolution": "Enable tracing",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0066",
+          "References": [
+            "https://docs.aws.amazon.com/lambda/latest/dg/services-xray.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0066"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_lambda_function.webhook_handler",
+            "Provider": "AWS",
+            "Service": "lambda",
+            "StartLine": 51,
+            "EndLine": 57,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 51,
+                  "Content": "resource \"aws_lambda_function\" \"webhook_handler\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_lambda_function\"\u001b[0m \u001b[38;5;37m\"webhook_handler\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "  filename      = \"./lambda/handler.py.zip\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mfilename\u001b[0m      = \u001b[38;5;37m\"./lambda/handler.py.zip\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 53,
+                  "Content": "  function_name = \"webhook-handler\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mfunction_name\u001b[0m = \u001b[38;5;37m\"webhook-handler\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 54,
+                  "Content": "  handler       = \"handler.lambda_handler\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mhandler\u001b[0m       = \u001b[38;5;37m\"handler.lambda_handler\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 55,
+                  "Content": "  runtime       = \"python3.12\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mruntime\u001b[0m       = \u001b[38;5;37m\"python3.12\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 56,
+                  "Content": "  role          = aws_iam_role.lambda_exec.arn",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mrole\u001b[0m          = aws_iam_role.lambda_exec.arn",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 57,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

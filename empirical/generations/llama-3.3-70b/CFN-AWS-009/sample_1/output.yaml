@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for S3 bucket with server-side encryption and CloudFront distribution
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub 'my-bucket-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyPublicRead
+            Effect: Deny
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/'*'
+            Condition:
+              StringLike:
+                aws:SourceIp: '*'
+
+  CloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'origin-access-identity-${AWS::AccountId}'
+
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/${CloudFrontOriginAccessIdentity}'
+        DefaultCacheBehavior:
+          ForwardedValues:
+            QueryString: false
+          TargetOriginId: S3Origin
+        Enabled: true
+        DefaultRootObject: index.html
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Description: Name of the S3 bucket
+  CloudFrontDistributionId:
+    Value: !Ref CloudFrontDistribution
+    Description: ID of the CloudFront distribution
+  CloudFrontDomainName:
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Description: Domain name of the CloudFront distribution

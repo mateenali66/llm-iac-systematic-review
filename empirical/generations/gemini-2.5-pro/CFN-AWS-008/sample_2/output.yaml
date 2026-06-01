@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Provisions a customer-managed KMS key with rotation enabled for database backup encryption.'
+
+Resources:
+  DatabaseBackupKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for encrypting database backups
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: kms:*
+            Resource: '*'
+      EnableKeyRotation: true
+      Tags:
+        - Key: Purpose
+          Value: DatabaseBackupEncryption
+
+  DatabaseBackupKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/database/backup-encryption
+      TargetKeyId: !Ref Database

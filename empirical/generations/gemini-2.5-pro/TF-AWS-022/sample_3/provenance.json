@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-022",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.5\"\n    }\n  }\n\n  required_version = \">= 1.3\"\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"selected\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.selected.id]\n  }\n}\n\nresource \"aws_security_group\" \"app_server_sg\" {\n  name        = \"app-server-sg\"\n  description = \"Security group for application servers\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  tags = {\n    Name = \"app-server-sg\"\n  }\n}\n\nresource \"aws_security_group\" \"elasticache_sg\" {\n  name        = \"elasticache-redis-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow Redis traffic from application servers\"\n    from_port        = 6379\n    to_port          = 6379\n    protocol         = \"tcp\"\n    security_groups  = [aws_security_group.app_server_sg.id]\n    ipv6_cidr_blocks = []\n    prefix_list_ids  = []\n    self             = false\n  }\n\n  tags = {\n    Name = \"elasticache-redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"default\" {\n  ",
+  "cleaned_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.5\"\n    }\n  }\n\n  required_version = \">= 1.3\"\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"selected\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.selected.id]\n  }\n}\n\nresource \"aws_security_group\" \"app_server_sg\" {\n  name        = \"app-server-sg\"\n  description = \"Security group for application servers\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  tags = {\n    Name = \"app-server-sg\"\n  }\n}\n\nresource \"aws_security_group\" \"elasticache_sg\" {\n  name        = \"elasticache-redis-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow Redis traffic from application servers\"\n    from_port        = 6379\n    to_port          = 6379\n    protocol         = \"tcp\"\n    security_groups  = [aws_security_group.app_server_sg.id]\n    ipv6_cidr_blocks = []\n    prefix_list_ids  = []\n    self             = false\n  }\n\n  tags = {\n    Name = \"elasticache-redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"default\" {",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    random = {\n      source  = \"hashicorp/random\"\n      version = \"~> 3.5\"\n    }\n  }\n\n  required_version = \">= 1.3\"\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"selected\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.selected.id]\n  }\n}\n\nresource \"aws_security_group\" \"app_server_sg\" {\n  name        = \"app-server-sg\"\n  description = \"Security group for application servers\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  tags = {\n    Name = \"app-server-sg\"\n  }\n}\n\nresource \"aws_security_group\" \"elasticache_sg\" {\n  name        = \"elasticache-redis-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow Redis traffic from application servers\"\n    from_port        = 6379\n    to_port          = 6379\n    protocol         = \"tcp\"\n    security_groups  = [aws_security_group.app_server_sg.id]\n    ipv6_cidr_blocks = []\n    prefix_list_ids  = []\n    self             = false\n  }\n\n  tags = {\n    Name = \"elasticache-redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"default\" {\n  ",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779731158,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 126,
+      "output_tokens": 2044,
+      "raw_input_tokens": 126
+    }
+  },
+  "started_at": "2026-05-25T17:45:31.580543+00:00",
+  "elapsed_seconds": 27.097
+}

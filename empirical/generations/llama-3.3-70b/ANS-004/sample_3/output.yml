@@ -1,0 +1,76 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: yes
+
+  vars:
+    node_exporter_version: "1.3.1"
+    node_exporter_port: 9100
+
+  tasks:
+  - name: Download node_exporter binary
+    get_url:
+      url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/node_exporter.tar.gz"
+      mode: '0644'
+
+  - name: Extract node_exporter binary
+    unarchive:
+      src: "/tmp/node_exporter.tar.gz"
+      dest: "/usr/local/bin"
+      compression: tar
+      interactive: yes
+      creates: "/usr/local/bin/node_exporter"
+
+  - name: Set node_exporter permissions
+    file:
+      path: "/usr/local/bin/node_exporter"
+      mode: '0755'
+      state: file
+
+  - name: Create node_exporter systemd service file
+    template:
+      src: templates/node_exporter.service.j2
+      dest: "/etc/systemd/system/node_exporter.service"
+      mode: '0644'
+    notify: restart node_exporter
+
+  - name: Enable and start node_exporter service
+    systemd:
+      name: node_exporter
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart node_exporter
+    systemd:
+      name: node_exporter
+      state: restarted
+
+  - name: Open node_exporter port in firewall
+    ufw:
+      rule: allow
+      port: "{{ node_exporter_port }}"
+      state: enabled
+
+  - name: Create node_exporter service template
+    template:
+      src: templates/node_exporter.service.j2
+      dest: templates/node_exporter.service.j2
+      mode: '0644'
+    run_once: true
+
+ 
+---
+templates/node_exporter.service.j2
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{ node_exporter_port }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

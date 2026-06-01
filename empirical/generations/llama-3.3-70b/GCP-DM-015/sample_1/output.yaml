@@ -1,0 +1,21 @@
+resources:
+  - name: high-latency-alert
+    type: cloudmonitoring.v3.AlertPolicy
+    properties:
+      displayName: High Latency Alert
+      combiner: OR
+      conditions:
+        - conditionThreshold:
+            thresholdValue: 500
+            filter: 'metric.type="run.googleapis.com/service/latency" AND resource.type="cloud_run_revision"'
+            comparison: COMPARISON_GT
+            aggregations:
+              - alignmentPeriod: 300s
+                perSeriesAligner: ALIGN_PERCENTILE_95
+            duration: 300s
+          displayName: 95th Percentile Latency Exceeds 500ms
+      documentation:
+        content: '95th percentile latency of Cloud Run service exceeds 500ms for 5 minutes'
+        mime_type: text/markdown
+      notificationChannels:
+        - projects/{{ project }}/notificationChannels/{{ notification_channel }}

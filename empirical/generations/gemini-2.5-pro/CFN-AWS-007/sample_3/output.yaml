@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CloudFormation template to create a CloudWatch Dashboard for monitoring a
+  Lambda-based API's health, including invocations, errors, throttles, and
+  duration.
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Description: The name of the Lambda function to monitor.
+    MinLength: 1
+    MaxLength: 64
+    AllowedPattern: "[a-zA-Z0-9-_]+"
+
+Resources:
+  LambdaApiHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub '${LambdaFunctionName}-API-Health'
+      DashboardBody: !Sub
+        - |-
+          {
+              "widgets": [
+                  {
+                      "height": 6,
+                      "width": 12,
+                      "y": 0,
+                      "x": 0,
+                      "type": "metric",
+                      "properties": {
+                          "metrics": [
+                              [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaName}" ]
+                          ],
+                          "view": "timeSeries",
+                          "stacked": false,
+                          "region": "${AWS::Region}",
+                          "stat": "Sum",
+                          "period": 300,
+                          "title": "Invocations (Sum)"
+                      }
+                  },
+                  {
+                      "height": 6,
+                      "width": 12,
+                      "y": 0,
+                      "x": 12,
+                      "type": "metric",
+                      "properties": {
+                          "metrics": [
+                              [ "AWS/Lambda", "Errors", "FunctionName", "${LambdaName}", { "color": "#d62728" } ]
+                          ],
+                          "view": "timeSeries",
+                          "stacked": false,
+                          "region": "${AWS::Region}",
+                          "stat": "Sum",
+                          "period": 300,
+                          "title": "Errors (Sum)"
+                      }
+                  },
+                  {
+                      "height": 6,
+                      "width": 12,

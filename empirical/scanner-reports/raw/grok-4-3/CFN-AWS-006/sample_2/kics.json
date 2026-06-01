@@ -1,0 +1,386 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 307,
+	"files_parsed": 2,
+	"lines_parsed": 307,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 4,
+		"LOW": 8,
+		"MEDIUM": 5,
+		"TRACE": 0
+	},
+	"total_counter": 17,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:29:39.5757463Z",
+	"end": "2026-05-26T05:29:44.699048636Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EC2 Instance Subnet Has Public IP Mapping On Launch",
+			"query_id": "b3de4e4c-14be-4159-b99d-9ad194365e4c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-mappubliciponlaunch",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "EC2 Instance Subnet should not have MapPublicIpOnLaunch set to true",
+			"description_id": "22e3d598",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1f0d80b61af6527880848b08b4a4487a851e781aaadcc6ed821ec40f9fcdad0e",
+					"line": 87,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "${AWS::StackName}-public-2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' is true"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "16f4a9e7621d28793bc4d98ddae2b01b7a578638a1676f01e1ad6b77383eb5e7",
+					"line": 77,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "${AWS::StackName}-public-1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' is true"
+				}
+			]
+		},
+		{
+			"query_name": "ELBv2 ALB Access Log Disabled",
+			"query_id": "c62e8b7d-1fdf-4050-ac4c-76ba9e1d9621",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-loadbalancer-loadbalancerattributes.html#cfn-elasticloadbalancingv2-loadbalancer-loadbalancerattributes-key",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "ELBv2 ALBs should have access log enabled to capture detailed information about requests sent to your load balancer.",
+			"description_id": "1b941e35",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "90d54c3a9692f473b3b0f9ddc89f1931212f64b868bae39c13ec035381ec740a",
+					"line": 196,
+					"resource_type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+					"resource_name": "${AWS::StackName}-nlb",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NLB.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.NLB.Properties' has LoadBalancerAttributes defined",
+					"actual_value": "'Resources.NLB.Properties' doesn't have LoadBalancerAttributes defined"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 20,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "${AWS::StackName}-vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "57de3eee984787c087c4346cc76f298571db54ba144123227f2eb6fc904da619",
+					"line": 20,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "${AWS::StackName}-vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 20,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "ECS Cluster with Container Insights Disabled",
+			"query_id": "ab759fde-e1e8-4b0e-ad73-ba856e490ed8",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html#cfn-ecs-cluster-clustersettings",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "ECS Cluster should enable container insights",
+			"description_id": "1751124e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "becfd893ae0280fe01097c2ac1d2b3750b65b96356e2daf4fbe02db3e02b87d9",
+					"line": 143,
+					"resource_type": "AWS::ECS::Cluster",
+					"resource_name": "ECSCluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.ECSCluster.Properties",
+					"search_line": 143,
+					"search_value": "",
+					"expected_value": "Resources.ECSCluster.Properties.ClusterSettings should be defined and have a ClusterSetting named containerInsights which value is 'enabled'",
+					"actual_value": "Resources.ECSCluster.Properties.ClusterSettings is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 19,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RouterTable with Default Routing",
+			"query_id": "4f0908b9-eb66-433f-9145-134274e1e944",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "NAT gateways are recommended, and not the default route which permits all traffic, in Route Tables.",
+			"description_id": "1f341247",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6e7addb36b030d4676fa78dd00997c51cc769a206906d1061d616d41fd028aa7",
+					"line": 133,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PrivateRoute1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PrivateRoute1.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PrivateRoute1.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.PrivateRoute1.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d279f3d4610d2163851ea2014a4ee81fc4252582ff0c3e08bd581f554e0bc979",
+					"line": 139,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PrivateRoute2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PrivateRoute2.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PrivateRoute2.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.PrivateRoute2.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6ff02ba2762a8bbccd659f2ed3deb9c475e5847cdee7d1e0cda7ce9deaa37513",
+					"line": 107,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicRoute",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicRoute.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicRoute.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.PublicRoute.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0f7a5c2f6dc1fbeadb23077de4615a29cf27967fc305b800795134d1d4dc4b1a",
+					"line": 105,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicRoute",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.PublicRoute.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicRoute.Properties.NatGatewayId should be defined",
+					"actual_value": "Resources.PublicRoute.Properties.NatGatewayId is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "ad7444cf-817a-4765-a79e-2145f7981faf",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-fms-policy.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "ae5e799c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "865ab4cab9f3b152d5c6fd9325ec18c92a6b63e160338c6eb4b13bb5028a8913",
+					"line": 61,
+					"resource_type": "AWS::EC2::EIP",
+					"resource_name": "NATGatewayEIP1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NATGatewayEIP1",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.NATGatewayEIP1 has shield advanced associated",
+					"actual_value": "Resources.NATGatewayEIP1 does not have shield advanced associated"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3f531c3c664e7406371508b9cb3da44e05e5967e963770e407ebe6e13e7c4773",
+					"line": 66,
+					"resource_type": "AWS::EC2::EIP",
+					"resource_name": "NATGatewayEIP2",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NATGatewayEIP2",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.NATGatewayEIP2 has shield advanced associated",
+					"actual_value": "Resources.NATGatewayEIP2 does not have shield advanced associated"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5ebe7d1f3eb65808786a29612f54726a9f867e3f78e6ae6af5782cfa3d275507",
+					"line": 199,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroupTasks",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress[1].Description should be set",
+					"actual_value": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress[1].Description is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ab57f07f223c78e8846bb7274e8b79ddc48c07084e2a5ee3fc5d9bfeadc540ed",
+					"line": 185,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroupNLB",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress[0].Description is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5ebe7d1f3eb65808786a29612f54726a9f867e3f78e6ae6af5782cfa3d275507",
+					"line": 199,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroupTasks",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.SecurityGroupTasks.Properties.SecurityGroupIngress[0].Description is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ab57f07f223c78e8846bb7274e8b79ddc48c07084e2a5ee3fc5d9bfeadc540ed",
+					"line": 185,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroupNLB",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress[1].Description should be set",
+					"actual_value": "Resources.SecurityGroupNLB.Properties.SecurityGroupIngress[1].Description is undefined"
+				}
+			]
+		}
+	]
+}

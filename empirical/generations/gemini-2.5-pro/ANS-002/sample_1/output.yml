@@ -1,0 +1,16 @@
+- name: Harden Firewall
+  hosts: all
+  become: true
+
+  vars:
+    firewall_allowed_services:
+      - ssh
+      - https
+
+  tasks:
+    - name: Ensure firewalld package is present
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+
+    - name

@@ -1,0 +1,67 @@
+- name: Deploy Java application as systemd service
+  hosts: all
+  become: yes
+  vars:
+    app_name: myapp
+    app_user: "{{ app_name }}"
+    app_group: "{{ app_name }}"
+    app_jar_source: /path/to/your/application.jar
+    app_jar_dest: /opt/{{ app_name }}/{{ app_name }}.jar
+    app_java_home: /usr/lib/jvm/java-21-openjdk-amd64
+    app_service_description: "{{ app_name }} Java Application Service"
+
+  tasks:
+    - name: Install OpenJDK 21
+      ansible.builtin.apt:
+        name: openjdk-21-jdk
+        state: present
+        update_cache: yes
+
+    - name: Create application user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: yes
+        create_home: no
+        shell: /usr/sbin/nologin
+        state: present
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: /opt/{{ app_name }}
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0755'
+
+    - name: Copy application JAR
+      ansible.builtin.copy:
+        src: "{{ app_jar_source }}"
+        dest: "{{ app_jar_dest }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0644'
+        force: no
+
+    - name: Write systemd unit file
+      ansible.builtin.template:
+        src: app.service.j2
+        dest: /etc/systemd/system/{{ app_name }}.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload systemd and restart service
+
+    - name: Enable and start service
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+  handlers:
+    - name: reload systemd and restart service
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        daemon_reload: yes
+        state: restarted

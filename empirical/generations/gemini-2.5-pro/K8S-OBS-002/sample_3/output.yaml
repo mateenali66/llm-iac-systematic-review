@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics
+  labels:
+    # This label should match the prometheus.prometheusSpec.serviceMonitorSelector in your Prometheus CR
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      # This label must exist on the 'api-metrics' Service
+      app.kubernetes.io/name: api-metrics
+  namespaceSelector:
+    # Selects the namespace where the 'api-metrics' Service is running
+    matchNames:
+    - default
+  endpoints:
+  - port: http-metrics # This must match the name of the port in the Service definition
+    interval: 30s
+    path: /metrics
+    scheme: http
+    honorLabels: true
+    scrapeTimeout: 10s

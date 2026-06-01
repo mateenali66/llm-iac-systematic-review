@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-017",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an EBS volume of 100 GiB for a database EC2 instance. The volume must support the application's snapshot-based backup workflow.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an EBS volume of 100 GiB for a database EC2 instance. The volume must support the application's snapshot-based backup workflow.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_ebs_volume\" \"database\" {\n  availability_zone = \"us-west-2a\"\n  size              = 100\n  type              = \"gp3\"\n  encrypted         = true\n  kms_key_id        = aws_kms_key.ebs.arn\n}\n\nresource \"aws_kms_key\" \"ebs\" {\n  description             = \"EBS volume encryption key\"\n  deletion_window_in_days = 10\n}\n\nresource \"aws_kms_alias\" \"ebs\" {\n  name          = \"alias/ebs-key\"\n  target_key_id = aws_kms_key.ebs.key_id\n}\n\nresource \"aws_ebs_snapshot\" \"database\" {\n  volume_id = aws_ebs_volume.database.id\n  tags = {\n    Name = \"database-snapshot\"\n  }\n}\n\nresource \"aws_backup_vault\" \"database\" {\n  name = \"database-backup-vault\"\n}\n\nresource \"aws_backup_plan\" \"database\" {\n  name = \"database-backup-plan\"\n\n  rule {\n    rule_name           = \"daily\"\n    target_vault_name   = aws_backup_vault.database.name\n    schedule            = \"cron(0 12 * * ? *)\"\n    start_window        = 60\n    completion_window = 180\n  }\n}\n\nresource \"aws_backup_selection\" \"database\" {\n  name         = \"database-backup-selection\"\n  plan_id      = aws_backup_plan.database.id\n  iam_role_arn = aws_iam_role.backup.arn\n\n  selection_tag {\n    type  = \"STRINGEQUALS\"\n    key   = \"Backup\"\n    value = \"true\"\n  }\n}\n\nresource \"aws_iam_role\" \"backup\" {\n  name        = \"database-backup-role\"\n  description = \"IAM role for database backup\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"backup.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"backup\" {\n  name        = \"database-backup-policy\"\n  description = \"IAM policy for database backup\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"ec2:Describe*\",\n          \"ec2:CreateTags\",\n          \"ebs:Describe*\",\n          \"ebs:CreateSnapshot\",\n          \"backup:StartBackupJob\",\n          \"backup:UpdateRecoveryPoint\",\n          \"backup:Describe*\",\n          \"backup:Get*\",\n          \"backup:List*\",\n        ]\n        Effect = \"Allow\"\n        Resource = \"*\"\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"backup\" {\n  role       = aws_iam_role.backup.name\n  policy_arn = aws_iam_policy.backup.arn\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_ebs_volume\" \"database\" {\n  availability_zone = \"us-west-2a\"\n  size              = 100\n  type              = \"gp3\"\n  encrypted         = true\n  kms_key_id        = aws_kms_key.ebs.arn\n}\n\nresource \"aws_kms_key\" \"ebs\" {\n  description             = \"EBS volume encryption key\"\n  deletion_window_in_days = 10\n}\n\nresource \"aws_kms_alias\" \"ebs\" {\n  name          = \"alias/ebs-key\"\n  target_key_id = aws_kms_key.ebs.key_id\n}\n\nresource \"aws_ebs_snapshot\" \"database\" {\n  volume_id = aws_ebs_volume.database.id\n  tags = {\n    Name = \"database-snapshot\"\n  }\n}\n\nresource \"aws_backup_vault\" \"database\" {\n  name = \"database-backup-vault\"\n}\n\nresource \"aws_backup_plan\" \"database\" {\n  name = \"database-backup-plan\"\n\n  rule {\n    rule_name           = \"daily\"\n    target_vault_name   = aws_backup_vault.database.name\n    schedule            = \"cron(0 12 * * ? *)\"\n    start_window        = 60\n    completion_window = 180\n  }\n}\n\nresource \"aws_backup_selection\" \"database\" {\n  name         = \"database-backup-selection\"\n  plan_id      = aws_backup_plan.database.id\n  iam_role_arn = aws_iam_role.backup.arn\n\n  selection_tag {\n    type  = \"STRINGEQUALS\"\n    key   = \"Backup\"\n    value = \"true\"\n  }\n}\n\nresource \"aws_iam_role\" \"backup\" {\n  name        = \"database-backup-role\"\n  description = \"IAM role for database backup\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"backup.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"backup\" {\n  name        = \"database-backup-policy\"\n  description = \"IAM policy for database backup\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"ec2:Describe*\",\n          \"ec2:CreateTags\",\n          \"ebs:Describe*\",\n          \"ebs:CreateSnapshot\",\n          \"backup:StartBackupJob\",\n          \"backup:UpdateRecoveryPoint\",\n          \"backup:Describe*\",\n          \"backup:Get*\",\n          \"backup:List*\",\n        ]\n        Effect = \"Allow\"\n        Resource = \"*\"\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"backup\" {\n  role       = aws_iam_role.backup.name\n  policy_arn = aws_iam_policy.backup.arn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_ebs_volume\" \"database\" {\n  availability_zone = \"us-west-2a\"\n  size              = 100\n  type              = \"gp3\"\n  encrypted         = true\n  kms_key_id        = aws_kms_key.ebs.arn\n}\n\nresource \"aws_kms_key\" \"ebs\" {\n  description             = \"EBS volume encryption key\"\n  deletion_window_in_days = 10\n}\n\nresource \"aws_kms_alias\" \"ebs\" {\n  name          = \"alias/ebs-key\"\n  target_key_id = aws_kms_key.ebs.key_id\n}\n\nresource \"aws_ebs_snapshot\" \"database\" {\n  volume_id = aws_ebs_volume.database.id\n  tags = {\n    Name = \"database-snapshot\"\n  }\n}\n\nresource \"aws_backup_vault\" \"database\" {\n  name = \"database-backup-vault\"\n}\n\nresource \"aws_backup_plan\" \"database\" {\n  name = \"database-backup-plan\"\n\n  rule {\n    rule_name           = \"daily\"\n    target_vault_name   = aws_backup_vault.database.name\n    schedule            = \"cron(0 12 * * ? *)\"\n    start_window        = 60\n    completion_window = 180\n  }\n}\n\nresource \"aws_backup_selection\" \"database\" {\n  name         = \"database-backup-selection\"\n  plan_id      = aws_backup_plan.database.id\n  iam_role_arn = aws_iam_role.backup.arn\n\n  selection_tag {\n    type  = \"STRINGEQUALS\"\n    key   = \"Backup\"\n    value = \"true\"\n  }\n}\n\nresource \"aws_iam_role\" \"backup\" {\n  name        = \"database-backup-role\"\n  description = \"IAM role for database backup\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"backup.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"backup\" {\n  name        = \"database-backup-policy\"\n  description = \"IAM policy for database backup\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"ec2:Describe*\",\n          \"ec2:CreateTags\",\n          \"ebs:Describe*\",\n          \"ebs:CreateSnapshot\",\n          \"backup:StartBackupJob\",\n          \"backup:UpdateRecoveryPoint\",\n          \"backup:Describe*\",\n          \"backup:Get*\",\n          \"backup:List*\",\n        ]\n        Effect = \"Allow\"\n        Resource = \"*\"\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"backup\" {\n  role       = aws_iam_role.backup.name\n  policy_arn = aws_iam_policy.backup.arn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724026,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 168,
+      "output_tokens": 633,
+      "raw_input_tokens": 168
+    }
+  },
+  "started_at": "2026-05-25T15:47:03.980090+00:00",
+  "elapsed_seconds": 2.128
+}

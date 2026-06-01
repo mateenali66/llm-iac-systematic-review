@@ -1,0 +1,96 @@
+{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0004",
+			"long_id": "aws-api-gateway-no-public-access",
+			"rule_description": "No unauthorized access to API Gateway methods",
+			"rule_provider": "aws",
+			"rule_service": "api-gateway",
+			"impact": "API gateway methods can be accessed without authorization.",
+			"resolution": "Use and authorization method or require API Key",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/api-gateway/no-public-access/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_method#authorization"
+			],
+			"description": "Authorization is not enabled for this method.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_api_gateway_method.webhook_handler_method",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 81,
+				"end_line": 81
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*:*:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_iam_policy.lambda_policy",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 30,
+				"end_line": 30
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogGroup' on wildcarded resource 'arn:aws:logs:*:*:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_iam_policy.lambda_policy",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 30,
+				"end_line": 30
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0066",
+			"long_id": "aws-lambda-enable-tracing",
+			"rule_description": "Lambda functions should have X-Ray tracing enabled",
+			"rule_provider": "aws",
+			"rule_service": "lambda",
+			"impact": "Without full tracing enabled it is difficult to trace the flow of logs",
+			"resolution": "Enable tracing",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/lambda/enable-tracing/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function#mode"
+			],
+			"description": "Function does not have tracing enabled.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_lambda_function.webhook_handler",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 50,
+				"end_line": 56
+			}
+		}
+	]
+}

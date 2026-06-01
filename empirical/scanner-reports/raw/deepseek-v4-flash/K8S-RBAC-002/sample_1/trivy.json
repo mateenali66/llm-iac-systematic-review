@@ -1,0 +1,159 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:42:13.667646344Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 67,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV046",
+          "AVDID": "AVD-KSV-0046",
+          "Title": "Manage all resources",
+          "Description": "Full control of the cluster resources, and therefore also root on all nodes where workloads can run and has access to all pods, secrets, and data.",
+          "Message": "ClusterRole 'operator-cluster-role' shouldn't manage all resources",
+          "Namespace": "builtin.kubernetes.KSV046",
+          "Query": "data.builtin.kubernetes.KSV046.deny",
+          "Resolution": "Remove '*' from 'rules.resources'. Provide specific list of resources to be managed by cluster role",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv046",
+          "References": [
+            "https://kubernetes.io/docs/concepts/security/rbac-good-practices/",
+            "https://avd.aquasec.com/misconfig/ksv046"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 14,
+            "EndLine": 25,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 14,
+                  "Content": "- apiGroups:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "- \u001b[38;5;33mapiGroups\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "  - example.operator.io",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - example.operator.io",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "  resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "  - \"*\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;37m\"*\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 18,
+                  "Content": "  verbs:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;33mverbs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 19,
+                  "Content": "  - create",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - create",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 20,
+                  "Content": "  - delete",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - delete",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 21,
+                  "Content": "  - get",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - get",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 22,
+                  "Content": "  - list",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - list",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 23,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

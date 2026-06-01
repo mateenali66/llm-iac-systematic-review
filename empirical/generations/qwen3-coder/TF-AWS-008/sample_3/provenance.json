@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-008",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM user named 'jenkins-deploy' for a CI/CD pipeline that needs to deploy AWS Lambda functions and update CloudFormation stacks.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM user named 'jenkins-deploy' for a CI/CD pipeline that needs to deploy AWS Lambda functions and update CloudFormation stacks.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/cicd/\"\n}\n\nresource \"aws_iam_user_policy\" \"jenkins_deploy_policy\" {\n  name = \"jenkins-deploy-policy\"\n  user = aws_iam_user.jenkins_deploy.name\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:ListFunctions\",\n          \"lambda:DeleteFunction\",\n          \"lambda:AddPermission\",\n          \"lambda:RemovePermission\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ValidateTemplate\",\n          \"cloudformation:GetTemplate\",\n          \"cloudformation:DeleteStack\",\n          \"cloudformation:CreateChangeSet\",\n          \"cloudformation:ExecuteChangeSet\",\n          \"cloudformation:DescribeChangeSet\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\"\n        ]\n        Resource = \"arn:aws:s3:::*/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_access_key\" \"jenkins_deploy_key\" {\n  user = aws_iam_user.jenkins_deploy.name\n}",
+  "cleaned_response": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/cicd/\"\n}\n\nresource \"aws_iam_user_policy\" \"jenkins_deploy_policy\" {\n  name = \"jenkins-deploy-policy\"\n  user = aws_iam_user.jenkins_deploy.name\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:ListFunctions\",\n          \"lambda:DeleteFunction\",\n          \"lambda:AddPermission\",\n          \"lambda:RemovePermission\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ValidateTemplate\",\n          \"cloudformation:GetTemplate\",\n          \"cloudformation:DeleteStack\",\n          \"cloudformation:CreateChangeSet\",\n          \"cloudformation:ExecuteChangeSet\",\n          \"cloudformation:DescribeChangeSet\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\"\n        ]\n        Resource = \"arn:aws:s3:::*/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_access_key\" \"jenkins_deploy_key\" {\n  user = aws_iam_user.jenkins_deploy.name\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/cicd/\"\n}\n\nresource \"aws_iam_user_policy\" \"jenkins_deploy_policy\" {\n  name = \"jenkins-deploy-policy\"\n  user = aws_iam_user.jenkins_deploy.name\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:ListFunctions\",\n          \"lambda:DeleteFunction\",\n          \"lambda:AddPermission\",\n          \"lambda:RemovePermission\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ValidateTemplate\",\n          \"cloudformation:GetTemplate\",\n          \"cloudformation:DeleteStack\",\n          \"cloudformation:CreateChangeSet\",\n          \"cloudformation:ExecuteChangeSet\",\n          \"cloudformation:DescribeChangeSet\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\"\n        ]\n        Resource = \"arn:aws:s3:::*/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_access_key\" \"jenkins_deploy_key\" {\n  user = aws_iam_user.jenkins_deploy.name\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726501,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 147,
+      "output_tokens": 428,
+      "raw_input_tokens": 147
+    }
+  },
+  "started_at": "2026-05-25T16:28:14.674655+00:00",
+  "elapsed_seconds": 6.96
+}

@@ -1,0 +1,38 @@
+resources:
+- name: cloud-armor-security-policy
+  type: compute.v1.securityPolicy
+  properties:
+    name: cloud-armor-security-policy
+    description: Cloud Armor policy blocking specific countries and rate-limiting per IP
+    type: CLOUD_ARMOR
+    adaptiveProtectionConfig:
+      layer7DdosDefenseConfig:
+        enable: true
+    rules:
+    - priority: 100
+      description: Block traffic from specified countries
+      match:
+        expr:
+          expression: "in(origin.region_code, ['CN', 'RU'])"
+      action: "deny(403)"
+      preview: false
+      logConfig:
+        enable: true
+    - priority: 200
+      description: Per-IP rate limiting to mitigate abuse
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      action: "throttle"
+      preview: false
+      rateLimitOptions:
+        enforceOnKey: IP
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 60
+        conformAction: "allow"
+        exceedAction: "deny(429)"
+      logConfig:
+        enable: true

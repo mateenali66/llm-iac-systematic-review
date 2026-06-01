@@ -1,0 +1,78 @@
+# FILE: Chart.yaml
+name: web-application
+version: 1.0.0
+description: A Helm chart for deploying a generic web application
+type: application
+
+---
+# FILE: values.yaml
+image:
+  repository: nginx
+  tag: latest
+replicas: 1
+host: example.com
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.image.repository }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.image.repository }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.image.repository }}
+    spec:
+      containers:
+      - name: {{ .Values.image.repository }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.image.repository }}
+spec:
+  selector:
+    app: {{ .Values.image.repository }}
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+
+---
+# FILE: templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.image.repository }}
+spec:
+  rules:
+  - host: {{ .Values.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.image.repository }}
+            port:
+              name: http
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.image.repository }}
+data:
+  APP_NAME: {{ .Values.image.repository }}

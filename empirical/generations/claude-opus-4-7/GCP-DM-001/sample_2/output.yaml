@@ -1,0 +1,97 @@
+resources:
+- name: dev-vm-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: dev-vm-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.dev-vm-network.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+    logConfig:
+      enable: true
+      aggregationInterval: INTERVAL_10_MIN
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+
+- name: dev-vm-firewall-iap-ssh
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.dev-vm-network.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 35.235.240.0/20
+    targetTags:
+    - dev-vm
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "22"
+
+- name: dev-vm-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: dev-vm-sa
+    displayName: Service Account for Dev VM
+
+- name: dev-vm
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/e2-medium
+    tags:
+      items:
+      - dev-vm
+    labels:
+      environment: development
+      workload: dev
+      managed-by: deployment-manager
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts
+        diskSizeGb: 30
+        diskType: zones/us-central1-a/diskTypes/pd-balanced
+    networkInterfaces:
+    - subnetwork: $(ref.dev-vm-subnet.selfLink)
+    serviceAccounts:
+    - email: $(ref.dev-vm-sa.email)
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform
+    shieldedInstanceConfig:
+      enableSecureBoot: true
+      enableVtpm: true
+      enableIntegrityMonitoring: true
+    confidentialInstanceConfig:
+      enableConfidentialCompute: false
+    scheduling:
+      preemptible: false
+      automaticRestart: true
+      onHostMaintenance: MIGRATE
+    metadata:
+      items:
+      - key: enable-oslogin
+        value: "TRUE"
+      - key: block-project-ssh-keys
+        value: "TRUE"
+      - key: serial-port-enable
+        value: "FALSE"
+
+outputs:
+- name: instanceName
+  value: $(ref.dev-vm.name)
+- name: instanceSelfLink
+  value: $(ref.dev-vm.selfLink)
+- name: internalIp
+  value: $(ref.dev-vm.networkInterfaces[0].networkIP)
+- name: serviceAccountEmail
+  value: $(ref.dev-vm-sa.email)

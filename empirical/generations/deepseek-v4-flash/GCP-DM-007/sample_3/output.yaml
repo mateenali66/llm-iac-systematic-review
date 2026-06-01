@@ -1,0 +1,72 @@
+resources:
+- name: production-gke-cluster
+  type: container.v1.cluster
+  properties:
+    zone: us-central1-a
+    cluster:
+      name: production-gke-cluster
+      description: Production GKE Standard cluster
+      initialClusterVersion: "1.28"
+      network: projects/${PROJECT_ID}/global/networks/default
+      subnetwork: projects/${PROJECT_ID}/regions/us-central1/subnetworks/default
+      nodePools:
+      - name: production-node-pool
+        initialNodeCount: 3
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-standard
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          serviceAccount: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+          labels:
+            environment: production
+            workload: general
+          tags:
+          - production
+          shieldedInstanceConfig:
+            enableSecureBoot: true
+            enableIntegrityMonitoring: true
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      ipAllocationPolicy:
+        useIpAliases: true
+        createSubnetwork: true
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - cidrBlock: 10.0.0.0/8
+          displayName: internal-vpc
+      addonsConfig:
+        networkPolicyConfig:
+          disabled: false
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+      maintenancePolicy:
+        window:
+          dailyMaintenanceWindow:
+            startTime: "03:00"
+      resourceLabels:
+        environment: production
+        managed-by: deployment-manager

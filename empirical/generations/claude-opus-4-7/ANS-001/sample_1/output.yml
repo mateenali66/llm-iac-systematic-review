@@ -1,0 +1,84 @@
+---
+- name: Install and configure nginx on Ubuntu
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    nginx_packages:
+      - nginx
+    ufw_allowed_ports:
+      - { port: 80, proto: tcp, rule: allow, comment: "Allow HTTP traffic" }
+      - { port: 22, proto: tcp, rule: allow, comment: "Allow SSH traffic" }
+
+  pre_tasks:
+    - name: Verify target host is Ubuntu
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "Ubuntu"
+        fail_msg: "This playbook only supports Ubuntu hosts. Detected: {{ ansible_distribution }}"
+        success_msg: "Ubuntu host detected: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Update apt package cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:
+    - name: Install nginx and required packages
+      ansible.builtin.apt:
+        name: "{{ nginx_packages }}"
+        state: present
+      notify: Restart nginx
+
+    - name: Install ufw firewall
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Configure UFW default incoming policy
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+        state: enabled
+
+    - name: Configure UFW default outgoing policy
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+        state: enabled
+
+    - name: Allow configured ports through UFW
+      community.general.ufw:
+        rule: "{{ item.rule }}"
+        port: "{{ item.port }}"
+        proto: "{{ item.proto }}"
+        comment: "{{ item.comment | default(omit) }}"
+      loop: "{{ ufw_allowed_ports }}"
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled
+        logging: "on"
+
+    - name: Ensure nginx service is started and enabled at boot
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Verify nginx is responding on port 80
+      ansible.builtin.uri:
+        url: http://localhost
+        status_code: 200
+        return_content: false
+      register: nginx_health
+      retries: 3
+      delay: 2
+      until: nginx_health.status == 200
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

@@ -1,0 +1,108 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: stateful-app
+description: Helm chart for stateful application with DB migration
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: myapp
+  pullPolicy: IfNotPresent
+  tag: "latest"
+migration:
+  command: ["sh", "-c", "echo 'Running database migrations' && sleep 10"]
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+storage:
+  size: 10Gi
+  storageClassName: standard
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  serviceName: {{ include "stateful-app.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.storage.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}
+---
+# FILE: templates/migration-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migration
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      restartPolicy: Never
+      containers:
+        - name: migration
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: {{- toYaml .Values.migration.command | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,142 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 104,
+	"files_parsed": 1,
+	"lines_parsed": 104,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:53:18.773382222Z",
+	"end": "2026-05-26T04:53:19.469701639Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "d063e20372756fb1f48213f1e986f82d7075b85ad8b18adec34c12cecf8fc9a8",
+					"line": 54,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.networkAcls.defaultAction",
+					"search_line": 54,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' networkAcls.defaultAction is set to 'Allow')"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "b4b7618fbadd8e52ad29c2bf77f67c6838e1f9af56aee8ce502ac8b367b487cd",
+					"line": 76,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties",
+					"search_line": 76,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "f0a1fa19546cba89ca87ef8322a50626ec17f0c56ffbb911e10d742f522b7ac9",
+					"line": 54,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.networkAcls.defaultAction",
+					"search_line": 54,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' property value should have the 'properties.networkAcls.defaultAction' set to 'Deny'",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' has the 'properties.networkAcls.defaultAction' set to 'Allow'"
+				}
+			]
+		},
+		{
+			"query_name": "Website with 'Http20Enabled' Disabled",
+			"query_id": "70111098-7f85-48f0-b1b4-e4261cf5f61b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "757",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have 'Http20Enabled' enabled",
+			"description_id": "e0cdbc75",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "880b6ee9f24ed15ef87e840eb4c31e5a8b3d50001049665c9fdde3f1370a8969",
+					"line": 76,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties.siteConfig",
+					"search_line": 76,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'http20Enabled' property defined in siteConfig",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'http20Enabled' property defined in siteConfig"
+				}
+			]
+		}
+	]
+}

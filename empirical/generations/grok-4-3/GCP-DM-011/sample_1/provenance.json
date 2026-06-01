@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-011",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: instance-template\n  type: compute.v1.instanceTemplate\n  properties:\n    properties:\n      machineType: e2-medium\n      disks:\n      - deviceName: boot\n        type: PERSISTENT\n        boot: true\n        autoDelete: true\n        initializeParams:\n          sourceImage: projects/debian-cloud/global/images/family/debian-11\n      networkInterfaces:\n      - network: global/networks/default\n        accessConfigs:\n        - type: ONE_TO_ONE_NAT\n      tags:\n        items:\n        - https-lb\n- name: managed-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    namedPorts:\n    - name: http\n      port: 80\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    target: $(ref.managed-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    protocol: HTTP\n    portName: http\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    backends:\n    - group: $(ref.managed-instance-group.instanceGroup)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    name: https-lb-cert\n    managed:\n      domains:\n      - example.com\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    sslCertificates:\n    - $(ref.ssl-certificate.selfLink)\n    urlMap: $(ref.url-map.selfLink)\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: allow-health-check\n  type: compute.v1.firewall\n  properties:\n    network: global/networks/default\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 130.211.0.0/22\n    - 35.191.0.0/16\n    targetTags:\n    - https-lb\n    allowed:\n    - IPProtocol: TCP\n      ports:\n      - \"80\"",
+  "cleaned_response": "resources:\n- name: instance-template\n  type: compute.v1.instanceTemplate\n  properties:\n    properties:\n      machineType: e2-medium\n      disks:\n      - deviceName: boot\n        type: PERSISTENT\n        boot: true\n        autoDelete: true\n        initializeParams:\n          sourceImage: projects/debian-cloud/global/images/family/debian-11\n      networkInterfaces:\n      - network: global/networks/default\n        accessConfigs:\n        - type: ONE_TO_ONE_NAT\n      tags:\n        items:\n        - https-lb\n- name: managed-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    namedPorts:\n    - name: http\n      port: 80\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    target: $(ref.managed-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    protocol: HTTP\n    portName: http\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    backends:\n    - group: $(ref.managed-instance-group.instanceGroup)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    name: https-lb-cert\n    managed:\n      domains:\n      - example.com\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    sslCertificates:\n    - $(ref.ssl-certificate.selfLink)\n    urlMap: $(ref.url-map.selfLink)\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: allow-health-check\n  type: compute.v1.firewall\n  properties:\n    network: global/networks/default\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 130.211.0.0/22\n    - 35.191.0.0/16\n    targetTags:\n    - https-lb\n    allowed:\n    - IPProtocol: TCP\n      ports:\n      - \"80\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: instance-template\n  type: compute.v1.instanceTemplate\n  properties:\n    properties:\n      machineType: e2-medium\n      disks:\n      - deviceName: boot\n        type: PERSISTENT\n        boot: true\n        autoDelete: true\n        initializeParams:\n          sourceImage: projects/debian-cloud/global/images/family/debian-11\n      networkInterfaces:\n      - network: global/networks/default\n        accessConfigs:\n        - type: ONE_TO_ONE_NAT\n      tags:\n        items:\n        - https-lb\n- name: managed-instance-group\n  type: compute.v1.instanceGroupManager\n  properties:\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    namedPorts:\n    - name: http\n      port: 80\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    target: $(ref.managed-instance-group.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      cpuUtilization:\n        utilizationTarget: 0.6\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    protocol: HTTP\n    portName: http\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    backends:\n    - group: $(ref.managed-instance-group.instanceGroup)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n- name: ssl-certificate\n  type: compute.v1.sslCertificate\n  properties:\n    name: https-lb-cert\n    managed:\n      domains:\n      - example.com\n- name: target-https-proxy\n  type: compute.v1.targetHttpsProxy\n  properties:\n    sslCertificates:\n    - $(ref.ssl-certificate.selfLink)\n    urlMap: $(ref.url-map.selfLink)\n- name: forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    IPProtocol: TCP\n    portRange: 443\n    target: $(ref.target-https-proxy.selfLink)\n    loadBalancingScheme: EXTERNAL_MANAGED\n- name: allow-health-check\n  type: compute.v1.firewall\n  properties:\n    network: global/networks/default\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 130.211.0.0/22\n    - 35.191.0.0/16\n    targetTags:\n    - https-lb\n    allowed:\n    - IPProtocol: TCP\n      ports:\n      - \"80\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725180,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 151,
+      "output_tokens": 612,
+      "reasoning_tokens": 517,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 131
+    }
+  },
+  "started_at": "2026-05-25T16:06:09.441177+00:00",
+  "elapsed_seconds": 10.969
+}

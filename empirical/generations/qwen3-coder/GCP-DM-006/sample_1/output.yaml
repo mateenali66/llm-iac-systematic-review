@@ -1,0 +1,38 @@
+resources:
+- name: cloud-function-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cf-storage-reader-sa
+    displayName: Service Account for Cloud Function Storage Reader
+    projectId: {{ env['project'] }}
+
+- name: storage-bucket-reader-role
+  type: gcp-types/iam-v1:projects.roles
+  properties:
+    parent: projects/{{ env['project'] }}
+    roleId: customStorageObjectViewer
+    role:
+      title: Custom Storage Object Viewer
+      description: Custom role to read objects from specific bucket
+      includedPermissions:
+        - storage.objects.get
+        - storage.objects.list
+
+- name: bucket-iam-binding
+  type: gcp-types/storage-v1:buckets/setIamPolicy
+  properties:
+    bucket: {{ properties['bucketName'] }}
+    project: {{ env['project'] }}
+    bindings:
+      - role: projects/{{ env['project'] }}/roles/customStorageObjectViewer
+        members:
+          - serviceAccount: $(ref.cloud-function-service-account.email)
+
+- name: service-account-key
+  type: iam.v1.serviceAccount.key
+  properties:
+    serviceAccountId: $(ref.cloud-function-service-account.name)
+    keyAlgorithm: KEY_ALG_RSA_2048
+  metadata:
+    dependsOn:
+      - cloud-function-service-account

@@ -1,0 +1,218 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Fargate cluster with internal NLB'
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+
+  Subnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.1.0/24'
+      AvailabilityZone: 'us-west-2a'
+
+  Subnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.2.0/24'
+      AvailabilityZone: 'us-west-2b'
+
+  ECSCluster:
+    Type: 'AWS::ECS::Cluster'
+
+  ECSTaskDefinition1:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: 'microservice1'
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+        - 'FARGATE'
+      ExecutionRoleArn: !GetAtt 'ECSTaskExecutionRole.Arn'
+      ContainerDefinitions:
+        - Name: 'microservice1'
+          Image: 'amazonlinux'
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: 'tcp'
+
+  ECSTaskDefinition2:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: 'microservice2'
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+        - 'FARGATE'
+      ExecutionRoleArn: !GetAtt 'ECSTaskExecutionRole.Arn'
+      ContainerDefinitions:
+        - Name: 'microservice2'
+          Image: 'amazonlinux'
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: 'tcp'
+
+  ECSTaskExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ecs-tasks.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'ECSTaskExecutionPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'ecr:GetAuthorizationToken'
+                  - 'ecr:BatchGetImage'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+
+  ECSservice1:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref Subnet1
+            - !Ref Subnet2
+          SecurityGroups:
+            - !Ref SecurityGroup
+          AssignPublicIp: 'DISABLED'
+      TaskDefinition: !Ref ECSTaskDefinition1
+
+  ECSservice2:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      Cluster: !Ref ECSCluster
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref Subnet1
+            - !Ref Subnet2
+          SecurityGroups:
+            - !Ref SecurityGroup
+          AssignPublicIp: 'DISABLED'
+      TaskDefinition: !Ref ECSTaskDefinition2
+
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: 'Allow inbound traffic from the NLB'
+
+  SecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref SecurityGroup
+      IpProtocol: 'tcp'
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !Ref NLBSecurityGroup
+
+  NLBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: 'Allow inbound traffic to the NLB'
+
+  NLBSecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref NLBSecurityGroup
+      IpProtocol: 'tcp'
+      FromPort: 80
+      ToPort: 80
+      CidrIp: '0.0.0.0/0'
+
+  NLB:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: 'internal-nlb'
+      Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      Scheme: 'internal'
+      Type: 'network'
+
+  NLBListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref NLB
+      Port: 80
+      Protocol: 'TCP'
+      DefaultActions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref NLBTargetGroup1
+
+  NLBTargetGroup1:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: 'nlb-target-group-1'
+      Port: 80
+      Protocol: 'TCP'
+      VpcId: !Ref VPC
+      Targets:
+        - Id: !GetAtt 'ECSservice1.Name'
+          Port: 80
+
+  NLBTargetGroup2:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: 'nlb-target-group-2'
+      Port: 80
+      Protocol: 'TCP'
+      VpcId: !Ref VPC
+      Targets:
+        - Id: !GetAtt 'ECSservice2.Name'
+          Port: 80
+
+  NLBListenerRule:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    Properties:
+      ListenerArn: !Ref NLBListener
+      Priority: 1
+      Conditions:
+        - Field: 'path-pattern'
+          Values:
+            - '/microservice1*'
+      Actions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref NLBTargetGroup1
+
+  NLBListenerRule2:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    Properties:
+      ListenerArn: !Ref NLBListener
+      Priority: 2
+      Conditions:
+        - Field: 'path-pattern'
+          Values:
+            - '/microservice2*'
+      Actions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref NLBTargetGroup2

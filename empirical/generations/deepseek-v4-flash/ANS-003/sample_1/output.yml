@@ -1,0 +1,136 @@
+- name: Harden CentOS 9 server
+  hosts: all
+  become: yes
+  vars:
+    ssh_port: 22
+    fail2ban_maxretry: 5
+    fail2ban_bantime: 3600
+    audit_log_format: ENRICHED
+    audit_max_log_file: 8
+    audit_max_log_file_action: rotate
+    audit_space_left_action: email
+    audit_action_mail_acct: root
+    audit_admin_space_left_action: halt
+    password_minlen: 14
+    password_minclass: 4
+    password_maxrepeat: 3
+    password_difok: 3
+    password_remember: 5
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install required packages
+      ansible.builtin.yum:
+        name:
+          - fail2ban
+          - audit
+          - audit-libs
+          - libpwquality
+          - policycoreutils-python-utils
+        state: present
+
+    - name: Configure SSH to disable root login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        validate: 'sshd -t -f %s'
+      notify: restart sshd
+
+    - name: Ensure SSH password authentication is enabled (for non-root users)
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+        validate: 'sshd -t -f %s'
+      notify: restart sshd
+
+    - name: Configure password complexity via pwquality
+      ansible.builtin.lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: '^#?\s*{{ item.param }}'
+        line: '{{ item.param }} = {{ item.value }}'
+        create: yes
+      loop:
+        - { param: 'minlen', value: '{{ password_minlen }}' }
+        - { param: 'minclass', value: '{{ password_minclass }}' }
+        - { param: 'maxrepeat', value: '{{ password_maxrepeat }}' }
+        - { param: 'difok', value: '{{ password_difok }}' }
+      notify: update pam password quality
+
+    - name: Enforce password history
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/system-auth
+        regexp: '^password\s+sufficient\s+pam_unix.so'
+        line: 'password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok remember={{ password_remember }}'
+        backrefs: yes
+      notify: update pam password quality
+
+    - name: Configure fail2ban
+      ansible.builtin.template:
+        src: fail2ban-local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart fail2ban
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Configure auditd rules
+      ansible.builtin.template:
+        src: auditd-rules.j2
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: '0640'
+      notify: restart auditd
+
+    - name: Configure auditd.conf
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^#?\s*{{ item.param }}'
+        line: '{{ item.param }} = {{ item.value }}'
+      loop:
+        - { param: 'log_format', value: '{{ audit_log_format }}' }
+        - { param: 'max_log_file', value: '{{ audit_max_log_file }}' }
+        - { param: 'max_log_file_action', value: '{{ audit_max_log_file_action }}' }
+        - { param: 'space_left_action', value: '{{ audit_space_left_action }}' }
+        - { param: 'action_mail_acct', value: '{{ audit_action_mail_acct }}' }
+        - { param: 'admin_space_left_action', value: '{{ audit_admin_space_left_action }}' }
+      notify: restart auditd
+
+    - name: Enable and start auditd
+      ansible.builtin.systemd:
+        name: auditd
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+    - name: update pam password quality
+      ansible.builtin.command: /usr/sbin/authconfig --updateall
+      changed_when: false
+
+    - name: restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: restart auditd
+      ansible.builtin.systemd:
+        name: auditd
+        state: restarted

@@ -1,0 +1,30 @@
+resources:
+- name: cloud-armor-policy
+  type: gcp-types/compute-v1:securityPolicies
+  properties:
+    name: cloud-armor-policy
+    description: "Cloud Armor policy blocking specific countries and rate limiting"
+    rules:
+    - priority: 1000
+      match:
+        expr:
+          expression: "origin.region_code == 'CN' || origin.region_code == 'RU' || origin.region_code == 'KP'"
+      action: "deny-403"
+      description: "Block traffic from China, Russia, and North Korea"
+    - priority: 2000
+      match:
+        expr:
+          expression: "true"
+      action: "throttle"
+      rateLimitOptions:
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 60
+        conformAction: "allow"
+        exceedAction: "deny-429"
+        enforceOnKey: "IP"
+      description: "Rate limit all other traffic to 100 requests per minute per IP"
+    adaptiveProtectionConfig:
+      layer7DdosDefenseConfig:
+        enable: true
+        ruleVisibility: "STANDARD"

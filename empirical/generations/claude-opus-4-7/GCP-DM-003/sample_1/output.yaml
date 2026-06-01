@@ -1,0 +1,134 @@
+imports:
+  - path: cloud-run-service.jinja
+
+resources:
+  - name: api-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloud-run-api-sa
+      displayName: Cloud Run Python API Service Account
+      description: Least-privilege service account for Python 3.12 Cloud Run API
+
+  - name: api-sa-logging-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.api-service-account.projectId)
+      role: roles/logging.logWriter
+      member: serviceAccount:$(ref.api-service-account.email)
+
+  - name: api-sa-monitoring-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.api-service-account.projectId)
+      role: roles/monitoring.metricWriter
+      member: serviceAccount:$(ref.api-service-account.email)
+
+  - name: api-sa-trace-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.api-service-account.projectId)
+      role: roles/cloudtrace.agent
+      member: serviceAccount:$(ref.api-service-account.email)
+
+  - name: python-api-service
+    type: gcp-types/run-v1:namespaces.services
+    metadata:
+      dependsOn:
+        - api-service-account
+        - api-sa-logging-binding
+        - api-sa-monitoring-binding
+        - api-sa-trace-binding
+    properties:
+      parent: namespaces/[PROJECT_ID]
+      location: us-central1
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      metadata:
+        name: python-api
+        namespace: '[PROJECT_ID]'
+        annotations:
+          run.googleapis.com/ingress: internal-and-cloud-load-balancing
+          run.googleapis.com/launch-stage: GA
+        labels:
+          app: python-api
+          environment: production
+          managed-by: deployment-manager
+      spec:
+        template:
+          metadata:
+            name: python-api-v1
+            annotations:
+              autoscaling.knative.dev/minScale: '1'
+              autoscaling.knative.dev/maxScale: '20'
+              run.googleapis.com/execution-environment: gen2
+              run.googleapis.com/cpu-throttling: 'true'
+              run.googleapis.com/startup-cpu-boost: 'true'
+            labels:
+              app: python-api
+              environment: production
+          spec:
+            serviceAccountName: $(ref.api-service-account.email)
+            containerConcurrency: 80
+            timeoutSeconds: 300
+            containers:
+              - name: python-api
+                image: gcr.io/[PROJECT_ID]/python-api:latest
+                ports:
+                  - name: http1
+                    containerPort: 8080
+                env:
+                  - name: PYTHONUNBUFFERED
+                    value: '1'
+                  - name: PYTHON_VERSION
+                    value: '3.12'
+                  - name: PORT
+                    value: '8080'
+                  - name: ENVIRONMENT
+                    value: production
+                resources:
+                  limits:
+                    cpu: '1000m'
+                    memory: 512Mi
+                  requests:
+                    cpu: '500m'
+                    memory: 256Mi
+                startupProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+        traffic:
+          - percent: 100
+            latestRevision: true
+
+  - name: python-api-iam-policy
+    type: gcp-types/run-v1:run.projects.locations.services.setIamPolicy
+    metadata:
+      dependsOn:
+        - python-api-service
+    properties:
+      resource: projects/[PROJECT_ID]/locations/us-central1/services/python-api
+      policy:
+        bindings:
+          - role: roles/run.invoker
+            members:
+              - allAuthenticatedUsers
+
+outputs:
+  - name: serviceUrl
+    value: $(ref.python-api-service.status.url)
+  - name: serviceName
+    value: $(ref.python-api-service.metadata.name)
+  - name: serviceAccountEmail
+    value: $(ref.api-service-account.email)

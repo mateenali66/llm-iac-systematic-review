@@ -1,0 +1,32 @@
+resources:
+- name: prod-web-armor-policy
+  type: compute.v1.securityPolicy
+  properties:
+    description: "Production web security policy with geo-blocking and rate limiting."
+    rules:
+    - action: deny(403)
+      priority: 1000
+      description: "Block traffic from specific countries."
+      match:
+        expr:
+          expression: "origin.region_code in ['KP', 'IR', 'SY', 'CU']"
+    - action: rate_based_ban
+      priority: 1100
+      description: "Rate limit requests per source IP to mitigate DDoS or brute-force attacks."
+      match:
+        expr:
+          expression: "true"
+      rateLimitOptions:
+        rateLimitThreshold:
+          count: 200
+          intervalSec: 60
+        banDurationSec: 600
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+    - action: allow
+      priority: 2147483647
+      description: "Default allow rule."
+      match:
+        expr:
+          expression: "true"

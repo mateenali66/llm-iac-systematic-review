@@ -1,0 +1,138 @@
+# FILE: Chart.yaml
+name: postgres
+version: 1.0.0
+description: A Helm chart for deploying a Postgres database
+type: application
+appVersion: 14.2
+dependencies:
+  - name: common
+    version: ~1.0
+    repository: https://charts.bitnami.com/bitnami
+
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: postgres
+  tag: 14.2
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5432
+persistence:
+  enabled: true
+  size: 1Gi
+  accessMode: ReadWriteOnce
+  storageClass: default
+  annotations: {}
+postgresql:
+  postgresPassword: changeme
+  postgresUser: postgres
+  postgresDb: mydb
+  service:
+    name: postgres
+    port: 5432
+initJob:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 14.2
+    pullPolicy: IfNotPresent
+  command: ["psql", "-U", "postgres", "-d", "postgres", "-c", "CREATE DATABASE mydb;"]
+  restartPolicy: OnFailure
+
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "postgres.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "postgres.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.postgresql.postgresUser }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.postgresql.postgresPassword }}
+        - name: POSTGRES_DB
+          value: {{ .Values.postgresql.postgresDb }}
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+          subPath: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "postgres.fullname" . }}-pvc
+
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+  selector:
+    app: {{ include "postgres.name" . }}
+
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgres.fullname" . }}-pvc
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres.fullname" . }}-secret
+type: Opaque
+data:
+  postgres-password: {{ .Values.postgresql.postgresPassword | b64enc }}
+  postgres-user: {{ .Values.postgresql.postgresUser | b64enc }}
+  postgres-db: {{ .Values.postgresql.postgresDb | b64enc }}
+
+# FILE: templates/initjob.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.fullname" . }}-init
+spec:
+  template:
+    spec:
+      containers:
+      - name: init
+        image: "{{ .Values.initJob.image.repository }}:{{ .Values.initJob.image.tag }}"
+        imagePullPolicy: {{ .Values.initJob.image.pullPolicy }}
+        command: {{ .Values.initJob.command }}
+      restartPolicy: {{ .Values.initJob.restartPolicy }}
+  backoffLimit: 4
+---
+---
+---
+---
+---
+---

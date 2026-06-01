@@ -1,0 +1,174 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: webapp-chart
+description: A Helm chart for deploying a generic web application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Default values for webapp-chart
+
+# Image configuration
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Number of replicas
+replicaCount: 3
+
+# Host for ingress
+host: example.com
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+
+# Resources
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "webapp-chart.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+    helm.sh/chart: {{ include "webapp-chart.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "webapp-chart.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+    helm.sh/chart: {{ include "webapp-chart.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+
+---
+# FILE: templates/ingress.yaml
+{{- if .Values.host }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "webapp-chart.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+    helm.sh/chart: {{ include "webapp-chart.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  rules:
+    - host: {{ .Values.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "webapp-chart.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "webapp-chart.fullname" . }}-config
+  labels:
+    app.kubernetes.io/name: {{ include "webapp-chart.name" . }}
+    helm.sh/chart: {{ include "webapp-chart.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  APP_ENV: production
+  LOG_LEVEL: info
+
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "webapp-chart.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "webapp-chart.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "webapp-chart.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}

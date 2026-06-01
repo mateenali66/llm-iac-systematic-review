@@ -1,0 +1,108 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 337,
+	"files_parsed": 1,
+	"lines_parsed": 337,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:35:29.929825254Z",
+	"end": "2026-05-26T04:35:30.652004171Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "fa5e9fa37903d407c4ce22b462a95c4c4e6009016d3777cad181a90d2c24f4af",
+					"line": 315,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ab845615bfa3a72b1cd4373fd86742013a89b7cf3b48449cc18ddba8b85705db",
+					"line": 266,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Azure Instance Using Basic Authentication",
+			"query_id": "6797f581-0433-4768-ae3e-7ceb2f8b138e",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?tabs=json#linuxconfiguration-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "522",
+			"cloud_provider": "AZURE",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Azure Instances should use SSH Key instead of basic authentication",
+			"description_id": "98ba05ca",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ab089087126225be8ba42565edbd5feba0ac96e42024962c0cb48ed840686169",
+					"line": 268,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "['${parameters('vmNamePrefix')}-1']",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=['${parameters('vmNamePrefix')}-1'].properties.osProfile.linuxConfiguration.disablePasswordAuthentication",
+					"search_line": 268,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'disablePasswordAuthentication' property value is set to false"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "2597572c616c540eba8a74a4ebe6dbe4dd997a583ef03bf4b33bda9fe9ee310d",
+					"line": 317,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "['${parameters('vmNamePrefix')}-2']",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=['${parameters('vmNamePrefix')}-2'].properties.osProfile.linuxConfiguration.disablePasswordAuthentication",
+					"search_line": 317,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'disablePasswordAuthentication' property value is set to false"
+				}
+			]
+		}
+	]
+}

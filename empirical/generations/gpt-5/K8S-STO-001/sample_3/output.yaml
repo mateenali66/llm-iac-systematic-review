@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-storage
+  labels:
+    app.kubernetes.io/name: database
+    app.kubernetes.io/component: data
+    app.kubernetes.io/managed-by: iac
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 50Gi
+  volumeMode: Filesystem

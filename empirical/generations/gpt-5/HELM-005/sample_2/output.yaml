@@ -1,0 +1,684 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: sidecar-app
+description: Deploy a main application with a Fluent Bit sidecar for log shipping using a shared volume.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.23.0-0"
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example/myapp
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: my-registry-cred
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations: {}
+  labels: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+fluentBit:
+  image:
+    repository: cr.fluentbit.io/fluent/fluent-bit
+    tag: "2.2.2"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  # Optional environment variables for Fluent Bit (supports secret expansion)
+  env: []
+  # - name: FB_HTTP_AUTH
+  #   valueFrom:
+  #     secretKeyRef:
+  #       name: my-logging-secret
+  #       key: authHeader
+
+  envFromSecrets: []
+  # - name: my-logging-secret
+
+  # Configure Fluent Bit service settings
+  service:
+    flush: 1
+    logLevel: info
+
+  # Input settings to tail files from the shared volume
+  input:
+    filePattern: "*.log"
+    memBufLimit: 10MB
+    multiline:
+      enabled: false
+      firstlineParser: docker, cri
+
+  # Enable Kubernetes metadata enrichment (requires automounting SA token and RBAC)
+  kubernetesFilter:
+    enabled: false
+    mergeLog: false
+    keepLog: true
+
+  # Output configuration
+  output:
+    # One of: stdout | http
+    type: stdout
+    stdout:
+      enabled: true
+    http:
+      enabled: false
+      host: "logs.example.com"
+      port: 443
+      uri: "/ingest"
+      tls: true
+      format: json
+      headerAuthEnvVar: "FB_HTTP_AUTH" # env var name which contains Authorization header value (e.g., Bearer token)
+      retryLimit: "false" # false = unlimited
+      compress: "gzip"
+
+  # Provide full config override if needed (tpl rendered). If set, replaces generated config entirely.
+  configOverride: ""
+
+  # Extra volume mounts for Fluent Bit sidecar (if needed)
+  extraVolumeMounts: []
+  # - name: extra-config
+  #   mountPath: /fluent-bit/extra
+  #   readOnly: true
+
+  # Extra volumes (applied to Pod spec)
+  extraVolumes: []
+  # - name: extra-config
+  #   configMap:
+  #     name: my-extra-config
+
+sharedVolume:
+  name: app-logs
+  path: /var/log/app
+  emptyDir:
+    sizeLimit: 1Gi
+
+command: []
+args: []
+
+env: []
+# - name: LOG_LEVEL
+#   value: info
+
+envFrom: []
+# - configMapRef:
+#     name: my-config
+# - secretRef:
+#     name: my-secret
+
+containerPorts:
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: false
+  httpGet:
+    path: /startupz
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 30
+
+securityContext:
+  pod:
+    runAsUser: 1000
+    runAsGroup: 2000
+    fsGroup: 2000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+  mainContainer:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+  fluentBitContainer:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+
+podSecurityContextOverride: {}
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: null
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints:
+  enabled: true
+  maxSkew: 1
+  topologyKey: "topology.kubernetes.io/zone"
+  whenUnsatisfiable: ScheduleAnyway
+
+networkPolicy:
+  enabled: true
+  allowIngressFromSameNamespace: true
+  allowIngressFromNamespaces: []
+  # - kube-system
+  allowIngressPorts: []
+  # - 80
+  allowDNS: true
+  extraEgressCIDRs: []
+  # - 0.0.0.0/0
+  podSelectorLabels: {}
+
+autoscaling:
+  behavior: {}
+
+priorityClassName: ""
+
+# Whether to automount the service account token into pods (disable by default)
+automountServiceAccountToken: false
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ default (printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-") .Values.serviceAccount.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+{{- end }}
+---
+# FILE: templates/configmap-fluentbit.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-fluent-bit" (printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-") | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+data:
+  fluent-bit.conf: |
+    {{- if .Values.fluentBit.configOverride }}
+    {{- tpl .Values.fluentBit.configOverride . | nindent 4 }}
+    {{- else }}
+    [SERVICE]
+        Flush        {{ .Values.fluentBit.service.flush }}
+        Daemon       Off
+        Log_Level    {{ .Values.fluentBit.service.logLevel }}
+        Parsers_File parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              {{ .Values.sharedVolume.path }}/{{ .Values.fluentBit.input.filePattern }}
+        Tag               app.*
+        Refresh_Interval  5
+        Mem_Buf_Limit     {{ .Values.fluentBit.input.memBufLimit }}
+        Skip_Long_Lines   On
+        Path_Key          logfile
+        DB                /var/fluent-bit/state/flb_tails.db
+        DB.Sync           Normal
+        Rotate_Wait       30
+        {{- if .Values.fluentBit.input.multiline.enabled }}
+        Multiline         On
+        Parser_Firstline  {{ .Values.fluentBit.input.multiline.firstlineParser }}
+        {{- end }}
+
+    {{- if .Values.fluentBit.kubernetesFilter.enabled }}
+    [FILTER]
+        Name                kubernetes
+        Match               app.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Merge_Log           {{ ternary "On" "Off" .Values.fluentBit.kubernetesFilter.mergeLog }}
+        Keep_Log            {{ ternary "On" "Off" .Values.fluentBit.kubernetesFilter.keepLog }}
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+    {{- end }}
+
+    {{- if and .Values.fluentBit.output.stdout.enabled (eq .Values.fluentBit.output.type "stdout") }}
+    [OUTPUT]
+        Name   stdout
+        Match  app.*
+    {{- end }}
+
+    {{- if and .Values.fluentBit.output.http.enabled (eq .Values.fluentBit.output.type "http") }}
+    [OUTPUT]
+        Name              http
+        Match             app.*
+        Host              {{ .Values.fluentBit.output.http.host }}
+        Port              {{ .Values.fluentBit.output.http.port }}
+        URI               {{ .Values.fluentBit.output.http.uri }}
+        Format            {{ .Values.fluentBit.output.http.format }}
+        Retry_Limit       {{ .Values.fluentBit.output.http.retryLimit }}
+        {{- if .Values.fluentBit.output.http.tls }}
+        TLS               On
+        tls.verify        On
+        {{- else }}
+        TLS               Off
+        {{- end }}
+        {{- if .Values.fluentBit.output.http.compress }}
+        compress          {{ .Values.fluentBit.output.http.compress }}
+        {{- end }}
+        {{- if .Values.fluentBit.output.http.headerAuthEnvVar }}
+        Header            Authorization ${ {{ .Values.fluentBit.output.http.headerAuthEnvVar }} }
+        {{- end }}
+    {{- end }}
+    {{- end }}
+  parsers.conf: |
+    [PARSER]
+        Name   docker
+        Format json
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+    [PARSER]
+        Name   cri
+        Format regex
+        Regex  ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        {{- if .Values.podLabels }}
+        {{- toYaml .Values.podLabels | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/fluentbit-config: {{ include (print $.Template.BasePath "/configmap-fluentbit.yaml") . | sha256sum }}
+        {{- if .Values.podAnnotations }}
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{- if .Values.serviceAccount.create }} {{ default (printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-") .Values.serviceAccount.name }} {{- else }} default {{- end }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken | default false }}
+      securityContext:
+        {{- toYaml (merge .Values.securityContext.pod .Values.podSecurityContextOverride) | nindent 8 }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.topologySpreadConstraints.enabled }}
+      topologySpreadConstraints:
+        - maxSkew: {{ .Values.topologySpreadConstraints.maxSkew }}
+          topologyKey: {{ .Values.topologySpreadConstraints.topologyKey | quote }}
+          whenUnsatisfiable: {{ .Values.topologySpreadConstraints.whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ .Chart.Name }}
+              app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- end }}
+      volumes:
+        - name: {{ .Values.sharedVolume.name }}
+          emptyDir:
+            {{- toYaml .Values.sharedVolume.emptyDir | nindent 12 }}
+        - name: fluent-bit-config
+          configMap:
+            name: {{ printf "%s-fluent-bit" (printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-") | trunc 63 | trimSuffix "-" }}
+        - name: fluent-bit-state
+          emptyDir: {}
+        {{- if .Values.fluentBit.extraVolumes }}
+        {{- toYaml .Values.fluentBit.extraVolumes | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.command }}
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+          {{- end }}
+          {{- if .Values.args }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          {{- end }}
+          ports:
+            {{- toYaml .Values.containerPorts | nindent 12 }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          {{- if .Values.envFrom }}
+          envFrom:
+            {{- toYaml .Values.envFrom | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: {{ .Values.sharedVolume.name }}
+              mountPath: {{ .Values.sharedVolume.path }}
+            {{- if .Values.fluentBit.extraVolumeMounts }}
+            {{- toYaml .Values.fluentBit.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext.mainContainer | nindent 12 }}
+        - name: fluent-bit
+          image: "{{ .Values.fluentBit.image.repository }}:{{ .Values.fluentBit.image.tag }}"
+          imagePullPolicy: {{ .Values.fluentBit.image.pullPolicy }}
+          args:
+            - -c
+            - /fluent-bit/etc/fluent-bit.conf
+            - -R
+            - /fluent-bit/etc/parsers.conf
+          env:
+            {{- if .Values.fluentBit.env }}
+            {{- toYaml .Values.fluentBit.env | nindent 12 }}
+            {{- else }}
+            []
+            {{- end }}
+          {{- if .Values.fluentBit.envFromSecrets }}
+          envFrom:
+            {{- range $s := .Values.fluentBit.envFromSecrets }}
+            - secretRef:
+                name: {{ $s }}
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            - name: {{ .Values.sharedVolume.name }}
+              mountPath: {{ .Values.sharedVolume.path }}
+              readOnly: true
+            - name: fluent-bit-config
+              mountPath: /fluent-bit/etc
+              readOnly: true
+            - name: fluent-bit-state
+              mountPath: /var/fluent-bit/state
+            {{- if .Values.fluentBit.extraVolumeMounts }}
+            {{- toYaml .Values.fluentBit.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.fluentBit.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext.fluentBitContainer | nindent 12 }}
+---
+# FILE: templates/service.yaml
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
+    {{- if .Values.service.labels }}
+    {{- toYaml .Values.service.labels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.service.annotations }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+{{- end }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if .Values.networkPolicy.podSelectorLabels }}
+      {{- toYaml .Values.networkPolicy.podSelectorLabels | nindent 6 }}
+      {{- end }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {{- if or .Values.networkPolicy.allowIngressFromSameNamespace .Values.networkPolicy.allowIngressFromNamespaces }}
+      from:
+        {{- if .Values.networkPolicy.allowIngressFromSameNamespace }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Release.Namespace }}
+        {{- end }}
+        {{- range $ns := .Values.networkPolicy.allowIngressFromNamespaces }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $ns }}
+        {{- end }}
+      {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
+      {{- if .Values.networkPolicy.allowIngressPorts }}
+        {{- range $p := .Values.networkPolicy.allowIngressPorts }}
+        - protocol: TCP
+          port: {{ $p }}
+        {{- end }}
+      {{- end }}
+  egress:
+    - {{- if .Values.networkPolicy.allowDNS }}
+      to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: coredns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+      {{- end }}
+    {{- range $cidr := .Values.networkPolicy.extraEgressCIDRs }}
+    - to:
+        - ipBlock:
+            cidr: {{ $cidr }}
+    {{- end }}
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- if hasKey .Values.podDisruptionBudget "minAvailable" }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- end }}
+  {{- if hasKey .Values.podDisruptionBudget "maxUnavailable" }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/hpa.yaml
+{{- if .Values.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" }}
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
+  metrics:
+    {{- if .Values.hpa.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.hpa.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.hpa.targetMemoryUtilizationPercentage }}
+    {{- end }}
+  {{- if .Values.autoscaling.behavior }}
+  behavior:
+    {{- toYaml .Values.autoscaling.behavior | nindent 4 }}
+  {{- end }}
+{{- end }}

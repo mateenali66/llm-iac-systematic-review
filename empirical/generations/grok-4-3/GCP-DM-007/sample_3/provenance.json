@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-007",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template provisioning a GKE Standard cluster with one node pool for production workloads.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template provisioning a GKE Standard cluster with one node pool for production workloads.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: prod-gke-cluster\n  type: gcp-types/container-v1:projects.locations.clusters\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    cluster:\n      name: prod-gke-cluster\n      description: Production GKE Standard cluster\n      releaseChannel:\n        channel: REGULAR\n      network: projects/{{ env[\"project\"] }}/global/networks/default\n      subnetwork: projects/{{ env[\"project\"] }}/regions/us-central1/subnetworks/default\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - displayName: corporate-vpn\n          cidrBlock: 10.0.0.0/8\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      workloadIdentityConfig:\n        workloadPool: \"{{ env['project'] }}.svc.id.goog\"\n      shieldedNodes:\n        enabled: true\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      nodePools:\n      - name: prod-node-pool\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-ssd\n          imageType: COS_CONTAINERD\n          preemptible: false\n          oauthScopes:\n          - https://www.googleapis.com/auth/cloud-platform\n          serviceAccount: default\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          workloadMetadataConfig:\n            mode: GKE_METADATA\n          labels:\n            environment: production\n            workload-type: standard\n          tags:\n          - gke-prod-nodes\n        initialNodeCount: 3\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 20\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        maxPodsConstraint:\n          maxPodsPerNode: 64\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0",
+  "cleaned_response": "resources:\n- name: prod-gke-cluster\n  type: gcp-types/container-v1:projects.locations.clusters\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    cluster:\n      name: prod-gke-cluster\n      description: Production GKE Standard cluster\n      releaseChannel:\n        channel: REGULAR\n      network: projects/{{ env[\"project\"] }}/global/networks/default\n      subnetwork: projects/{{ env[\"project\"] }}/regions/us-central1/subnetworks/default\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - displayName: corporate-vpn\n          cidrBlock: 10.0.0.0/8\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      workloadIdentityConfig:\n        workloadPool: \"{{ env['project'] }}.svc.id.goog\"\n      shieldedNodes:\n        enabled: true\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      nodePools:\n      - name: prod-node-pool\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-ssd\n          imageType: COS_CONTAINERD\n          preemptible: false\n          oauthScopes:\n          - https://www.googleapis.com/auth/cloud-platform\n          serviceAccount: default\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          workloadMetadataConfig:\n            mode: GKE_METADATA\n          labels:\n            environment: production\n            workload-type: standard\n          tags:\n          - gke-prod-nodes\n        initialNodeCount: 3\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 20\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        maxPodsConstraint:\n          maxPodsPerNode: 64\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: prod-gke-cluster\n  type: gcp-types/container-v1:projects.locations.clusters\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    cluster:\n      name: prod-gke-cluster\n      description: Production GKE Standard cluster\n      releaseChannel:\n        channel: REGULAR\n      network: projects/{{ env[\"project\"] }}/global/networks/default\n      subnetwork: projects/{{ env[\"project\"] }}/regions/us-central1/subnetworks/default\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - displayName: corporate-vpn\n          cidrBlock: 10.0.0.0/8\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      workloadIdentityConfig:\n        workloadPool: \"{{ env['project'] }}.svc.id.goog\"\n      shieldedNodes:\n        enabled: true\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      nodePools:\n      - name: prod-node-pool\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-ssd\n          imageType: COS_CONTAINERD\n          preemptible: false\n          oauthScopes:\n          - https://www.googleapis.com/auth/cloud-platform\n          serviceAccount: default\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          workloadMetadataConfig:\n            mode: GKE_METADATA\n          labels:\n            environment: production\n            workload-type: standard\n          tags:\n          - gke-prod-nodes\n        initialNodeCount: 3\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 20\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        maxPodsConstraint:\n          maxPodsPerNode: 64\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725068,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 480,
+      "reasoning_tokens": 590,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 121
+    }
+  },
+  "started_at": "2026-05-25T16:04:14.788177+00:00",
+  "elapsed_seconds": 13.745
+}

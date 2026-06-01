@@ -1,0 +1,25 @@
+resources:
+- name: static-site-bucket
+  type: storage.v1.bucket
+  properties:
+    name: $(env.deployment)-static-website
+    location: US-CENTRAL1
+    storageClass: STANDARD
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    versioning:
+      enabled: true
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    labels:
+      purpose: static-website-hosting
+- name: make-bucket-public-readable
+  type: storage.v1.bucketIamPolicy
+  properties:
+    bucket: $(ref.static-site-bucket.name)
+    bindings:
+    - role: roles/storage.objectViewer
+      members:
+      - allUsers

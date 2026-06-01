@@ -1,0 +1,128 @@
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+  vars:
+    otel_collector_version: "0.102.1"
+    otel_collector_arch: "amd64"
+    otel_collector_platform: "linux"
+    otel_collector_endpoint: "https://your-otel-backend.example.com:4317"
+    otel_collector_user: "otel"
+    otel_collector_group: "otel"
+    otel_collector_home: "/opt/otelcol"
+    otel_collector_config_dir: "/etc/otelcol"
+    otel_collector_binary: "/usr/local/bin/otelcol"
+    otel_collector_service_name: "otelcol"
+
+  tasks:
+    - name: Create otel system group
+      group:
+        name: "{{ otel_collector_group }}"
+        system: yes
+        state: present
+
+    - name: Create otel system user
+      user:
+        name: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        system: yes
+        shell: /sbin/nologin
+        create_home: no
+        state: present
+
+    - name: Create directories for OpenTelemetry Collector
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: 0755
+      loop:
+        - "{{ otel_collector_home }}"
+        - "{{ otel_collector_config_dir }}"
+
+    - name: Download OpenTelemetry Collector binary
+      get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_platform }}_{{ otel_collector_arch }}.tar.gz"
+        dest: "/tmp/otelcol.tar.gz"
+        checksum: "sha256:https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_platform }}_{{ otel_collector_arch }}.tar.gz.sha256sum"
+        mode: 0644
+
+    - name: Extract OpenTelemetry Collector binary
+      unarchive:
+        src: "/tmp/otelcol.tar.gz"
+        dest: "{{ otel_collector_home }}"
+        remote_src: yes
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: 0755
+        creates: "{{ otel_collector_home }}/otelcol"
+
+    - name: Symlink otelcol binary to /usr/local/bin
+      file:
+        src: "{{ otel_collector_home }}/otelcol"
+        dest: "{{ otel_collector_binary }}"
+        state: link
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Create OpenTelemetry Collector configuration file
+      copy:
+        dest: "{{ otel_collector_config_dir }}/config.yaml"
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: 0640
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+                http:
+                  endpoint: 0.0.0.0:4318
+
+          exporters:
+            otlp:
+              endpoint: "{{ otel_collector_endpoint }}"
+              tls:
+                insecure: false
+
+          service:
+            pipelines:
+              traces:
+                receivers: [otlp]
+                exporters: [otlp]
+              metrics:
+                receivers: [otlp]
+                exporters: [otlp]
+              logs:
+                receivers: [otlp]
+                exporters: [otlp]
+
+    - name: Create systemd service file for OpenTelemetry Collector
+      template:
+        src: otelcol.service.j2
+        dest: "/etc/systemd/system/{{ otel_collector_service_name }}.service"
+        owner: root
+        group: root
+        mode: 0644
+      vars:
+        otel_collector_binary: "{{ otel_collector_binary }}"
+        otel_collector_config_dir: "{{ otel_collector_config_dir }}"
+        otel_collector_user: "{{ otel_collector_user }}"
+        otel_collector_group: "{{ otel_collector_group }}"
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start OpenTelemetry Collector service
+      systemd:
+        name: "{{ otel_collector_service_name }}"
+        enabled: yes
+        state: started
+
+    - name: Clean up temporary files
+      file:
+        path: "/tmp/otelcol.tar.gz"
+        state: absent

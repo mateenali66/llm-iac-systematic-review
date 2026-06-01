@@ -1,0 +1,145 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 60,
+	"files_parsed": 2,
+	"lines_parsed": 60,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 4,
+		"INFO": 1,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:42:47.451136179Z",
+	"end": "2026-05-26T04:42:50.807886417Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b6c769daaa9450668ed8d8bdf3420b6fbaebb608d0ec47883b32d2b69e23a859",
+					"line": 7,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/provenance.json",
+					"similarity_id": "5161b718c956604feb57b3442ef437ae85125a1efdfee82243e326eeb7ec76dd",
+					"line": 14,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/provenance.json",
+					"similarity_id": "29541a42b4fe3b81606ab75396bd53419dbf05f06391e2638c620eeedfb5b7e1",
+					"line": 15,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/provenance.json",
+					"similarity_id": "3d0875133bdbf25139d7f3c8c0ee7554fba4cd2ff107c2167065187cb656a31c",
+					"line": 24,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "postgres-db-password",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Secret}}.metadata.name={{postgres-db-password}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Using Kubernetes Native Secret Management",
+			"query_id": "b9c83569-459b-4110-8f79-6305aa33cb37",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "311",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Kubernetes External Secret Storage and Management System usage should be considered if you have more complex secret management needs, rather than using Kubernetes Secrets directly. Additionally, ensure that access to secrets is carefully limited",
+			"description_id": "3d7b569c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b04860bdd114f53005c4e3d678d1bad3fc5ba43247cbf46d7dd3ae9395e779c6",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "postgres-db-password",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{postgres-db-password}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "External secret storage should be used",
+					"actual_value": "External secret storage is not in use"
+				}
+			]
+		}
+	]
+}

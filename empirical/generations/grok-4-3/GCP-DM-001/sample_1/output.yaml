@@ -1,0 +1,30 @@
+resources:
+- name: dev-vm
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/e2-medium
+    labels:
+      environment: development
+      workload: dev
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts
+        diskSizeGb: 20
+        diskType: pd-balanced
+    networkInterfaces:
+    - network: global/networks/default
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+    scheduling:
+      automaticRestart: true
+      onHostMaintenance: MIGRATE
+    serviceAccounts:
+    - email: default
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform

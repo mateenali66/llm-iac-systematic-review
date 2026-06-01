@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role for EC2 instances to write CloudWatch Logs and read configuration from SSM Parameter Store with secure defaults.
+Parameters:
+  SSMParameterPathPrefix:
+    Type: String
+    Default: /app/
+    Description: Prefix path for SSM Parameters the instance is allowed to read (e.g., /app/ or /my/service/)
+    AllowedPattern: '^\/([a-zA-Z0-9_.\-\/]+)?$'
+Resources:
+  Ec2AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: ec2-cloudwatch-logs-and-ssm-parameter-read
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CloudWatchLogsWrite
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Sid: SSMParameterReadByPath
+                Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                  - ssm:DescribeParameters
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${SSMParameterPathPrefix}*
+              - Sid: KMSDecryptForSecureParameters
+                Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "kms:ViaService": !Sub ssm.${AWS::Region}.amazonaws.com
+                  StringLike:
+                    "kms:EncryptionContext:aws:ssm:parameter-name": !Sub ${SSMParameterPathPrefix}*
+      Tags:
+        - Key: Purpose
+          Value: ec2-logs-and-ssm-parameter-access
+  Ec2AppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref Ec2AppRole
+Outputs:
+  RoleArn:
+    Description: ARN of the IAM role for EC2 instances
+    Value: !GetAtt Ec2AppRole.Arn
+  InstanceProfileName:
+    Description: Name of the IAM Instance Profile to attach to EC2 instances
+    Value: !Ref Ec2AppInstanceProfile

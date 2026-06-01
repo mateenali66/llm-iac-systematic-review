@@ -1,0 +1,37 @@
+---
+- name: Configure Linux firewall
+  hosts: all
+  become: true
+  tasks:
+    - name: Install firewalld
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+
+    - name: Enable and start firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow SSH
+      ansible.posix.firewalld:
+        service: ssh
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Allow HTTPS
+      ansible.posix.firewalld:
+        port: 443/tcp
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Set default zone to drop all other inbound traffic
+      ansible.posix.firewalld:
+        zone: public
+        target: DROP
+        permanent: true
+        state: enabled
+        immediate: true

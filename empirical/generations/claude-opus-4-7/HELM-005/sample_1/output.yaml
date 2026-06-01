@@ -1,0 +1,195 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: app-with-fluentbit-sidecar
+description: A Helm chart deploying an application with a Fluent Bit log-shipping sidecar
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - sidecar
+  - logging
+  - fluent-bit
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  runAsNonRoot: true
+  runAsUser: 1000
+
+app:
+  command: []
+  args: []
+  env: []
+  ports:
+    - name: http
+      containerPort: 8080
+      protocol: TCP
+  logPath: /var/log/app
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+fluentBit:
+  enabled: true
+  image:
+    repository: fluent/fluent-bit
+    tag: "3.1.9"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  output:
+    # Supported example outputs; override as needed.
+    # Defaults to stdout for safe out-of-the-box behavior.
+    type: stdout
+    host: ""
+    port: 24224
+    match: "*"
+  extraConfig: ""
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints: []
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "app.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "app.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "app.labels" -}}
+helm.sh/chart: {{ include "app.chart" . }}
+{{ include "app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "app.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "app.serviceAccountName" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+automountServiceAccountToken: false
+{{- end }}
+---
+# FILE: templates/configmap-fluentbit.yaml
+{{- if .Values.fluentBit.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-fluent-bit
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         5
+        Log_Level     info
+        Daemon        off

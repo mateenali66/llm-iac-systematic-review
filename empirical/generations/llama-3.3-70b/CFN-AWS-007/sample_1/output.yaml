@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Dashboard for Lambda-based API health
+Resources:
+  LambdaApiDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub 'lambda-api-dashboard-${AWS::Region}'
+      DashboardBody: |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunction}", { "stat": "Sum" } ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Lambda Invocations",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [ "AWS/Lambda", "Errors", "FunctionName", "${LambdaFunction}", { "stat": "Sum" } ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Lambda Errors",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [ "AWS/Lambda", "Throttles", "FunctionName", "${LambdaFunction}", { "stat": "Sum" } ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Lambda Throttles",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [ "AWS/Lambda", "Duration", "FunctionName", "${LambdaFunction}", { "stat": "Average" } ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Lambda Average Duration",
+                "period": 300,
+                "stat": "Average"
+              }
+            }
+          ]
+        }
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'lambda-api-${AWS::Region}'
+      Runtime: nodejs14.x
+      Handler: index.handler
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            return {
+              statusCode: 200,
+              body: JSON.stringify('Hello from Lambda!')
+            };
+          };
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: execution-role-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+Outputs:
+  LambdaApiDashboardName:
+    Value: !Ref LambdaApiDashboard
+    Description: The name of the CloudWatch Dashboard
+  LambdaFunctionName:
+    Value: !Ref LambdaFunction
+    Description: The name of the Lambda Function

@@ -1,0 +1,270 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda order-processor with SQS trigger, secure logging, and least-privilege IAM
+
+Parameters:
+  CodeS3Bucket:
+    Type: String
+    Description: S3 bucket containing the Lambda deployment package
+  CodeS3Key:
+    Type: String
+    Description: S3 key for the Lambda deployment package zip file
+  CodeS3ObjectVersion:
+    Type: String
+    Default: ''
+    Description: Optional S3 object version for the Lambda deployment package
+  MemorySize:
+    Type: Number
+    Default: 256
+    MinValue: 128
+    MaxValue: 10240
+    Description: Lambda memory size (MB)
+  Timeout:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    MaxValue: 900
+    Description: Lambda timeout (seconds)
+  ReservedConcurrency:
+    Type: Number
+    Default: 10
+    MinValue: 0
+    Description: Reserved concurrency for the Lambda function (0 disables invocations)
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    AllowedValues:
+      - 1
+      - 3
+      - 5
+      - 7
+      - 14
+      - 30
+      - 60
+      - 90
+      - 120
+      - 150
+      - 180
+      - 365
+      - 400
+      - 545
+      - 731
+      - 1827
+      - 3653
+    Description: CloudWatch Logs retention in days for the Lambda log group
+  QueueMaxReceiveCount:
+    Type: Number
+    Default: 5
+    MinValue: 1
+    Description: Max receives before moving a message to the DLQ
+  VisibilityTimeout:
+    Type: Number
+    Default: 180
+    MinValue: 30
+    Description: SQS queue visibility timeout (seconds). Should be >= 6x Lambda timeout.
+
+Conditions:
+  HasCodeObjectVersion: !Not [!Equals [!Ref CodeS3ObjectVersion, '']]
+
+Resources:
+  LambdaEnvKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: CMK for encrypting Lambda environment variables for order-processor
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Project
+          Value: order-processor
+  LambdaEnvKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/order-processor-env
+      TargetKeyId: !Ref LambdaEnvKmsKey
+
+  LogsKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: CMK for encrypting CloudWatch Logs for order-processor
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowCloudWatchLogsUse
+            Effect: Allow
+            Principal:
+              Service: !Sub logs.${AWS::Region}.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:EncryptionContext:aws:logs:arn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/order-processor
+      Tags:
+        - Key: Project
+          Value: order-processor
+  LogsKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/order-processor-logs
+      TargetKeyId: !Ref LogsKmsKey
+
+  OrderProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/order-processor
+      RetentionInDays: !Ref LogRetentionDays
+      KmsKeyId: !GetAtt LogsKmsKey.Arn
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub order-processor-role-${AWS::Region}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: LambdaAssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: order-processor-logs-and-kms
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CreateLogGroup
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: '*'
+              - Sid: WriteFunctionLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/order-processor:log-stream:*
+              - Sid: DecryptEnvVars
+                Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                Resource: !GetAtt LambdaEnvKmsKey.Arn
+                Condition:
+                  StringEquals:
+                    kms:ViaService: !Sub lambda.${AWS::Region}.amazonaws.com
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    DependsOn:
+      - OrderProcessorLogGroup
+    Properties:
+      FunctionName: order-processor
+      Description: Processes order messages from SQS
+      Architectures:
+        - arm64
+      Runtime: python3.12
+      Handler: app.handler
+      Role: !GetAtt OrderProcessorRole.Arn
+      MemorySize: !Ref MemorySize
+      Timeout: !Ref Timeout
+      ReservedConcurrentExecutions: !Ref ReservedConcurrency
+      TracingConfig:
+        Mode: Active
+      LoggingConfig:
+        LogFormat: JSON
+        SystemLogLevel: INFO
+        ApplicationLogLevel: INFO
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+      KmsKeyArn: !GetAtt LambdaEnvKmsKey.Arn
+      EphemeralStorage:
+        Size: 1024
+      Code:
+        S3Bucket: !Ref CodeS3Bucket
+        S3Key: !Ref CodeS3Key
+        S3ObjectVersion: !If [HasCodeObjectVersion, !Ref CodeS3ObjectVersion, !Ref 'AWS::NoValue']
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderQueueDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: !Ref VisibilityTimeout
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrderQueueDLQ.Arn
+        maxReceiveCount: !Ref QueueMaxReceiveCount
+      SqsManagedSseEnabled: true
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderQueueToLambdaMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderQueue.Arn
+      FunctionName: !Ref OrderProcessorFunction
+      Enabled: true
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+      ScalingConfig:
+        MaximumConcurrency: 2
+
+Outputs:
+  FunctionName:
+    Description: Lambda function name
+    Value: !Ref OrderProcessorFunction
+  FunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt OrderProcessorFunction.Arn
+  QueueUrl:
+    Description: SQS queue URL
+    Value: !Ref OrderQueue
+  QueueArn:
+    Description: SQS queue ARN
+    Value: !GetAtt OrderQueue.Arn
+  DeadLetterQueueUrl:
+    Description: Dead-letter queue URL
+    Value: !Ref OrderQueueDLQ
+  DeadLetterQueueArn:
+    Description: Dead-letter queue ARN
+    Value: !GetAtt OrderQueueDLQ.Arn

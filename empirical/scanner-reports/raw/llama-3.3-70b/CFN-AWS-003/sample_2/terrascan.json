@@ -1,0 +1,77 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "port5432AlbNetworkPortSecurity",
+        "description": "Security Groups - Unrestricted Specific Ports - Postgres SQL (TCP,5432)",
+        "rule_id": "AC_AWS_0262",
+        "severity": "HIGH",
+        "category": "Infrastructure Security",
+        "resource_name": "DBSecurityGroup",
+        "resource_type": "aws_security_group",
+        "file": "output.yaml",
+        "line": 29
+      },
+      {
+        "rule_name": "storageNotEncrypted",
+        "description": "Encrypt Amazon RDS instances and snapshots at rest, by enabling the encryption option for your Amazon RDS DB instance",
+        "rule_id": "AC_AWS_0186",
+        "severity": "HIGH",
+        "category": "Data Protection",
+        "resource_name": "DatabaseCluster",
+        "resource_type": "aws_rds_cluster",
+        "file": "output.yaml",
+        "line": 5
+      },
+      {
+        "rule_name": "backupRetentionRDS",
+        "description": "Ensure backup retention period is set for rds cluster",
+        "rule_id": "AC_AWS_0495",
+        "severity": "MEDIUM",
+        "category": "Resilience",
+        "resource_name": "DatabaseCluster",
+        "resource_type": "aws_rds_cluster",
+        "file": "output.yaml",
+        "line": 5
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "cft",
+      "scanned_at": "2026-05-26 06:06:22.837689005 +0000 UTC",
+      "policies_validated": 139,
+      "violated_policies": 3,
+      "low": 0,
+      "medium": 1,
+      "high": 2
+    }
+  }
+}

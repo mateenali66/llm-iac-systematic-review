@@ -1,0 +1,308 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-auth
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+type: Opaque
+stringData:
+  password: changeMeStrongPassword
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+data:
+  redis.conf: |
+    bind 0.0.0.0
+    port 6379
+    protected-mode yes
+    tcp-keepalive 300
+    daemonize no
+    save ""
+    appendonly no
+    cluster-enabled yes
+    cluster-config-file nodes.conf
+    cluster-node-timeout 5000
+    cluster-announce-port 6379
+    cluster-announce-bus-port 16379
+    dir /data
+    loglevel notice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+  labels:
+    app: redis-cluster
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: redis-cluster
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+    - name: cluster-bus
+      port: 16379
+      targetPort: 16379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis-cluster
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+spec:
+  selector:
+    app: redis-cluster
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: redis-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app: redis-cluster
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+spec:
+  serviceName: redis-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-cluster
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/part-of: redis-cluster
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: redis-cluster
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: redis-cluster
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+          command: ["/bin/sh","-c"]
+          args:
+            - >
+              exec redis-server /conf/redis.conf
+              --cluster-announce-ip ${POD_IP}
+              --cluster-announce-port 6379
+              --cluster-announce-bus-port 16379
+              --requirepass ${REDIS_PASSWORD}
+              --masterauth ${REDIS_PASSWORD}
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+            - name: cluster-bus
+              containerPort: 16379
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" -h 127.0.0.1 -p 6379 ping | grep PONG'
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" -h 127.0.0.1 -p 6379 ping | grep PONG'
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - 'redis-cli -a "$REDIS_PASSWORD" -h 127.0.0.1 -p 6379 shutdown nosave || true'
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /conf
+              readOnly: true
+        - name: cluster-init
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          command: ["/bin/sh","-c"]
+          args:
+            - >
+              if [ "${POD_NAME##*-}" != "0" ]; then
+                sleep infinity;
+              fi;
+              for i in 0 1 2; do
+                until redis-cli -a "$REDIS_PASSWORD" -h redis-$i.redis-headless -p 6379 ping | grep -q PONG; do
+                  sleep 2;
+                done;
+              done;
+              if redis-cli -a "$REDIS_PASSWORD" -h redis-0.redis-headless -p 6379 cluster info 2>/dev/null | grep -q 'cluster_state:ok'; then
+                echo "Cluster already configured";
+              else
+                redis-cli -a "$REDIS_PASSWORD" --cluster create \
+                  redis-0.redis-headless:6379 \
+                  redis-1.redis-headless:6379 \
+                  redis-2.redis-headless:6379 \
+                  --cluster-replicas 0 --cluster-yes;
+              fi;
+              sleep infinity
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: redis-config
+            items:
+              - key: redis.conf
+                path: redis.conf
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/part-of: redis-cluster
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-restrictive-ingress
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/part-of: redis-cluster
+spec:
+  podSelector:
+    matchLabels:
+      app: redis-cluster
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}
+      ports:
+        - port: 6379
+          protocol: TCP
+        - port: 16379
+          protocol: TCP
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 16379

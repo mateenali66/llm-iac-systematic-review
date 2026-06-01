@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-015",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Monitoring alert policy that pages the on-call team when a Cloud Run service's 95th-percentile latency exceeds 500 ms for 5 minutes.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Monitoring alert policy that pages the on-call team when a Cloud Run service's 95th-percentile latency exceeds 500 ms for 5 minutes.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: oncall-notification-channel\n  type: gcp-types/monitoring-v3:projects.notificationChannels\n  properties:\n    type: pagerduty\n    displayName: On-Call PagerDuty\n    description: Pages the on-call team via PagerDuty for critical Cloud Run alerts\n    enabled: true\n    labels:\n      service_key: $(ref.pagerduty-service-key.secret)\n    userLabels:\n      team: on-call\n      severity: critical\n\n- name: cloud-run-latency-alert\n  type: gcp-types/monitoring-v3:projects.alertPolicies\n  properties:\n    displayName: Cloud Run p95 Latency > 500ms (5m)\n    documentation:\n      content: |\n        The 95th-percentile request latency for Cloud Run service has exceeded\n        500 ms for at least 5 minutes. This indicates degraded user-facing\n        performance and may require immediate investigation.\n\n        Runbook:\n          1. Check recent deployments / revisions for the affected service.\n          2. Inspect Cloud Run logs and error rates.\n          3. Verify upstream dependencies (databases, APIs, etc.).\n          4. Consider rolling back to the previous revision if regression detected.\n      mimeType: text/markdown\n      subject: \"[CRITICAL] Cloud Run p95 latency exceeded 500ms\"\n    combiner: OR\n    enabled: true\n    severity: CRITICAL\n    notificationChannels:\n    - $(ref.oncall-notification-channel.name)\n    alertStrategy:\n      autoClose: 1800s\n      notificationRateLimit:\n        period: 300s\n    conditions:\n    - displayName: Cloud Run request latency p95 > 500ms for 5m\n      conditionThreshold:\n        filter: >-\n          metric.type=\"run.googleapis.com/request_latencies\"\n          AND resource.type=\"cloud_run_revision\"\n          AND resource.labels.service_name=\"{{ properties.serviceName }}\"\n        aggregations:\n        - alignmentPeriod: 60s\n          perSeriesAligner: ALIGN_PERCENTILE_95\n          crossSeriesReducer: REDUCE_MAX\n          groupByFields:\n          - resource.label.service_name\n          - resource.label.location\n        comparison: COMPARISON_GT\n        thresholdValue: 500\n        duration: 300s\n        trigger:\n          count: 1\n        evaluationMissingData: EVALUATION_MISSING_DATA_INACTIVE\n\n- name: pagerduty-service-key\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    secretId: pagerduty-service-key\n    replication:\n      automatic: true\n\noutputs:\n- name: alertPolicyName\n  value: $(ref.cloud-run-latency-alert.name)\n- name: notificationChannelName\n  value: $(ref.oncall-notification-channel.name)",
+  "cleaned_response": "resources:\n- name: oncall-notification-channel\n  type: gcp-types/monitoring-v3:projects.notificationChannels\n  properties:\n    type: pagerduty\n    displayName: On-Call PagerDuty\n    description: Pages the on-call team via PagerDuty for critical Cloud Run alerts\n    enabled: true\n    labels:\n      service_key: $(ref.pagerduty-service-key.secret)\n    userLabels:\n      team: on-call\n      severity: critical\n\n- name: cloud-run-latency-alert\n  type: gcp-types/monitoring-v3:projects.alertPolicies\n  properties:\n    displayName: Cloud Run p95 Latency > 500ms (5m)\n    documentation:\n      content: |\n        The 95th-percentile request latency for Cloud Run service has exceeded\n        500 ms for at least 5 minutes. This indicates degraded user-facing\n        performance and may require immediate investigation.\n\n        Runbook:\n          1. Check recent deployments / revisions for the affected service.\n          2. Inspect Cloud Run logs and error rates.\n          3. Verify upstream dependencies (databases, APIs, etc.).\n          4. Consider rolling back to the previous revision if regression detected.\n      mimeType: text/markdown\n      subject: \"[CRITICAL] Cloud Run p95 latency exceeded 500ms\"\n    combiner: OR\n    enabled: true\n    severity: CRITICAL\n    notificationChannels:\n    - $(ref.oncall-notification-channel.name)\n    alertStrategy:\n      autoClose: 1800s\n      notificationRateLimit:\n        period: 300s\n    conditions:\n    - displayName: Cloud Run request latency p95 > 500ms for 5m\n      conditionThreshold:\n        filter: >-\n          metric.type=\"run.googleapis.com/request_latencies\"\n          AND resource.type=\"cloud_run_revision\"\n          AND resource.labels.service_name=\"{{ properties.serviceName }}\"\n        aggregations:\n        - alignmentPeriod: 60s\n          perSeriesAligner: ALIGN_PERCENTILE_95\n          crossSeriesReducer: REDUCE_MAX\n          groupByFields:\n          - resource.label.service_name\n          - resource.label.location\n        comparison: COMPARISON_GT\n        thresholdValue: 500\n        duration: 300s\n        trigger:\n          count: 1\n        evaluationMissingData: EVALUATION_MISSING_DATA_INACTIVE\n\n- name: pagerduty-service-key\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    secretId: pagerduty-service-key\n    replication:\n      automatic: true\n\noutputs:\n- name: alertPolicyName\n  value: $(ref.cloud-run-latency-alert.name)\n- name: notificationChannelName\n  value: $(ref.oncall-notification-channel.name)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: oncall-notification-channel\n  type: gcp-types/monitoring-v3:projects.notificationChannels\n  properties:\n    type: pagerduty\n    displayName: On-Call PagerDuty\n    description: Pages the on-call team via PagerDuty for critical Cloud Run alerts\n    enabled: true\n    labels:\n      service_key: $(ref.pagerduty-service-key.secret)\n    userLabels:\n      team: on-call\n      severity: critical\n\n- name: cloud-run-latency-alert\n  type: gcp-types/monitoring-v3:projects.alertPolicies\n  properties:\n    displayName: Cloud Run p95 Latency > 500ms (5m)\n    documentation:\n      content: |\n        The 95th-percentile request latency for Cloud Run service has exceeded\n        500 ms for at least 5 minutes. This indicates degraded user-facing\n        performance and may require immediate investigation.\n\n        Runbook:\n          1. Check recent deployments / revisions for the affected service.\n          2. Inspect Cloud Run logs and error rates.\n          3. Verify upstream dependencies (databases, APIs, etc.).\n          4. Consider rolling back to the previous revision if regression detected.\n      mimeType: text/markdown\n      subject: \"[CRITICAL] Cloud Run p95 latency exceeded 500ms\"\n    combiner: OR\n    enabled: true\n    severity: CRITICAL\n    notificationChannels:\n    - $(ref.oncall-notification-channel.name)\n    alertStrategy:\n      autoClose: 1800s\n      notificationRateLimit:\n        period: 300s\n    conditions:\n    - displayName: Cloud Run request latency p95 > 500ms for 5m\n      conditionThreshold:\n        filter: >-\n          metric.type=\"run.googleapis.com/request_latencies\"\n          AND resource.type=\"cloud_run_revision\"\n          AND resource.labels.service_name=\"{{ properties.serviceName }}\"\n        aggregations:\n        - alignmentPeriod: 60s\n          perSeriesAligner: ALIGN_PERCENTILE_95\n          crossSeriesReducer: REDUCE_MAX\n          groupByFields:\n          - resource.label.service_name\n          - resource.label.location\n        comparison: COMPARISON_GT\n        thresholdValue: 500\n        duration: 300s\n        trigger:\n          count: 1\n        evaluationMissingData: EVALUATION_MISSING_DATA_INACTIVE\n\n- name: pagerduty-service-key\n  type: gcp-types/secretmanager-v1:projects.secrets\n  properties:\n    secretId: pagerduty-service-key\n    replication:\n      automatic: true\n\noutputs:\n- name: alertPolicyName\n  value: $(ref.cloud-run-latency-alert.name)\n- name: notificationChannelName\n  value: $(ref.oncall-notification-channel.name)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726995,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 285,
+      "output_tokens": 989,
+      "raw_input_tokens": 285
+    }
+  },
+  "started_at": "2026-05-25T16:36:20.622822+00:00",
+  "elapsed_seconds": 14.985
+}

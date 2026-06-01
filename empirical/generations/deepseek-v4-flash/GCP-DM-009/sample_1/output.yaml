@@ -1,0 +1,31 @@
+imports:
+  - path: templates/logging_sink_bigquery.py
+    name: logging_sink_bigquery.py
+
+resources:
+  - name: log-export-bigquery-dataset
+    type: bigquery.v2.dataset
+    properties:
+      datasetReference:
+        datasetId: log_export_dataset
+      location: US
+      description: "Dataset for long-term storage of Cloud Logging exports"
+      defaultTableExpirationMs: 2592000000  # 30 days
+      labels:
+        environment: production
+        managed-by: deployment-manager
+
+  - name: log-export-sink
+    type: logging_sink_bigquery.py
+    properties:
+      sinkName: log-export-to-bigquery
+      description: "Sink to export all logs to BigQuery for analysis"
+      filter: ""
+      destinationDataset: $(ref.log-export-bigquery-dataset.datasetReference.datasetId)
+      destinationProject: $(ref.log-export-bigquery-dataset.datasetReference.projectId)
+      uniqueWriterIdentity: true
+      includeChildren: true
+      disabled: false
+      bigqueryOptions:
+        usePartitionedTables: true
+        usesTimestampColumnPartitioning: true

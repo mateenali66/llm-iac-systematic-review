@@ -1,0 +1,118 @@
+resources:
+- name: dev-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: dev-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.dev-vpc.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+
+- name: allow-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.dev-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 10.10.0.0/24
+    targetTags:
+    - dev
+    allowed:
+    - IPProtocol: all
+    logConfig:
+      enable: true
+      metadata: INCLUDE_ALL_METADATA
+
+- name: allow-ssh-from-iap
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.dev-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 35.235.240.0/20
+    targetTags:
+    - allow-ssh-iap
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "22"
+    logConfig:
+      enable: true
+      metadata: INCLUDE_ALL_METADATA
+
+- name: dev-vm-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: dev-vm-sa
+    displayName: Dev VM Service Account
+
+- name: dev-router
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.dev-vpc.selfLink)
+    nats:
+    - name: dev-nat
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: ALL_SUBNETWORKS_ALL_IP_RANGES
+      logConfig:
+        enable: true
+        filter: ALL
+
+- name: dev-vm
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    description: Development VM (Ubuntu 22.04) without external IP, reachable via IAP + OS Login
+    canIpForward: false
+    deletionProtection: false
+    machineType: zones/us-central1-a/machineTypes/e2-medium
+    tags:
+      items:
+      - dev
+      - allow-ssh-iap
+    labels:
+      env: dev
+      os: ubuntu-2204
+    networkInterfaces:
+    - network: $(ref.dev-vpc.selfLink)
+      subnetwork: $(ref.dev-subnet.selfLink)
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts
+        diskType: zones/us-central1-a/diskTypes/pd-balanced
+        diskSizeGb: 50
+    serviceAccounts:
+    - email: $(ref.dev-vm-sa.email)
+      scopes:
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring.write
+    scheduling:
+      automaticRestart: true
+      onHostMaintenance: MIGRATE
+      preemptible: false
+    shieldedInstanceConfig:
+      enableSecureBoot: true
+      enableVtpm: true
+      enableIntegrityMonitoring: true
+    metadata:
+      items:
+      - key: enable-oslogin
+        value: "TRUE"
+      - key: block-project-ssh-keys
+        value: "TRUE"
+      - key: serial-port-enable
+        value: "0"

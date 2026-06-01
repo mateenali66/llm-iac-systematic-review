@@ -1,0 +1,289 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:37:44.081173428Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 41,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0079",
+          "AVDID": "AVD-AWS-0079",
+          "Title": "There is no encryption specified or encryption is disabled on the RDS Cluster.",
+          "Description": "Encryption should be enabled for an RDS Aurora cluster.\nWhen enabling encryption by setting the kms_key_id, the storage_encrypted must also be set to true.\n",
+          "Message": "Cluster does not specify a customer managed key for storage encryption.",
+          "Namespace": "builtin.aws.rds.aws0079",
+          "Query": "data.builtin.aws.rds.aws0079.deny",
+          "Resolution": "Enable encryption for RDS clusters",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0079",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0079"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:124-153",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 124,
+            "EndLine": 153,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 124,
+                  "Content": "  DBCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDBCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 125,
+                  "Content": "    Type: AWS::RDS::DBCluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::RDS::DBCluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 126,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 127,
+                  "Content": "      Engine: aurora-postgresql",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: aurora-postgresql",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 128,
+                  "Content": "      EngineVersion: '15.4'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'15.4'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 129,
+                  "Content": "      EngineMode: provisioned",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineMode\u001b[0m: provisioned",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 130,
+                  "Content": "      DatabaseName: !Ref DatabaseName",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDatabaseName\u001b[0m: !Ref DatabaseName",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 131,
+                  "Content": "      MasterUsername: !Ref MasterUsername",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUsername\u001b[0m: !Ref MasterUsername",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 132,
+                  "Content": "      MasterUserPassword: !Ref MasterUserPassword",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUserPassword\u001b[0m: !Ref MasterUserPassword",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 133,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0133",
+          "AVDID": "AVD-AWS-0133",
+          "Title": "Enable Performance Insights to detect potential problems",
+          "Description": "Enabling Performance insights allows for greater depth in monitoring data.\nFor example, information about active sessions could help diagose a compromise or assist in the investigation\n",
+          "Message": "Instance does not have performance insights enabled.",
+          "Namespace": "builtin.aws.rds.aws0133",
+          "Query": "data.builtin.aws.rds.aws0133.deny",
+          "Resolution": "Enable performance insights",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0133",
+          "References": [
+            "https://aws.amazon.com/rds/performance-insights/",
+            "https://avd.aquasec.com/misconfig/avd-aws-0133"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:155-170",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 155,
+            "EndLine": 170,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 155,
+                  "Content": "  DBInstance:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDBInstance\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 156,
+                  "Content": "    Type: AWS::RDS::DBInstance",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::RDS::DBInstance",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 157,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 158,
+                  "Content": "      DBClusterIdentifier: !Ref DBCluster",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Ref DBCluster",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 159,
+                  "Content": "      DBInstanceClass: db.serverless",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBInstanceClass\u001b[0m: db.serverless",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 160,
+                  "Content": "      Engine: aurora-postgresql",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: aurora-postgresql",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 161,
+                  "Content": "      PubliclyAccessible: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mPubliclyAccessible\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 162,
+                  "Content": "      AutoMinorVersionUpgrade: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mAutoMinorVersionUpgrade\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 163,
+                  "Content": "      PromotionTier: 1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mPromotionTier\u001b[0m: \u001b[38;5;37m1",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 164,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

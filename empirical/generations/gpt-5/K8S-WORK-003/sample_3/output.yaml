@@ -1,0 +1,284 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-auth
+  labels:
+    app: redis
+type: Opaque
+stringData:
+  password: "changeMeStrongPassword"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-headless
+  labels:
+    app: redis
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+    - name: cluster-bus
+      port: 16379
+      targetPort: 16379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  labels:
+    app: redis
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: redis
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-namespace-restrict
+  labels:
+    app: redis
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 16379
+  egress:
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 6379
+        - protocol: TCP
+          port: 16379
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  serviceName: redis-headless
+  replicas: 3
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: redis
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: redis
+      initContainers:
+        - name: init-permissions
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /data /tmp
+              chown -R 1001:1001 /data /tmp
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: redis
+              containerPort: 6379
+            - name: cluster-bus
+              containerPort: 16379
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              exec redis-server \
+                --port 6379 \
+                --bind 0.0.0.0 \
+                --protected-mode yes \
+                --appendonly yes \
+                --cluster-enabled yes \
+                --cluster-config-file /data/nodes.conf \
+                --cluster-node-timeout 5000 \
+                --cluster-announce-ip "${POD_IP}" \
+                --cluster-announce-port 6379 \
+                --cluster-announce-bus-port 16379 \
+                --requirepass "${REDIS_PASSWORD}" \
+                --masterauth "${REDIS_PASSWORD}"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    set -euo pipefail
+                    ordinal="$(hostname | awk -F- '{print $NF}')"
+                    if [ "$ordinal" = "0" ]; then
+                      if [ ! -f /data/cluster-created ]; then
+                        hosts=""
+                        for i in 0 1 2; do
+                          h="redis-$i.redis-headless.${POD_NAMESPACE}.svc.cluster.local"
+                          # Wait for Redis to answer on each node
+                          until /bin/sh -c "redis-cli -a \"$REDIS_PASSWORD\" -h \"$h\" -p 6379 PING | grep -q PONG"; do
+                            echo "Waiting for $h:6379..."
+                            sleep 2
+                          done
+                          hosts="$hosts $h:6379"
+                        done
+                        echo "Creating Redis cluster with nodes:$hosts"
+                        redis-cli -a "$REDIS_PASSWORD" --cluster create $hosts --cluster-yes || true
+                        touch /data/cluster-created
+                      fi
+                    fi
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  redis-cli -a "$REDIS_PASSWORD" -h 127.0.0.1 -p 6379 cluster info 2>/dev/null | grep -q "cluster_state:ok"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  redis-cli -a "$REDIS_PASSWORD" -h 127.0.0.1 -p 6379 PING | grep -q PONG
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+      volumes:
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app: redis
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

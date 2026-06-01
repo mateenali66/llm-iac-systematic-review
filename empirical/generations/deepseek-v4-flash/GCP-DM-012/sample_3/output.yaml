@@ -1,0 +1,40 @@
+imports:
+  - path: templates/cloud_armor.py
+    name: cloud_armor.py
+
+resources:
+  - name: cloud-armor-security-policy
+    type: cloud_armor.py
+    properties:
+      securityPolicyName: cloud-armor-policy
+      description: "Cloud Armor policy blocking specific countries and rate limiting per IP"
+      rules:
+        - priority: 1000
+          description: "Block traffic from blocked countries"
+          match:
+            expr:
+              expression: "origin.region_code in ['XX', 'YY', 'ZZ']"
+          action: "deny(403)"
+          preview: false
+        - priority: 2000
+          description: "Rate limit requests per IP to 100 per minute"
+          match:
+            expr:
+              expression: "true"
+          action: "rate_based_ban"
+          rateLimitOptions:
+            rateLimitThreshold:
+              count: 100
+              intervalSec: 60
+            conformAction: "allow"
+            exceedAction: "deny(429)"
+            enforceOnKey: "IP"
+            enforceOnKeyName: "client-ip"
+          preview: false
+        - priority: 2147483647
+          description: "Default allow rule"
+          match:
+            expr:
+              expression: "true"
+          action: "allow"
+          preview: false

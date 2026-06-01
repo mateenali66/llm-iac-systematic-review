@@ -1,0 +1,49 @@
+resources:
+- name: enable-logging
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/$(project)/services/logging.googleapis.com
+- name: enable-bigquery
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/$(project)/services/bigquery.googleapis.com
+- name: logs-analysis-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: logs_analysis
+      projectId: $(project)
+    friendlyName: Project Logs Analysis
+    description: Dataset for long-term analysis of exported Cloud Logging logs
+    location: US
+    labels:
+      environment: prod
+      purpose: logging
+- name: project-logs-to-bq-sink
+  type: gcp-types/logging-v2:projects.sinks
+  metadata:
+    dependsOn:
+      - enable-logging
+  properties:
+    parent: projects/$(project)
+    uniqueWriterIdentity: true
+    sink:
+      name: project-logs-to-bq
+      destination: bigquery.googleapis.com/projects/$(project)/datasets/logs_analysis
+      description: Export all project logs to BigQuery dataset for long-term analysis
+      bigqueryOptions:
+        usePartitionedTables: true
+- name: logs-analysis-dataset-iam
+  type: gcp-types/bigquery-v2:bigquery.datasets.setIamPolicy
+  metadata:
+    dependsOn:
+      - logs-analysis-dataset
+      - project-logs-to-bq-sink
+      - enable-bigquery
+  properties:
+    resource: projects/$(project)/datasets/logs_analysis
+    policy:
+      bindings:
+        - role: roles/bigquery.dataEditor
+          members:
+            - $(ref.project-logs-to-bq-sink.writerIdentity)

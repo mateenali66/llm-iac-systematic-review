@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-service-account
+  namespace: app-namespace
+  labels:
+    app.kubernetes.io/name: app-service-account
+    app.kubernetes.io/component: serviceaccount
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/app-irsa-role
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+    eks.amazonaws.com/token-expiration: "3600"
+automountServiceAccountToken: true

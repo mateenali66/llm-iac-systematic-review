@@ -1,0 +1,110 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:34:13.733468626Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 37,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0143",
+          "AVDID": "AVD-AWS-0143",
+          "Title": "IAM policies should not be granted directly to users.",
+          "Description": "CIS recommends that you apply IAM policies directly to groups and roles but not users. Assigning privileges at the group or role level reduces the complexity of access management as the number of users grow. Reducing access management complexity might in turn reduce opportunity for a principal to inadvertently receive or retain excessive privileges.\n",
+          "Message": "One or more policies are attached directly to a user",
+          "Namespace": "builtin.aws.iam.aws0143",
+          "Query": "data.builtin.aws.iam.aws0143.deny",
+          "Resolution": "Grant policies at the group level instead.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0143",
+          "References": [
+            "https://console.aws.amazon.com/iam/",
+            "https://avd.aquasec.com/misconfig/avd-aws-0143"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_iam_user.jenkins_deploy",
+            "Provider": "AWS",
+            "Service": "iam",
+            "StartLine": 1,
+            "EndLine": 4,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 1,
+                  "Content": "resource \"aws_iam_user\" \"jenkins_deploy\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_iam_user\"\u001b[0m \u001b[38;5;37m\"jenkins_deploy\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 2,
+                  "Content": "  name = \"jenkins-deploy\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mname\u001b[0m = \u001b[38;5;37m\"jenkins-deploy\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 3,
+                  "Content": "  path = \"/cicd/\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mpath\u001b[0m = \u001b[38;5;37m\"/cicd/\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 4,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

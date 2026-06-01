@@ -1,0 +1,280 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:18:06.427210841Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 48,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0090",
+          "AVDID": "AVD-AWS-0090",
+          "Title": "S3 Data should be versioned",
+          "Description": "Versioning in Amazon S3 is a means of keeping multiple variants of an object in the same bucket.\n\nYou can use the S3 Versioning feature to preserve, retrieve, and restore every version of every object stored in your buckets.\n\nWith versioning you can recover more easily from both unintended user actions and application failures.\n\nWhen you enable versioning, also keep in mind the potential costs of storing noncurrent versions of objects. To help manage those costs, consider setting up an S3 Lifecycle configuration.\n",
+          "Message": "Bucket does not have versioning enabled",
+          "Namespace": "builtin.aws.s3.aws0090",
+          "Query": "data.builtin.aws.s3.aws0090.deny",
+          "Resolution": "Enable versioning to protect against accidental/malicious removal or modification",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0090",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html",
+            "https://aws.amazon.com/blogs/storage/reduce-storage-costs-with-fewer-noncurrent-versions-using-amazon-s3-lifecycle/",
+            "https://avd.aquasec.com/misconfig/avd-aws-0090"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_s3_bucket.logs",
+            "Provider": "AWS",
+            "Service": "s3",
+            "StartLine": 225,
+            "EndLine": 233,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 225,
+                  "Content": "resource \"aws_s3_bucket\" \"logs\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_s3_bucket\"\u001b[0m \u001b[38;5;37m\"logs\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 226,
+                  "Content": "  bucket        = \"company-prod-data-access-logs\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mbucket\u001b[0m        = \u001b[38;5;37m\"company-prod-data-access-logs\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 227,
+                  "Content": "  force_destroy = false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mforce_destroy\u001b[0m = \u001b[38;5;166mfalse",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 228,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 229,
+                  "Content": "  tags = merge(local.common_tags, {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtags\u001b[0m =\u001b[38;5;33m merge\u001b[0m(local.common_tags, {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 230,
+                  "Content": "    Name = \"company-prod-data-access-logs\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mName\u001b[0m = \u001b[38;5;37m\"company-prod-data-access-logs\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 231,
+                  "Content": "    Purpose = \"S3ServerAccessLogs\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;245mPurpose\u001b[0m = \u001b[38;5;37m\"S3ServerAccessLogs\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 232,
+                  "Content": "  })",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  })",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 233,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0132",
+          "AVDID": "AVD-AWS-0132",
+          "Title": "S3 encryption should use Customer Managed Keys",
+          "Description": "Encryption using AWS keys provides protection for your S3 buckets. To increase control of the encryption and manage factors like rotation use customer managed keys.\n",
+          "Message": "Bucket does not encrypt data with a customer managed key.",
+          "Namespace": "builtin.aws.s3.aws0132",
+          "Query": "data.builtin.aws.s3.aws0132.deny",
+          "Resolution": "Enable encryption using customer managed keys",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0132",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucket-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0132"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_s3_bucket_server_side_encryption_configuration.logs",
+            "Provider": "AWS",
+            "Service": "s3",
+            "StartLine": 251,
+            "EndLine": 259,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 251,
+                  "Content": "resource \"aws_s3_bucket_server_side_encryption_configuration\" \"logs\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_s3_bucket_server_side_encryption_configuration\"\u001b[0m \u001b[38;5;37m\"logs\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 252,
+                  "Content": "  bucket = aws_s3_bucket.logs.id",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mbucket\u001b[0m = aws_s3_bucket.logs.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 253,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 254,
+                  "Content": "  rule {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  rule {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 255,
+                  "Content": "    apply_server_side_encryption_by_default {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    apply_server_side_encryption_by_default {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 256,
+                  "Content": "      sse_algorithm = \"AES256\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;245msse_algorithm\u001b[0m = \u001b[38;5;37m\"AES256\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 257,
+                  "Content": "    }",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 258,
+                  "Content": "  }",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 259,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

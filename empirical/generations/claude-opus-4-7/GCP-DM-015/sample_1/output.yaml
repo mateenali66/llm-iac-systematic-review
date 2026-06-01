@@ -1,0 +1,79 @@
+imports:
+- path: alert_policy.jinja
+
+resources:
+- name: oncall-notification-channel
+  type: gcp-types/monitoring-v3:projects.notificationChannels
+  properties:
+    type: pagerduty
+    displayName: On-Call PagerDuty
+    description: Primary on-call notification channel for production incidents
+    enabled: true
+    labels:
+      service_key: REPLACE_WITH_PAGERDUTY_SERVICE_KEY
+    userLabels:
+      severity: critical
+      team: sre
+
+- name: cloud-run-p95-latency-alert
+  type: gcp-types/monitoring-v3:projects.alertPolicies
+  properties:
+    displayName: Cloud Run p95 Latency > 500ms (5m)
+    documentation:
+      content: |
+        # Cloud Run High Latency Alert
+
+        The 95th-percentile request latency for Cloud Run service
+        `${service_name}` has exceeded 500 ms for 5 minutes.
+
+        ## Impact
+        End users may be experiencing slow responses or timeouts.
+
+        ## Investigation Steps
+        1. Check the Cloud Run service metrics dashboard.
+        2. Inspect recent deployments / revisions for regressions.
+        3. Review upstream dependency latency (Cloud SQL, external APIs).
+        4. Check Cloud Run instance count, CPU, and memory utilization.
+        5. Review error logs in Cloud Logging.
+
+        ## Escalation
+        If unresolved within 15 minutes, escalate to engineering lead.
+      mimeType: text/markdown
+      subject: "[CRITICAL] Cloud Run p95 latency > 500ms"
+    combiner: OR
+    enabled: true
+    severity: CRITICAL
+    notificationChannels:
+    - $(ref.oncall-notification-channel.name)
+    alertStrategy:
+      autoClose: 1800s
+      notificationRateLimit:
+        period: 300s
+    conditions:
+    - displayName: Cloud Run request latency p95 > 500ms for 5 minutes
+      conditionThreshold:
+        filter: >-
+          metric.type="run.googleapis.com/request_latencies"
+          AND resource.type="cloud_run_revision"
+        comparison: COMPARISON_GT
+        thresholdValue: 500
+        duration: 300s
+        trigger:
+          count: 1
+        aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_PERCENTILE_95
+          crossSeriesReducer: REDUCE_MEAN
+          groupByFields:
+          - resource.label.service_name
+          - resource.label.location
+    userLabels:
+      severity: critical
+      team: sre
+      service: cloud-run
+
+outputs:
+- name: alertPolicyName
+  value: $(ref.cloud-run-p95-latency-alert.name)
+- name: notificationChannelName
+  value: $(ref.oncall-notification-channel.name)

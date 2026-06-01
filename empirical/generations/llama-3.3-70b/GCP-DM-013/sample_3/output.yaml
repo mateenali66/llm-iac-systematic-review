@@ -1,0 +1,39 @@
+resources:
+  - name: redis-instance
+    type: redis.v1.instance
+    properties:
+      tier: BASIC
+      memorySizeGb: 1
+      region: us-central1
+      redisVersion: REDIS_6_X
+      authorizedNetwork: $(ref:authorized-network.selfLink)
+  - name: authorized-network
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: true
+  - name: redis-firewall-rule
+    type: compute.v1.firewall
+    properties:
+      network: $(ref:authorized-network.selfLink)
+      sourceRanges:
+        - 0.0.0.0/0
+      allowed:
+        - IPProtocol: TCP
+          ports:
+            - 6379
+      targetTags:
+        - redis-instance
+  - name: redis-instance-ip
+    type: compute.v1.address
+    properties:
+      region: us-central1
+      addressType: INTERNAL
+  - name: redis-instance-forwarding-rule
+    type: compute.v1.forwardingRule
+    properties:
+      region: us-central1
+      IPAddress: $(ref:redis-instance-ip.address)
+      target: $(ref:redis-instance.selfLink)
+      ports:
+        - 6379
+      IPProtocol: TCP

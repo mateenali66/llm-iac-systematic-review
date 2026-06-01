@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-020",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "variable \"target_ou_name\" {\n  type        = string\n  description = \"The name of the Organizational Unit to which the SCP will be attached.\"\n}\n\nvariable \"target_ou_parent_id\" {\n  type        = string\n  description = \"The parent ID of the target Organizational Unit (can be the root ID or another OU ID).\"\n}\n\ndata \"aws_organizations_organizational_unit\" \"target\" {\n  name      = var.target_ou_name\n  parent_id = var.target_ou_parent_id\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIamUserCreation\"\n    effect = \"Deny\"\n    actions = [\n      \"iam:CreateUser\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"Deny-IAM-User-Creation\"\n  description = \"Denies the ability to create IAM users. IAM roles should be used instead.\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation_attachment\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = data.aws_organizations_organizational_unit.target.id\n}",
+  "cleaned_response": "variable \"target_ou_name\" {\n  type        = string\n  description = \"The name of the Organizational Unit to which the SCP will be attached.\"\n}\n\nvariable \"target_ou_parent_id\" {\n  type        = string\n  description = \"The parent ID of the target Organizational Unit (can be the root ID or another OU ID).\"\n}\n\ndata \"aws_organizations_organizational_unit\" \"target\" {\n  name      = var.target_ou_name\n  parent_id = var.target_ou_parent_id\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIamUserCreation\"\n    effect = \"Deny\"\n    actions = [\n      \"iam:CreateUser\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"Deny-IAM-User-Creation\"\n  description = \"Denies the ability to create IAM users. IAM roles should be used instead.\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation_attachment\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = data.aws_organizations_organizational_unit.target.id\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "variable \"target_ou_name\" {\n  type        = string\n  description = \"The name of the Organizational Unit to which the SCP will be attached.\"\n}\n\nvariable \"target_ou_parent_id\" {\n  type        = string\n  description = \"The parent ID of the target Organizational Unit (can be the root ID or another OU ID).\"\n}\n\ndata \"aws_organizations_organizational_unit\" \"target\" {\n  name      = var.target_ou_name\n  parent_id = var.target_ou_parent_id\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIamUserCreation\"\n    effect = \"Deny\"\n    actions = [\n      \"iam:CreateUser\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"Deny-IAM-User-Creation\"\n  description = \"Denies the ability to create IAM users. IAM roles should be used instead.\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation_attachment\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = data.aws_organizations_organizational_unit.target.id\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779731000,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 134,
+      "output_tokens": 1439,
+      "raw_input_tokens": 134
+    }
+  },
+  "started_at": "2026-05-25T17:43:05.368979+00:00",
+  "elapsed_seconds": 15.233
+}

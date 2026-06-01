@@ -1,0 +1,13 @@
+- name: Configure host firewall
+  hosts: all
+  become: true
+  vars:
+    firewall_zone: public
+    firewall_default_policy: DROP
+    firewall_allowed_tcp_services:
+      - ssh
+      - https
+
+  tasks:
+    - name: Ensure firewalld package is installed
+      ansible.builtin

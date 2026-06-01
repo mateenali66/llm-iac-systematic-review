@@ -1,0 +1,83 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  vars:
+    node_exporter_version: "1.7.0"
+    node_exporter_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+    node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+    node_exporter_checksum: "sha256:5a4a9fbfaa6aa6b3b3a4f6e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5"
+  tasks:
+    - name: Create node_exporter system group
+      group:
+        name: node_exporter
+        system: true
+
+    - name: Create node_exporter system user
+      user:
+        name: node_exporter
+        system: true
+        shell: /sbin/nologin
+        group: node_exporter
+        home: /var/lib/node_exporter
+
+    - name: Download node_exporter binary
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+        checksum: "{{ node_exporter_checksum }}"
+        mode: "0644"
+        owner: root
+        group: root
+
+    - name: Extract node_exporter binary
+      unarchive:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+          - --wildcards
+          - "*/node_exporter"
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create systemd service unit
+      copy:
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          User=node_exporter
+          Group=node_exporter
+          Type=simple
+          ExecStart=/usr/local/bin/node_exporter --web.listen-address=:9100
+          Restart=always
+          RestartSec=5
+          PrivateTmp=true
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start node_exporter service
+      systemd:
+        name: node_exporter
+        state: started
+        enabled: true

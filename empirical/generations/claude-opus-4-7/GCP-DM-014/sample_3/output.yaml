@@ -1,0 +1,136 @@
+imports:
+- path: workload-identity.jinja
+
+resources:
+- name: github-wif
+  type: workload-identity.jinja
+  properties:
+    projectId: {{ env["project"] }}
+    projectNumber: {{ env["project_number"] }}
+    poolId: github-actions-pool
+    poolDisplayName: GitHub Actions Pool
+    poolDescription: Workload Identity Pool for GitHub Actions OIDC federation
+    providerId: github-provider
+    providerDisplayName: GitHub OIDC Provider
+    issuerUri: https://token.actions.githubusercontent.com
+    githubOrg: REPLACE_WITH_GITHUB_ORG
+    githubRepo: REPLACE_WITH_GITHUB_REPO
+    serviceAccountId: github-cloudrun-deployer
+    serviceAccountDisplayName: GitHub Actions Cloud Run Deployer
+    serviceAccountDescription: Service account impersonated by GitHub Actions to deploy Cloud Run services
+
+outputs:
+- name: workloadIdentityProvider
+  value: $(ref.github-wif.workloadIdentityProvider)
+- name: serviceAccountEmail
+  value: $(ref.github-wif.serviceAccountEmail)
+- name: poolName
+  value: $(ref.github-wif.poolName)
+
+---
+# workload-identity.jinja
+{% set projectId = properties['projectId'] %}
+{% set projectNumber = properties['projectNumber'] %}
+{% set poolId = properties['poolId'] %}
+{% set providerId = properties['providerId'] %}
+{% set saId = properties['serviceAccountId'] %}
+{% set saEmail = saId + '@' + projectId + '.iam.gserviceaccount.com' %}
+{% set githubOrg = properties['githubOrg'] %}
+{% set githubRepo = properties['githubRepo'] %}
+
+resources:
+
+- name: enable-iamcredentials
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: project:{{ projectId }}
+    serviceName: iamcredentials.googleapis.com
+
+- name: enable-iam
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: project:{{ projectId }}
+    serviceName: iam.googleapis.com
+
+- name: enable-sts
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: project:{{ projectId }}
+    serviceName: sts.googleapis.com
+
+- name: enable-run
+  type: deploymentmanager.v2.virtual.enableService
+  properties:
+    consumerId: project:{{ projectId }}
+    serviceName: run.googleapis.com
+
+- name: {{ poolId }}
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/{{ projectId }}/locations/global
+    workloadIdentityPoolId: {{ poolId }}
+    workloadIdentityPool:
+      displayName: {{ properties['poolDisplayName'] }}
+      description: {{ properties['poolDescription'] }}
+      disabled: false
+  metadata:
+    dependsOn:
+    - enable-iam
+    - enable-sts
+
+- name: {{ providerId }}
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: projects/{{ projectId }}/locations/global/workloadIdentityPools/{{ poolId }}
+    workloadIdentityPoolProviderId: {{ providerId }}
+    workloadIdentityPoolProvider:
+      displayName: {{ properties['providerDisplayName'] }}
+      disabled: false
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.actor: assertion.actor
+        attribute.repository: assertion.repository
+        attribute.repository_owner: assertion.repository_owner
+        attribute.ref: assertion.ref
+        attribute.event_name: assertion.event_name
+        attribute.aud: assertion.aud
+      attributeCondition: "assertion.repository_owner == '{{ githubOrg }}'"
+      oidc:
+        issuerUri: {{ properties['issuerUri'] }}
+        allowedAudiences:
+        - https://iam.googleapis.com/projects/{{ projectNumber }}/locations/global/workloadIdentityPools/{{ poolId }}/providers/{{ providerId }}
+  metadata:
+    dependsOn:
+    - {{ poolId }}
+
+- name: {{ saId }}
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    accountId: {{ saId }}
+    projectId: {{ projectId }}
+    serviceAccount:
+      displayName: {{ properties['serviceAccountDisplayName'] }}
+      description: {{ properties['serviceAccountDescription'] }}
+  metadata:
+    dependsOn:
+    - enable-iam
+
+- name: {{ saId }}-wif-binding
+  type: gcp-types/iam-v1:virtual.projects.serviceAccounts.iamMemberBinding
+  properties:
+    resource: projects/{{ projectId }}/serviceAccounts/{{ saEmail }}
+    role: roles/iam.workloadIdentityUser
+    member: principalSet://iam.googleapis.com/projects/{{ projectNumber }}/locations/global/workloadIdentityPools/{{ poolId }}/attribute.repository/{{ githubOrg }}/{{ githubRepo }}
+  metadata:
+    dependsOn:
+    - {{ saId }}
+    - {{ providerId }}
+
+- name: {{ saId }}-run-developer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ projectId }}
+    role: roles/run.developer
+    member: serviceAccount:{{ saEmail }}
+  metadata:
+    d

@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-008",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning a Key Vault for storing certificates, connection strings, and API keys used by a Web App.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning a Key Vault for storing certificates, connection strings, and API keys used by a Web App.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\ntargetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Key Vault. Must be globally unique.')\nparam keyVaultName string\n\n@description('SKU of the Key Vault.')\n@allowed(['standard', 'premium'])\nparam keyVaultSku string = 'standard'\n\n@description('Object ID of the security principal that will be granted full access to the Key Vault.')\nparam adminObjectId string\n\n@description('Resource ID of the Web App managed identity that will consume secrets.')\nparam webAppIdentityObjectId string = ''\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: keyVaultSku\n    }\n    tenantId: subscription().tenantId\n    enableSoftDelete: true\n    softDeleteRetentionInDays: 90\n    enablePurgeProtection: true\n    enableRbacAuthorization: true\n    publicNetworkAccess: 'Disabled'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n      ipRules: []\n      virtualNetworkRules: []\n    }\n  }\n}\n\nresource keyVaultAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  scope: keyVault\n  name: guid(keyVault.id, adminObjectId, 'Key Vault Administrator')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b860d8650cd')\n    principalId: adminObjectId\n    principalType: 'User'\n  }\n}\n\nresource webAppSecretsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Secrets User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\nresource webAppCertsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Certificate User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db79e401-6d5f-44e9-8400-2f6e2e6c2e0e')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\noutput keyVaultId string = keyVault.id\noutput keyVaultUri string = keyVault.properties.vaultUri\n```",
+  "cleaned_response": "targetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Key Vault. Must be globally unique.')\nparam keyVaultName string\n\n@description('SKU of the Key Vault.')\n@allowed(['standard', 'premium'])\nparam keyVaultSku string = 'standard'\n\n@description('Object ID of the security principal that will be granted full access to the Key Vault.')\nparam adminObjectId string\n\n@description('Resource ID of the Web App managed identity that will consume secrets.')\nparam webAppIdentityObjectId string = ''\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: keyVaultSku\n    }\n    tenantId: subscription().tenantId\n    enableSoftDelete: true\n    softDeleteRetentionInDays: 90\n    enablePurgeProtection: true\n    enableRbacAuthorization: true\n    publicNetworkAccess: 'Disabled'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n      ipRules: []\n      virtualNetworkRules: []\n    }\n  }\n}\n\nresource keyVaultAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  scope: keyVault\n  name: guid(keyVault.id, adminObjectId, 'Key Vault Administrator')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b860d8650cd')\n    principalId: adminObjectId\n    principalType: 'User'\n  }\n}\n\nresource webAppSecretsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Secrets User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\nresource webAppCertsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Certificate User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db79e401-6d5f-44e9-8400-2f6e2e6c2e0e')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\noutput keyVaultId string = keyVault.id\noutput keyVaultUri string = keyVault.properties.vaultUri",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\ntargetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Key Vault. Must be globally unique.')\nparam keyVaultName string\n\n@description('SKU of the Key Vault.')\n@allowed(['standard', 'premium'])\nparam keyVaultSku string = 'standard'\n\n@description('Object ID of the security principal that will be granted full access to the Key Vault.')\nparam adminObjectId string\n\n@description('Resource ID of the Web App managed identity that will consume secrets.')\nparam webAppIdentityObjectId string = ''\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: keyVaultSku\n    }\n    tenantId: subscription().tenantId\n    enableSoftDelete: true\n    softDeleteRetentionInDays: 90\n    enablePurgeProtection: true\n    enableRbacAuthorization: true\n    publicNetworkAccess: 'Disabled'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n      ipRules: []\n      virtualNetworkRules: []\n    }\n  }\n}\n\nresource keyVaultAdminRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  scope: keyVault\n  name: guid(keyVault.id, adminObjectId, 'Key Vault Administrator')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b860d8650cd')\n    principalId: adminObjectId\n    principalType: 'User'\n  }\n}\n\nresource webAppSecretsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Secrets User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\nresource webAppCertsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(webAppIdentityObjectId)) {\n  scope: keyVault\n  name: guid(keyVault.id, webAppIdentityObjectId, 'Key Vault Certificate User')\n  properties: {\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db79e401-6d5f-44e9-8400-2f6e2e6c2e0e')\n    principalId: webAppIdentityObjectId\n    principalType: 'ServicePrincipal'\n  }\n}\n\noutput keyVaultId string = keyVault.id\noutput keyVaultUri string = keyVault.properties.vaultUri\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723948,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 86,
+      "output_tokens": 637,
+      "reasoning_tokens": 494,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 56
+    }
+  },
+  "started_at": "2026-05-25T15:45:38.970450+00:00",
+  "elapsed_seconds": 9.171
+}

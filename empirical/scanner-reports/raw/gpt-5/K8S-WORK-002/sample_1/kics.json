@@ -1,0 +1,254 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 170,
+	"files_parsed": 2,
+	"lines_parsed": 170,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 6,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 8,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:17:13.028975552Z",
+	"end": "2026-05-26T05:17:14.912430136Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Volume Mount With OS Directory Write Permissions",
+			"query_id": "b7652612-de4e-4466-a0bf-1cd81f0c6063",
+			"query_url": "https://kubernetes.io/docs/concepts/storage/volumes/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Containers can mount sensitive folders from the hosts, giving them potentially dangerous access to critical host configurations and binaries.",
+			"description_id": "e42b7901",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d21b3407c6c4795f0bba795755392569994bab73d19b153a6a0400d3cb6943fd",
+					"line": 111,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.volumeMounts.name={{cache}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.volumeMounts.name={{cache}}.readOnly should be defined and set to true",
+					"actual_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.volumeMounts.name={{cache}}.readOnly is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{api}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5c132f9c5af8c9e40f7953568afb80bc92e4b41938b178386b60cc59f7fddec8",
+					"line": 21,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=api is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=api is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6619e6fd40b6f23e4635a304ab074a8604426aa87b96e1ba2b96215d515056c1",
+					"line": 63,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "037a74eff8b1693361a8ac52944926aa5b2efda2107eb0fd3743496902fa4f1a",
+					"line": 62,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{api}}.spec.template.spec.containers.name={{api}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4fd523456f9754d9a22014224c506642d668ee30ee4c3d44220163026c19d02e",
+					"line": 25,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{api}}",
+					"actual_value": "metadata.name={{api}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{api}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f69d69f19b9f7e6af476514c78311931e06ee9632724fd0160493a5a35b361e0",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{api}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c24fe33b96b5b976a2924813a96619c4529e8ae0157921a78ce259ef51d5b705",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{api}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

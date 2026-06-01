@@ -1,0 +1,1571 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:11:51.926535834Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 42,
+        "Failures": 15
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0052",
+          "AVDID": "AVD-AWS-0052",
+          "Title": "Load balancers should drop invalid headers",
+          "Description": "Passing unknown or invalid headers through to the target poses a potential risk of compromise.\nBy setting drop_invalid_header_fields to true, anything that does not conform to well known, defined headers will be removed by the load balancer.\n",
+          "Message": "Application load balancer is not set to drop invalid headers.",
+          "Namespace": "builtin.aws.elb.aws0052",
+          "Query": "data.builtin.aws.elb.aws0052.deny",
+          "Resolution": "Set drop_invalid_header_fields to true",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0052",
+          "References": [
+            "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0052"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:457-476",
+            "Provider": "AWS",
+            "Service": "elb",
+            "StartLine": 457,
+            "EndLine": 476,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 457,
+                  "Content": "  LoadBalancer:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mLoadBalancer\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 458,
+                  "Content": "    Type: AWS::ElasticLoadBalancingV2::LoadBalancer",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::ElasticLoadBalancingV2::LoadBalancer",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 459,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 460,
+                  "Content": "      Name: !Sub ${EnvironmentName}-alb",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mName\u001b[0m: !Sub ${EnvironmentName}-alb",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 461,
+                  "Content": "      Type: application",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mType\u001b[0m: application",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 462,
+                  "Content": "      Scheme: internet-facing",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mScheme\u001b[0m: internet-facing",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 463,
+                  "Content": "      IpAddressType: ipv4",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mIpAddressType\u001b[0m: ipv4",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 464,
+                  "Content": "      Subnets:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSubnets\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 465,
+                  "Content": "        - !Ref PublicSubnet1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - !Ref PublicSubnet1",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 466,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0053",
+          "AVDID": "AVD-AWS-0053",
+          "Title": "Load balancer is exposed to the internet.",
+          "Description": "There are many scenarios in which you would want to expose a load balancer to the wider internet, but this check exists as a warning to prevent accidental exposure of internal assets. You should ensure that this resource should be exposed publicly.\n",
+          "Message": "Load balancer is exposed publicly.",
+          "Namespace": "builtin.aws.elb.aws0053",
+          "Query": "data.builtin.aws.elb.aws0053.deny",
+          "Resolution": "Switch to an internal load balancer or add a tfsec ignore",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0053",
+          "References": [
+            "https://avd.aquasec.com/misconfig/avd-aws-0053"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "LoadBalancer",
+            "Provider": "AWS",
+            "Service": "elb",
+            "StartLine": 462,
+            "EndLine": 462,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 457,
+                  "Content": "  LoadBalancer:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mLoadBalancer\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 458,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 462,
+                  "Content": "      Scheme: internet-facing",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mScheme\u001b[0m: internet-facing",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 475,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 476,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "LoadBalancer",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 457,
+                  "EndLine": 476
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 302,
+            "EndLine": 302,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 302,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 304,
+            "EndLine": 304,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 304,
+                  "Content": "          CidrIpv6: ::/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIpv6\u001b[0m: ::/0",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "InstanceSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 323,
+            "EndLine": 323,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 311,
+                  "Content": "  InstanceSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mInstanceSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 312,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 323,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 327,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 328,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "InstanceSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 311,
+                  "EndLine": 328
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 284,
+            "EndLine": 287,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 284,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 285,
+                  "Content": "          FromPort: 80",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m80",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 286,
+                  "Content": "          ToPort: 80",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m80",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 287,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 296,
+            "EndLine": 299,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 296,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 297,
+                  "Content": "          FromPort: 443",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m443",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 298,
+                  "Content": "          ToPort: 443",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m443",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 299,
+                  "Content": "          CidrIpv6: ::/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIpv6\u001b[0m: ::/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 301,
+            "EndLine": 302,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 301,
+                  "Content": "        - IpProtocol: -1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: -\u001b[38;5;37m1",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 302,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 303,
+            "EndLine": 304,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 303,
+                  "Content": "        - IpProtocol: -1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: -\u001b[38;5;37m1",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 304,
+                  "Content": "          CidrIpv6: ::/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIpv6\u001b[0m: ::/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 292,
+            "EndLine": 295,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 292,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 293,
+                  "Content": "          FromPort: 80",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m80",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 294,
+                  "Content": "          ToPort: 80",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m80",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 295,
+                  "Content": "          CidrIpv6: ::/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIpv6\u001b[0m: ::/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "ALBSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 288,
+            "EndLine": 291,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 278,
+                  "Content": "  ALBSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mALBSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 279,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 288,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 289,
+                  "Content": "          FromPort: 443",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m443",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 290,
+                  "Content": "          ToPort: 443",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m443",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 291,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 308,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 309,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "ALBSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 278,
+                  "EndLine": 309
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "InstanceSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 317,
+            "EndLine": 320,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 311,
+                  "Content": "  InstanceSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mInstanceSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 312,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 317,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 318,
+                  "Content": "          FromPort: !Ref WebServerPort",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: !Ref WebServerPort",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 319,
+                  "Content": "          ToPort: !Ref WebServerPort",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mToPort\u001b[0m: !Ref WebServerPort",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 320,
+                  "Content": "          SourceSecurityGroupId: !Ref ALBSecurityGroup",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mSourceSecurityGroupId\u001b[0m: !Ref ALBSecurityGroup",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 327,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 328,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "InstanceSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 311,
+                  "EndLine": 328
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "InstanceSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 322,
+            "EndLine": 323,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 311,
+                  "Content": "  InstanceSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mInstanceSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 312,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 322,
+                  "Content": "        - IpProtocol: -1",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: -\u001b[38;5;37m1",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 323,
+                  "Content": "          CidrIp: 0.0.0.0/0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m0.0.0.0\u001b[0m/0",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 327,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 328,
+                  "Content": "          Value: !Ref EnvironmentName",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: !Ref EnvironmentName",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "InstanceSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 311,
+                  "EndLine": 328
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "PublicSubnet1",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 100,
+            "EndLine": 100,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 94,
+                  "Content": "  PublicSubnet1:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mPublicSubnet1\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 95,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 100,
+                  "Content": "      MapPublicIpOnLaunch: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMapPublicIpOnLaunch\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 106,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 107,
+                  "Content": "          Value: public",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: public",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "PublicSubnet1",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 94,
+                  "EndLine": 107
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-no-public-ingress-sgr",
+          "AVDID": "AVD-AWS-0164",
+          "Title": "Instances in a subnet should not receive a public IP address by default.",
+          "Description": "You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.\n",
+          "Message": "Subnet associates public IP address.",
+          "Namespace": "builtin.aws.ec2.aws0164",
+          "Query": "data.builtin.aws.ec2.aws0164.deny",
+          "Resolution": "Set the instance to not be publicly accessible",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html#concepts-public-addresses",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "PublicSubnet2",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 115,
+            "EndLine": 115,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "  PublicSubnet2:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mPublicSubnet2\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "      MapPublicIpOnLaunch: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMapPublicIpOnLaunch\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 121,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 122,
+                  "Content": "          Value: public",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: public",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "PublicSubnet2",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 109,
+                  "EndLine": 122
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

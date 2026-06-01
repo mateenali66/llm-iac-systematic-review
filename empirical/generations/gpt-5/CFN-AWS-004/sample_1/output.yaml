@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role and instance profile for EC2 to write CloudWatch Logs and read from SSM Parameter Store with least-privilege defaults.
+Parameters:
+  ParameterPathPrefix:
+    Type: String
+    Default: /app/
+    Description: SSM Parameter Store path prefix to allow reading (must start with /). Example /app/
+    AllowedPattern: ^/.*$
+  LogGroupNamePrefix:
+    Type: String
+    Default: /ec2/
+    Description: CloudWatch Logs log group name prefix allowed for log stream creation and event writes. Example /ec2/
+    AllowedPattern: ^[^:*]+$
+  PermissionsBoundaryArn:
+    Type: String
+    Default: ""
+    Description: Optional IAM permissions boundary ARN to attach to the role. Leave empty to disable.
+    AllowedPattern: (^$)|(^arn:.*:iam::[0-9]{12}:policy/.+$)
+Conditions:
+  UsePermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundaryArn, ""]]
+Resources:
+  CloudWatchAndSSMReadPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Path: /
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CloudWatchLogsCreateAndDescribe
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            Resource: "*"
+          - Sid: CloudWatchLogsStreamAndPut
+            Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupNamePrefix}*:log-stream:*
+          - Sid: SSMParameterReadAccess
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:GetParametersByPath
+            Resource:
+              - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterPathPrefix}*
+          - Sid: SSMDescribeParameters
+            Effect: Allow
+            Action:
+              - ssm:DescribeParameters
+            Resource: "*"
+          - Sid: KMSSecureStringDecrypt
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub ssm.${AWS::Region}.amazonaws.com
+                kms:CallerAccount: !Sub ${AWS::AccountId}
+  Ec2AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref CloudWatchAndSSMReadPolicy
+      PermissionsBoundary: !If [UsePermissionsBoundary, !Ref PermissionsBoundaryArn, !Ref "AWS::NoValue"]
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-ec2-app-role
+        - Key: ManagedBy
+          Value: CloudFormation
+  Ec2AppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref Ec2AppRole
+Outputs:
+  RoleArn:
+    Value: !GetAtt Ec2AppRole.Arn
+    Description: ARN of the IAM role for EC2 instances.
+  InstanceProfileArn:
+    Value: !GetAtt Ec2AppInstanceProfile.Arn
+    Description: ARN of the IAM instance profile to attach to EC2 instances.
+  ManagedPolicyArn:
+    Value: !Ref CloudWatchAndSSMReadPolicy
+    Description: ARN of the managed policy granting CloudWatch Logs write and SSM Parameter Store read access.

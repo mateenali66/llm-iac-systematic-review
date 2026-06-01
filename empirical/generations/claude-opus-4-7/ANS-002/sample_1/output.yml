@@ -1,0 +1,74 @@
+---
+- name: Configure host firewall (UFW) with secure defaults
+  hosts: all
+  become: true
+  vars:
+    ufw_allowed_tcp_ports:
+      - 22
+      - 443
+
+  pre_tasks:
+    - name: Ensure UFW is installed
+      ansible.builtin.package:
+        name: ufw
+        state: present
+
+  tasks:
+    - name: Reset UFW to a known state (only when not yet configured)
+      community.general.ufw:
+        state: reset
+      when: ansible_facts['ufw_initialized'] is not defined
+      changed_when: false
+      tags: [firewall, ufw, reset]
+
+    - name: Set default inbound policy to deny
+      community.general.ufw:
+        direction: incoming
+        default: deny
+      notify: Reload UFW
+      tags: [firewall, ufw, policy]
+
+    - name: Set default outbound policy to allow
+      community.general.ufw:
+        direction: outgoing
+        default: allow
+      notify: Reload UFW
+      tags: [firewall, ufw, policy]
+
+    - name: Set default routed policy to deny
+      community.general.ufw:
+        direction: routed
+        default: deny
+      notify: Reload UFW
+      tags: [firewall, ufw, policy]
+
+    - name: Enable UFW logging
+      community.general.ufw:
+        logging: 'low'
+      tags: [firewall, ufw, logging]
+
+    - name: Rate-limit SSH to mitigate brute-force attempts
+      community.general.ufw:
+        rule: limit
+        port: '22'
+        proto: tcp
+        comment: 'Rate-limited SSH'
+      tags: [firewall, ufw, rules, ssh]
+
+    - name: Allow HTTPS inbound
+      community.general.ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+        comment: 'HTTPS'
+      tags: [firewall, ufw, rules, https]
+
+    - name: Enable UFW and ensure it starts on boot
+      community.general.ufw:
+        state: enabled
+      tags: [firewall, ufw, enable]
+
+  handlers:
+    - name: Reload UFW
+      community.general.ufw:
+        state: reloaded

@@ -1,0 +1,22 @@
+resources:
+- name: storage-encryption-key-ring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/$(env.project)
+    locationId: global
+    keyRingId: storage-encryption-key-ring
+- name: storage-encryption-key
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.storage-encryption-key-ring.name)
+    cryptoKeyId: storage-encryption-key
+    purpose: ENCRYPT_DECRYPT
+    versionTemplate:
+      protectionLevel: SOFTWARE
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+    # Best practice: Rotate keys every 90 days (7776000 seconds).
+    rotationPeriod: 7776000s
+    # Set the first rotation time to 30 days from creation.
+    nextRotationTime:
+      seconds: $(eval BQ_TIMESTAMP_SECONDS(BQ_TIMESTAMP_ADD(BQ_CURRENT_TIMESTAMP(), INTERVAL 30 DAY)))
+      nanos: 0

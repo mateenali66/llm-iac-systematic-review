@@ -1,0 +1,89 @@
+- name: Configure static networking via netplan on Debian 12
+  hosts: all
+  become: true
+  gather_facts: true
+  collections:
+    - community.general
+  vars:
+    netplan_interface: "ens18"
+    netplan_address: "192.168.1.50/24"
+    netplan_gateway4: "192.168.1.1"
+    netplan_dns_servers:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    netplan_search_domains: []
+  pre_tasks:
+    - name: Assert Debian 12 or newer
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "Debian"
+          - ansible_distribution_major_version | int >= 12
+        fail_msg: "This playbook is intended for Debian 12+ only."
+
+    - name: Validate required networking variables
+      ansible.builtin.assert:
+        that:
+          - netplan_interface is string and netplan_interface | length > 0
+          - netplan_address is string and '/' in netplan_address
+          - netplan_gateway4 is string and netplan_gateway4 | length > 0
+          - netplan_dns_servers is iterable and netplan_dns_servers | length > 0
+        fail_msg: "One or more required variables are invalid."
+
+    - name: Ensure required packages are installed
+      ansible.builtin.apt:
+        name:
+          - netplan.io
+          - systemd-networkd
+          - systemd-resolved
+        state: present
+        update_cache: true
+
+    - name: Enable and start systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        enabled: true
+        state: started
+
+    - name: Enable and start systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: true
+        state: started
+
+    - name: Ensure resolv.conf is managed by systemd-resolved
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        state: link
+        force: true
+        src: /run/systemd/resolve/stub-resolv.conf
+
+    - name: Ensure target interface exists on host
+      ansible.builtin.assert:
+        that:
+          - netplan_interface in ansible_interfaces
+        fail_msg: "Interface {{ netplan_interface }} not found on this host."
+
+  tasks:
+    - name: Configure static IPv4 networking with netplan
+      community.general.netplan:
+        state: present
+        config:
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              "{{ netplan_interface }}":
+                dhcp4: false
+                addresses:
+                  - "{{ netplan_address }}"
+                routes:
+                  - to: 0.0.0.0/0
+                    via: "{{ netplan_gateway4 }}"
+                nameservers:
+                  addresses: "{{ netplan_dns_servers }}"
+                  search: "{{ netplan_search_domains | default([]) }}"
+      notify: Apply netplan
+
+  handlers:
+    - name: Apply netplan
+      ansible.builtin.command: netplan apply

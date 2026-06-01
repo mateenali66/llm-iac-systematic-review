@@ -1,0 +1,98 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: yes
+  vars:
+    node_exporter_version: "1.7.0"
+    node_exporter_binary_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    node_exporter_install_dir: "/opt/node_exporter"
+    node_exporter_user: "node_exporter"
+    node_exporter_group: "node_exporter"
+    node_exporter_port: 9100
+    node_exporter_listen_address: "0.0.0.0:{{ node_exporter_port }}"
+
+  tasks:
+    - name: Create node_exporter group
+      group:
+        name: "{{ node_exporter_group }}"
+        state: present
+
+    - name: Create node_exporter user
+      user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        system: yes
+        shell: /usr/sbin/nologin
+        home: "{{ node_exporter_install_dir }}"
+        create_home: no
+
+    - name: Create installation directory
+      file:
+        path: "{{ node_exporter_install_dir }}"
+        state: directory
+        owner: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        mode: '0755'
+
+    - name: Download node_exporter binary
+      get_url:
+        url: "{{ node_exporter_binary_url }}"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+        mode: '0644'
+        checksum: "sha256:https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/sha256sums.txt"
+
+    - name: Extract node_exporter binary
+      unarchive:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Copy node_exporter binary to installation directory
+      copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+        dest: "{{ node_exporter_install_dir }}/node_exporter"
+        owner: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        mode: '0755'
+        remote_src: yes
+
+    - name: Create systemd service file
+      template:
+        src: node_exporter.service.j2
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        install_dir: "{{ node_exporter_install_dir }}"
+        user: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        listen_address: "{{ node_exporter_listen_address }}"
+      notify:
+        - Reload systemd daemon
+        - Restart node_exporter
+
+    - name: Ensure node_exporter service is enabled and started
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Configure firewall for node_exporter
+      ansible.posix.firewalld:
+        port: "{{ node_exporter_port }}/tcp"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      ignore_errors: yes
+
+  handlers:
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Restart node_exporter
+      systemd:
+        name: node_exporter
+        state: restarted

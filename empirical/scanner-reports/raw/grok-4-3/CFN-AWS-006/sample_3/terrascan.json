@@ -1,0 +1,88 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "listenerNotHttps",
+        "description": "Ensure there is a listener configured on HTTPs or with a port 443",
+        "rule_id": "AC_AWS_0491",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "ServiceAListener",
+        "resource_type": "aws_lb_listener",
+        "file": "output.yaml",
+        "line": 229
+      },
+      {
+        "rule_name": "networkPort8080ExposedToprivate",
+        "description": "Ensure Security Groups Unrestricted Specific Ports Knowninternalwebport (TCP,8080) is not exposed to private hosts more than 32",
+        "rule_id": "AC_AWS_0327",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "NLBSecurityGroup",
+        "resource_type": "aws_security_group",
+        "file": "output.yaml",
+        "line": 174
+      },
+      {
+        "rule_name": "networkPort80ExposedToprivate",
+        "description": "Ensure Security Groups Unrestricted Specific Ports http (TCP,80) is not exposed to private hosts more than 32",
+        "rule_id": "AC_AWS_0321",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "NLBSecurityGroup",
+        "resource_type": "aws_security_group",
+        "file": "output.yaml",
+        "line": 174
+      },
+      {
+        "rule_name": "vpcFlowLogsNotEnabled",
+        "description": "Ensure VPC flow logging is enabled in all VPCs",
+        "rule_id": "AC_AWS_0369",
+        "severity": "LOW",
+        "category": "Logging and Monitoring",
+        "resource_name": "VPC",
+        "resource_type": "aws_vpc",
+        "file": "output.yaml",
+        "line": 29
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "cft",
+      "scanned_at": "2026-05-26 05:29:48.815285888 +0000 UTC",
+      "policies_validated": 144,
+      "violated_policies": 4,
+      "low": 3,
+      "medium": 1,
+      "high": 0
+    }
+  }
+}

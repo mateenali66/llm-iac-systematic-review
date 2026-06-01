@@ -1,0 +1,30 @@
+resources:
+- name: static-website-bucket
+  type: storage.v1.bucket
+  properties:
+    name: my-static-website-bucket
+    location: US
+    storageClass: STANDARD
+    uniformBucketLevelAccess:
+      enabled: true
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    labels:
+      environment: production
+      purpose: static-website
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: false
+- name: public-access
+  type: storage.v1.bucketAccessControl
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    entity: allUsers
+    role: READER

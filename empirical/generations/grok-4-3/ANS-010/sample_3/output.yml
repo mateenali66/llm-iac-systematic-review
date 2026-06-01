@@ -1,0 +1,94 @@
+---
+- name: Deploy Java application as systemd service
+  hosts: all
+  become: true
+  vars:
+    app_name: myapp
+    app_user: myapp
+    app_group: myapp
+    jar_source: ./myapp.jar
+    jar_dest: /opt/{{ app_name }}/{{ app_name }}.jar
+    java_opts: "-Xms512m -Xmx2g"
+  tasks:
+    - name: Install OpenJDK 21
+      ansible.builtin.apt:
+        name: openjdk-21-jdk
+        state: present
+        update_cache: true
+
+    - name: Create service group
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        system: true
+
+    - name: Create service user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: /opt/{{ app_name }}
+        create_home: false
+
+    - name: Ensure application directory
+      ansible.builtin.file:
+        path: /opt/{{ app_name }}
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0750"
+
+    - name: Copy application JAR
+      ansible.builtin.copy:
+        src: "{{ jar_source }}"
+        dest: "{{ jar_dest }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0640"
+      notify: Restart application
+
+    - name: Deploy systemd unit file
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/{{ app_name }}.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description={{ app_name }} Java Application
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_group }}
+          ExecStart=/usr/bin/java {{ java_opts }} -jar {{ jar_dest }}
+          SuccessExitStatus=143
+          Restart=always
+          RestartSec=10
+          NoNewPrivileges=true
+          PrivateTmp=true
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd and start application
+
+    - name: Enable and start service
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Restart application
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        state: restarted
+
+    - name: Reload systemd and start application
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true

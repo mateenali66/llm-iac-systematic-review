@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-003",
+  "language": "cdk_typescript",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK TypeScript stack for an S3 bucket storing customer-uploaded files with lifecycle policies (delete after 365 days).",
+  "user_message_sent": "Target IaC language: AWS CDK in TypeScript\n\nTask: Generate a CDK TypeScript stack for an S3 bucket storing customer-uploaded files with lifecycle policies (delete after 365 days).\n\nOutput only the AWS CDK in TypeScript code, no commentary or markdown fences.",
+  "raw_response": "import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport {\n  Bucket,\n  BucketEncryption,\n  BlockPublicAccess,\n  ObjectOwnership,\n  BucketAccessControl,\n} from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsBucketStack extends Stack {\n  public readonly bucket: Bucket;\n\n  constructor(scope: Construct, id: string, props?: StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new Bucket(this, 'AccessLogsBucket', {\n      enforceSSL: true,\n      encryption: BucketEncryption.S3_MANAGED,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.OBJECT_WRITER,\n      accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    this.bucket = new Bucket(this, 'CustomerUploadsBucket', {\n      versioned: true,\n      encryption: BucketEncryption.KMS_MANAGED,\n      bucketKeyEnabled: true,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      enforceSSL: true,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 's3-access-logs/',\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          noncurrentVersionExpiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    new CfnOutput(this, 'CustomerUploadsBucketName', {\n      value: this.bucket.bucketName,\n      exportName: 'CustomerUploadsBucketName',\n    });\n  }\n}",
+  "cleaned_response": "import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport {\n  Bucket,\n  BucketEncryption,\n  BlockPublicAccess,\n  ObjectOwnership,\n  BucketAccessControl,\n} from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsBucketStack extends Stack {\n  public readonly bucket: Bucket;\n\n  constructor(scope: Construct, id: string, props?: StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new Bucket(this, 'AccessLogsBucket', {\n      enforceSSL: true,\n      encryption: BucketEncryption.S3_MANAGED,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.OBJECT_WRITER,\n      accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    this.bucket = new Bucket(this, 'CustomerUploadsBucket', {\n      versioned: true,\n      encryption: BucketEncryption.KMS_MANAGED,\n      bucketKeyEnabled: true,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      enforceSSL: true,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 's3-access-logs/',\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          noncurrentVersionExpiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    new CfnOutput(this, 'CustomerUploadsBucketName', {\n      value: this.bucket.bucketName,\n      exportName: 'CustomerUploadsBucketName',\n    });\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport {\n  Bucket,\n  BucketEncryption,\n  BlockPublicAccess,\n  ObjectOwnership,\n  BucketAccessControl,\n} from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsBucketStack extends Stack {\n  public readonly bucket: Bucket;\n\n  constructor(scope: Construct, id: string, props?: StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new Bucket(this, 'AccessLogsBucket', {\n      enforceSSL: true,\n      encryption: BucketEncryption.S3_MANAGED,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.OBJECT_WRITER,\n      accessControl: BucketAccessControl.LOG_DELIVERY_WRITE,\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    this.bucket = new Bucket(this, 'CustomerUploadsBucket', {\n      versioned: true,\n      encryption: BucketEncryption.KMS_MANAGED,\n      bucketKeyEnabled: true,\n      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,\n      objectOwnership: ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      enforceSSL: true,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 's3-access-logs/',\n      lifecycleRules: [\n        {\n          expiration: Duration.days(365),\n          noncurrentVersionExpiration: Duration.days(365),\n          abortIncompleteMultipartUploadAfter: Duration.days(7),\n        },\n      ],\n      removalPolicy: RemovalPolicy.RETAIN,\n    });\n\n    new CfnOutput(this, 'CustomerUploadsBucketName', {\n      value: this.bucket.bucketName,\n      exportName: 'CustomerUploadsBucketName',\n    });\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779705642,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 132,
+      "output_tokens": 3222,
+      "raw_input_tokens": 132
+    }
+  },
+  "started_at": "2026-05-25T10:40:13.360599+00:00",
+  "elapsed_seconds": 29.525
+}

@@ -1,0 +1,39 @@
+resources:
+- name: https-lb-ip-address
+  type: compute.v1.globalAddress
+  properties:
+    description: Static IP for the HTTPS Load Balancer
+- name: my-ssl-cert
+  type: compute.v1.sslCertificate
+  properties:
+    description: A self-managed SSL certificate for the load balancer.
+    type: SELF_MANAGED
+    privateKey: |
+      -----BEGIN PRIVATE KEY-----
+      REPLACE_WITH_YOUR_PRIVATE_KEY
+      -----END PRIVATE KEY-----
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      REPLACE_WITH_YOUR_PUBLIC_CERTIFICATE
+      -----END CERTIFICATE-----
+- name: web-instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-small
+      tags:
+        items:
+        - https-server
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: projects/debian-cloud/global/images/family/debian-11
+      networkInterfaces:
+      - network: global/networks/default
+        accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+      metadata:

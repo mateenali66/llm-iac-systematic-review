@@ -1,0 +1,170 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres
+description: Postgres Helm chart for non-production
+type: application
+version: 0.1.0
+appVersion: "15"
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: postgres
+  tag: "15"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+persistence:
+  enabled: true
+  storageClassName: ""
+  size: 10Gi
+auth:
+  postgresPassword: "changeit"
+  username: "appuser"
+  password: "changeit"
+  database: "appdb"
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres.fullname" . }}-secret
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+type: Opaque
+stringData:
+  postgres-password: {{ .Values.auth.postgresPassword | quote }}
+  username: {{ .Values.auth.username | quote }}
+  password: {{ .Values.auth.password | quote }}
+  database: {{ .Values.auth.database | quote }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+spec:
+  type: {{ .Values.service.type }}
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+spec:
+  serviceName: {{ include "postgres.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postgres.name" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "postgres.name" . }}
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: postgres-password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: username
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: database
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.persistence.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+---
+# FILE: templates/init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.fullname" . }}-init
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init-db
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: postgres-password
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: username
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "postgres.fullname" . }}-secret
+                  key: database
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until pg_isready -h {{ include "postgres.fullname" . }} -p 5432; do sleep 2; done
+              psql -h {{ include "postgres.fullname" . }} -c "CREATE DATABASE IF NOT EXISTS ${PGDATABASE};" || true
+---
+# FILE: templates/_helpers.tpl
+{{- define "postgres.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- define "postgres.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

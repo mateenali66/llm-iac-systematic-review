@@ -1,0 +1,299 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: nginx-reverse-proxy
+description: A Helm chart for NGINX reverse proxy deployment
+type: application
+version: 1.0.0
+appVersion: "1.25.3"
+keywords:
+  - nginx
+  - reverse-proxy
+  - loadbalancer
+home: https://github.com/kubernetes/ingress-nginx
+sources:
+  - https://github.com/kubernetes/ingress-nginx
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+
+---
+# FILE: values.yaml
+# Default values for nginx-reverse-proxy chart
+
+# Number of replicas for the NGINX deployment
+replicaCount: 1
+
+# Image configuration
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25.3"
+
+# Service configuration
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+  protocol: TCP
+  annotations: {}
+
+# Configuration for the NGINX config file
+nginxConfig:
+  serverName: localhost
+  upstreamHost: ""
+  upstreamPort: 8080
+  clientMaxBodySize: "10m"
+  proxyReadTimeout: "60s"
+  proxySendTimeout: "60s"
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  fsGroup: 101
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Network policy settings
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow from specific namespaces (by label)
+    namespaceSelector: {}
+    # Allow from specific pods (by label)
+    podSelector: {}
+  egress:
+    # Allow to specific namespaces (by label)
+    namespaceSelector: {}
+    # Allow to specific pods (by label)
+    podSelector: {}
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}-config
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      
+      log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+      
+      access_log /var/log/nginx/access.log main;
+      error_log /var/log/nginx/error.log;
+      
+      sendfile on;
+      tcp_nopush on;
+      tcp_nodelay on;
+      keepalive_timeout 65;
+      types_hash_max_size 2048;
+      
+      client_max_body_size {{ .Values.nginxConfig.clientMaxBodySize }};
+      
+      upstream backend {
+        server {{ .Values.nginxConfig.upstreamHost }}:{{ .Values.nginxConfig.upstreamPort }};
+      }
+      
+      server {
+        listen 80;
+        server_name {{ .Values.nginxConfig.serverName }};
+        
+        location / {
+          proxy_pass http://backend;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection 'upgrade';
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_cache_bypass $http_upgrade;
+          proxy_read_timeout {{ .Values.nginxConfig.proxyReadTimeout }};
+          proxy_send_timeout {{ .Values.nginxConfig.proxySendTimeout }};
+        }
+        
+        location /health {
+          access_log off;
+          return 200 "healthy\n";
+          add_header Content-Type text/plain;
+        }
+      }
+    }
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            - name: var-cache-nginx
+              mountPath: /var/cache/nginx
+            - name: var-run
+              mountPath: /var/run
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "nginx-reverse-proxy.fullname" . }}-config
+        - name: var-cache-nginx
+          emptyDir: {}
+        - name: var-run
+          emptyDir: {}
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: {{ .Values.service.protocol }}
+      name: http
+  selector:
+    {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 4 }}
+
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        {{- if .Values.networkPolicy.ingress.namespaceSelector }}
+        - namespaceSelector:
+            {{- toYaml .Values.networkPolicy.ingress.namespaceSelector | nindent 12 }}
+        {{- end }}
+        {{- if .Values.networkPolicy.ingress.podSelector }}
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.ingress.podSelector | nindent 12 }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        {{- if .Values.networkPolicy.egress.namespaceSelector }}
+        - namespaceSelector:
+            {{- toYaml .Values.networkPolicy.egress.namespaceSelector | nindent 12 }}
+        {{- end }}
+        {{- if .Values.networkPolicy.egress.podSelector }}
+        - podSelector:
+            {{- toYaml .Values.networkPolicy.egress.podSelector | nindent 12 }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.nginxConfig.upstreamPort }}
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector

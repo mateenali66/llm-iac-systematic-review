@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template for creating a KMS customer-managed key with key rotation enabled.
+
+Resources:
+  KmsKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Customer-managed key for encrypting database backups
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: backups.amazonaws.com
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+      KeyRotationEnabled: true
+
+  KmsKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: alias/db-backup-key
+      TargetKeyId: !Ref KmsKey
+
+Outputs:
+  KmsKeyId:
+    Value: !Ref KmsKey
+    Description: ID of the KMS customer-managed key
+  KmsKeyArn:
+    Value: !GetAtt KmsKey.Arn
+    Description: ARN of the KMS customer-managed key

@@ -1,0 +1,170 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: A Helm chart deploying PostgreSQL for non-production environments
+type: application
+version: 0.1.0
+appVersion: "16.1"
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+keywords:
+  - postgres
+  - postgresql
+  - database
+  - nonprod
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: postgres
+  tag: "16.1-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+postgres:
+  # Superuser credentials. If existingSecret is set, these values are ignored.
+  username: postgres
+  password: ""        # leave empty to auto-generate at install time
+  database: postgres  # default DB created by the postgres image
+  port: 5432
+  existingSecret: ""  # name of an existing Secret with POSTGRES_USER / POSTGRES_PASSWORD keys
+
+application:
+  # Application database created by the init Job
+  database: appdb
+  username: appuser
+  password: ""        # leave empty to auto-generate at install time
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+service:
+  type: ClusterIP
+  port: 5432
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podAnnotations: {}
+podLabels: {}
+
+securityContext:
+  runAsUser: 70
+  runAsGroup: 70
+  fsGroup: 70
+  runAsNonRoot: true
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+  readiness:
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+networkPolicy:
+  enabled: false
+  allowedNamespaces: []
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a fully qualified app name.
+*/}}
+{{- define "postgres-nonprod.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "postgres-nonprod.headlessServiceName" -}}
+{{ include "postgres-nonprod.fullname" . }}-headless
+{{- end -}}
+
+{{- define "postgres-nonprod.secretName" -}}
+{{- if .Values.postgres.existingSecret -}}
+{{ .Values.postgres.existingSecret }}
+{{- else -}}
+{{ include "postgres-nonprod.fullname" . }}-credentials
+{{- end -}}
+{{- end -}}
+
+{{- define "postgres-nonprod.labels" -}}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: database
+{{- end -}}
+
+{{- define "postgres-nonprod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+---
+# FILE: templates/secret.yaml
+{{- if not .Values.postgres.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres-nonprod.secretName" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/resource-policy": keep
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.postgres.username | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.password | default (randAlphaNum 24) | quote }}
+  POSTGRES_DB: {{ .Values.postgres.database | quote }}
+  APP_DB: {{ .Values.application.database | quote }}
+  APP_USER: {{ .Values.application.username | quote }}
+  APP_PASSWORD: {{ .Values.application.password | default (randAlphaNum 24) | quote }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v

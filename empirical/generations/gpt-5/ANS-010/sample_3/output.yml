@@ -1,0 +1,187 @@
+- name: Deploy Java application as systemd service
+  hosts: all
+  become: true
+
+  vars:
+    app_name: myapp
+    service_user: myapp
+    service_group: myapp
+
+    app_home: "/opt/{{ app_name }}"
+    app_data_dir: "/var/lib/{{ app_name }}"
+    app_jar_src: "files/{{ app_name }}.jar"
+    app_jar_dest: "{{ app_home }}/app.jar"
+
+    env_default_file: "/etc/default/{{ app_name }}"
+    env_sysconfig_file: "/etc/sysconfig/{{ app_name }}"
+    service_unit_path: "/etc/systemd/system/{{ app_name }}.service"
+
+    service_description: "{{ app_name | capitalize }} Java Service"
+    java_bin_path: "/usr/bin/java"
+
+    java_opts_default: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+    app_args_default: ""
+
+    java_packages_by_distribution:
+      Ubuntu: openjdk-21-jre-headless
+      Debian: openjdk-21-jre-headless
+      RedHat: java-21-openjdk-headless
+      CentOS: java-21-openjdk-headless
+      Rocky: java-21-openjdk-headless
+      AlmaLinux: java-21-openjdk-headless
+      OracleLinux: java-21-openjdk-headless
+      Fedora: java-21-openjdk-headless
+    java_packages_by_os_family:
+      Debian: openjdk-21-jre-headless
+      RedHat: java-21-openjdk-headless
+    default_java_package: java-21-openjdk-headless
+
+  pre_tasks:
+    - name: Determine Java package name
+      ansible.builtin.set_fact:
+        java_package_name: "{{ java_packages_by_distribution.get(ansible_distribution, java_packages_by_os_family.get(ansible_os_family, default_java_package)) }}"
+
+    - name: Ensure apt cache is up to date (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+  tasks:
+    - name: Install OpenJDK 21
+      ansible.builtin.package:
+        name: "{{ java_package_name }}"
+        state: present
+
+    - name: Ensure group exists
+      ansible.builtin.group:
+        name: "{{ service_group }}"
+        system: true
+        state: present
+
+    - name: Ensure service user exists
+      ansible.builtin.user:
+        name: "{{ service_user }}"
+        group: "{{ service_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+        home: "/nonexistent"
+        state: present
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default(service_group) }}"
+        mode: "{{ item.mode | default('0750') }}"
+      loop:
+        - { path: "{{ app_home }}", owner: "root", group: "{{ service_group }}", mode: "0750" }
+        - { path: "{{ app_data_dir }}", owner: "{{ service_user }}", group: "{{ service_group }}", mode: "0750" }
+
+    - name: Deploy application JAR
+      ansible.builtin.copy:
+        src: "{{ app_jar_src }}"
+        dest: "{{ app_jar_dest }}"
+        owner: "root"
+        group: "{{ service_group }}"
+        mode: "0640"
+        backup: yes
+      notify: Restart {{ app_name }} service
+
+    - name: Create environment file for Debian-based systems
+      ansible.builtin.copy:
+        dest: "{{ env_default_file }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        content: |
+          # Managed by Ansible
+          JAVA_OPTS="{{ java_opts_default }}"
+          APP_ARGS="{{ app_args_default }}"
+      notify: Restart {{ app_name }} service
+
+    - name: Create environment file for RedHat-based systems
+      ansible.builtin.copy:
+        dest: "{{ env_sysconfig_file }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        content: |
+          # Managed by Ansible
+          JAVA_OPTS="{{ java_opts_default }}"
+          APP_ARGS="{{ app_args_default }}"
+      notify: Restart {{ app_name }} service
+
+    - name: Create systemd unit file
+      ansible.builtin.copy:
+        dest: "{{ service_unit_path }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        content: |
+          [Unit]
+          Description={{ service_description }}
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ service_user }}
+          Group={{ service_group }}
+          WorkingDirectory={{ app_data_dir }}
+          EnvironmentFile=-{{ env_default_file }}
+          EnvironmentFile=-{{ env_sysconfig_file }}
+          ExecStartPre=/bin/sh -c '/usr/bin/test -x {{ java_bin_path }} && /usr/bin/test -r {{ app_jar_dest }}'
+          ExecStart={{ java_bin_path }} $JAVA_OPTS -jar {{ app_jar_dest }} $APP_ARGS
+          Restart=on-failure
+          RestartSec=5s
+          SuccessExitStatus=143
+          UMask=0027
+
+          NoNewPrivileges=yes
+          PrivateTmp=yes
+          PrivateDevices=yes
+          ProtectSystem=full
+          ProtectHome=read-only
+          ReadOnlyPaths={{ app_home }}
+          ProtectControlGroups=yes
+          ProtectKernelTunables=yes
+          ProtectKernelModules=yes
+          ProtectKernelLogs=yes
+          LockPersonality=yes
+          MemoryDenyWriteExecute=yes
+          RestrictNamespaces=yes
+          RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+          SystemCallArchitectures=native
+          SystemCallFilter=@system-service
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+          LimitNOFILE=65536
+          KillSignal=SIGTERM
+          TimeoutStopSec=30
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Restart {{ app_name }} service
+
+    - name: Ensure service is enabled and started
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        enabled: true
+        state: started
+        daemon_reload: false
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart {{ app_name }} service
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        state: restarted
+        enabled: true

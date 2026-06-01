@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-data
+  labels:
+    app.kubernetes.io/name: database
+    app.kubernetes.io/instance: primary
+    app.kubernetes.io/component: stateful-database
+    app.kubernetes.io/part-of: db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+  volumeMode: Filesystem

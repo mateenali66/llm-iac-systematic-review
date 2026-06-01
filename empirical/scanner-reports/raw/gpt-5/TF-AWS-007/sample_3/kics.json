@@ -1,0 +1,140 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 78,
+	"files_parsed": 1,
+	"lines_parsed": 78,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 4,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:19:23.857781335Z",
+	"end": "2026-05-26T05:19:46.219711262Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 26,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "87c5a68cdc07492f4f9529ae4c2a247d6d14e1801c51f71d5eaa1e2cb40f6bcb",
+					"line": 77,
+					"resource_type": "aws_iam_instance_profile",
+					"resource_name": "ec2-app-config-reader-profile",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_instance_profile[{{ec2_app_config_reader}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_instance_profile[{{ec2_app_config_reader}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_instance_profile[{{ec2_app_config_reader}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b9f83a061947ce704ac07e9dc149ae7897417f804d5786cbeb9dc946405c9e60",
+					"line": 65,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "ec2-read-app-config-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{s3_read_app_config}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{s3_read_app_config}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_policy[{{s3_read_app_config}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "7992f9cb0e744beac5a1bffb1b85acc2d8882093b28de3d154f6e48c8946cae5",
+					"line": 32,
+					"resource_type": "aws_iam_role",
+					"resource_name": "ec2-app-config-reader-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{ec2_app_config_reader}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{ec2_app_config_reader}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{ec2_app_config_reader}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		},
+		{
+			"query_name": "Variable Without Description",
+			"query_id": "2a153952-2544-4687-bcc9-cc8fea814a9b",
+			"query_url": "https://www.terraform.io/docs/language/values/variables.html#input-variable-documentation",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "All variables should contain a valid description.",
+			"description_id": "b44986be",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "09109ace8e3c27838d0a2dbb5c276c047a9ceda4861ccfb3b97c07da52f14c19",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "variable.{{s3_bucket_name}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'description' should be defined and not null",
+					"actual_value": "'description' is undefined or null"
+				}
+			]
+		}
+	]
+}

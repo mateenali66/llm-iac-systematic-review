@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-009",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Log Analytics workspace and Application Insights instance for monitoring an App Service web application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Log Analytics workspace and Application Insights instance for monitoring an App Service web application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Log Analytics workspace.')\nparam logAnalyticsWorkspaceName string\n\n@description('Name of the Application Insights instance.')\nparam applicationInsightsName string\n\n@description('SKU for the Log Analytics workspace.')\nparam logAnalyticsSku string = 'PerGB2018'\n\n@description('Data retention in days for the Log Analytics workspace.')\nparam retentionInDays int = 30\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsSku\n    }\n    retentionInDays: retentionInDays\n    features: {\n      searchVersion: 1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: applicationInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    Flow_Type: 'Bluefield'\n    Request_Source: 'IbizaAIExtension'\n  }\n}\n```",
+  "cleaned_response": "@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Log Analytics workspace.')\nparam logAnalyticsWorkspaceName string\n\n@description('Name of the Application Insights instance.')\nparam applicationInsightsName string\n\n@description('SKU for the Log Analytics workspace.')\nparam logAnalyticsSku string = 'PerGB2018'\n\n@description('Data retention in days for the Log Analytics workspace.')\nparam retentionInDays int = 30\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsSku\n    }\n    retentionInDays: retentionInDays\n    features: {\n      searchVersion: 1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: applicationInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    Flow_Type: 'Bluefield'\n    Request_Source: 'IbizaAIExtension'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the Log Analytics workspace.')\nparam logAnalyticsWorkspaceName string\n\n@description('Name of the Application Insights instance.')\nparam applicationInsightsName string\n\n@description('SKU for the Log Analytics workspace.')\nparam logAnalyticsSku string = 'PerGB2018'\n\n@description('Data retention in days for the Log Analytics workspace.')\nparam retentionInDays int = 30\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsSku\n    }\n    retentionInDays: retentionInDays\n    features: {\n      searchVersion: 1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: applicationInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    Flow_Type: 'Bluefield'\n    Request_Source: 'IbizaAIExtension'\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723959,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 83,
+      "output_tokens": 254,
+      "reasoning_tokens": 348,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 53
+    }
+  },
+  "started_at": "2026-05-25T15:45:54.744058+00:00",
+  "elapsed_seconds": 5.093
+}

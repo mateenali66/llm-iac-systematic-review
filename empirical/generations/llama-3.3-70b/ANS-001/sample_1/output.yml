@@ -1,0 +1,32 @@
+---
+- name: Install and configure nginx
+  hosts: ubuntu
+  become: yes
+
+  tasks:
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: present
+
+  - name: Ensure nginx service is started and enabled
+    service:
+      name: nginx
+      state: started
+      enabled: yes
+
+  - name: Open port 80 in the firewall
+    ufw:
+      rule: allow
+      port: 80
+      state: enabled
+
+  - name: Ensure ufw is enabled
+    ufw:
+      state: enabled
+
+  - name: Ensure ufw is started and enabled at boot
+    service:
+      name: ufw
+      state: started
+      enabled: yes

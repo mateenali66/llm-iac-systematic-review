@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-002",
+  "language": "cdk_typescript",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK TypeScript stack provisioning an EKS Fargate cluster running a containerized microservice exposed via an internet-facing Application Load Balancer.",
+  "user_message_sent": "Target IaC language: AWS CDK in TypeScript\n\nTask: Create a CDK TypeScript stack provisioning an EKS Fargate cluster running a containerized microservice exposed via an internet-facing Application Load Balancer.\n\nOutput only the AWS CDK in TypeScript code, no commentary or markdown fences.",
+  "raw_response": "```typescript\nimport * as cdk from 'aws-cdk-lib';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';\nimport * as acm from 'aws-cdk-lib/aws-certificatemanager';\n\nexport class EksFargateStack extends cdk.Stack {\n  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'Vpc', {\n      cidr: '10.0.0.0/16',\n      maxAzs: 3,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,\n        },\n      ],\n    });\n\n    const cluster = new eks.Cluster(this, 'Cluster', {\n      vpc,\n      clusterName: 'eks-fargate-cluster',\n      defaultCapacity: 0,\n      endpointAccess: eks.EndpointAccess.PUBLIC,\n    });\n\n    const fargateProfile = cluster.addFargateProfile('FargateProfile', {\n      selectors: [\n        {\n          namespace: 'default',\n        },\n      ],\n    });\n\n    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {\n      vpc,\n      internetFacing: true,\n    });\n\n    const certificate = acm.Certificate.fromCertificateArn(\n      this,\n      'Certificate',\n      'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERTIFICATE_ID'\n    );\n\n    const listener = alb.addListener('Listener', {\n      port: 443,\n      certificates: [certificate],\n    });\n\n    const service = new eks.FargateService(this, 'Service', {\n      cluster,\n      taskDefinition: new eks.FargateTaskDefinition(this, 'TaskDefinition', {\n        cpu: 256,\n        memoryLimitMiB: 512,\n      }),\n      service_name: 'microservice',\n    });\n\n    const targetGroup = new elbv2.ApplicationTargetGroup(this, 'TargetGroup', {\n      vpc,\n      port: 80,\n    });\n\n    listener.addTargetGroups('TargetGroup', {\n      targetGroups: [targetGroup],\n    });\n\n    targetGroup.addTarget(service);\n\n    new cdk.CfnOutput(this, 'LoadBalancerDNS', {\n      value: alb.loadBalancerDnsName,\n      description: 'The DNS name of the load balancer',\n    });\n  }\n}\n```",
+  "cleaned_response": "import * as cdk from 'aws-cdk-lib';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';\nimport * as acm from 'aws-cdk-lib/aws-certificatemanager';\n\nexport class EksFargateStack extends cdk.Stack {\n  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'Vpc', {\n      cidr: '10.0.0.0/16',\n      maxAzs: 3,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,\n        },\n      ],\n    });\n\n    const cluster = new eks.Cluster(this, 'Cluster', {\n      vpc,\n      clusterName: 'eks-fargate-cluster',\n      defaultCapacity: 0,\n      endpointAccess: eks.EndpointAccess.PUBLIC,\n    });\n\n    const fargateProfile = cluster.addFargateProfile('FargateProfile', {\n      selectors: [\n        {\n          namespace: 'default',\n        },\n      ],\n    });\n\n    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {\n      vpc,\n      internetFacing: true,\n    });\n\n    const certificate = acm.Certificate.fromCertificateArn(\n      this,\n      'Certificate',\n      'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERTIFICATE_ID'\n    );\n\n    const listener = alb.addListener('Listener', {\n      port: 443,\n      certificates: [certificate],\n    });\n\n    const service = new eks.FargateService(this, 'Service', {\n      cluster,\n      taskDefinition: new eks.FargateTaskDefinition(this, 'TaskDefinition', {\n        cpu: 256,\n        memoryLimitMiB: 512,\n      }),\n      service_name: 'microservice',\n    });\n\n    const targetGroup = new elbv2.ApplicationTargetGroup(this, 'TargetGroup', {\n      vpc,\n      port: 80,\n    });\n\n    listener.addTargetGroups('TargetGroup', {\n      targetGroups: [targetGroup],\n    });\n\n    targetGroup.addTarget(service);\n\n    new cdk.CfnOutput(this, 'LoadBalancerDNS', {\n      value: alb.loadBalancerDnsName,\n      description: 'The DNS name of the load balancer',\n    });\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```typescript\nimport * as cdk from 'aws-cdk-lib';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';\nimport * as acm from 'aws-cdk-lib/aws-certificatemanager';\n\nexport class EksFargateStack extends cdk.Stack {\n  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'Vpc', {\n      cidr: '10.0.0.0/16',\n      maxAzs: 3,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_NAT,\n        },\n      ],\n    });\n\n    const cluster = new eks.Cluster(this, 'Cluster', {\n      vpc,\n      clusterName: 'eks-fargate-cluster',\n      defaultCapacity: 0,\n      endpointAccess: eks.EndpointAccess.PUBLIC,\n    });\n\n    const fargateProfile = cluster.addFargateProfile('FargateProfile', {\n      selectors: [\n        {\n          namespace: 'default',\n        },\n      ],\n    });\n\n    const alb = new elbv2.ApplicationLoadBalancer(this, 'ALB', {\n      vpc,\n      internetFacing: true,\n    });\n\n    const certificate = acm.Certificate.fromCertificateArn(\n      this,\n      'Certificate',\n      'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERTIFICATE_ID'\n    );\n\n    const listener = alb.addListener('Listener', {\n      port: 443,\n      certificates: [certificate],\n    });\n\n    const service = new eks.FargateService(this, 'Service', {\n      cluster,\n      taskDefinition: new eks.FargateTaskDefinition(this, 'TaskDefinition', {\n        cpu: 256,\n        memoryLimitMiB: 512,\n      }),\n      service_name: 'microservice',\n    });\n\n    const targetGroup = new elbv2.ApplicationTargetGroup(this, 'TargetGroup', {\n      vpc,\n      port: 80,\n    });\n\n    listener.addTargetGroups('TargetGroup', {\n      targetGroups: [targetGroup],\n    });\n\n    targetGroup.addTarget(service);\n\n    new cdk.CfnOutput(this, 'LoadBalancerDNS', {\n      value: alb.loadBalancerDnsName,\n      description: 'The DNS name of the load balancer',\n    });\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723637,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 162,
+      "output_tokens": 596,
+      "raw_input_tokens": 162
+    }
+  },
+  "started_at": "2026-05-25T15:40:35.219659+00:00",
+  "elapsed_seconds": 2.284
+}

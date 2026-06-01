@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Lambda function triggered by SQS queue for order processing'
+
+Parameters:
+  FunctionName:
+    Type: String
+    Default: order-processor
+    Description: Name of the Lambda function
+
+Resources:
+  OrderProcessorLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SQSPollingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt OrderQueue.Arn
+
+  OrderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${FunctionName}-queue'
+      VisibilityTimeoutSeconds: 300
+      MessageRetentionPeriod: 1209600
+
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt OrderProcessorLambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 128
+      Code:
+        ZipFile: |
+          import json
+          import logging
+          import boto3
+          
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+          
+          def lambda_handler(event, context):
+              logger.info(f"Processing {len(event['Records'])} SQS messages")
+              
+              for record in event['Records']:
+                  try:
+                      message_body = record['body']
+                      logger.info(f"Processing message: {message_body}")
+                      
+                      # Process order logic here
+                      # Example: parse JSON, validate, store in database, etc.
+                      
+                  except Exception as e:
+                      logger.error(f"Error processing message: {str(e)}")
+                      # Message will be retried based on SQS redrive policy
+                      raise
+                      
+              return {'statusCode': 200, 'processedMessages': len(event['Records'])}
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref OrderQueue
+
+  OrderProcessorEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderQueue.Arn
+      FunctionName: !Ref OrderProcessorFunction
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+
+Outputs:
+  FunctionName:
+    Description: Name of the Lambda function
+    Value: !Ref OrderProcessorFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-FunctionName'
+      
+  QueueURL:
+    Description: URL of the SQS queue
+    Value: !Ref OrderQueue
+    Export:
+      Name: !Sub '${AWS::StackName}-QueueURL'
+      
+  QueueArn:
+    Description: ARN of the SQS queue
+    Value: !GetAtt OrderQueue.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-QueueArn'

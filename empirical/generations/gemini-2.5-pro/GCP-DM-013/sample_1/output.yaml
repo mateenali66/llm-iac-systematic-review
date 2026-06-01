@@ -1,0 +1,16 @@
+resources:
+- name: app-cache-redis
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    name: $(env.deployment)-app-cache
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: us-central1
+    authorizedNetwork: projects/$(env.project)/global/networks/default
+    connectMode: DIRECT_PEERING
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    authEnabled: true
+    redisVersion: REDIS_6_X
+    labels:
+      environment: production
+      app: app-cache

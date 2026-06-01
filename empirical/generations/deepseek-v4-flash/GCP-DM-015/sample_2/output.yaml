@@ -1,0 +1,33 @@
+imports:
+  - path: https://raw.githubusercontent.com/GoogleCloudPlatform/deploymentmanager-samples/master/examples/v2/cloud_monitoring/alert_policy.py
+    name: alert_policy.py
+
+resources:
+  - name: cloud-run-latency-alert
+    type: alert_policy.py
+    properties:
+      displayName: "Cloud Run 95th Percentile Latency > 500ms"
+      documentation:
+        content: "Cloud Run service {{metric.label.service_name}} has 95th percentile latency above 500ms for 5 minutes. Immediate investigation required."
+        mimeType: "text/markdown"
+      conditions:
+        - displayName: "95th percentile latency > 500ms"
+          conditionThreshold:
+            filter: 'resource.type = "cloud_run_revision" AND metric.type = "run.googleapis.com/request_latencies"'
+            aggregations:
+              - alignmentPeriod: 300s
+                perSeriesAligner: ALIGN_PERCENTILE_95
+                crossSeriesReducer: REDUCE_NONE
+            comparison: COMPARISON_GT
+            thresholdValue: 500
+            duration: 300s
+            trigger:
+              count: 1
+      combiner: OR
+      enabled: true
+      notificationChannels:
+        - "projects/{{PROJECT_ID}}/notificationChannels/{{CHANNEL_ID}}"
+      alertStrategy:
+        autoClose: "3600s"
+        notificationRateLimit:
+          period: "1800s"

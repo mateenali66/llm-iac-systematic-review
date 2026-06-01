@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-015",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Log Analytics workspace, an Azure Monitor action group for paging on-call engineers, and a metric alert on CPU usage of an AKS cluster.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Log Analytics workspace, an Azure Monitor action group for paging on-call engineers, and a metric alert on CPU usage of an AKS cluster.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam logAnalyticsWorkspaceName string\nparam actionGroupName string\nparam actionGroupShortName string\nparam alertName string\nparam aksClusterResourceId string\nparam emailReceiverName string\nparam emailAddress string\n\nresource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'Global'\n  properties: {\n    groupShortName: actionGroupShortName\n    enabled: true\n    emailReceivers: [\n      {\n        name: emailReceiverName\n        emailAddress: emailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource cpuAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: alertName\n  location: 'global'\n  properties: {\n    description: 'High CPU usage alert for AKS cluster'\n    severity: 1\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: 'PT5M'\n    windowSize: 'PT15M'\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'\n      allOf: [\n        {\n          name: 'HighCPU'\n          metricName: 'cpuUsagePercentage'\n          operator: 'GreaterThan'\n          threshold: 80\n          timeAggregation: 'Average'\n          criterionType: 'StaticThresholdCriterion'\n        }\n      ]\n    }\n    actions: [\n      {\n        actionGroupId: actionGroup.id\n      }\n    ]\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam logAnalyticsWorkspaceName string\nparam actionGroupName string\nparam actionGroupShortName string\nparam alertName string\nparam aksClusterResourceId string\nparam emailReceiverName string\nparam emailAddress string\n\nresource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'Global'\n  properties: {\n    groupShortName: actionGroupShortName\n    enabled: true\n    emailReceivers: [\n      {\n        name: emailReceiverName\n        emailAddress: emailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource cpuAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: alertName\n  location: 'global'\n  properties: {\n    description: 'High CPU usage alert for AKS cluster'\n    severity: 1\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: 'PT5M'\n    windowSize: 'PT15M'\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'\n      allOf: [\n        {\n          name: 'HighCPU'\n          metricName: 'cpuUsagePercentage'\n          operator: 'GreaterThan'\n          threshold: 80\n          timeAggregation: 'Average'\n          criterionType: 'StaticThresholdCriterion'\n        }\n      ]\n    }\n    actions: [\n      {\n        actionGroupId: actionGroup.id\n      }\n    ]\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam logAnalyticsWorkspaceName string\nparam actionGroupName string\nparam actionGroupShortName string\nparam alertName string\nparam aksClusterResourceId string\nparam emailReceiverName string\nparam emailAddress string\n\nresource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'Global'\n  properties: {\n    groupShortName: actionGroupShortName\n    enabled: true\n    emailReceivers: [\n      {\n        name: emailReceiverName\n        emailAddress: emailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource cpuAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: alertName\n  location: 'global'\n  properties: {\n    description: 'High CPU usage alert for AKS cluster'\n    severity: 1\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: 'PT5M'\n    windowSize: 'PT15M'\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'\n      allOf: [\n        {\n          name: 'HighCPU'\n          metricName: 'cpuUsagePercentage'\n          operator: 'GreaterThan'\n          threshold: 80\n          timeAggregation: 'Average'\n          criterionType: 'StaticThresholdCriterion'\n        }\n      ]\n    }\n    actions: [\n      {\n        actionGroupId: actionGroup.id\n      }\n    ]\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724128,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 96,
+      "output_tokens": 414,
+      "reasoning_tokens": 1068,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 66
+    }
+  },
+  "started_at": "2026-05-25T15:48:37.581558+00:00",
+  "elapsed_seconds": 10.76
+}

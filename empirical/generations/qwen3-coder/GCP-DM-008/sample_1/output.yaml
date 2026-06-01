@@ -1,0 +1,21 @@
+resources:
+- name: kms-keyring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/{{ env["project"] }}/locations/global
+    keyRingId: storage-encryption-keyring
+
+- name: kms-cryptokey
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.kms-keyring.name)
+    cryptoKeyId: storage-encryption-key
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 2592000s
+    nextRotationTime: 2024-01-01T00:00:00Z
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+      protectionLevel: SOFTWARE
+  metadata:
+    dependsOn:
+    - kms-keyring

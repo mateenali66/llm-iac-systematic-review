@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-004",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Auto Scaling Group of EC2 instances (min 2, max 8, desired 3) behind an Application Load Balancer serving HTTPS traffic on port 443 for a public-facing web application.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an Auto Scaling Group of EC2 instances (min 2, max 8, desired 3) behind an Application Load Balancer serving HTTPS traffic on port 443 for a public-facing web application.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "#\n# Terraform Configuration for a High-Availability Web Application\n#\n# This configuration provisions the following resources:\n# - A new VPC with public and private subnets across two Availability Zones.\n# - An Internet Gateway for public subnet internet access.\n# - A NAT Gateway for private subnet outbound internet access.\n# - An Application Load Balancer (ALB) to distribute traffic.\n# - An Auto Scaling Group of EC2 instances in the private subnets.\n# - Security Groups to control traffic between the components.\n# - An IAM Role for the EC2 instances with SSM permissions.\n#\n\n################################################################################\n# Provider and Data Sources\n################################################################################\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\n# Note: This assumes a certificate for the specified domain already exists in ACM.\n# Certificate creation and validation are not handled by this Terraform code.\ndata \"aws_acm_certificate\" \"this\" {\n  domain   = var.acm_certificate_domain\n  statuses = [\"ISSUED\"]\n}\n\n################################################################################\n",
+  "cleaned_response": "#\n# Terraform Configuration for a High-Availability Web Application\n#\n# This configuration provisions the following resources:\n# - A new VPC with public and private subnets across two Availability Zones.\n# - An Internet Gateway for public subnet internet access.\n# - A NAT Gateway for private subnet outbound internet access.\n# - An Application Load Balancer (ALB) to distribute traffic.\n# - An Auto Scaling Group of EC2 instances in the private subnets.\n# - Security Groups to control traffic between the components.\n# - An IAM Role for the EC2 instances with SSM permissions.\n#\n\n################################################################################\n# Provider and Data Sources\n################################################################################\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\n# Note: This assumes a certificate for the specified domain already exists in ACM.\n# Certificate creation and validation are not handled by this Terraform code.\ndata \"aws_acm_certificate\" \"this\" {\n  domain   = var.acm_certificate_domain\n  statuses = [\"ISSUED\"]\n}\n\n################################################################################",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "#\n# Terraform Configuration for a High-Availability Web Application\n#\n# This configuration provisions the following resources:\n# - A new VPC with public and private subnets across two Availability Zones.\n# - An Internet Gateway for public subnet internet access.\n# - A NAT Gateway for private subnet outbound internet access.\n# - An Application Load Balancer (ALB) to distribute traffic.\n# - An Auto Scaling Group of EC2 instances in the private subnets.\n# - Security Groups to control traffic between the components.\n# - An IAM Role for the EC2 instances with SSM permissions.\n#\n\n################################################################################\n# Provider and Data Sources\n################################################################################\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\n# Note: This assumes a certificate for the specified domain already exists in ACM.\n# Certificate creation and validation are not handled by this Terraform code.\ndata \"aws_acm_certificate\" \"this\" {\n  domain   = var.acm_certificate_domain\n  statuses = [\"ISSUED\"]\n}\n\n################################################################################\n",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779729986,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 148,
+      "output_tokens": 2044,
+      "raw_input_tokens": 148
+    }
+  },
+  "started_at": "2026-05-25T17:26:01.915671+00:00",
+  "elapsed_seconds": 24.821
+}

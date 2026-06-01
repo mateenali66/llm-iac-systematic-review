@@ -1,0 +1,62 @@
+---
+- name: Install and configure PostgreSQL 15 server
+  become: yes
+  hosts: postgresql_servers
+  vars:
+    postgresql_version: "15"
+    postgresql_port: 5432
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_database: mydatabase
+    postgresql_username: myuser
+    postgresql_password:mypassword
+  tasks:
+  - name: Install PostgreSQL package
+    apt:
+      name: postgresql-{{ postgresql_version }}
+      state: present
+
+  - name: Configure pg_hba.conf
+    template:
+      src: templates/pg_hba.conf.j2
+      dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+      mode: '0640'
+    notify: restart postgresql
+
+  - name: Configure postgresql.conf
+    template:
+      src: templates/postgresql.conf.j2
+      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+      mode: '0640'
+    notify: restart postgresql
+
+  - name: Start and enable PostgreSQL service
+    service:
+      name: postgresql@{{ postgresql_version }}-main
+      state: started
+      enabled: yes
+
+  - name: Create database and user
+    become_user: postgres
+    become_method: sudo
+    postgresql_db:
+      name: "{{ postgresql_database }}"
+      state: present
+
+  - name: Create PostgreSQL user
+    become_user: postgres
+    become_method: sudo
+    postgresql_user:
+      db: "{{ postgresql_database }}"
+      name: "{{ postgresql_username }}"
+      password: "{{ postgresql_password }}"
+      state: present
+      priv: "ALL"
+
+  handlers:
+  - name: restart postgresql
+    service:
+      name: postgresql@{{ postgresql_version }}-main
+      state: restarted

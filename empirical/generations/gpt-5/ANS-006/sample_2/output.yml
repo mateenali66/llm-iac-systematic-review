@@ -1,0 +1,78 @@
+- name: Configure deploy user, SSH keys, and SSH hardening
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    deploy_user: deploy
+    sshd_service_name: "{{ 'ssh' if ansible_facts['os_family'] == 'Debian' else 'sshd' }}"
+
+  tasks:
+    - name: Ensure sudo package is installed
+      ansible.builtin.package:
+        name: sudo
+        state: present
+
+    - name: Ensure deploy user exists with locked password
+      ansible.builtin.user:
+        name: "{{ deploy_user }}"
+        shell: /bin/bash
+        create_home: true
+        state: present
+        password_lock: true
+
+    - name: Install authorized SSH key for deploy user from vault variable
+      ansible.builtin.authorized_key:
+        user: "{{ deploy_user }}"
+        state: present
+        key: "{{ deploy_ssh_public_key }}"
+        manage_dir: true
+
+    - name: Configure passwordless sudo for deploy user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ deploy_user }}"
+        content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Ensure PubkeyAuthentication is enabled
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(#\s*)?PubkeyAuthentication\s+'
+        line: 'PubkeyAuthentication yes'
+        state: present
+        backrefs: false
+        backup: true
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Disable password-based SSH authentication
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(#\s*)?PasswordAuthentication\s+'
+        line: 'PasswordAuthentication no'
+        state: present
+        backrefs: false
+        backup: true
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Disable root SSH login
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(#\s*)?PermitRootLogin\s+'
+        line: 'PermitRootLogin no'
+        state: present
+        backrefs: false
+        backup: true
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: "{{ sshd_service_name }}"
+        state: restarted
+        enabled: true

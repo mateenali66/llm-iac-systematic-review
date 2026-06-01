@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-014",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\ntargetScope = 'subscription'\n\n@description('Name of the custom RBAC role')\nparam roleName string = 'Custom VM Reader'\n\n@description('Description of the custom RBAC role')\nparam roleDescription string = 'Read-only access to virtual machines'\n\n@description('Object ID of the Azure AD security group')\nparam principalId string\n\n@description('Scope for the role definition and assignment (e.g. /subscriptions/{id})')\nparam assignableScope string = subscription().id\n\nvar roleDefinitionName = guid(roleName, assignableScope)\n\nresource customRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionName\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    assignableScopes: [\n      assignableScope\n    ]\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(principalId, customRoleDefinition.id, assignableScope)\n  properties: {\n    roleDefinitionId: customRoleDefinition.id\n    principalId: principalId\n    principalType: 'Group'\n    scope: assignableScope\n  }\n}\n```",
+  "cleaned_response": "targetScope = 'subscription'\n\n@description('Name of the custom RBAC role')\nparam roleName string = 'Custom VM Reader'\n\n@description('Description of the custom RBAC role')\nparam roleDescription string = 'Read-only access to virtual machines'\n\n@description('Object ID of the Azure AD security group')\nparam principalId string\n\n@description('Scope for the role definition and assignment (e.g. /subscriptions/{id})')\nparam assignableScope string = subscription().id\n\nvar roleDefinitionName = guid(roleName, assignableScope)\n\nresource customRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionName\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    assignableScopes: [\n      assignableScope\n    ]\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(principalId, customRoleDefinition.id, assignableScope)\n  properties: {\n    roleDefinitionId: customRoleDefinition.id\n    principalId: principalId\n    principalType: 'Group'\n    scope: assignableScope\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\ntargetScope = 'subscription'\n\n@description('Name of the custom RBAC role')\nparam roleName string = 'Custom VM Reader'\n\n@description('Description of the custom RBAC role')\nparam roleDescription string = 'Read-only access to virtual machines'\n\n@description('Object ID of the Azure AD security group')\nparam principalId string\n\n@description('Scope for the role definition and assignment (e.g. /subscriptions/{id})')\nparam assignableScope string = subscription().id\n\nvar roleDefinitionName = guid(roleName, assignableScope)\n\nresource customRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionName\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    assignableScopes: [\n      assignableScope\n    ]\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(principalId, customRoleDefinition.id, assignableScope)\n  properties: {\n    roleDefinitionId: customRoleDefinition.id\n    principalId: principalId\n    principalType: 'Group'\n    scope: assignableScope\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724111,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 88,
+      "output_tokens": 299,
+      "reasoning_tokens": 569,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 58
+    }
+  },
+  "started_at": "2026-05-25T15:48:24.825284+00:00",
+  "elapsed_seconds": 6.296
+}

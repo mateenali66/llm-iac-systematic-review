@@ -1,0 +1,111 @@
+# FILE: Chart.yaml
+name: nginx-reverse-proxy
+version: 1.0.0
+description: A Helm chart for deploying NGINX as a reverse proxy
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: LoadBalancer
+  port: 80
+configMap:
+  nginxConf: |
+    http {
+      server {
+        listen 80;
+        location / {
+          proxy_pass http://upstream-service:8080;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+        }
+      }
+    }
+upstreamService:
+  name: upstream-service
+  port: 8080
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: {{ .Values.configMap.nginxConf | indent 4 }}
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-reverse-proxy
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: nginx-reverse-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-reverse-proxy
+    spec:
+      containers:
+      - name: nginx
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-reverse-proxy
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: 80
+  selector:
+    app: nginx-reverse-proxy
+
+---
+# FILE: templates/networkpolicy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: restrict-upstream-traffic
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx-reverse-proxy
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: {{ .Values.upstreamService.name }}
+    ports:
+    - {{ .Values.upstreamService.port }}
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: {{ .Values.upstreamService.name }}
+    ports:
+    - {{ .Values.upstreamService.port }}
+  policyTypes:
+  - Ingress
+  - Egress

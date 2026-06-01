@@ -1,0 +1,133 @@
+resources:
+- name: enable-iam
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/PROJECT_NUMBER/services/iam.googleapis.com
+- name: enable-iamcredentials
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/PROJECT_NUMBER/services/iamcredentials.googleapis.com
+- name: enable-sts
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/PROJECT_NUMBER/services/sts.googleapis.com
+- name: enable-run
+  type: gcp-types/serviceusage-v1:services.enable
+  properties:
+    name: projects/PROJECT_NUMBER/services/run.googleapis.com
+
+- name: cloud-run-deployer-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  metadata:
+    dependsOn:
+    - enable-iam
+  properties:
+    name: projects/PROJECT_ID
+    accountId: gh-run-deployer
+    serviceAccount:
+      displayName: Cloud Run Deployer (GitHub Actions)
+      description: Impersonated by GitHub Actions via Workload Identity Federation to deploy Cloud Run services.
+
+- name: cloud-run-runtime-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  metadata:
+    dependsOn:
+    - enable-iam
+  properties:
+    name: projects/PROJECT_ID
+    accountId: cloud-run-runtime
+    serviceAccount:
+      displayName: Cloud Run Runtime
+      description: Runtime identity for Cloud Run services.
+
+- name: grant-runtime-log-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: PROJECT_ID
+    role: roles/logging.logWriter
+    member: serviceAccount:cloud-run-runtime@PROJECT_ID.iam.gserviceaccount.com
+
+- name: grant-runtime-metric-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: PROJECT_ID
+    role: roles/monitoring.metricWriter
+    member: serviceAccount:cloud-run-runtime@PROJECT_ID.iam.gserviceaccount.com
+
+- name: grant-runtime-trace-agent
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: PROJECT_ID
+    role: roles/cloudtrace.agent
+    member: serviceAccount:cloud-run-runtime@PROJECT_ID.iam.gserviceaccount.com
+
+- name: grant-deployer-run-admin
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: PROJECT_ID
+    role: roles/run.admin
+    member: serviceAccount:gh-run-deployer@PROJECT_ID.iam.gserviceaccount.com
+
+- name: allow-deployer-use-runtime-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+  properties:
+    resource: projects/PROJECT_ID/serviceAccounts/cloud-run-runtime@PROJECT_ID.iam.gserviceaccount.com
+    role: roles/iam.serviceAccountUser
+    member: serviceAccount:gh-run-deployer@PROJECT_ID.iam.gserviceaccount.com
+
+- name: gh-actions-wif-pool
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  metadata:
+    dependsOn:
+    - enable-iam
+    - enable-sts
+  properties:
+    parent: projects/PROJECT_NUMBER/locations/global
+    workloadIdentityPoolId: gh-actions-pool
+    workloadIdentityPool:
+      displayName: GitHub Actions Pool
+      description: Workload Identity Pool for GitHub Actions OIDC
+      disabled: false
+
+- name: gh-actions-wif-provider
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  metadata:
+    dependsOn:
+    - gh-actions-wif-pool
+  properties:
+    parent: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-actions-pool
+    workloadIdentityPoolProviderId: github
+    workloadIdentityPoolProvider:
+      displayName: GitHub OIDC Provider
+      description: OIDC provider for GitHub Actions
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.repository: assertion.repository
+        attribute.ref: assertion.ref
+        attribute.workflow_ref: assertion.workflow_ref
+      attributeCondition: "attribute.repository == 'GITHUB_ORG/GITHUB_REPO' && attribute.ref == 'refs/heads/main'"
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+
+- name: allow-wif-impersonation-on-deployer
+  type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+  metadata:
+    dependsOn:
+    - gh-actions-wif-provider
+    - cloud-run-deployer-sa
+  properties:
+    resource: projects/PROJECT_ID/serviceAccounts/gh-run-deployer@PROJECT_ID.iam.gserviceaccount.com
+    role: roles/iam.workloadIdentityUser
+    member: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-actions-pool/attribute.repository/GITHUB_ORG/GITHUB_REPO
+
+outputs:
+- name: deployerServiceAccountEmail
+  value: gh-run-deployer@PROJECT_ID.iam.gserviceaccount.com
+- name: runtimeServiceAccountEmail
+  value: cloud-run-runtime@PROJECT_ID.iam.gserviceaccount.com
+- name: workloadIdentityPoolName
+  value: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-actions-pool
+- name: workloadIdentityProviderName
+  value: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-actions-pool/providers/github
+- name: impersonationPrincipalSetMember
+  value: principalSet://iam.googleapis.com/projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/gh-actions-pool/attribute.repository/GITHUB_ORG/GITHUB_REPO

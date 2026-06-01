@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'KMS Customer-Managed Key for Database Backup Encryption'
+
+Parameters:
+  KeyAliasName:
+    Type: String
+    Default: 'alias/database-backup-key'
+    Description: 'Alias for the KMS key'
+  KeyDescription:
+    Type: String
+    Default: 'KMS key for encrypting database backups'
+    Description: 'Description of the KMS key'
+
+Resources:
+  DatabaseBackupKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Ref KeyDescription
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Enable IAM User Permissions'
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: 'Allow Service Roles to Encrypt/Decrypt'
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/backup.amazonaws.com/AWSServiceRoleForBackup'
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+          - Sid: 'Allow Backup Service to Grant'
+            Effect: Allow
+            Principal:
+              Service: backup.amazonaws.com
+            Action:
+              - 'kms:CreateGrant'
+              - 'kms:ListGrants'
+              - 'kms:RevokeGrant'
+            Resource: '*'
+            Condition:
+              Bool:
+                'kms:GrantIsForAWSResource': true
+      Tags:
+        - Key: Name
+          Value: !Ref KeyAliasName
+        - Key: Environment
+          Value: !Ref AWS::StackName
+        - Key: Purpose
+          Value: 'Database Backup Encryption'
+
+  DatabaseBackupKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref KeyAliasName
+      TargetKeyId: !Ref DatabaseBackupKmsKey
+
+Outputs:
+  KmsKeyId:
+    Description: 'KMS Key ID for database backup encryption'
+    Value: !Ref DatabaseBackupKmsKey
+    Export:
+      Name: !Sub '${AWS::StackName}-KmsKeyId'
+  KmsKeyArn:
+    Description: 'KMS Key ARN for database backup encryption'
+    Value: !GetAtt DatabaseBackupKmsKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-KmsKeyArn'
+  KmsKeyAlias:
+    Description: 'KMS Key alias'
+    Value: !Ref KeyAliasName
+    Export:
+      Name: !Sub '${AWS::StackName}-KmsKeyAlias'

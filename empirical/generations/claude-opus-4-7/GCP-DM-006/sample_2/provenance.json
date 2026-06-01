@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-006",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: service_account.jinja\n  - path: iam_binding.jinja\n\nresources:\n  - name: cloud-function-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-bucket-reader-sa\n      displayName: Cloud Function Bucket Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: target-bucket\n    type: storage.v1.bucket\n    properties:\n      name: {{ env[\"project\"] }}-cf-source-data\n      location: US\n      storageClass: STANDARD\n      iamConfiguration:\n        uniformBucketLevelAccess:\n          enabled: true\n        publicAccessPrevention: enforced\n      versioning:\n        enabled: true\n      lifecycle:\n        rule:\n          - action:\n              type: Delete\n            condition:\n              age: 365\n              isLive: false\n      labels:\n        environment: production\n        managed-by: deployment-manager\n        purpose: cloud-function-source\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cloud-function-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cloud-function-sa.name)\n  - name: bucketName\n    value: $(ref.target-bucket.name)\n  - name: bucketSelfLink\n    value: $(ref.target-bucket.selfLink)",
+  "cleaned_response": "imports:\n  - path: service_account.jinja\n  - path: iam_binding.jinja\n\nresources:\n  - name: cloud-function-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-bucket-reader-sa\n      displayName: Cloud Function Bucket Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: target-bucket\n    type: storage.v1.bucket\n    properties:\n      name: {{ env[\"project\"] }}-cf-source-data\n      location: US\n      storageClass: STANDARD\n      iamConfiguration:\n        uniformBucketLevelAccess:\n          enabled: true\n        publicAccessPrevention: enforced\n      versioning:\n        enabled: true\n      lifecycle:\n        rule:\n          - action:\n              type: Delete\n            condition:\n              age: 365\n              isLive: false\n      labels:\n        environment: production\n        managed-by: deployment-manager\n        purpose: cloud-function-source\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cloud-function-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cloud-function-sa.name)\n  - name: bucketName\n    value: $(ref.target-bucket.name)\n  - name: bucketSelfLink\n    value: $(ref.target-bucket.selfLink)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: service_account.jinja\n  - path: iam_binding.jinja\n\nresources:\n  - name: cloud-function-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-bucket-reader-sa\n      displayName: Cloud Function Bucket Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: $(ref.target-bucket.name)\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cloud-function-sa.email)\n    metadata:\n      dependsOn:\n        - cloud-function-sa\n        - target-bucket\n\n  - name: target-bucket\n    type: storage.v1.bucket\n    properties:\n      name: {{ env[\"project\"] }}-cf-source-data\n      location: US\n      storageClass: STANDARD\n      iamConfiguration:\n        uniformBucketLevelAccess:\n          enabled: true\n        publicAccessPrevention: enforced\n      versioning:\n        enabled: true\n      lifecycle:\n        rule:\n          - action:\n              type: Delete\n            condition:\n              age: 365\n              isLive: false\n      labels:\n        environment: production\n        managed-by: deployment-manager\n        purpose: cloud-function-source\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cloud-function-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cloud-function-sa.name)\n  - name: bucketName\n    value: $(ref.target-bucket.name)\n  - name: bucketSelfLink\n    value: $(ref.target-bucket.selfLink)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726545,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 256,
+      "output_tokens": 777,
+      "raw_input_tokens": 256
+    }
+  },
+  "started_at": "2026-05-25T16:28:52.259953+00:00",
+  "elapsed_seconds": 13.08
+}

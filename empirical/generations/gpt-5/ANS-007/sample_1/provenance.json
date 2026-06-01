@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-007",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Configure static network with Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  collections:\n    - community.general\n  vars:\n    interface_name: eth0\n    ip_address: 192.0.2.10\n    prefix_length: 24\n    gateway4: 192.0.2.1\n    dns_servers:\n      - 1.1.1.1\n      - 8.8.8.8\n    dns_search_domains: []\n  pre_tasks:\n    - name: Assert running on Debian 12\n      ansible.builtin.assert:\n        that:\n          - ansible_facts.distribution == \"Debian\"\n          - ansible_facts.distribution_major_version is version('12', '==')\n        fail_msg: \"This playbook is intended for Debian 12 only.\"\n    - name: Ensure apt cache is up to date\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n  tasks:\n    - name: Install netplan.io\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Ensure /etc/netplan directory exists\n      ansible.builtin.file:\n        path: /etc/netplan\n        state: directory\n        mode: '0755'\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        state: started\n        enabled: true\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        state: started\n        enabled: true\n\n    - name: Ensure resolv.conf is symlinked to systemd-resolved stub\n      ansible.builtin.file:\n        path: /etc/resolv.conf\n        state: link\n        force: true\n        src: /run/systemd/resolve/stub-resolv.conf\n\n    - name: Configure static interface with netplan\n      community.general.netplan:\n        state: present\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ ip_address }}/{{ prefix_length }}\"\n              nameservers:\n                addresses: \"{{ dns_servers }}\"\n                search: \"{{ dns_search_domains | default([]) }}\"\n              routes:\n                - to: default\n                  via: \"{{ gateway4 }}\"\n      notify:\n        - Apply netplan\n\n    - meta: flush_handlers\n\n    - name: Disable legacy ifupdown networking service\n      ansible.builtin.systemd:\n        name: networking\n        enabled: false\n        state: stopped\n      ignore_errors: true\n\n  handlers:\n    - name: netplan generate\n      ansible.builtin.command: netplan generate\n      changed_when: false\n      listen: Apply netplan\n\n    - name: netplan apply\n      ansible.builtin.command: netplan apply\n      listen: Apply netplan",
+  "cleaned_response": "- name: Configure static network with Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  collections:\n    - community.general\n  vars:\n    interface_name: eth0\n    ip_address: 192.0.2.10\n    prefix_length: 24\n    gateway4: 192.0.2.1\n    dns_servers:\n      - 1.1.1.1\n      - 8.8.8.8\n    dns_search_domains: []\n  pre_tasks:\n    - name: Assert running on Debian 12\n      ansible.builtin.assert:\n        that:\n          - ansible_facts.distribution == \"Debian\"\n          - ansible_facts.distribution_major_version is version('12', '==')\n        fail_msg: \"This playbook is intended for Debian 12 only.\"\n    - name: Ensure apt cache is up to date\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n  tasks:\n    - name: Install netplan.io\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Ensure /etc/netplan directory exists\n      ansible.builtin.file:\n        path: /etc/netplan\n        state: directory\n        mode: '0755'\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        state: started\n        enabled: true\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        state: started\n        enabled: true\n\n    - name: Ensure resolv.conf is symlinked to systemd-resolved stub\n      ansible.builtin.file:\n        path: /etc/resolv.conf\n        state: link\n        force: true\n        src: /run/systemd/resolve/stub-resolv.conf\n\n    - name: Configure static interface with netplan\n      community.general.netplan:\n        state: present\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ ip_address }}/{{ prefix_length }}\"\n              nameservers:\n                addresses: \"{{ dns_servers }}\"\n                search: \"{{ dns_search_domains | default([]) }}\"\n              routes:\n                - to: default\n                  via: \"{{ gateway4 }}\"\n      notify:\n        - Apply netplan\n\n    - meta: flush_handlers\n\n    - name: Disable legacy ifupdown networking service\n      ansible.builtin.systemd:\n        name: networking\n        enabled: false\n        state: stopped\n      ignore_errors: true\n\n  handlers:\n    - name: netplan generate\n      ansible.builtin.command: netplan generate\n      changed_when: false\n      listen: Apply netplan\n\n    - name: netplan apply\n      ansible.builtin.command: netplan apply\n      listen: Apply netplan",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Configure static network with Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  collections:\n    - community.general\n  vars:\n    interface_name: eth0\n    ip_address: 192.0.2.10\n    prefix_length: 24\n    gateway4: 192.0.2.1\n    dns_servers:\n      - 1.1.1.1\n      - 8.8.8.8\n    dns_search_domains: []\n  pre_tasks:\n    - name: Assert running on Debian 12\n      ansible.builtin.assert:\n        that:\n          - ansible_facts.distribution == \"Debian\"\n          - ansible_facts.distribution_major_version is version('12', '==')\n        fail_msg: \"This playbook is intended for Debian 12 only.\"\n    - name: Ensure apt cache is up to date\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n  tasks:\n    - name: Install netplan.io\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Ensure /etc/netplan directory exists\n      ansible.builtin.file:\n        path: /etc/netplan\n        state: directory\n        mode: '0755'\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        state: started\n        enabled: true\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        state: started\n        enabled: true\n\n    - name: Ensure resolv.conf is symlinked to systemd-resolved stub\n      ansible.builtin.file:\n        path: /etc/resolv.conf\n        state: link\n        force: true\n        src: /run/systemd/resolve/stub-resolv.conf\n\n    - name: Configure static interface with netplan\n      community.general.netplan:\n        state: present\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ ip_address }}/{{ prefix_length }}\"\n              nameservers:\n                addresses: \"{{ dns_servers }}\"\n                search: \"{{ dns_search_domains | default([]) }}\"\n              routes:\n                - to: default\n                  via: \"{{ gateway4 }}\"\n      notify:\n        - Apply netplan\n\n    - meta: flush_handlers\n\n    - name: Disable legacy ifupdown networking service\n      ansible.builtin.systemd:\n        name: networking\n        enabled: false\n        state: stopped\n      ignore_errors: true\n\n  handlers:\n    - name: netplan generate\n      ansible.builtin.command: netplan generate\n      changed_when: false\n      listen: Apply netplan\n\n    - name: netplan apply\n      ansible.builtin.command: netplan apply\n      listen: Apply netplan",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724832,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 144,
+      "output_tokens": 5561,
+      "raw_input_tokens": 144
+    }
+  },
+  "started_at": "2026-05-25T15:59:40.418707+00:00",
+  "elapsed_seconds": 52.018
+}

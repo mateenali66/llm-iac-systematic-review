@@ -1,0 +1,320 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application with security best practices
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Environment name (e.g., prod, staging)
+    Default: prod
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the Aurora cluster will be deployed
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of at least two private subnet IDs in distinct AZs for the DB subnet group
+  AppSecurityGroupId:
+    Type: String
+    Description: Optional security group ID of the application tier allowed to connect to the database
+    Default: ''
+  AllowedIngressCidr:
+    Type: String
+    Description: Optional CIDR block allowed to access the database (e.g., for bastion). Leave blank to disable.
+    Default: ''
+  DBClusterIdentifier:
+    Type: String
+    Description: Aurora DB cluster identifier
+    Default: saas-aurora-pg
+  DBName:
+    Type: String
+    Description: Initial database name
+    Default: appdb
+  MasterUsername:
+    Type: String
+    Description: Master username (password will be auto-managed by RDS in Secrets Manager)
+    Default: dbadmin
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9_]*'
+  EngineVersion:
+    Type: String
+    Description: Aurora PostgreSQL engine version that supports Serverless v2
+    Default: '16.2'
+  DBFamily:
+    Type: String
+    Description: Cluster parameter group family (must match engine major version)
+    Default: aurora-postgresql16
+    AllowedPattern: 'aurora-postgresql(11|12|13|14|15|16)'
+  MinCapacityACU:
+    Type: Number
+    Description: Minimum ACUs for Serverless v2 (0.5 - 128, increments of 0.5)
+    Default: 1.0
+  MaxCapacityACU:
+    Type: Number
+    Description: Maximum ACUs for Serverless v2 (0.5 - 128, increments of 0.5)
+    Default: 16.0
+  BackupRetentionPeriod:
+    Type: Number
+    Description: Number of days to retain automated backups
+    Default: 14
+    MinValue: 1
+    MaxValue: 35
+  PreferredBackupWindow:
+    Type: String
+    Description: Preferred backup window (UTC) e.g., 03:00-04:00
+    Default: 03:00-04:00
+  PreferredMaintenanceWindow:
+    Type: String
+    Description: Preferred maintenance window (UTC) e.g., sun:04:00-sun:05:00
+    Default: sun:04:00-sun:05:00
+  PubliclyAccessible:
+    Type: String
+    Description: Whether the DB instances are publicly accessible (strongly recommended false)
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+  DBPort:
+    Type: Number
+    Description: Database port
+    Default: 5432
+    MinValue: 1024
+    MaxValue: 65535
+  EnablePerformanceInsights:
+    Type: String
+    Description: Enable Performance Insights
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+  PerformanceInsightsRetentionPeriod:
+    Type: Number
+    Description: Performance Insights retention in days (7, 31, 63, ... up to 731)
+    Default: 31
+    MinValue: 7
+    MaxValue: 731
+  EnableDeletionProtection:
+    Type: String
+    Description: Enable deletion protection on the cluster
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+  CreateReaderInstance:
+    Type: String
+    Description: Create a reader instance for high availability
+    AllowedValues: ['true', 'false']
+    Default: 'true'
+
+Conditions:
+  HasAppSecurityGroup: !Not [!Equals [!Ref AppSecurityGroupId, '']]
+  HasAllowedIngressCidr: !Not [!Equals [!Ref AllowedIngressCidr, '']]
+  PubliclyAccessibleTrue: !Equals [!Ref PubliclyAccessible, 'true']
+  EnablePI: !Equals [!Ref EnablePerformanceInsights, 'true']
+  DeletionProtectionTrue: !Equals [!Ref EnableDeletionProtection, 'true']
+  CreateReaderInstanceCond: !Equals [!Ref CreateReaderInstance, 'true']
+
+Resources:
+  RDSKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS CMK for encrypting Aurora PostgreSQL cluster and Performance Insights
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowRootAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowRDSUseOfTheKey
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:ReEncrypt*
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub rds.${AWS::Region}.amazonaws.com
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-kms-key
+  RDSKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${EnvironmentName}/aurora-postgresql
+      TargetKeyId: !Ref RDSKmsKey
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub Subnet group for ${EnvironmentName} Aurora PostgreSQL
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-subnet-group
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Security group for ${EnvironmentName} Aurora PostgreSQL
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-sg
+
+  SGIngressFromAppSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: HasAppSecurityGroup
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref DBPort
+      ToPort: !Ref DBPort
+      SourceSecurityGroupId: !Ref AppSecurityGroupId
+      Description: Allow Postgres from application security group
+
+  SGIngressFromCIDR:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: HasAllowedIngressCidr
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref DBPort
+      ToPort: !Ref DBPort
+      CidrIp: !Ref AllowedIngressCidr
+      Description: Allow Postgres from specified CIDR
+
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: !Sub Cluster parameter group for ${EnvironmentName} Aurora PostgreSQL
+      Family: !Ref DBFamily
+      Parameters:
+        rds.force_ssl: '1'
+        log_min_duration_statement: '2000'
+        log_connections: '1'
+        log_disconnections: '1'
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-cluster-params
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: !Ref EngineVersion
+      DBClusterIdentifier: !Ref DBClusterIdentifier
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref MasterUsername
+      ManageMasterUserPassword: true
+      Port: !Ref DBPort
+      BackupRetentionPeriod: !Ref BackupRetentionPeriod
+      PreferredBackupWindow: !Ref PreferredBackupWindow
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBSecurityGroup
+      StorageEncrypted: true
+      KmsKeyId: !Ref RDSKmsKey
+      CopyTagsToSnapshot: true
+      DeletionProtection: !If [DeletionProtectionTrue, true, false]
+      EnableCloudwatchLogsExports:
+        - postgresql
+      IamDatabaseAuthenticationEnabled: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinCapacityACU
+        MaxCapacity: !Ref MaxCapacityACU
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-cluster
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBInstanceWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${DBClusterIdentifier}-writer
+      DBClusterIdentifier: !Ref DBCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: db.serverless
+      PubliclyAccessible: !If [PubliclyAccessibleTrue, true, false]
+      AutoMinorVersionUpgrade: true
+      AllowMajorVersionUpgrade: false
+      EnablePerformanceInsights: !If [EnablePI, true, false]
+      PerformanceInsightsKMSKeyId: !If [EnablePI, !Ref RDSKmsKey, !Ref 'AWS::NoValue']
+      PerformanceInsightsRetentionPeriod: !If [EnablePI, !Ref PerformanceInsightsRetentionPeriod, !Ref 'AWS::NoValue']
+      PromotionTier: 0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-writer
+        - Key: Role
+          Value: writer
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBInstanceReader:
+    Type: AWS::RDS::DBInstance
+    Condition: CreateReaderInstanceCond
+    Properties:
+      DBInstanceIdentifier: !Sub ${DBClusterIdentifier}-reader
+      DBClusterIdentifier: !Ref DBCluster
+      Engine: aurora-postgresql
+      DBInstanceClass: db.serverless
+      PubliclyAccessible: !If [PubliclyAccessibleTrue, true, false]
+      AutoMinorVersionUpgrade: true
+      AllowMajorVersionUpgrade: false
+      EnablePerformanceInsights: !If [EnablePI, true, false]
+      PerformanceInsightsKMSKeyId: !If [EnablePI, !Ref RDSKmsKey, !Ref 'AWS::NoValue']
+      PerformanceInsightsRetentionPeriod: !If [EnablePI, !Ref PerformanceInsightsRetentionPeriod, !Ref 'AWS::NoValue']
+      PromotionTier: 1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-aurora-reader
+        - Key: Role
+          Value: reader
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+Outputs:
+  DBClusterArn:
+    Description: ARN of the Aurora DB cluster
+    Value: !Ref DBCluster
+    Export:
+      Name: !Sub ${AWS::StackName}-DBClusterArn
+  DBClusterEndpoint:
+    Description: Writer endpoint address for the cluster
+    Value: !GetAtt DBCluster.EndpointAddress
+    Export:
+      Name: !Sub ${AWS::StackName}-DBClusterEndpoint
+  DBReaderEndpoint:
+    Description: Reader endpoint address for the cluster
+    Value: !GetAtt DBCluster.ReadEndpointAddress
+    Export:
+      Name: !Sub ${AWS::StackName}-DBReaderEndpoint
+  DBPort:
+    Description: Database port
+    Value: !Ref DBPort
+  MasterUserSecretArn:
+    Description: Secrets Manager ARN for the master user secret managed by RDS
+    Value: !GetAtt DBCluster.MasterUserSecret.SecretArn
+    Export:
+      Name: !Sub ${AWS::StackName}-MasterUserSecretArn
+  SecurityGroupId:
+    Description: Security group ID attached to the Aurora cluster
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSecurityGroupId
+  KmsKeyArn:
+    Description: KMS key ARN used for cluster encryption and Performance Insights
+    Value: !GetAtt RDSKmsKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyArn

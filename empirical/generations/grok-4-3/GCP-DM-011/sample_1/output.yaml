@@ -1,0 +1,93 @@
+resources:
+- name: instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-medium
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: projects/debian-cloud/global/images/family/debian-11
+      networkInterfaces:
+      - network: global/networks/default
+        accessConfigs:
+        - type: ONE_TO_ONE_NAT
+      tags:
+        items:
+        - https-lb
+- name: managed-instance-group
+  type: compute.v1.instanceGroupManager
+  properties:
+    instanceTemplate: $(ref.instance-template.selfLink)
+    targetSize: 1
+    namedPorts:
+    - name: http
+      port: 80
+- name: autoscaler
+  type: compute.v1.autoscaler
+  properties:
+    target: $(ref.managed-instance-group.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cpuUtilization:
+        utilizationTarget: 0.6
+- name: health-check
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+- name: backend-service
+  type: compute.v1.backendService
+  properties:
+    protocol: HTTP
+    portName: http
+    healthChecks:
+    - $(ref.health-check.selfLink)
+    backends:
+    - group: $(ref.managed-instance-group.instanceGroup)
+    loadBalancingScheme: EXTERNAL_MANAGED
+- name: url-map
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.backend-service.selfLink)
+- name: ssl-certificate
+  type: compute.v1.sslCertificate
+  properties:
+    name: https-lb-cert
+    managed:
+      domains:
+      - example.com
+- name: target-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    sslCertificates:
+    - $(ref.ssl-certificate.selfLink)
+    urlMap: $(ref.url-map.selfLink)
+- name: forwarding-rule
+  type: compute.v1.globalForwardingRule
+  properties:
+    IPProtocol: TCP
+    portRange: 443
+    target: $(ref.target-https-proxy.selfLink)
+    loadBalancingScheme: EXTERNAL_MANAGED
+- name: allow-health-check
+  type: compute.v1.firewall
+  properties:
+    network: global/networks/default
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 130.211.0.0/22
+    - 35.191.0.0/16
+    targetTags:
+    - https-lb
+    allowed:
+    - IPProtocol: TCP
+      ports:
+      - "80"

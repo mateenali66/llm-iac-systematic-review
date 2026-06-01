@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Dashboard for Lambda-based API health
+Resources:
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Sub 'lambda-api-${AWS::Region}'
+      Runtime: nodejs14.x
+      Handler: index.handler
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+            return { statusCode: 200 };
+          };
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: execution-role-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${LambdaFunction}'
+  CloudWatchDashboard:
+    Type: 'AWS::CloudWatch::Dashboard'
+    Properties:
+      DashboardName: !Sub 'lambda-api-dashboard-${AWS::Region}'
+      DashboardBody: |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [
+                    "AWS/Lambda",
+                    "Invocations",
+                    "FunctionName",
+                    "${LambdaFunction}",
+                    {
+                      "stat": "Sum"
+                    }
+                  ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Invocations",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [
+                    "AWS/Lambda",
+                    "Errors",
+                    "FunctionName",
+                    "${LambdaFunction}",
+                    {
+                      "stat": "Sum"
+                    }
+                  ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Errors",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [
+                    "AWS/Lambda",
+                    "Throttles",
+                    "FunctionName",
+                    "${LambdaFunction}",
+                    {
+                      "stat": "Sum"
+                    }
+                  ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Throttles",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "view": "timeSeries",
+                "stacked": false,
+                "metrics": [
+                  [
+                    "AWS/Lambda",
+                    "Duration",
+                    "FunctionName",
+                    "${LambdaFunction}",
+                    {
+                      "stat": "Average"
+                    }
+                  ]
+                ],
+                "region": "${AWS::Region}",
+                "title": "Average Duration",
+                "period": 300,
+                "stat": "Average"
+              }
+            }
+          ]
+        }

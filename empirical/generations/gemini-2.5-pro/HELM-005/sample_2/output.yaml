@@ -1,0 +1,35 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: app-with-sidecar
+description: A Helm chart for deploying a web application with a Fluent Bit sidecar for log shipping.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Default values for app-with-sidecar.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Main application container settings
+app:
+  image:
+    repository: busybox
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "1.36"
+
+  # Command to run in the main application container.
+  # This example command writes the date to a log file every 5 seconds.
+  # In a real application, this would be your application's start command.
+  # Your application should be configured to write logs to /var/log/app/app.log
+  command:
+    - "/bin/sh"
+    - "-c"
+    - "while true; do echo \"(app

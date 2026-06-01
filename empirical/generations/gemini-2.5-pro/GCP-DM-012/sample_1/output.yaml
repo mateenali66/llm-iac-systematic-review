@@ -1,0 +1,37 @@
+resources:
+- name: armor-policy-geoblock-ratelimit
+  type: compute.v1.securityPolicy
+  properties:
+    description: "Production security policy to block specific countries and apply rate limiting."
+    rules:
+      - description: "Deny traffic from China and Russia"
+        priority: 1000
+        action: "deny(403)"
+        match:
+          expr:
+            expression: "origin.region_code == 'CN' || origin.region_code == 'RU'"
+        preview: false
+      - description: "Rate-limit requests per IP to 200 requests every 5 minutes"
+        priority: 1500
+        action: "rate_based_ban"
+        rateLimitOptions:
+          rateLimitThreshold:
+            count: 200
+            intervalSec: 300
+          conformAction: "allow"
+          exceedAction: "deny(429)"
+          banDurationSec: 600
+          enforceOnKey: "IP"
+        match:
+          versionedExpr: "SRC_IPS_V1"
+          expr:
+            expression: "true"
+        preview: false
+      - description: "Default rule to allow all other traffic"
+        priority: 2147483647
+        action: "allow"
+        match:
+          versionedExpr: "SRC_IPS_V1"
+          expr:
+            expression: "true"
+        preview: false

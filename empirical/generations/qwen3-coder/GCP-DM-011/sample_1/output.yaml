@@ -1,0 +1,130 @@
+imports:
+- path: instance-template.jinja
+
+resources:
+- name: mig-instance-template
+  type: instance-template.jinja
+  properties:
+    machineType: e2-medium
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/debian-cloud/global/images/family/debian-11
+    networkInterfaces:
+    - network: global/networks/default
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+    tags:
+      items:
+      - http-server
+      - https-server
+    metadata:
+      items:
+      - key: startup-script
+        value: |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y nginx
+          echo "Hello from $(hostname)" > /var/www/html/index.html
+    serviceAccount:
+      email: default
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform
+
+- name: mig-health-check
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    checkIntervalSec: 5
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+
+- name: mig-backend-service
+  type: compute.v1.regionBackendService
+  properties:
+    region: us-central1
+    backends:
+    - group: $(ref.mig-instance-group.selfLink)
+    healthChecks:
+    - $(ref.mig-health-check.selfLink)
+    protocol: HTTP
+    loadBalancingScheme: EXTERNAL_MANAGED
+    sessionAffinity: NONE
+    timeoutSec: 30
+
+- name: mig-url-map
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.mig-backend-service.selfLink)
+
+- name: mig-ssl-certificate
+  type: compute.v1.sslCertificate
+  properties:
+    managed:
+      domains:
+      - example.com
+
+- name: mig-target-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    urlMap: $(ref.mig-url-map.selfLink)
+    sslCertificates:
+    - $(ref.mig-ssl-certificate.selfLink)
+
+- name: mig-forwarding-rule
+  type: compute.v1.forwardingRule
+  properties:
+    region: us-central1
+    IPAddress: 
+    IPProtocol: TCP
+    portRange: 443
+    target: $(ref.mig-target-https-proxy.selfLink)
+    loadBalancingScheme: EXTERNAL_MANAGED
+
+- name: mig-instance-group
+  type: compute.v1.regionInstanceGroupManager
+  properties:
+    region: us-central1
+    instanceTemplate: $(ref.mig-instance-template.selfLink)
+    targetSize: 1
+    baseInstanceName: mig-instance
+    namedPorts:
+    - name: http
+      port: 80
+    autoHealingPolicies:
+    - healthCheck: $(ref.mig-health-check.selfLink)
+      initialDelaySec: 300
+    updatePolicy:
+      type: PROACTIVE
+      minimalAction: REPLACE
+      maxSurge:
+        fixed: 1
+      maxUnavailable:
+        fixed: 1
+      replacementMethod: SUBSTITUTE
+  metadata:
+    dependsOn:
+    - mig-instance-template
+
+- name: mig-autoscaler
+  type: compute.v1.regionAutoscaler
+  properties:
+    region: us-central1
+    target: $(ref.mig-instance-group.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cpuUtilization:
+        utilizationTarget: 0.6
+      coolDownPeriodSec: 60
+  metadata:
+    dependsOn:
+    - mig-instance-group

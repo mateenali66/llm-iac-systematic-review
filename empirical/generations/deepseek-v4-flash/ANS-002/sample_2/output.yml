@@ -1,0 +1,34 @@
+- name: Configure firewall to allow SSH and HTTPS, deny all other inbound
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure ufw is installed
+      package:
+        name: ufw
+        state: present
+
+    - name: Set default inbound policy to deny
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set default outbound policy to allow
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow SSH (port 22)
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Allow HTTPS (port 443)
+      ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+
+    - name: Enable ufw and ensure it is active
+      ufw:
+        state: enabled

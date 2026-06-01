@@ -1,0 +1,102 @@
+---
+- name: PostgreSQL 15 production deployment
+  hosts: all
+  become: true
+  vars:
+    pg_version: "15"
+    pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+    allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+    db_name: appdb
+    db_user: appuser
+    db_password: "{{ vault_db_password | default('change_me_in_vault') }}"
+  tasks:
+    - name: Install PostgreSQL 15 packages
+      ansible.builtin.apt:
+        name:
+          - postgresql-{{ pg_version }}
+          - postgresql-contrib-{{ pg_version }}
+          - postgresql-client-{{ pg_version }}
+        state: present
+        update_cache: true
+
+    - name: Deploy production postgresql.conf
+      ansible.builtin.copy:
+        dest: "{{ pg_data_dir }}/postgresql.conf"
+        owner: postgres
+        group: postgres
+        mode: "0640"
+        content: |
+          data_directory = '{{ pg_data_dir }}'
+          hba_file = '{{ pg_data_dir }}/pg_hba.conf'
+          listen_addresses = '*'
+          port = 5432
+          max_connections = 200
+          shared_buffers = '2GB'
+          effective_cache_size = '6GB'
+          work_mem = '16MB'
+          maintenance_work_mem = '256MB'
+          checkpoint_completion_target = 0.9
+          wal_buffers = '16MB'
+          default_statistics_target = 100
+          random_page_cost = 1.1
+          effective_io_concurrency = 200
+          logging_collector = on
+          log_directory = 'log'
+          log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+          log_rotation_age = '1d'
+          log_min_duration_statement = 250
+          ssl = on
+          password_encryption = 'scram-sha-256'
+
+    - name: Deploy pg_hba.conf with CIDR restrictions
+      ansible.builtin.copy:
+        dest: "{{ pg_data_dir }}/pg_hba.conf"
+        owner: postgres
+        group: postgres
+        mode: "0640"
+        content: |
+          local   all             postgres                                peer
+          local   all             all                                     peer
+          host    all             all             127.0.0.1/32            scram-sha-256
+          host    all             all             ::1/128                 scram-sha-256
+          {% for cidr in allowed_cidrs %}
+          host    all             all             {{ cidr }}              scram-sha-256
+          {% endfor %}
+
+    - name: Set PostgreSQL service facts and start
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+        enabled: true
+
+    - name: Reload PostgreSQL after config change
+      ansible.builtin.systemd:
+        name: postgresql
+        state: reloaded
+
+    - name: Create application database
+      ansible.builtin.command:
+        cmd: "psql -U postgres -c \"CREATE DATABASE {{ db_name }} OWNER {{ db_user }} ENCODING 'UTF8' TEMPLATE template0;\""
+      args:
+        creates: "{{ pg_data_dir }}/../{{ db_name }}"
+      become: true
+      become_user: postgres
+      changed_when: false
+
+    - name: Create application user with password
+      ansible.builtin.command:
+        cmd: >
+          psql -U postgres -c
+          "CREATE USER {{ db_user }} WITH ENCRYPTED PASSWORD '{{ db_password }}' LOGIN;"
+      become: true
+      become_user: postgres
+      changed_when: false
+
+    - name: Grant privileges
+      ansible.builtin.command:
+        cmd: "psql -U postgres -c \"GRANT ALL PRIVILEGES ON DATABASE {{ db_name }} TO {{ db_user }};\""
+      become: true
+      become_user: postgres
+      changed_when: false

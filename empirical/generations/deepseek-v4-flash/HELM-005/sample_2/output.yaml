@@ -1,0 +1,249 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-container-pod
+description: A Helm chart for deploying a multi-container Pod with Fluent Bit sidecar
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+# Default values for multi-container-pod chart
+# This is a YAML-formatted file.
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+fluentbit:
+  image:
+    repository: fluent/fluent-bit
+    tag: latest
+    pullPolicy: IfNotPresent
+  config:
+    # Fluent Bit configuration for log shipping
+    input:
+      name: tail
+      path: /var/log/app/*.log
+      tag: app.*
+      parser: json
+    output:
+      name: stdout
+      match: "*"
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+
+resources:
+  main:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  fluentbit:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+volume:
+  # Shared volume for log files
+  name: app-logs
+  mountPath: /var/log/app
+  size: 1Gi
+  # Storage class (optional, set to null for default)
+  storageClass: null
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+
+podLabels: {}
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+fluentbitSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+---
+# FILE: templates/_helpers.tpl
+{{- define "multi-container-pod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "multi-container-pod.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "multi-container-pod.labels" -}}
+helm.sh/chart: {{ include "multi-container-pod.name" . }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "multi-container-pod.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "multi-container-pod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "multi-container-pod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}
+  labels:
+    {{- include "multi-container-pod.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-container-pod.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "multi-container-pod.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: {{ .Values.volume.name }}
+          persistentVolumeClaim:
+            claimName: {{ include "multi-container-pod.fullname" . }}-logs
+      containers:
+        - name: main-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          volumeMounts:
+            - name: {{ .Values.volume.name }}
+              mountPath: {{ .Values.volume.mountPath }}
+          resources:
+            {{- toYaml .Values.resources.main | nindent 12 }}
+        - name: fluentbit
+          image: "{{ .Values.fluentbit.image.repository }}:{{ .Values.fluentbit.image.tag }}"
+          imagePullPolicy: {{ .Values.fluentbit.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.fluentbitSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.volume.name }}
+              mountPath: {{ .Values.volume.mountPath }}
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+          resources:
+            {{- toYaml .Values.resources.fluentbit | nindent 12 }}
+      volumes:
+        - name: fluentbit-config
+          configMap:
+            name: {{ include "multi-container-pod.fullname" . }}-fluentbit-config
+---
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}-logs
+  labels:
+    {{- include "multi-container-pod.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.volume.size }}
+  {{- if .Values.volume.storageClass }}
+  storageClassName: {{ .Values.volume.storageClass }}
+  {{- end }}
+---
+# FILE: templates/service.yaml
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}
+  labels:
+    {{- include "multi-container-pod.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "multi-container-pod.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}-fluentbit-config
+  labels:
+    {{- include "multi-container-pod.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        daemon    Off
+        log_level info
+        parsers_file /fluent-bit/etc/parsers.conf
+
+    [INPUT]
+        name {{ .Values.fluentbit.config.input.name }}
+        path {{ .Values.fluentbit.config.input.path }}
+        tag {{ .Values.fluentbit.config.input.tag }}
+        parser {{ .Values.fluentbit.config.input.parser }}
+
+    [OUTPUT]
+        name {{ .Values.fluentbit.config.output.name }}
+        match {{ .Values.fluentbit.config.output.match }}

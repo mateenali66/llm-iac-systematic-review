@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-016",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an AWS Secrets Manager secret named 'prod/database/password' for storing the production database password used by a Lambda function.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an AWS Secrets Manager secret named 'prod/database/password' for storing the production database password used by a Lambda function.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_secretsmanager_secret\" \"prod_database_password\" {\n  name        = \"prod/database/password\"\n  description = \"Production database password for Lambda function access\"\n\n  tags = {\n    Environment = \"production\"\n    Service     = \"database\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_secretsmanager_secret_version\" \"prod_database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.prod_database_password.id\n  secret_string = \"initial-placeholder-password-change-in-aws-console-or-via-automated-process\"\n}",
+  "cleaned_response": "resource \"aws_secretsmanager_secret\" \"prod_database_password\" {\n  name        = \"prod/database/password\"\n  description = \"Production database password for Lambda function access\"\n\n  tags = {\n    Environment = \"production\"\n    Service     = \"database\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_secretsmanager_secret_version\" \"prod_database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.prod_database_password.id\n  secret_string = \"initial-placeholder-password-change-in-aws-console-or-via-automated-process\"\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_secretsmanager_secret\" \"prod_database_password\" {\n  name        = \"prod/database/password\"\n  description = \"Production database password for Lambda function access\"\n\n  tags = {\n    Environment = \"production\"\n    Service     = \"database\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_secretsmanager_secret_version\" \"prod_database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.prod_database_password.id\n  secret_string = \"initial-placeholder-password-change-in-aws-console-or-via-automated-process\"\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726704,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 116,
+      "raw_input_tokens": 141
+    }
+  },
+  "started_at": "2026-05-25T16:31:41.232605+00:00",
+  "elapsed_seconds": 3.28
+}

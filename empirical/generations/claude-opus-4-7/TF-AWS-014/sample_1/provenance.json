@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-014",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudWatch log group named '/aws/app/prod' with 30-day retention for production application logs.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create a CloudWatch log group named '/aws/app/prod' with 30-day retention for production application logs.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"log_group\" {\n  description             = \"KMS key for encrypting CloudWatch log group /aws/app/prod\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"EnableIAMUserPermissions\"\n        Effect    = \"Allow\"\n        Principal = { AWS = \"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\" }\n        Action    = \"kms:*\"\n        Resource  = \"*\"\n      },\n      {\n        Sid    = \"AllowCloudWatchLogs\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"logs.${data.aws_region.current.name}.amazonaws.com\"\n        }\n        Action = [\n          \"kms:Encrypt*\",\n          \"kms:Decrypt*\",\n          \"kms:ReEncrypt*\",\n          \"kms:GenerateDataKey*\",\n          \"kms:Describe*\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          ArnEquals = {\n            \"kms:EncryptionContext:aws:logs:arn\" = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod\"\n          }\n        }\n      }\n    ]\n  })\n\n  tags = {\n    Name        = \"cwlogs-app-prod\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"log_group\" {\n  name          = \"alias/cwlogs-app-prod\"\n  target_key_id = aws_kms_key.log_group.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.log_group.arn\n\n  tags = {\n    Name        = \"app-prod-logs\"\n    Environment = \"production\"\n    Application = \"app\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\noutput \"log_group_name\" {\n  description = \"Name of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.name\n}\n\noutput \"log_group_arn\" {\n  description = \"ARN of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.arn\n}",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"log_group\" {\n  description             = \"KMS key for encrypting CloudWatch log group /aws/app/prod\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"EnableIAMUserPermissions\"\n        Effect    = \"Allow\"\n        Principal = { AWS = \"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\" }\n        Action    = \"kms:*\"\n        Resource  = \"*\"\n      },\n      {\n        Sid    = \"AllowCloudWatchLogs\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"logs.${data.aws_region.current.name}.amazonaws.com\"\n        }\n        Action = [\n          \"kms:Encrypt*\",\n          \"kms:Decrypt*\",\n          \"kms:ReEncrypt*\",\n          \"kms:GenerateDataKey*\",\n          \"kms:Describe*\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          ArnEquals = {\n            \"kms:EncryptionContext:aws:logs:arn\" = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod\"\n          }\n        }\n      }\n    ]\n  })\n\n  tags = {\n    Name        = \"cwlogs-app-prod\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"log_group\" {\n  name          = \"alias/cwlogs-app-prod\"\n  target_key_id = aws_kms_key.log_group.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.log_group.arn\n\n  tags = {\n    Name        = \"app-prod-logs\"\n    Environment = \"production\"\n    Application = \"app\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\noutput \"log_group_name\" {\n  description = \"Name of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.name\n}\n\noutput \"log_group_arn\" {\n  description = \"ARN of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.arn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"log_group\" {\n  description             = \"KMS key for encrypting CloudWatch log group /aws/app/prod\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"EnableIAMUserPermissions\"\n        Effect    = \"Allow\"\n        Principal = { AWS = \"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\" }\n        Action    = \"kms:*\"\n        Resource  = \"*\"\n      },\n      {\n        Sid    = \"AllowCloudWatchLogs\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"logs.${data.aws_region.current.name}.amazonaws.com\"\n        }\n        Action = [\n          \"kms:Encrypt*\",\n          \"kms:Decrypt*\",\n          \"kms:ReEncrypt*\",\n          \"kms:GenerateDataKey*\",\n          \"kms:Describe*\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          ArnEquals = {\n            \"kms:EncryptionContext:aws:logs:arn\" = \"arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod\"\n          }\n        }\n      }\n    ]\n  })\n\n  tags = {\n    Name        = \"cwlogs-app-prod\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"log_group\" {\n  name          = \"alias/cwlogs-app-prod\"\n  target_key_id = aws_kms_key.log_group.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.log_group.arn\n\n  tags = {\n    Name        = \"app-prod-logs\"\n    Environment = \"production\"\n    Application = \"app\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\noutput \"log_group_name\" {\n  description = \"Name of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.name\n}\n\noutput \"log_group_arn\" {\n  description = \"ARN of the CloudWatch log group\"\n  value       = aws_cloudwatch_log_group.app_prod.arn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729037,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 237,
+      "output_tokens": 951,
+      "raw_input_tokens": 237
+    }
+  },
+  "started_at": "2026-05-25T17:10:25.793635+00:00",
+  "elapsed_seconds": 11.328
+}

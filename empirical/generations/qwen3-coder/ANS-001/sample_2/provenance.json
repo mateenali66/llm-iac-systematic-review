@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "ANS-001",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook that installs nginx on a target Ubuntu host, ensures the service is started and enabled at boot, and opens port 80 in the firewall.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook that installs nginx on a target Ubuntu host, ensures the service is started and enabled at boot, and opens port 80 in the firewall.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Install and configure nginx\n  hosts: all\n  become: yes\n  vars:\n    nginx_service_name: nginx\n    nginx_port: 80\n  tasks:\n    - name: Update apt cache\n      ansible.builtin.apt:\n        update_cache: yes\n      tags: [nginx, install]\n\n    - name: Install nginx package\n      ansible.builtin.apt:\n        name: nginx\n        state: present\n      tags: [nginx, install]\n\n    - name: Start and enable nginx service\n      ansible.builtin.systemd:\n        name: \"{{ nginx_service_name }}\"\n        state: started\n        enabled: yes\n      tags: [nginx, service]\n\n    - name: Open HTTP port in UFW firewall\n      ansible.builtin.ufw:\n        rule: allow\n        port: \"{{ nginx_port }}\"\n        proto: tcp\n      tags: [nginx, firewall]\n      notify: Reload UFW\n\n  handlers:\n    - name: Reload UFW\n      ansible.builtin.command: ufw reload\n      listen: Reload UFW",
+  "cleaned_response": "---\n- name: Install and configure nginx\n  hosts: all\n  become: yes\n  vars:\n    nginx_service_name: nginx\n    nginx_port: 80\n  tasks:\n    - name: Update apt cache\n      ansible.builtin.apt:\n        update_cache: yes\n      tags: [nginx, install]\n\n    - name: Install nginx package\n      ansible.builtin.apt:\n        name: nginx\n        state: present\n      tags: [nginx, install]\n\n    - name: Start and enable nginx service\n      ansible.builtin.systemd:\n        name: \"{{ nginx_service_name }}\"\n        state: started\n        enabled: yes\n      tags: [nginx, service]\n\n    - name: Open HTTP port in UFW firewall\n      ansible.builtin.ufw:\n        rule: allow\n        port: \"{{ nginx_port }}\"\n        proto: tcp\n      tags: [nginx, firewall]\n      notify: Reload UFW\n\n  handlers:\n    - name: Reload UFW\n      ansible.builtin.command: ufw reload\n      listen: Reload UFW",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Install and configure nginx\n  hosts: all\n  become: yes\n  vars:\n    nginx_service_name: nginx\n    nginx_port: 80\n  tasks:\n    - name: Update apt cache\n      ansible.builtin.apt:\n        update_cache: yes\n      tags: [nginx, install]\n\n    - name: Install nginx package\n      ansible.builtin.apt:\n        name: nginx\n        state: present\n      tags: [nginx, install]\n\n    - name: Start and enable nginx service\n      ansible.builtin.systemd:\n        name: \"{{ nginx_service_name }}\"\n        state: started\n        enabled: yes\n      tags: [nginx, service]\n\n    - name: Open HTTP port in UFW firewall\n      ansible.builtin.ufw:\n        rule: allow\n        port: \"{{ nginx_port }}\"\n        proto: tcp\n      tags: [nginx, firewall]\n      notify: Reload UFW\n\n  handlers:\n    - name: Reload UFW\n      ansible.builtin.command: ufw reload\n      listen: Reload UFW",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723511,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 147,
+      "output_tokens": 223,
+      "raw_input_tokens": 147
+    }
+  },
+  "started_at": "2026-05-25T15:38:27.710997+00:00",
+  "elapsed_seconds": 3.57
+}

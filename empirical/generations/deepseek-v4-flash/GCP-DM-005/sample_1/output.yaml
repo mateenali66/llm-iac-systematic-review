@@ -1,0 +1,75 @@
+imports:
+  - path: templates/cloudsql.py
+    name: cloudsql.py
+
+resources:
+  - name: saas-postgres-instance
+    type: cloudsql.py
+    properties:
+      name: saas-postgres-instance
+      databaseVersion: POSTGRES_15
+      tier: db-custom-2-7680
+      region: us-central1
+      zone: us-central1-a
+      diskSize: 100
+      diskType: PD_SSD
+      diskAutoresize: true
+      backupConfiguration:
+        enabled: true
+        startTime: "03:00"
+        location: us
+        pointInTimeRecoveryEnabled: true
+        transactionLogRetentionDays: 7
+        retainedBackups: 30
+        retentionUnit: COUNT
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: projects/your-project-id/global/networks/default
+        requireSsl: true
+        authorizedNetworks: []
+      databaseFlags:
+        - name: cloudsql.logical_decoding
+          value: "on"
+        - name: max_connections
+          value: "200"
+        - name: work_mem
+          value: "4096"
+      maintenanceWindow:
+        day: 7
+        hour: 4
+        updateTrack: stable
+      insightsConfig:
+        queryInsightsEnabled: true
+        recordApplicationTags: true
+        recordClientAddress: true
+        queryStringLength: 4096
+        queryPlansPerMinute: 5
+      settings:
+        activationPolicy: ALWAYS
+        dataDiskSizeGb: 100
+        dataDiskType: PD_SSD
+        pricingPlan: PER_USE
+        replicationType: SYNCHRONOUS
+        storageAutoResize: true
+        storageAutoResizeLimit: 0
+        tier: db-custom-2-7680
+        userLabels:
+          environment: production
+          application: saas-app
+          managed-by: deployment-manager
+      databases:
+        - name: saas-db
+          charset: utf8
+          collation: en_US.UTF8
+      users:
+        - name: saas-admin
+          password: "{{ env['deployment'] }}-admin-password"
+          host: "%"
+        - name: saas-readonly
+          password: "{{ env['deployment'] }}-readonly-password"
+          host: "%"
+      deletionProtection: true
+      denyMaintenancePeriods:
+        - endDate: "2024-12-31"
+          startDate: "2024-01-01"
+          time: "00:00:00"

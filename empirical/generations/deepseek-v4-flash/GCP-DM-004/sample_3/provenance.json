@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-004",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/vpc.py\n    name: vpc.py\n  - path: templates/subnet.py\n    name: subnet.py\n  - path: templates/nat.py\n    name: nat.py\n  - path: templates/firewall.py\n    name: firewall.py\n\nresources:\n  - name: custom-vpc\n    type: vpc.py\n    properties:\n      name: my-custom-vpc\n      autoCreateSubnetworks: false\n      routingConfig:\n        routingMode: REGIONAL\n\n  - name: public-subnet\n    type: subnet.py\n    properties:\n      name: public-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.1.0/24\n      privateIpGoogleAccess: false\n      purpose: PRIVATE\n      role: null\n\n  - name: private-subnet\n    type: subnet.py\n    properties:\n      name: private-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.2.0/24\n      privateIpGoogleAccess: true\n      purpose: PRIVATE\n      role: null\n\n  - name: cloud-nat-router\n    type: compute.v1.router\n    properties:\n      name: cloud-nat-router\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      nats:\n        - name: cloud-nat\n          sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n          subnetworks:\n            - name: $(ref.private-subnet.selfLink)\n              sourceIpRangesToNat:\n                - ALL_IP_RANGES\n          natIpAllocateOption: AUTO_ONLY\n\n  - name: allow-internal-firewall\n    type: firewall.py\n    properties:\n      name: allow-internal\n      network: $(ref.custom-vpc.selfLink)\n      priority: 1000\n      direction: INGRESS\n      sourceRanges:\n        - 10.0.0.0/16\n      allowed:\n        - IPProtocol: tcp\n          ports:\n            - 0-65535\n        - IPProtocol: udp\n          ports:\n            - 0-65535\n        - IPProtocol: icmp\n      targetTags: []",
+  "cleaned_response": "imports:\n  - path: templates/vpc.py\n    name: vpc.py\n  - path: templates/subnet.py\n    name: subnet.py\n  - path: templates/nat.py\n    name: nat.py\n  - path: templates/firewall.py\n    name: firewall.py\n\nresources:\n  - name: custom-vpc\n    type: vpc.py\n    properties:\n      name: my-custom-vpc\n      autoCreateSubnetworks: false\n      routingConfig:\n        routingMode: REGIONAL\n\n  - name: public-subnet\n    type: subnet.py\n    properties:\n      name: public-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.1.0/24\n      privateIpGoogleAccess: false\n      purpose: PRIVATE\n      role: null\n\n  - name: private-subnet\n    type: subnet.py\n    properties:\n      name: private-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.2.0/24\n      privateIpGoogleAccess: true\n      purpose: PRIVATE\n      role: null\n\n  - name: cloud-nat-router\n    type: compute.v1.router\n    properties:\n      name: cloud-nat-router\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      nats:\n        - name: cloud-nat\n          sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n          subnetworks:\n            - name: $(ref.private-subnet.selfLink)\n              sourceIpRangesToNat:\n                - ALL_IP_RANGES\n          natIpAllocateOption: AUTO_ONLY\n\n  - name: allow-internal-firewall\n    type: firewall.py\n    properties:\n      name: allow-internal\n      network: $(ref.custom-vpc.selfLink)\n      priority: 1000\n      direction: INGRESS\n      sourceRanges:\n        - 10.0.0.0/16\n      allowed:\n        - IPProtocol: tcp\n          ports:\n            - 0-65535\n        - IPProtocol: udp\n          ports:\n            - 0-65535\n        - IPProtocol: icmp\n      targetTags: []",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/vpc.py\n    name: vpc.py\n  - path: templates/subnet.py\n    name: subnet.py\n  - path: templates/nat.py\n    name: nat.py\n  - path: templates/firewall.py\n    name: firewall.py\n\nresources:\n  - name: custom-vpc\n    type: vpc.py\n    properties:\n      name: my-custom-vpc\n      autoCreateSubnetworks: false\n      routingConfig:\n        routingMode: REGIONAL\n\n  - name: public-subnet\n    type: subnet.py\n    properties:\n      name: public-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.1.0/24\n      privateIpGoogleAccess: false\n      purpose: PRIVATE\n      role: null\n\n  - name: private-subnet\n    type: subnet.py\n    properties:\n      name: private-subnet\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      ipCidrRange: 10.0.2.0/24\n      privateIpGoogleAccess: true\n      purpose: PRIVATE\n      role: null\n\n  - name: cloud-nat-router\n    type: compute.v1.router\n    properties:\n      name: cloud-nat-router\n      network: $(ref.custom-vpc.selfLink)\n      region: us-central1\n      nats:\n        - name: cloud-nat\n          sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n          subnetworks:\n            - name: $(ref.private-subnet.selfLink)\n              sourceIpRangesToNat:\n                - ALL_IP_RANGES\n          natIpAllocateOption: AUTO_ONLY\n\n  - name: allow-internal-firewall\n    type: firewall.py\n    properties:\n      name: allow-internal\n      network: $(ref.custom-vpc.selfLink)\n      priority: 1000\n      direction: INGRESS\n      sourceRanges:\n        - 10.0.0.0/16\n      allowed:\n        - IPProtocol: tcp\n          ports:\n            - 0-65535\n        - IPProtocol: udp\n          ports:\n            - 0-65535\n        - IPProtocol: icmp\n      targetTags: []",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728434,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 80,
+      "output_tokens": 522,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 16
+    }
+  },
+  "started_at": "2026-05-25T17:00:29.501997+00:00",
+  "elapsed_seconds": 4.616
+}

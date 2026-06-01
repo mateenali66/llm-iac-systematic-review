@@ -1,0 +1,51 @@
+---
+- name: Configure Linux firewall
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Ensure firewalld is installed and enabled
+    yum:
+      name: firewalld
+      state: present
+      enabled: yes
+
+  - name: Start firewalld service
+    service:
+      name: firewalld
+      state: started
+
+  - name: Allow SSH traffic
+    firewalld:
+      service: ssh
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Allow HTTPS traffic
+    firewalld:
+      service: https
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Deny all other inbound traffic
+    firewalld:
+      zone: public
+      state: enabled
+      permanent: yes
+      target: DROP
+      immediate: yes
+
+  - name: Ensure default zone is set to public
+    firewalld:
+      zone: public
+      state: enabled
+      permanent: yes
+      default: yes
+      immediate: yes
+
+  - name: Reload firewalld
+    service:
+      name: firewalld
+      state: reloaded

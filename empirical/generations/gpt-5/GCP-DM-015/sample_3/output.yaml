@@ -1,0 +1,36 @@
+resources:
+- name: cloud-run-latency-p95-alert
+  type: gcp-types/monitoring-v3:projects.alertPolicies
+  properties:
+    displayName: "Cloud Run p95 latency > 500 ms for 5m (SERVICE_NAME REGION)"
+    combiner: "OR"
+    enabled: true
+    severity: "CRITICAL"
+    userLabels:
+      service: "SERVICE_NAME"
+      environment: "prod"
+      managed_by: "deployment-manager"
+    documentation:
+      content: "Pages on-call when Cloud Run service p95 latency exceeds 500 ms for 5 minutes.\nRunbook: https://example.com/runbooks/cloud-run-latency\n"
+      mimeType: "text/markdown"
+    # Replace with existing notification channel resource names:
+    # - projects/PROJECT_ID/notificationChannels/ONCALL_CHANNEL_ID
+    notificationChannels:
+      - "projects/PROJECT_ID/notificationChannels/ONCALL_CHANNEL_ID"
+    alertStrategy:
+      notificationRateLimit:
+        period: "1800s"
+      autoClose: "86400s"
+    conditions:
+    - displayName: "Cloud Run p95 latency > 500 ms"
+      evaluationMissingData: "EVALUATION_MISSING_DATA_NO_OP"
+      conditionMonitoringQueryLanguage:
+        duration: "300s"
+        query: |
+          fetch cloud_run_revision
+          | metric 'run.googleapis.com/request_latencies'
+          | filter (metric.service_name == 'SERVICE_NAME' && resource.location == 'REGION')
+          | align 1m
+          | group_by 1m, [value: percentile(value, 95)]
+          | every 1m
+          | condition val() > 500 ms

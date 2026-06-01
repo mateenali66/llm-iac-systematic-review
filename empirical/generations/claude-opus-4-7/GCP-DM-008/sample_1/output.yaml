@@ -1,0 +1,74 @@
+imports:
+- path: kms.jinja
+
+resources:
+- name: storage-encryption-kms
+  type: kms.jinja
+  properties:
+    project: my-project-id
+    location: us-central1
+    keyRingName: storage-encryption-keyring
+    cryptoKeyName: storage-encryption-key
+    rotationPeriodSeconds: 7776000s
+    nextRotationOffsetSeconds: 86400
+    purpose: ENCRYPT_DECRYPT
+    algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+    protectionLevel: SOFTWARE
+    labels:
+      environment: production
+      managed-by: deployment-manager
+      purpose: gcs-encryption
+
+---
+# kms.jinja
+{% set project = properties['project'] %}
+{% set location = properties['location'] %}
+{% set keyRingName = properties['keyRingName'] %}
+{% set cryptoKeyName = properties['cryptoKeyName'] %}
+{% set rotationPeriod = properties['rotationPeriodSeconds'] %}
+{% set nextRotationOffset = properties['nextRotationOffsetSeconds'] %}
+{% set purpose = properties['purpose'] %}
+{% set algorithm = properties['algorithm'] %}
+{% set protectionLevel = properties['protectionLevel'] %}
+{% set labels = properties['labels'] %}
+
+resources:
+- name: {{ keyRingName }}
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/{{ project }}/locations/{{ location }}
+    keyRingId: {{ keyRingName }}
+
+- name: {{ cryptoKeyName }}
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  metadata:
+    dependsOn:
+    - {{ keyRingName }}
+  properties:
+    parent: $(ref.{{ keyRingName }}.name)
+    cryptoKeyId: {{ cryptoKeyName }}
+    purpose: {{ purpose }}
+    rotationPeriod: {{ rotationPeriod }}
+    nextRotationTime: $(ref.{{ keyRingName }}.createTime)
+    versionTemplate:
+      algorithm: {{ algorithm }}
+      protectionLevel: {{ protectionLevel }}
+    labels:
+      {% for key, value in labels.items() %}
+      {{ key }}: {{ value }}
+      {% endfor %}
+
+- name: {{ cryptoKeyName }}-iam-policy
+  type: gcp-types/cloudkms-v1:virtual.projects.locations.keyRings.cryptoKeys.iamMemberBinding
+  properties:
+    resource: $(ref.{{ cryptoKeyName }}.name)
+    role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+    member: serviceAccount:service-$(ref.{{ keyRingName }}.projectNumber)@gs-project-accounts.iam.gserviceaccount.com
+
+outputs:
+- name: keyRingName
+  value: $(ref.{{ keyRingName }}.name)
+- name: cryptoKeyName
+  value: $(ref.{{ cryptoKeyName }}.name)
+- name: cryptoKeySelfLink
+  value: $(ref.{{ cryptoKeyName }}.selfLink)

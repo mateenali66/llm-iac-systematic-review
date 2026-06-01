@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for application user uploads with secure defaults, encryption, versioning, lifecycle management, and access logging.
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Description: Prefix for the S3 bucket name (account ID and region will be appended for uniqueness).
+    Default: app-user-uploads
+    AllowedPattern: '^[a-z0-9][a-z0-9-]{1,40}[a-z0-9]$'
+    ConstraintDescription: Must be a valid S3 bucket name prefix (lowercase letters, numbers, hyphens).
+
+  Environment:
+    Type: String
+    Description: Deployment environment.
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Default: prod
+
+  NoncurrentVersionRetentionDays:
+    Type: Number
+    Description: Number of days to retain noncurrent object versions before deletion.
+    Default: 90
+    MinValue: 1
+
+  AbortIncompleteMultipartUploadDays:
+    Type: Number
+    Description: Number of days after which incomplete multipart uploads are aborted.
+    Default: 7
+    MinValue: 1
+
+  TransitionToIADays:
+    Type: Number
+    Description: Number of days after which current objects transition to Standard-IA storage.
+    Default: 30
+    MinValue: 30
+
+Resources:
+
+  UploadsKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Sub 'KMS key for encrypting ${BucketNamePrefix} S3 uploads bucket (${Environment})'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnableIAMUserPermissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowS3UseOfTheKey
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action:
+              - kms:Decrypt
+              - kms:GenerateDataKey
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: UserUploadsEncryption
+
+  UploadsKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${BucketNamePrefix}-${Environment}'
+      TargetKeyId: !Ref UploadsKmsKey
+
+  AccessLogsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub '${BucketNamePrefix}-${Environment}-logs-${AWS::AccountId}-${AWS::Region}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldLogs
+            Status: Enabled
+            ExpirationInDays: 365
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: AccessLogs
+
+  AccessLogsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AccessLogsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3ServerAccessLogging
+            Effect: Allow
+            Principal:
+              Service: logging.s3.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Sub '${AccessLogsBucket.Arn}/s3-access-logs/*'
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:s3:::${BucketNamePrefix}-${Environment}-${AWS::AccountId}-${AWS::Region}'
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt AccessLogsBucket.Arn
+              - !Sub '${AccessLogsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    DependsOn: AccessLogsBucketPolicy
+    Properties:
+      BucketName: !Sub '${BucketNamePrefix}-${Environment}-${AWS::AccountId}-${AWS::Region}'
+      PublicAccess

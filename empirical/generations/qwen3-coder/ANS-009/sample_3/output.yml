@@ -1,0 +1,100 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+  vars:
+    otel_collector_version: "0.92.0"
+    otel_remote_endpoint: "https://your-remote-endpoint.com:443"
+    otel_remote_headers: {}
+    otel_service_name: "otelcol"
+    otel_user: "otelcol"
+    otel_group: "otelcol"
+    otel_config_dir: "/etc/otelcol"
+    otel_binary_path: "/usr/local/bin/otelcol"
+    otel_systemd_unit: "/etc/systemd/system/otelcol.service"
+  tasks:
+    - name: Create OpenTelemetry system group
+      group:
+        name: "{{ otel_group }}"
+        system: yes
+        state: present
+
+    - name: Create OpenTelemetry system user
+      user:
+        name: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        system: yes
+        shell: "/usr/sbin/nologin"
+        home: "{{ otel_config_dir }}"
+        create_home: no
+        state: present
+
+    - name: Create OpenTelemetry config directory
+      file:
+        path: "{{ otel_config_dir }}"
+        state: directory
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: '0755'
+
+    - name: Download OpenTelemetry Collector binary
+      get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_version }}_linux_amd64.tar.gz"
+        dest: "/tmp/otelcol_{{ otel_collector_version }}_linux_amd64.tar.gz"
+        mode: '0644'
+        checksum: "sha256:https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_version }}_checksums.txt"
+
+    - name: Extract OpenTelemetry Collector binary
+      unarchive:
+        src: "/tmp/otelcol_{{ otel_collector_version }}_linux_amd64.tar.gz"
+        dest: "/tmp"
+        remote_src: yes
+
+    - name: Install OpenTelemetry Collector binary
+      copy:
+        src: "/tmp/otelcol-linux-amd64"
+        dest: "{{ otel_binary_path }}"
+        mode: '0755'
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+
+    - name: Create OpenTelemetry Collector configuration
+      template:
+        src: otelcol-config.yaml.j2
+        dest: "{{ otel_config_dir }}/config.yaml"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: '0644'
+      notify: Restart OpenTelemetry Collector
+
+    - name: Create systemd service unit
+      template:
+        src: otelcol.service.j2
+        dest: "{{ otel_systemd_unit }}"
+        mode: '0644'
+      notify: Reload systemd and restart OpenTelemetry Collector
+
+    - name: Enable and start OpenTelemetry Collector service
+      systemd:
+        name: "{{ otel_service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+  handlers:
+    - name: Restart OpenTelemetry Collector
+      systemd:
+        name: "{{ otel_service_name }}"
+        state: restarted
+
+    - name: Reload systemd and restart OpenTelemetry Collector
+      systemd:
+        name: "{{ otel_service_name }}"
+        state: restarted
+        daemon_reload: yes
+
+  templates:
+    - src: otelcol-config.yaml.j2
+      dest: "{{ otel_config_dir }}/config.yaml"
+    - src: otelcol.service.j2
+      dest: "{{ otel_systemd_unit }}"

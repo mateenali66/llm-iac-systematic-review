@@ -1,0 +1,39 @@
+imports:
+  - path: templates/cloudsql.py
+    name: cloudsql.py
+
+resources:
+  - name: saas-postgres-instance
+    type: cloudsql.py
+    properties:
+      tier: db-custom-2-7680
+      databaseVersion: POSTGRES_15
+      region: us-central1
+      settings:
+        tier: db-custom-2-7680
+        diskType: PD_SSD
+        diskSizeGb: 100
+        diskAutoresize: true
+        backupConfiguration:
+          enabled: true
+          startTime: "03:00"
+          pointInTimeRecoveryEnabled: true
+          transactionLogRetentionDays: 7
+        ipConfiguration:
+          ipv4Enabled: false
+          privateNetwork: projects/your-project-id/global/networks/default
+          requireSsl: true
+        databaseFlags:
+          - name: cloudsql.iam_authentication
+            value: "on"
+          - name: log_min_duration_statement
+            value: "1000"
+          - name: max_connections
+            value: "100"
+        maintenanceWindow:
+          day: 7
+          hour: 4
+        userLabels:
+          environment: production
+          application: saas-app
+      rootPassword: "{{ env['deployment'] }}-root-password"

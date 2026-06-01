@@ -1,0 +1,140 @@
+- name: Install and configure PostgreSQL 15
+  hosts: all
+  become: yes
+  vars:
+    postgresql_version: "15"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_conf_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_databases:
+      - name: myapp
+        owner: myapp_user
+    postgresql_users:
+      - name: myapp_user
+        password: "{{ vault_postgresql_password }}"
+        db: myapp
+        priv: "ALL"
+    postgresql_shared_buffers: "256MB"
+    postgresql_effective_cache_size: "768MB"
+    postgresql_maintenance_work_mem: "64MB"
+    postgresql_checkpoint_completion_target: 0.9
+    postgresql_wal_buffers: "16MB"
+    postgresql_default_statistics_target: 100
+    postgresql_random_page_cost: 1.1
+    postgresql_effective_io_concurrency: 200
+    postgresql_work_mem: "6553kB"
+    postgresql_min_wal_size: "1GB"
+    postgresql_max_wal_size: "4GB"
+    postgresql_max_connections: 100
+
+  tasks:
+    - name: Add PostgreSQL 15 repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install PostgreSQL 15
+      ansible.builtin.apt:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-client-{{ postgresql_version }}
+          - libpq-dev
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install PostgreSQL 15 (RedHat)
+      ansible.builtin.yum:
+        name:
+          - postgresql{{ postgresql_version | replace('.', '') }}-server
+          - postgresql{{ postgresql_version | replace('.', '') }}-contrib
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Initialize PostgreSQL database (RedHat)
+      ansible.builtin.command: /usr/pgsql-{{ postgresql_version }}/bin/postgresql-{{ postgresql_version | replace('.', '') }}-setup initdb
+      args:
+        creates: "{{ postgresql_data_dir }}/PG_VERSION"
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure PostgreSQL is running
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure pg_hba.conf for local connections
+      ansible.builtin.lineinfile:
+        path: "{{ postgresql_conf_dir }}/pg_hba.conf"
+        regexp: '^local\s+all\s+all\s+peer'
+        line: 'local   all             all                                     peer'
+        backup: yes
+
+    - name: Configure pg_hba.conf for allowed CIDRs
+      ansible.builtin.blockinfile:
+        path: "{{ postgresql_conf_dir }}/pg_hba.conf"
+        block: |
+          {% for cidr in postgresql_allowed_cidrs %}
+          host    all             all             {{ cidr }}              md5
+          {% endfor %}
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - ALLOWED CIDRS"
+        insertafter: "^# IPv4 local connections:"
+        backup: yes
+
+    - name: Configure postgresql.conf for production
+      ansible.builtin.blockinfile:
+        path: "{{ postgresql_conf_dir }}/postgresql.conf"
+        block: |
+          # Production tuning parameters
+          listen_addresses = '*'
+          max_connections = {{ postgresql_max_connections }}
+          shared_buffers = {{ postgresql_shared_buffers }}
+          effective_cache_size = {{ postgresql_effective_cache_size }}
+          maintenance_work_mem = {{ postgresql_maintenance_work_mem }}
+          checkpoint_completion_target = {{ postgresql_checkpoint_completion_target }}
+          wal_buffers = {{ postgresql_wal_buffers }}
+          default_statistics_target = {{ postgresql_default_statistics_target }}
+          random_page_cost = {{ postgresql_random_page_cost }}
+          effective_io_concurrency = {{ postgresql_effective_io_concurrency }}
+          work_mem = {{ postgresql_work_mem }}
+          min_wal_size = {{ postgresql_min_wal_size }}
+          max_wal_size = {{ postgresql_max_wal_size }}
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - PRODUCTION TUNING"
+        backup: yes
+
+    - name: Restart PostgreSQL to apply configuration changes
+      ansible.builtin.systemd:
+        name: postgresql
+        state: restarted
+
+    - name: Create PostgreSQL users
+      community.postgresql.postgresql_user:
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        state: present
+        login_user: postgres
+      loop: "{{ postgresql_users }}"
+      no_log: true
+
+    - name: Create PostgreSQL databases
+      community.postgresql.postgresql_db:
+        name: "{{ item.name }}"
+        owner: "{{ item.owner }}"
+        state: present
+        login_user: postgres
+      loop: "{{ postgresql_databases }}"
+
+    - name: Grant privileges to users on databases
+      community.postgresql.postgresql_privs:
+        db: "{{ item.db }}"
+        privs: "{{ item.priv }}"
+        type: database
+        role: "{{ item.name }}"
+        login_user: postgres
+      loop: "{{ postgresql_users }}"
+      when: item.db is defined

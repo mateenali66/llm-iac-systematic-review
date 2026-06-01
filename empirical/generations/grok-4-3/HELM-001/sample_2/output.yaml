@@ -1,0 +1,135 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: webapp
+description: Production-grade Helm chart for a generic web application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25-alpine"
+config:
+  env: production
+  logLevel: info
+ingress:
+  enabled: true
+  className: nginx
+  host: example.com
+  tls: false
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+---
+# FILE: templates/_helpers.tpl
+{{- define "webapp.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- define "webapp.labels" -}}
+app.kubernetes.io/name: {{ include "webapp.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "webapp.name" . }}-config
+  labels:
+    {{- include "webapp.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.config.env | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "webapp.name" . }}
+  labels:
+    {{- include "webapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "webapp.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "webapp.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: {{ include "webapp.name" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: {{ include "webapp.name" . }}-config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "webapp.name" . }}
+  labels:
+    {{- include "webapp.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "webapp.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+# FILE: templates/ingress.yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "webapp.name" . }}
+  labels:
+    {{- include "webapp.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "webapp.name" . }}
+                port:
+                  number: 80
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: {{ include "webapp.name" . }}-tls
+  {{- end }}
+{{- end }}

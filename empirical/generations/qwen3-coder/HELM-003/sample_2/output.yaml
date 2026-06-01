@@ -1,0 +1,292 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: A Helm chart for PostgreSQL in non-production environments
+type: application
+version: 0.1.0
+appVersion: "15.3"
+
+---
+# FILE: values.yaml
+# Default values for postgres-nonprod chart
+
+# Image configuration
+image:
+  repository: postgres
+  tag: 15.3
+  pullPolicy: IfNotPresent
+
+# Database configuration
+database:
+  name: myapp
+  user: myappuser
+
+# Storage configuration
+persistence:
+  enabled: true
+  size: 8Gi
+  storageClass: ""
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 1
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Service configuration
+service:
+  port: 5432
+
+# Init job configuration
+initJob:
+  image:
+    repository: postgres
+    tag: 15.3
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "postgres-nonprod.fullname" . }}-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "postgres-nonprod.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres-nonprod.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: postgres
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.database.name | quote }}
+        - name: POSTGRES_USER
+          value: {{ .Values.database.user | quote }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres-nonprod.fullname" . }}
+              key: password
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres-db
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - {{ .Values.database.user | quote }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - {{ .Values.database.user | quote }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: postgres-data
+        {{- if .Values.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "postgres-nonprod.fullname" . }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: postgres
+    protocol: TCP
+    name: postgres
+  selector:
+    {{- include "postgres-nonprod.selectorLabels" . | nindent 4 }}
+
+---
+# FILE: templates/headless-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}-headless
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: postgres
+    protocol: TCP
+    name: postgres
+  selector:
+    {{- include "postgres-nonprod.selectorLabels" . | nindent 4 }}
+
+---
+# FILE: templates/pvc.yaml
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+type: Opaque
+data:
+  password: {{ randAlphaNum 16 | b64enc | quote }}
+
+---
+# FILE: templates/init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres-nonprod.fullname" . }}-init
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "postgres-nonprod.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-db
+        image: "{{ .Values.initJob.image.repository }}:{{ .Values.initJob.image.tag }}"
+        env:
+        - name: PGHOST
+          value: {{ include "postgres-nonprod.fullname" . }}
+        - name: PGPORT
+          value: {{ .Values.service.port | quote }}
+        - name: PGUSER
+          value: {{ .Values.database.user | quote }}
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres-nonprod.fullname" . }}
+              key: password
+        - name: PGDATABASE
+          value: {{ .Values.database.name | quote }}
+        command:
+        - sh
+        - -c
+        - |
+          echo "Checking if database exists..."
+          if psql -lqt | cut -d \| -f 1 | grep -qw $PGDATABASE; then
+            echo "Database already exists"
+          else
+            echo "Creating database..."
+            createdb $PGDATABASE
+            echo "Database created successfully"
+          fi
+        resources:
+          {{- toYaml .Values.initJob.resources | nindent 10 }}
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "postgres-nonprod.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "postgres-nonprod.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "postgres-nonprod.labels" -}}
+helm.sh/chart: {{ include "postgres-nonprod.chart" . }}
+{{ include "postgres-nonprod.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "postgres-nonprod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

@@ -1,0 +1,136 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 330,
+	"files_parsed": 1,
+	"lines_parsed": 330,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:23:28.655033466Z",
+	"end": "2026-05-26T06:23:29.414717842Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "83dc2321289d5a590a72b6093fb731567df1f2286cf2e61e7bb318112eedfd38",
+					"line": 305,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "8350333c41c633e958f8a46e76c381420db7c2167ba5ac63a85061d478f10bf6",
+					"line": 268,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Azure Instance Using Basic Authentication",
+			"query_id": "6797f581-0433-4768-ae3e-7ceb2f8b138e",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?tabs=json#linuxconfiguration-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "522",
+			"cloud_provider": "AZURE",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Azure Instances should use SSH Key instead of basic authentication",
+			"description_id": "98ba05ca",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "0967c0b969e6523b6bf6ad8f3ec2d308971fc793c17a098fb35a46183420ef62",
+					"line": 244,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "['${parameters('vmNamePrefix')}-1']",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=['${parameters('vmNamePrefix')}-1']",
+					"search_line": 244,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'linuxConfiguration.disablePasswordAuthentication' is not defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "149fa85d68b94eb6822a0eb1ae9edde957d28477df972a90737b55eab92d50b4",
+					"line": 281,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "['${parameters('vmNamePrefix')}-2']",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=['${parameters('vmNamePrefix')}-2']",
+					"search_line": 281,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'linuxConfiguration.disablePasswordAuthentication' is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "Network Security Group With Unrestricted Access To SSH",
+			"query_id": "2ade1579-4b2c-4590-bebb-f99bf597f612",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/networksecuritygroups?pivots=deployment-language-bicep#securityrulepropertiesformat",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Port 22 (SSH) is exposed to the Internet",
+			"description_id": "97b6233c",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "5a5b5e2bb8ee196ce7ef8b6a6a6901f4b877b76a6b0a41e90cd8b0fdad9450fe",
+					"line": 186,
+					"resource_type": "Microsoft.Network/networkSecurityGroups",
+					"resource_name": "backend-nsg",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name={{backend-nsg}}.properties.securityRules",
+					"search_line": 186,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Network/networkSecurityGroups' restricts access to SSH",
+					"actual_value": "resource with type 'Microsoft.Network/networkSecurityGroups' does not restrict access to SSH"
+				}
+			]
+		}
+	]
+}

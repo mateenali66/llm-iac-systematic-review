@@ -1,0 +1,38 @@
+---
+- name: Install and configure nginx
+  hosts: all
+  become: yes
+  vars:
+    nginx_service_name: nginx
+    nginx_port: 80
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      tags: [nginx, install]
+
+    - name: Install nginx package
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      tags: [nginx, install]
+
+    - name: Start and enable nginx service
+      ansible.builtin.systemd:
+        name: "{{ nginx_service_name }}"
+        state: started
+        enabled: yes
+      tags: [nginx, service]
+
+    - name: Open HTTP port in UFW firewall
+      ansible.builtin.ufw:
+        rule: allow
+        port: "{{ nginx_port }}"
+        proto: tcp
+      tags: [nginx, firewall]
+      notify: Reload UFW
+
+  handlers:
+    - name: Reload UFW
+      ansible.builtin.command: ufw reload
+      listen: Reload UFW

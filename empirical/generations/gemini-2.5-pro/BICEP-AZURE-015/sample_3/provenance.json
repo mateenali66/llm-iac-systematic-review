@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-015",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Log Analytics workspace, an Azure Monitor action group for paging on-call engineers, and a metric alert on CPU usage of an AKS cluster.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Log Analytics workspace, an Azure Monitor action group for paging on-call engineers, and a metric alert on CPU usage of an AKS cluster.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "@description('The prefix for all resource names.')\nparam namePrefix string = 'prod-aks-mon'\n\n@description('The Azure region where all resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The resource ID of the AKS cluster to monitor.')\nparam aksClusterResourceId string\n\n@description('The email address for the on-call engineer to receive alerts.')\nparam onCallEmailAddress string\n\n@description('The CPU percentage threshold for triggering the alert (e.g., 80 for 80%).')\n@minValue(1)\n@maxValue(100)\nparam cpuThreshold int = 80\n\n@description('The severity of the alert. 0=critical, 1=error, 2=warning, 3=informational, 4=verbose.')\n@allowed([\n  0\n  1\n  2\n  3\n  4\n])\nparam alertSeverity int = 1\n\n@description('The period of time (in ISO 8601 duration format) that is used to monitor alert activity.')\nparam alertWindowSize string = 'PT15M'\n\n@description('The frequency (in ISO 8601 duration format) for this alert rule.')\nparam alertEvaluationFrequency string = 'PT5M'\n\n@description('Tags to apply to all resources.')\nparam tags object = {\n  environment: 'Production'\n  managedBy: 'Bicep'\n}\n\nvar logAnalyticsWorkspaceName = '${namePrefix}-logs-${uniqueString(resourceGroup().id)}'\nvar actionGroupName = '${namePrefix}-ag-oncall'\nvar metricAlertName = '${namePrefix}-alert-akscpu'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  tags: tags\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'global'\n  tags: tags\n  properties: {\n    groupShortName: namePrefix\n    enabled: true\n    emailReceivers: [\n      {\n        name: 'OnCallEmail'\n        emailAddress: onCallEmailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource metricAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: metricAlertName\n  location: 'global'\n  tags: tags\n  properties: {\n    description: 'Alert when AKS cluster average node CPU usage exceeds ${cpuThreshold}% over ${alertWindowSize}.'\n    severity: alertSeverity\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: alertEvaluationFrequency\n    windowSize: alertWindowSize\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'\n      ",
+  "cleaned_response": "@description('The prefix for all resource names.')\nparam namePrefix string = 'prod-aks-mon'\n\n@description('The Azure region where all resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The resource ID of the AKS cluster to monitor.')\nparam aksClusterResourceId string\n\n@description('The email address for the on-call engineer to receive alerts.')\nparam onCallEmailAddress string\n\n@description('The CPU percentage threshold for triggering the alert (e.g., 80 for 80%).')\n@minValue(1)\n@maxValue(100)\nparam cpuThreshold int = 80\n\n@description('The severity of the alert. 0=critical, 1=error, 2=warning, 3=informational, 4=verbose.')\n@allowed([\n  0\n  1\n  2\n  3\n  4\n])\nparam alertSeverity int = 1\n\n@description('The period of time (in ISO 8601 duration format) that is used to monitor alert activity.')\nparam alertWindowSize string = 'PT15M'\n\n@description('The frequency (in ISO 8601 duration format) for this alert rule.')\nparam alertEvaluationFrequency string = 'PT5M'\n\n@description('Tags to apply to all resources.')\nparam tags object = {\n  environment: 'Production'\n  managedBy: 'Bicep'\n}\n\nvar logAnalyticsWorkspaceName = '${namePrefix}-logs-${uniqueString(resourceGroup().id)}'\nvar actionGroupName = '${namePrefix}-ag-oncall'\nvar metricAlertName = '${namePrefix}-alert-akscpu'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  tags: tags\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'global'\n  tags: tags\n  properties: {\n    groupShortName: namePrefix\n    enabled: true\n    emailReceivers: [\n      {\n        name: 'OnCallEmail'\n        emailAddress: onCallEmailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource metricAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: metricAlertName\n  location: 'global'\n  tags: tags\n  properties: {\n    description: 'Alert when AKS cluster average node CPU usage exceeds ${cpuThreshold}% over ${alertWindowSize}.'\n    severity: alertSeverity\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: alertEvaluationFrequency\n    windowSize: alertWindowSize\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "@description('The prefix for all resource names.')\nparam namePrefix string = 'prod-aks-mon'\n\n@description('The Azure region where all resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The resource ID of the AKS cluster to monitor.')\nparam aksClusterResourceId string\n\n@description('The email address for the on-call engineer to receive alerts.')\nparam onCallEmailAddress string\n\n@description('The CPU percentage threshold for triggering the alert (e.g., 80 for 80%).')\n@minValue(1)\n@maxValue(100)\nparam cpuThreshold int = 80\n\n@description('The severity of the alert. 0=critical, 1=error, 2=warning, 3=informational, 4=verbose.')\n@allowed([\n  0\n  1\n  2\n  3\n  4\n])\nparam alertSeverity int = 1\n\n@description('The period of time (in ISO 8601 duration format) that is used to monitor alert activity.')\nparam alertWindowSize string = 'PT15M'\n\n@description('The frequency (in ISO 8601 duration format) for this alert rule.')\nparam alertEvaluationFrequency string = 'PT5M'\n\n@description('Tags to apply to all resources.')\nparam tags object = {\n  environment: 'Production'\n  managedBy: 'Bicep'\n}\n\nvar logAnalyticsWorkspaceName = '${namePrefix}-logs-${uniqueString(resourceGroup().id)}'\nvar actionGroupName = '${namePrefix}-ag-oncall'\nvar metricAlertName = '${namePrefix}-alert-akscpu'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  tags: tags\n  properties: {\n    sku: {\n      name: 'PerGB2018'\n    }\n    retentionInDays: 30\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\nresource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {\n  name: actionGroupName\n  location: 'global'\n  tags: tags\n  properties: {\n    groupShortName: namePrefix\n    enabled: true\n    emailReceivers: [\n      {\n        name: 'OnCallEmail'\n        emailAddress: onCallEmailAddress\n        useCommonAlertSchema: true\n      }\n    ]\n  }\n}\n\nresource metricAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {\n  name: metricAlertName\n  location: 'global'\n  tags: tags\n  properties: {\n    description: 'Alert when AKS cluster average node CPU usage exceeds ${cpuThreshold}% over ${alertWindowSize}.'\n    severity: alertSeverity\n    enabled: true\n    scopes: [\n      aksClusterResourceId\n    ]\n    evaluationFrequency: alertEvaluationFrequency\n    windowSize: alertWindowSize\n    criteria: {\n      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'\n      ",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779725399,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 132,
+      "output_tokens": 2044,
+      "raw_input_tokens": 132
+    }
+  },
+  "started_at": "2026-05-25T16:09:29.365409+00:00",
+  "elapsed_seconds": 30.385
+}

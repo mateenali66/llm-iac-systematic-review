@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-sa
+  namespace: my-app
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/instance: my-app-prod
+    app.kubernetes.io/part-of: my-app
+    app.kubernetes.io/managed-by: gitops
+    app.kubernetes.io/component: backend
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/my-app-prod-irsa-role
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+automountServiceAccountToken: true

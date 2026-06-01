@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-007",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template provisioning a GKE Standard cluster with one node pool for production workloads.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template provisioning a GKE Standard cluster with one node pool for production workloads.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: gke-standard-cluster\n  type: container.v1.cluster\n  properties:\n    zone: us-central1-a\n    cluster:\n      name: production-cluster\n      description: GKE Standard cluster for production workloads\n      initialClusterVersion: \"1.28\"\n      network: projects/${PROJECT_ID}/global/networks/default\n      subnetwork: projects/${PROJECT_ID}/regions/us-central1/subnetworks/default\n      nodePools:\n      - name: production-node-pool\n        initialNodeCount: 3\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-standard\n          imageType: COS_CONTAINERD\n          oauthScopes:\n          - https://www.googleapis.com/auth/devstorage.read_only\n          - https://www.googleapis.com/auth/logging.write\n          - https://www.googleapis.com/auth/monitoring\n          - https://www.googleapis.com/auth/servicecontrol\n          - https://www.googleapis.com/auth/service.management.readonly\n          - https://www.googleapis.com/auth/trace.append\n          serviceAccount: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          tags:\n            items:\n            - production\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 10\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0\n      masterAuth:\n        clientCertificateConfig:\n          issueClientCertificate: false\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - cidrBlock: 10.0.0.0/8\n          displayName: Internal VPC\n      addonsConfig:\n        networkPolicyConfig:\n          disabled: false\n        horizontalPodAutoscaling:\n          disabled: false\n        httpLoadBalancing:\n          disabled: false\n        kubernetesDashboard:\n          disabled: true\n        dnsCacheConfig:\n          enabled: true\n      releaseChannel:\n        channel: STABLE\n      workloadIdentityConfig:\n        workloadPool: ${PROJECT_ID}.svc.id.goog\n      verticalPodAutoscaling:\n        enabled: true\n      resourceLabels:\n        environment: production\n        managed-by: deployment-manager",
+  "cleaned_response": "resources:\n- name: gke-standard-cluster\n  type: container.v1.cluster\n  properties:\n    zone: us-central1-a\n    cluster:\n      name: production-cluster\n      description: GKE Standard cluster for production workloads\n      initialClusterVersion: \"1.28\"\n      network: projects/${PROJECT_ID}/global/networks/default\n      subnetwork: projects/${PROJECT_ID}/regions/us-central1/subnetworks/default\n      nodePools:\n      - name: production-node-pool\n        initialNodeCount: 3\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-standard\n          imageType: COS_CONTAINERD\n          oauthScopes:\n          - https://www.googleapis.com/auth/devstorage.read_only\n          - https://www.googleapis.com/auth/logging.write\n          - https://www.googleapis.com/auth/monitoring\n          - https://www.googleapis.com/auth/servicecontrol\n          - https://www.googleapis.com/auth/service.management.readonly\n          - https://www.googleapis.com/auth/trace.append\n          serviceAccount: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          tags:\n            items:\n            - production\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 10\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0\n      masterAuth:\n        clientCertificateConfig:\n          issueClientCertificate: false\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - cidrBlock: 10.0.0.0/8\n          displayName: Internal VPC\n      addonsConfig:\n        networkPolicyConfig:\n          disabled: false\n        horizontalPodAutoscaling:\n          disabled: false\n        httpLoadBalancing:\n          disabled: false\n        kubernetesDashboard:\n          disabled: true\n        dnsCacheConfig:\n          enabled: true\n      releaseChannel:\n        channel: STABLE\n      workloadIdentityConfig:\n        workloadPool: ${PROJECT_ID}.svc.id.goog\n      verticalPodAutoscaling:\n        enabled: true\n      resourceLabels:\n        environment: production\n        managed-by: deployment-manager",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: gke-standard-cluster\n  type: container.v1.cluster\n  properties:\n    zone: us-central1-a\n    cluster:\n      name: production-cluster\n      description: GKE Standard cluster for production workloads\n      initialClusterVersion: \"1.28\"\n      network: projects/${PROJECT_ID}/global/networks/default\n      subnetwork: projects/${PROJECT_ID}/regions/us-central1/subnetworks/default\n      nodePools:\n      - name: production-node-pool\n        initialNodeCount: 3\n        config:\n          machineType: e2-standard-4\n          diskSizeGb: 100\n          diskType: pd-standard\n          imageType: COS_CONTAINERD\n          oauthScopes:\n          - https://www.googleapis.com/auth/devstorage.read_only\n          - https://www.googleapis.com/auth/logging.write\n          - https://www.googleapis.com/auth/monitoring\n          - https://www.googleapis.com/auth/servicecontrol\n          - https://www.googleapis.com/auth/service.management.readonly\n          - https://www.googleapis.com/auth/trace.append\n          serviceAccount: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com\n          shieldedInstanceConfig:\n            enableSecureBoot: true\n            enableIntegrityMonitoring: true\n          tags:\n            items:\n            - production\n        management:\n          autoUpgrade: true\n          autoRepair: true\n        autoscaling:\n          enabled: true\n          minNodeCount: 3\n          maxNodeCount: 10\n        upgradeSettings:\n          maxSurge: 1\n          maxUnavailable: 0\n      masterAuth:\n        clientCertificateConfig:\n          issueClientCertificate: false\n      loggingService: logging.googleapis.com/kubernetes\n      monitoringService: monitoring.googleapis.com/kubernetes\n      networkPolicy:\n        enabled: true\n        provider: CALICO\n      ipAllocationPolicy:\n        useIpAliases: true\n        createSubnetwork: false\n      privateClusterConfig:\n        enablePrivateNodes: true\n        enablePrivateEndpoint: false\n        masterIpv4CidrBlock: 172.16.0.0/28\n      masterAuthorizedNetworksConfig:\n        enabled: true\n        cidrBlocks:\n        - cidrBlock: 10.0.0.0/8\n          displayName: Internal VPC\n      addonsConfig:\n        networkPolicyConfig:\n          disabled: false\n        horizontalPodAutoscaling:\n          disabled: false\n        httpLoadBalancing:\n          disabled: false\n        kubernetesDashboard:\n          disabled: true\n        dnsCacheConfig:\n          enabled: true\n      releaseChannel:\n        channel: STABLE\n      workloadIdentityConfig:\n        workloadPool: ${PROJECT_ID}.svc.id.goog\n      verticalPodAutoscaling:\n        enabled: true\n      resourceLabels:\n        environment: production\n        managed-by: deployment-manager",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728460,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 127,
+      "output_tokens": 624,
+      "raw_input_tokens": 127
+    }
+  },
+  "started_at": "2026-05-25T17:00:53.554287+00:00",
+  "elapsed_seconds": 6.562
+}

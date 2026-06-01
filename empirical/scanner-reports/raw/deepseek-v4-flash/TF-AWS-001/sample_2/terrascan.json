@@ -1,0 +1,52 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "s3BucketSseRulesWithKmsNull",
+        "description": "Ensure that S3 Buckets have server side encryption at rest enabled with KMS key to protect sensitive data.",
+        "rule_id": "AC_AWS_0207",
+        "severity": "HIGH",
+        "category": "Data Protection",
+        "resource_name": "prod_data",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 27
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 04:43:54.419732293 +0000 UTC",
+      "policies_validated": 16,
+      "violated_policies": 1,
+      "low": 0,
+      "medium": 0,
+      "high": 1
+    }
+  }
+}

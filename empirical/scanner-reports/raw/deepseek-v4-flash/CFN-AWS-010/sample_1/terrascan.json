@@ -1,0 +1,77 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "sqsSseDisabled",
+        "description": "Ensure that your Amazon Simple Queue Service (SQS) queues are protecting the contents of their messages using Server-Side Encryption (SSE). The SQS service uses an AWS KMS Customer Master Key (CMK) to generate data keys required for the encryption/decryption process of SQS messages. There is no additional charge for using SQS Server-Side Encryption, however, there is a charge for using AWS KMS",
+        "rule_id": "AC_AWS_0366",
+        "severity": "HIGH",
+        "category": "Security Best Practices",
+        "resource_name": "OrderProcessorDeadLetterQueue",
+        "resource_type": "aws_sqs_queue",
+        "file": "output.yaml",
+        "line": 49
+      },
+      {
+        "rule_name": "sqsSseDisabled",
+        "description": "Ensure that your Amazon Simple Queue Service (SQS) queues are protecting the contents of their messages using Server-Side Encryption (SSE). The SQS service uses an AWS KMS Customer Master Key (CMK) to generate data keys required for the encryption/decryption process of SQS messages. There is no additional charge for using SQS Server-Side Encryption, however, there is a charge for using AWS KMS",
+        "rule_id": "AC_AWS_0366",
+        "severity": "HIGH",
+        "category": "Security Best Practices",
+        "resource_name": "OrderProcessorQueue",
+        "resource_type": "aws_sqs_queue",
+        "file": "output.yaml",
+        "line": 36
+      },
+      {
+        "rule_name": "lambdaPolicyNotAttached",
+        "description": "Ensure AWS Lambda function has policy attached.",
+        "rule_id": "AC_AWS_0484",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "OrderProcessorFunction",
+        "resource_type": "aws_lambda_function",
+        "file": "output.yaml",
+        "line": 86
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "cft",
+      "scanned_at": "2026-05-26 04:38:37.21792255 +0000 UTC",
+      "policies_validated": 9,
+      "violated_policies": 3,
+      "low": 0,
+      "medium": 1,
+      "high": 2
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 111,
+	"files_parsed": 1,
+	"lines_parsed": 111,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:10:01.071648588Z",
+	"end": "2026-05-26T05:10:01.68204688Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ae23f032e3dbd924a48fb1653de3d18885ed6b5300aaa5dac6ae5953da23c231",
+					"line": 23,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.publicNetworkAccess",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess is set to 'Enabled')"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Blob Service Container With Public Access",
+			"query_id": "a0ab985d-660b-41f7-ac81-70957ee8e627",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts/blobservices/containers?tabs=json#containerproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The Storage Blob Service Container should not be publicly accessible",
+			"description_id": "49e52e15",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "0bb81d1c28c3bd12ec73b02629b492ba96c6290af76775b3e6caf66a0bc74187",
+					"line": 48,
+					"resource_type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+					"resource_name": "'${sa.name}/default/uploads'",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name='${sa.name}/default/uploads'.properties.publicAccess",
+					"search_line": 48,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts/blobServices/containers' shouldn't have 'publicAccess' property value set to 'Container' or 'Blob'",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts/blobServices/containers' has 'publicAccess' property set to 'Blob'"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ff741b1acb9a08a9588c8dfc74046040c81a2e576131ed7be52b35757b87693e",
+					"line": 18,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('storageAccountName')].properties",
+					"search_line": 18,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' should have the 'properties.networkAcls.defaultAction' defined",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' doesn't have 'properties.networkAcls.defaultAction' defined"
+				}
+			]
+		}
+	]
+}

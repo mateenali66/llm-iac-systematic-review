@@ -1,0 +1,271 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: fluentbit-sidecar
+description: A Helm chart for deploying a multi-container Pod with Fluent Bit log-shipping sidecar
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+# Default values for fluentbit-sidecar.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+fluentbit:
+  image:
+    repository: fluent/fluent-bit
+    tag: latest
+    pullPolicy: IfNotPresent
+  config:
+    # Fluent Bit configuration
+    input: |
+      [INPUT]
+          Name              tail
+          Path              /var/log/app/*.log
+          Parser            json
+          Tag               app.*
+          Refresh_Interval  10
+          Mem_Buf_Limit     5MB
+          Skip_Long_Lines   On
+    output: |
+      [OUTPUT]
+          Name              stdout
+          Match             *
+    parser: |
+      [PARSER]
+          Name        json
+          Format      json
+          Time_Key    time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
+          Time_Keep   On
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  main:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  fluentbit:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Shared volume configuration
+sharedVolume:
+  # Path where the main application writes logs
+  appLogPath: /var/log/app
+  # Path where Fluent Bit reads logs
+  fluentbitLogPath: /var/log/app
+  # Volume size limit
+  sizeLimit: 1Gi
+
+# Additional environment variables for main container
+env: []
+# - name: MY_VAR
+#   value: "my_value"
+
+# Additional environment variables for Fluent Bit container
+fluentbitEnv: []
+# - name: FLUENT_BIT_VAR
+#   value: "my_value"
+
+# Pod annotations
+podAnnotations: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+containerSecurityContext:
+  main:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+  fluentbit:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+---
+# FILE: templates/_helpers.tpl
+{{- define "fluentbit-sidecar.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "fluentbit-sidecar.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "fluentbit-sidecar.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "fluentbit-sidecar.labels" -}}
+helm.sh/chart: {{ include "fluentbit-sidecar.chart" . }}
+{{ include "fluentbit-sidecar.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "fluentbit-sidecar.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "fluentbit-sidecar.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fluentbit-sidecar.fullname" . }}
+  labels:
+    {{- include "fluentbit-sidecar.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "fluentbit-sidecar.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "fluentbit-sidecar.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources.main | nindent 12 }}
+          volumeMounts:
+            - name: shared-logs
+              mountPath: {{ .Values.sharedVolume.appLogPath }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext.main | nindent 12 }}
+        - name: fluentbit
+          image: "{{ .Values.fluentbit.image.repository }}:{{ .Values.fluentbit.image.tag }}"
+          imagePullPolicy: {{ .Values.fluentbit.image.pullPolicy }}
+          env:
+            {{- toYaml .Values.fluentbitEnv | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources.fluentbit | nindent 12 }}
+          volumeMounts:
+            - name: shared-logs
+              mountPath: {{ .Values.sharedVolume.fluentbitLogPath }}
+              readOnly: true
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+              readOnly: true
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc/parsers.conf
+              subPath: parsers.conf
+              readOnly: true
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext.fluentbit | nindent 12 }}
+      volumes:
+        - name: shared-logs
+          emptyDir:
+            sizeLimit: {{ .Values.sharedVolume.sizeLimit }}
+        - name: fluentbit-config
+          configMap:
+            name: {{ include "fluentbit-sidecar.fullname" . }}-fluentbit-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fluentbit-sidecar.fullname" . }}
+  labels:
+    {{- include "fluentbit-sidecar.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "fluentbit-sidecar.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fluentbit-sidecar.fullname" . }}-fluentbit-config
+  labels:
+    {{- include "fluentbit-sidecar.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        1
+        Daemon       Off
+        Log_Level    info
+        Parsers_File parsers.conf
+
+    {{ .Values.fluentbit.config.input | nindent 4 }}
+
+    {{ .Values.fluentbit.config.output | nindent 4 }}

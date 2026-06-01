@@ -1,0 +1,46 @@
+resources:
+- name: myapp-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: myapp-subnet-usc1
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    ipCidrRange: 10.10.0.0/24
+    network: $(ref.myapp-vpc.selfLink)
+    privateIpGoogleAccess: true
+
+- name: myapp-redis-cache
+  type: redis.v1.instance
+  properties:
+    region: us-central1
+    tier: BASIC
+    memorySizeGb: 1
+    displayName: myapp-redis-cache
+    authorizedNetwork: $(ref.myapp-vpc.selfLink)
+    reservedIpRange: 10.10.1.0/29
+    connectMode: DIRECT_PEERING
+    redisVersion: REDIS_7_0
+    authEnabled: true
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    redisConfigs:
+      maxmemory-policy: allkeys-lru
+      notify-keyspace-events: Ex
+    labels:
+      environment: prod
+      app: myapp
+      role: cache
+      managed-by: deployment-manager
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+      - day: MONDAY
+        startTime:
+          hours: 3
+          minutes: 0
+          seconds: 0
+          nanos: 0
+        duration: 10800s

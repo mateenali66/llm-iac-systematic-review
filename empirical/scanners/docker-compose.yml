@@ -1,0 +1,46 @@
+# Docker Compose for the 5-scanner empirical pipeline.
+# Each service exposes a 'scan' entrypoint that takes a path to IaC source
+# and emits a JSON report to stdout. Versions pinned for reproducibility.
+#
+# Usage from the project root:
+#   docker compose -f empirical/scanners/docker-compose.yml run --rm checkov \
+#       -d /work/inputs -o json --output-file-path /work/outputs/checkov.json
+#
+# Mounts ./inputs and ./outputs into /work for each scanner.
+
+services:
+
+  checkov:
+    image: bridgecrew/checkov:3.2.358
+    working_dir: /work
+    volumes:
+      - ../generations:/work/inputs:ro
+      - ../scanner-reports/checkov:/work/outputs
+
+  tfsec:
+    image: aquasec/tfsec:v1.28.13
+    working_dir: /work
+    volumes:
+      - ../generations:/work/inputs:ro
+      - ../scanner-reports/tfsec:/work/outputs
+
+  kics:
+    image: checkmarx/kics:v2.1.7
+    working_dir: /work
+    volumes:
+      - ../generations:/work/inputs:ro
+      - ../scanner-reports/kics:/work/outputs
+
+  terrascan:
+    image: tenable/terrascan:1.19.9
+    working_dir: /work
+    volumes:
+      - ../generations:/work/inputs:ro
+      - ../scanner-reports/terrascan:/work/outputs
+
+  trivy:
+    image: aquasec/trivy:0.58.1
+    working_dir: /work
+    volumes:
+      - ../generations:/work/inputs:ro
+      - ../scanner-reports/trivy:/work/outputs

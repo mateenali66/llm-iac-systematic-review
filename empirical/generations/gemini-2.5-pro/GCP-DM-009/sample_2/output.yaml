@@ -1,0 +1,40 @@
+resources:
+- name: project-logs-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: project_logs_dataset
+      projectId: $(env.project)
+    location: US
+    description: "GCP project logs for long-term analysis."
+    access:
+    - role: WRITER
+      specialGroup: projectWriters
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: READER
+      specialGroup: projectReaders
+
+- name: project-logs-to-bq-sink
+  type: gcp-types/logging-v2:projects.sinks
+  properties:
+    sink: project-logs-to-bq-sink
+    parent: projects/$(env.project)
+    destination: bigquery.googleapis.com/projects/$(env.project)/datasets/$(ref.project-logs-dataset.datasetReference.datasetId)
+    filter: ""
+    description: "Exports all project logs to a BigQuery dataset."
+    uniqueWriterIdentity: true
+
+- name: grant-bq-writer-permission-to-sink
+  type: gcp-types/iam.v1.iam
+  properties:
+    resource: $(ref.project-logs-dataset.selfLink)
+    policy:
+      bindings:
+      - role: roles/bigquery.dataEditor
+        members:
+        - $(ref.project-logs-to-bq-sink.writerIdentity)
+  metadata:
+    dependsOn:
+    - project-logs-dataset
+    - project-logs-to-bq-sink

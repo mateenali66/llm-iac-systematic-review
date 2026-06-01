@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-008",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: kms-keyring-gcs-us\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  deletionPolicy: ABANDON\n  properties:\n    parent: projects/$(projectId)/locations/us\n    keyRingId: gcs-keyring\n\n- name: kms-crypto-key-gcs\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  deletionPolicy: ABANDON\n  metadata:\n    dependsOn:\n      - kms-keyring-gcs-us\n  properties:\n    parent: $(ref.kms-keyring-gcs-us.name)\n    cryptoKeyId: gcs-default-key\n    resource:\n      purpose: ENCRYPT_DECRYPT\n      rotationPeriod: 7776000s\n      nextRotationTime: 2026-06-01T00:00:00Z\n      versionTemplate:\n        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n        protectionLevel: SOFTWARE\n      labels:\n        env: prod\n        use: gcs-cmek\n        managed_by: dm\n\noutputs:\n- name: keyRing\n  value: $(ref.kms-keyring-gcs-us.name)\n- name: cryptoKey\n  value: $(ref.kms-crypto-key-gcs.name)\n- name: cryptoKeyResourceId\n  value: projects/$(projectId)/locations/us/keyRings/gcs-keyring/cryptoKeys/gcs-default-key",
+  "cleaned_response": "resources:\n- name: kms-keyring-gcs-us\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  deletionPolicy: ABANDON\n  properties:\n    parent: projects/$(projectId)/locations/us\n    keyRingId: gcs-keyring\n\n- name: kms-crypto-key-gcs\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  deletionPolicy: ABANDON\n  metadata:\n    dependsOn:\n      - kms-keyring-gcs-us\n  properties:\n    parent: $(ref.kms-keyring-gcs-us.name)\n    cryptoKeyId: gcs-default-key\n    resource:\n      purpose: ENCRYPT_DECRYPT\n      rotationPeriod: 7776000s\n      nextRotationTime: 2026-06-01T00:00:00Z\n      versionTemplate:\n        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n        protectionLevel: SOFTWARE\n      labels:\n        env: prod\n        use: gcs-cmek\n        managed_by: dm\n\noutputs:\n- name: keyRing\n  value: $(ref.kms-keyring-gcs-us.name)\n- name: cryptoKey\n  value: $(ref.kms-crypto-key-gcs.name)\n- name: cryptoKeyResourceId\n  value: projects/$(projectId)/locations/us/keyRings/gcs-keyring/cryptoKeys/gcs-default-key",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: kms-keyring-gcs-us\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  deletionPolicy: ABANDON\n  properties:\n    parent: projects/$(projectId)/locations/us\n    keyRingId: gcs-keyring\n\n- name: kms-crypto-key-gcs\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  deletionPolicy: ABANDON\n  metadata:\n    dependsOn:\n      - kms-keyring-gcs-us\n  properties:\n    parent: $(ref.kms-keyring-gcs-us.name)\n    cryptoKeyId: gcs-default-key\n    resource:\n      purpose: ENCRYPT_DECRYPT\n      rotationPeriod: 7776000s\n      nextRotationTime: 2026-06-01T00:00:00Z\n      versionTemplate:\n        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n        protectionLevel: SOFTWARE\n      labels:\n        env: prod\n        use: gcs-cmek\n        managed_by: dm\n\noutputs:\n- name: keyRing\n  value: $(ref.kms-keyring-gcs-us.name)\n- name: cryptoKey\n  value: $(ref.kms-crypto-key-gcs.name)\n- name: cryptoKeyResourceId\n  value: projects/$(projectId)/locations/us/keyRings/gcs-keyring/cryptoKeys/gcs-default-key",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779720160,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 134,
+      "output_tokens": 4377,
+      "raw_input_tokens": 134
+    }
+  },
+  "started_at": "2026-05-25T14:41:42.238019+00:00",
+  "elapsed_seconds": 58.163
+}

@@ -1,0 +1,106 @@
+resources:
+  - name: instance-template
+    type: compute.v1.instanceTemplate
+    properties:
+      properties:
+        machineType: n1-standard-1
+        disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            diskSizeGb: 30
+            sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20230214
+        networkInterfaces:
+        - accessConfigs:
+          - name: External NAT
+            type: ONE_TO_ONE_NAT
+          network: $(ref.network.selfLink)
+        metadata:
+          startup-script: |
+            #! /bin/bash
+            apt update
+            apt install -y apache2
+            systemctl start apache2
+            systemctl enable apache2
+  - name: instance-group
+    type: compute.v1.instanceGroupManager
+    properties:
+      zone: us-central1-a
+      instanceTemplate: $(ref.instance-template.selfLink)
+      targetSize: 1
+      autoHealingPolicies:
+      - initialDelaySec: 300
+      updatePolicy:
+        type: PROACTIVE
+        minimalAction: RESTART
+        maxSurge: 1
+        maxUnavailable: 0
+  - name: autoscaler
+    type: compute.v1.autoscaler
+    properties:
+      zone: us-central1-a
+      target: $(ref.instance-group.selfLink)
+      autoscalingPolicy:
+        minReplicas: 1
+        maxReplicas: 5
+        coolDownPeriodSec: 60
+        cpuUtilization:
+          utilizationTarget: 0.6
+  - name: network
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: true
+  - name: backend-service
+    type: compute.v1.backendService
+    properties:
+      backends:
+      - group: $(ref.instance-group.selfLink)
+      healthChecks:
+      - $(ref.health-check.selfLink)
+      protocol: HTTPS
+      portName: https
+      timeoutSec: 30
+      enableCDN: false
+  - name: health-check
+    type: compute.v1.healthCheck
+    properties:
+      checkIntervalSec: 5
+      timeoutSec: 5
+      unhealthyThreshold: 2
+      type: HTTPS
+      requestPath: /
+      port: 443
+  - name: url-map
+    type: compute.v1.urlMap
+    properties:
+      defaultService: $(ref.backend-service.selfLink)
+      hostRules:
+      - service: $(ref.backend-service.selfLink)
+        host: '*'
+      pathMatchers:
+      - name: path-matcher-1
+        defaultService: $(ref.backend-service.selfLink)
+        pathRules:
+        - service: $(ref.backend-service.selfLink)
+          paths:
+          - '/*'
+  - name: target-https-proxy
+    type: compute.v1.targetHttpsProxy
+    properties:
+      urlMap: $(ref.url-map.selfLink)
+      sslCertificates:
+      - $(ref.ssl-certificate.selfLink)
+  - name: ssl-certificate
+    type: compute.v1.sslCertificate
+    properties:
+      privateKey: 'your-ssl-private-key'
+      certificate: 'your-ssl-certificate'
+  - name: global-forwarding-rule
+    type: compute.v1.globalForwardingRule
+    properties:
+      IPProtocol: TCP
+      ports:
+      - 443
+      target: $(ref.target-https-proxy.selfLink)

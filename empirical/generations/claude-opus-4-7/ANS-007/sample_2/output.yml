@@ -1,0 +1,119 @@
+---
+- name: Configure static network interface via Netplan on Debian 12
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    netplan_interface: "eth0"
+    netplan_ip_cidr: "192.168.1.50/24"
+    netplan_gateway: "192.168.1.1"
+    netplan_dns_servers:
+      - "1.1.1.1"
+      - "9.9.9.9"
+    netplan_dns_search:
+      - "example.local"
+    netplan_config_path: "/etc/netplan/01-static-{{ netplan_interface }}.yaml"
+    netplan_renderer: "networkd"
+
+  pre_tasks:
+    - name: Ensure host is Debian 12 (bookworm)
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['os_family'] == 'Debian'
+          - ansible_facts['distribution_major_version'] == '12'
+        fail_msg: "This playbook targets Debian 12 only."
+
+    - name: Ensure netplan.io is installed
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:
+    - name: Ensure /etc/netplan exists with secure permissions
+      ansible.builtin.file:
+        path: /etc/netplan
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Find existing netplan configuration files
+      ansible.builtin.find:
+        paths: /etc/netplan
+        patterns: "*.yaml"
+        excludes: "{{ netplan_config_path | basename }}"
+      register: existing_netplan_files
+
+    - name: Back up pre-existing netplan configuration files
+      ansible.builtin.copy:
+        src: "{{ item.path }}"
+        dest: "{{ item.path }}.bak"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0600"
+        force: false
+      loop: "{{ existing_netplan_files.files }}"
+      when: existing_netplan_files.matched | int > 0
+
+    - name: Remove other netplan YAML files to avoid conflicts
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ existing_netplan_files.files }}"
+      when: existing_netplan_files.matched | int > 0
+
+    - name: Render netplan static configuration
+      ansible.builtin.copy:
+        dest: "{{ netplan_config_path }}"
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          # Managed by Ansible - do not edit manually
+          network:
+            version: 2
+            renderer: {{ netplan_renderer }}
+            ethernets:
+              {{ netplan_interface }}:
+                dhcp4: false
+                dhcp6: false
+                accept-ra: false
+                addresses:
+                  - {{ netplan_ip_cidr }}
+                routes:
+                  - to: default
+                    via: {{ netplan_gateway }}
+                nameservers:
+                  search: {{ netplan_dns_search | to_json }}
+                  addresses: {{ netplan_dns_servers | to_json }}
+      register: netplan_config
+
+    - name: Validate netplan configuration (generate)
+      ansible.builtin.command: netplan generate
+      changed_when: false
+
+    - name: Apply netplan configuration
+      ansible.builtin.command: netplan apply
+      when: netplan_config.changed
+      async: 30
+      poll: 0
+
+    - name: Wait for host to become reachable on new address
+      ansible.builtin.wait_for_connection:
+        delay: 5
+        timeout: 60
+
+    - name: Gather updated network facts
+      ansible.builtin.setup:
+        gather_subset:
+          - network
+
+    - name: Verify configured IP address is present on interface
+      ansible.builtin.assert:
+        that:
+          - (netplan_ip_cidr | ansible.utils.ipaddr('address')) in (ansible_facts['all_ipv4_addresses'] | default([]))
+        fail_msg: "Configured IP {{ netplan_ip_cidr }} not present on host after netplan apply."

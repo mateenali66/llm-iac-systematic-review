@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-003",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [\"false\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name_prefix = \"jump-host-sg\"\n  description = \"Security group for jump host\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"SSH access from internal network\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami                         = data.aws_ami.amazon_linux_2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = data.aws_subnets.private.ids[0]\n  vpc_security_group_ids      = [aws_security_group.jump_host_sg.id]\n  associate_public_ip_address = false\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_endpoint = \"enabled\"\n    http_tokens   = \"required\"\n  }\n\n  disable_api_termination = false\n  instance_initiated_shutdown_behavior = \"stop\"\n\n  tags = {\n    Name = \"internal-jump-host\"\n    Role = \"jump-host\"\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [\"false\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name_prefix = \"jump-host-sg\"\n  description = \"Security group for jump host\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"SSH access from internal network\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami                         = data.aws_ami.amazon_linux_2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = data.aws_subnets.private.ids[0]\n  vpc_security_group_ids      = [aws_security_group.jump_host_sg.id]\n  associate_public_ip_address = false\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_endpoint = \"enabled\"\n    http_tokens   = \"required\"\n  }\n\n  disable_api_termination = false\n  instance_initiated_shutdown_behavior = \"stop\"\n\n  tags = {\n    Name = \"internal-jump-host\"\n    Role = \"jump-host\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [\"false\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name_prefix = \"jump-host-sg\"\n  description = \"Security group for jump host\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"SSH access from internal network\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami                         = data.aws_ami.amazon_linux_2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = data.aws_subnets.private.ids[0]\n  vpc_security_group_ids      = [aws_security_group.jump_host_sg.id]\n  associate_public_ip_address = false\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_endpoint = \"enabled\"\n    http_tokens   = \"required\"\n  }\n\n  disable_api_termination = false\n  instance_initiated_shutdown_behavior = \"stop\"\n\n  tags = {\n    Name = \"internal-jump-host\"\n    Role = \"jump-host\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726294,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 154,
+      "output_tokens": 505,
+      "raw_input_tokens": 154
+    }
+  },
+  "started_at": "2026-05-25T16:24:48.742086+00:00",
+  "elapsed_seconds": 6.154
+}

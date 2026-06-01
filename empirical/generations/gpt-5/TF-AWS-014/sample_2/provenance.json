@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-014",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudWatch log group named '/aws/app/prod' with 30-day retention for production application logs.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create a CloudWatch log group named '/aws/app/prod' with 30-day retention for production application logs.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_version = \">= 1.4.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0.0\"\n    }\n  }\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to deploy resources into\"\n  type        = string\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\ndata \"aws_partition\" \"current\" {}\n\ndata \"aws_iam_policy_document\" \"kms_cw_logs\" {\n  statement {\n    sid     = \"AllowRootAccountFullAccess\"\n    effect  = \"Allow\"\n    actions = [\"kms:*\"]\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"AllowCloudWatchLogsUseOfTheKey\"\n    effect = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"logs.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}\"]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\",\n      \"kms:CreateGrant\"\n    ]\n    resources = [\"*\"]\n\n    condition {\n      test     = \"ArnLike\"\n      variable = \"kms:EncryptionContext:aws:logs:arn\"\n      values = [\n        \"arn:${data.aws_partition.current.partition}:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod*\"\n      ]\n    }\n\n    condition {\n      test     = \"Bool\"\n      variable = \"kms:GrantIsForAWSResource\"\n      values   = [\"true\"]\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"cloudwatch_logs\" {\n  description         = \"KMS key for encrypting CloudWatch Logs for production application\"\n  enable_key_rotation = true\n  policy              = data.aws_iam_policy_document.kms_cw_logs.json\n\n  tags = {\n    Name        = \"cloudwatch-logs-app-prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"cloudwatch_logs\" {\n  name          = \"alias/cloudwatch-logs-app-prod\"\n  target_key_id = aws_kms_key.cloudwatch_logs.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.cloudwatch_logs.arn\n  skip_destroy      = true\n\n  tags = {\n    Name        = \"/aws/app/prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.4.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0.0\"\n    }\n  }\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to deploy resources into\"\n  type        = string\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\ndata \"aws_partition\" \"current\" {}\n\ndata \"aws_iam_policy_document\" \"kms_cw_logs\" {\n  statement {\n    sid     = \"AllowRootAccountFullAccess\"\n    effect  = \"Allow\"\n    actions = [\"kms:*\"]\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"AllowCloudWatchLogsUseOfTheKey\"\n    effect = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"logs.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}\"]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\",\n      \"kms:CreateGrant\"\n    ]\n    resources = [\"*\"]\n\n    condition {\n      test     = \"ArnLike\"\n      variable = \"kms:EncryptionContext:aws:logs:arn\"\n      values = [\n        \"arn:${data.aws_partition.current.partition}:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod*\"\n      ]\n    }\n\n    condition {\n      test     = \"Bool\"\n      variable = \"kms:GrantIsForAWSResource\"\n      values   = [\"true\"]\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"cloudwatch_logs\" {\n  description         = \"KMS key for encrypting CloudWatch Logs for production application\"\n  enable_key_rotation = true\n  policy              = data.aws_iam_policy_document.kms_cw_logs.json\n\n  tags = {\n    Name        = \"cloudwatch-logs-app-prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"cloudwatch_logs\" {\n  name          = \"alias/cloudwatch-logs-app-prod\"\n  target_key_id = aws_kms_key.cloudwatch_logs.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.cloudwatch_logs.arn\n  skip_destroy      = true\n\n  tags = {\n    Name        = \"/aws/app/prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_version = \">= 1.4.0\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0.0\"\n    }\n  }\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to deploy resources into\"\n  type        = string\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\ndata \"aws_region\" \"current\" {}\n\ndata \"aws_partition\" \"current\" {}\n\ndata \"aws_iam_policy_document\" \"kms_cw_logs\" {\n  statement {\n    sid     = \"AllowRootAccountFullAccess\"\n    effect  = \"Allow\"\n    actions = [\"kms:*\"]\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"AllowCloudWatchLogsUseOfTheKey\"\n    effect = \"Allow\"\n    principals {\n      type        = \"Service\"\n      identifiers = [\"logs.${data.aws_region.current.name}.${data.aws_partition.current.dns_suffix}\"]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\",\n      \"kms:CreateGrant\"\n    ]\n    resources = [\"*\"]\n\n    condition {\n      test     = \"ArnLike\"\n      variable = \"kms:EncryptionContext:aws:logs:arn\"\n      values = [\n        \"arn:${data.aws_partition.current.partition}:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/app/prod*\"\n      ]\n    }\n\n    condition {\n      test     = \"Bool\"\n      variable = \"kms:GrantIsForAWSResource\"\n      values   = [\"true\"]\n    }\n  }\n}\n\nresource \"aws_kms_key\" \"cloudwatch_logs\" {\n  description         = \"KMS key for encrypting CloudWatch Logs for production application\"\n  enable_key_rotation = true\n  policy              = data.aws_iam_policy_document.kms_cw_logs.json\n\n  tags = {\n    Name        = \"cloudwatch-logs-app-prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_kms_alias\" \"cloudwatch_logs\" {\n  name          = \"alias/cloudwatch-logs-app-prod\"\n  target_key_id = aws_kms_key.cloudwatch_logs.key_id\n}\n\nresource \"aws_cloudwatch_log_group\" \"app_prod\" {\n  name              = \"/aws/app/prod\"\n  retention_in_days = 30\n  kms_key_id        = aws_kms_key.cloudwatch_logs.arn\n  skip_destroy      = true\n\n  tags = {\n    Name        = \"/aws/app/prod\"\n    Environment = \"prod\"\n    Application = \"app\"\n    ManagedBy   = \"Terraform\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779699959,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 131,
+      "output_tokens": 4495,
+      "raw_input_tokens": 131
+    }
+  },
+  "started_at": "2026-05-25T09:04:23.840982+00:00",
+  "elapsed_seconds": 95.52
+}

@@ -1,0 +1,153 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_version: "0.110.0"
+    otelcol_user: otelcol
+    otelcol_group: otelcol
+    otelcol_config_dir: /etc/otelcol
+    otelcol_install_dir: /usr/local/bin
+    otelcol_data_dir: /var/lib/otelcol
+    otelcol_log_dir: /var/log/otelcol
+    otelcol_otlp_grpc_port: 4317
+    otelcol_otlp_http_port: 4318
+    otelcol_remote_endpoint: "https://otel-gateway.example.com:4317"
+    otelcol_remote_headers:
+      authorization: "Bearer REPLACE_WITH_TOKEN"
+    otelcol_remote_tls_insecure: false
+    otelcol_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armhf
+
+  pre_tasks:
+    - name: Assert supported OS family
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family in ['Debian', 'RedHat']
+        fail_msg: "Unsupported OS family: {{ ansible_os_family }}"
+
+    - name: Set architecture fact
+      ansible.builtin.set_fact:
+        otelcol_arch: "{{ otelcol_arch_map[ansible_architecture] | default('amd64') }}"
+
+  tasks:
+    - name: Ensure required packages are installed (Debian)
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - tar
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Ensure required packages are installed (RedHat)
+      ansible.builtin.yum:
+        name:
+          - ca-certificates
+          - curl
+          - tar
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Create otelcol group
+      ansible.builtin.group:
+        name: "{{ otelcol_group }}"
+        system: true
+        state: present
+
+    - name: Create otelcol system user
+      ansible.builtin.user:
+        name: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ otelcol_data_dir }}"
+        create_home: false
+        state: present
+
+    - name: Create otelcol directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default(otelcol_user) }}"
+        group: "{{ item.group | default(otelcol_group) }}"
+        mode: "{{ item.mode | default('0750') }}"
+      loop:
+        - { path: "{{ otelcol_config_dir }}", owner: root, group: "{{ otelcol_group }}", mode: '0750' }
+        - { path: "{{ otelcol_data_dir }}", mode: '0750' }
+        - { path: "{{ otelcol_log_dir }}", mode: '0750' }
+
+    - name: Check current otelcol binary version
+      ansible.builtin.command: "{{ otelcol_install_dir }}/otelcol --version"
+      register: otelcol_current_version
+      changed_when: false
+      failed_when: false
+
+    - name: Download OpenTelemetry Collector tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/otelcol_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+        dest: "/tmp/otelcol_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+        mode: '0644'
+        force: false
+      when: otelcol_version not in otelcol_current_version.stdout | default('')
+      register: otelcol_download
+
+    - name: Extract OpenTelemetry Collector
+      ansible.builtin.unarchive:
+        src: "/tmp/otelcol_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+        dest: "{{ otelcol_install_dir }}"
+        remote_src: true
+        include:
+          - otelcol
+        owner: root
+        group: root
+        mode: '0755'
+      when: otelcol_download is changed
+      notify: Restart otelcol
+
+    - name: Grant capability to bind privileged ports (defensive)
+      community.general.capabilities:
+        path: "{{ otelcol_install_dir }}/otelcol"
+        capability: cap_net_bind_service=+ep
+        state: present
+      failed_when: false
+
+    - name: Deploy OpenTelemetry Collector configuration
+      ansible.builtin.copy:
+        dest: "{{ otelcol_config_dir }}/config.yaml"
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: '0640'
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:{{ otelcol_otlp_grpc_port }}
+                http:
+                  endpoint: 0.0.0.0:{{ otelcol_otlp_http_port }}
+
+          processors:
+            batch:
+              send_batch_size: 8192
+              timeout: 5s
+            memory_limiter:
+              check_interval: 1s
+              limit_percentage: 80
+              spike_limit_percentage: 25
+
+          exporters:
+            otlp:
+              endpoint: {{ otelcol_remote_endpoint }}
+              headers:
+          {% for k, v in otelcol_remote_headers.items() %}
+                {{ k }}: "{{ v }}"
+          {% endfor %}
+              tls:
+                insecure: {{ otelcol_remote_tls_insecure | lower }}
+              sending_queue:
+                enabled: true
+                num_consumers:

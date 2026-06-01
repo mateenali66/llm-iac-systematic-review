@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch Dashboard for Lambda-based API health monitoring'
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Description: 'Name of the Lambda function to monitor'
+    AllowedPattern: '^[a-zA-Z0-9-_]+$'
+  DashboardName:
+    Type: String
+    Description: 'Name for the CloudWatch Dashboard'
+    Default: 'LambdaAPIHealthDashboard'
+    AllowedPattern: '^[a-zA-Z0-9-_]+$'
+Resources:
+  LambdaAPIDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody:
+        Fn::Sub:
+          - |
+            {
+              "widgets": [
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Invocations", "FunctionName", "${FunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Invocations (5-min sum)",
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 12,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Errors", "FunctionName", "${FunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Errors (5-min sum)",
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 6,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Throttles", "FunctionName", "${FunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Throttles (5-min sum)",
+                    "view": "timeSeries",
+                    "stacked": false
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 12,
+                  "y": 6,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Duration", "FunctionName", "${FunctionName}", { "stat": "Average", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Average",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Average Duration (5-min avg)",
+                    "view": "timeSeries",
+                    "stacked": false,
+                    "yAxis": {
+                      "left": {
+                        "label": "Milliseconds",
+                        "showUnits": false
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          - FunctionName: !Ref LambdaFunctionName
+Outputs:
+  DashboardName:
+    Description: 'Name of the created CloudWatch Dashboard'
+    Value: !Ref DashboardName
+  DashboardArn:
+    Description: 'ARN of the created CloudWatch Dashboard'
+    Value: !GetAtt LambdaAPIDashboard.DashboardArn

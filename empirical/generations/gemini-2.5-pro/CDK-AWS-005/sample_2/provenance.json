@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-005",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_ec2 as ec2\nfrom constructs import Construct\n\nclass ProductionVpcStack(cdk.Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Define the VPC with public and private subnets across 2 AZs\n        # NAT Gateways are created in each AZ for high availability.\n        vpc = ec2.Vpc(\n            self,\n            \"ProductionVPC\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            # Enable VPC Flow Logs for security monitoring and troubleshooting\n            flow_logs={\n                \"DefaultFlowLog\": ec2.FlowLogOptions()\n            }\n        )\n\n        # Add a Gateway VPC Endpoint for S3 to allow private access\n        # This is more cost-effective and secure than using NAT Gateways for S3 traffic.\n        vpc.add_gateway_endpoint(\n            \"S3GatewayEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add a Gateway VPC Endpoint for DynamoDB for private access\n        # This improves security and can reduce data transfer costs.\n        vpc.add_gateway_endpoint(\n            \"DynamoDBGatewayEndpoint\",\n            service=ec2.GatewayV",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_ec2 as ec2\nfrom constructs import Construct\n\nclass ProductionVpcStack(cdk.Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Define the VPC with public and private subnets across 2 AZs\n        # NAT Gateways are created in each AZ for high availability.\n        vpc = ec2.Vpc(\n            self,\n            \"ProductionVPC\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            # Enable VPC Flow Logs for security monitoring and troubleshooting\n            flow_logs={\n                \"DefaultFlowLog\": ec2.FlowLogOptions()\n            }\n        )\n\n        # Add a Gateway VPC Endpoint for S3 to allow private access\n        # This is more cost-effective and secure than using NAT Gateways for S3 traffic.\n        vpc.add_gateway_endpoint(\n            \"S3GatewayEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add a Gateway VPC Endpoint for DynamoDB for private access\n        # This improves security and can reduce data transfer costs.\n        vpc.add_gateway_endpoint(\n            \"DynamoDBGatewayEndpoint\",\n            service=ec2.GatewayV",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import aws_ec2 as ec2\nfrom constructs import Construct\n\nclass ProductionVpcStack(cdk.Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Define the VPC with public and private subnets across 2 AZs\n        # NAT Gateways are created in each AZ for high availability.\n        vpc = ec2.Vpc(\n            self,\n            \"ProductionVPC\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            # Enable VPC Flow Logs for security monitoring and troubleshooting\n            flow_logs={\n                \"DefaultFlowLog\": ec2.FlowLogOptions()\n            }\n        )\n\n        # Add a Gateway VPC Endpoint for S3 to allow private access\n        # This is more cost-effective and secure than using NAT Gateways for S3 traffic.\n        vpc.add_gateway_endpoint(\n            \"S3GatewayEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add a Gateway VPC Endpoint for DynamoDB for private access\n        # This improves security and can reduce data transfer costs.\n        vpc.add_gateway_endpoint(\n            \"DynamoDBGatewayEndpoint\",\n            service=ec2.GatewayV",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779725755,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 131,
+      "output_tokens": 2044,
+      "raw_input_tokens": 131
+    }
+  },
+  "started_at": "2026-05-25T16:15:34.772035+00:00",
+  "elapsed_seconds": 20.935
+}

@@ -1,0 +1,105 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: yes
+
+  vars:
+    node_exporter_version: "1.3.1"
+    node_exporter_port: 9100
+    node_exporter_user: node_exporter
+    node_exporter_group: node_exporter
+
+  tasks:
+  - name: Create node_exporter user and group
+    group:
+      name: "{{ node_exporter_group }}"
+      state: present
+    user:
+      name: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_group }}"
+      system: yes
+      create_home: no
+      state: present
+
+  - name: Download node_exporter binary
+    get_url:
+      url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/node_exporter.tar.gz"
+      mode: '0644'
+    register: download
+
+  - name: Extract node_exporter binary
+    unarchive:
+      src: "/tmp/node_exporter.tar.gz"
+      dest: "/tmp"
+      compression: tar
+      interactive: yes
+    when: download.changed
+
+  - name: Copy node_exporter binary to /usr/local/bin
+    copy:
+      content: "{{ lookup('file', '/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter') }}"
+      dest: "/usr/local/bin/node_exporter"
+      mode: '0755'
+    when: download.changed
+
+  - name: Create node_exporter systemd service file
+    template:
+      src: templates/node_exporter.service.j2
+      dest: /etc/systemd/system/node_exporter.service
+      mode: '0644'
+    notify: restart node_exporter
+
+  - name: Enable and start node_exporter service
+    systemd:
+      name: node_exporter
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+  handlers:
+  - name: restart node_exporter
+    systemd:
+      name: node_exporter
+      state: restarted
+
+  - name: Create node_exporter systemd service template
+    template:
+      src: templates/node_exporter.service.j2
+      dest: templates/node_exporter.service.j2
+      mode: '0644'
+    run_once: true
+
+  - name: Create templates directory
+    file:
+      path: templates
+      state: directory
+      mode: '0755'
+    run_once: true
+
+  - name: Create node_exporter service template
+    block:
+      - name: Create node_exporter service template
+        copy:
+          content: |
+            [Unit]
+            Description=Node Exporter
+            After=network.target
+
+            [Service]
+            User={{ node_exporter_user }}
+            Group={{ node_exporter_group }}
+            ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{ node_exporter_port }}
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+          dest: templates/node_exporter.service.j2
+          mode: '0644'
+      - name: Set node_exporter service template
+        template:
+          src: templates/node_exporter.service.j2
+          dest: /etc/systemd/system/node_exporter.service
+          mode: '0644'
+        notify: restart node_exporter
+    when: download.changed

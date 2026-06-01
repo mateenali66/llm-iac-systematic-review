@@ -1,0 +1,99 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 30,
+	"files_parsed": 1,
+	"lines_parsed": 30,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 2,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:30:28.72265517Z",
+	"end": "2026-05-26T05:30:29.108752504Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Cloud Storage Anonymous or Publicly Accessible",
+			"query_id": "63ae3638-a38c-4ff4-b616-6e1f72a31a6a",
+			"query_url": "https://cloud.google.com/storage/docs/json_api/v1/buckets",
+			"severity": "CRITICAL",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Cloud Storage Buckets must not be anonymously or publicly accessible, which means the subattribute 'entity' from attributes 'acl' and 'defaultObjectAcl' must not be 'allUsers' or 'allAuthenticatedUsers'",
+			"description_id": "2146c969",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3a11a96ec6c42db9ad47464c2b623bebfefb384e8c73aaad7e81b576ca854ed4",
+					"line": 4,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "static-website-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{static-website-bucket}}.properties",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "'acl' should be defined",
+					"actual_value": "'acl' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3a11a96ec6c42db9ad47464c2b623bebfefb384e8c73aaad7e81b576ca854ed4",
+					"line": 4,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "static-website-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{static-website-bucket}}.properties",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "'defaultObjectAcl' should be defined",
+					"actual_value": "'defaultObjectAcl' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Cloud Storage Bucket Is Publicly Accessible",
+			"query_id": "77c1fa3f-83dc-4c9d-bfed-e1d0cc8fd9dc",
+			"query_url": "https://cloud.google.com/storage/docs/json_api/v1/bucketAccessControls",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Cloud Storage Bucket is anonymously or publicly accessible",
+			"description_id": "f767772d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4de9352531fa6fae7fbaa60d193cd091a7ab5f211a6405eaac0d63d3c02bbce2",
+					"line": 29,
+					"resource_type": "storage.v1.bucketAccessControl",
+					"resource_name": "public-access",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name={{public-access}}.properties.entity",
+					"search_line": 29,
+					"search_value": "",
+					"expected_value": "'entity' should not equal to 'allUsers' or 'allAuthenticatedUsers'",
+					"actual_value": "'entity' is equal to 'allUsers'"
+				}
+			]
+		}
+	]
+}

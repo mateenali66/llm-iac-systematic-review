@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Provisions an SQS-triggered Lambda function named order-processor.'
+
+Resources:
+  OrderProcessorQueueDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-dlq
+      MessageRetentionPeriod: 1209600 # 14 days
+      KmsMasterKeyId: alias/aws/sqs
+
+  OrderProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-queue
+      VisibilityTimeout: 60 # Should be >= 6x the Lambda timeout
+      KmsMasterKeyId: alias/aws/sqs
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrderProcessorQueueDLQ.Arn
+        maxReceiveCount: 5
+
+  OrderProcessorLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: order-processor-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SQSLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt OrderProcessorQueue.Arn
+        - PolicyName: LambdaLoggingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/order-processor:*'
+
+  OrderProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/order-processor
+      RetentionInDays: 14
+
+  OrderProcessorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order-processor
+      Description: Processes order messages from an SQS queue.
+      Handler: index.handler
+      Runtime: python3.12
+      Architectures:
+        - arm64
+      MemorySize: 256
+      Timeout: 10
+      Role: !GetAtt OrderProcessorLambdaRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+      Code:
+        ZipFile: |
+          import json
+          import logging
+          import os
+
+          # Configure logging
+          logger = logging.getLogger()
+          log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
+          logger.setLevel(log_level)
+
+          def handler(event, context):
+              """
+              Processes messages from the SQS queue.
+              """
+              logger.info(f"Received {len(event.get('Records', []))} records from SQS.")
+
+              for record in event.get('Records', []):
+                  try:
+                      message_id = record.get('messageId')
+                      receipt_handle = record.get('receiptHandle')
+                      body = record.get('body')
+
+                      logger.info(f"Processing message ID: {message_id}")
+
+                      if not body:
+                          logger.warning(f"Message {message_id} has an empty body.")
+                          continue
+
+                      # Simulating order processing
+                      order_data = json.loads(body)
+                      logger.info(f"Successfully processed order: {order_data.get('orderId

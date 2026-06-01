@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 150,
+	"files_parsed": 2,
+	"lines_parsed": 150,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 1,
+		"LOW": 0,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:42:30.635867171Z",
+	"end": "2026-05-26T04:42:33.071800923Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "PSP With Unrestricted Access to Host Path",
+			"query_id": "de4421f1-4e35-43b4-9783-737dd4e4a47e",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "250",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "PodSecurityPolicy should set 'readOnly' to true in every host path allowed",
+			"description_id": "fc4b7215",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4c7e5d79a8e5fa5eb311e3058884d6326f292e6b05a396b02013a5c46d9a8fd6",
+					"line": 43,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{restricted}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.allowedHostPaths' should be defined and not null",
+					"actual_value": "'spec.allowedHostPaths' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "48ff6c05cc1bd1babe4177e3461dacc3a9dbe0e386af10bf9b26f87decc5b548",
+					"line": 89,
+					"resource_type": "RoleBinding",
+					"resource_name": "psp-restricted-binding",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{production}}",
+					"search_line": 89,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: production"
+				}
+			]
+		}
+	]
+}

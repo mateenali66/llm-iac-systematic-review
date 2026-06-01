@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-025",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an S3 bucket for log delivery from CloudFront access logs and ELB access logs. Apply a 90-day lifecycle policy to transition logs to Glacier.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an S3 bucket for log delivery from CloudFront access logs and ELB access logs. Apply a 90-day lifecycle policy to transition logs to Glacier.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"log_delivery\" {\n  bucket        = \"my-log-delivery-bucket\"\n  force_destroy = true\n\n  lifecycle_rule {\n    enabled = true\n\n    noncurrent_version_transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    noncurrent_version_expiration {\n      days = 365\n    }\n  }\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_policy\" \"log_delivery\" {\n  bucket = aws_s3_bucket.log_delivery.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"AWSCloudFrontLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::cloudfront:user/CloudFront Origin Identity <CloudFront-Origin-Identity>\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      },\n      {\n        Sid       = \"AWSELBLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::156058536743:role/ELBLogging\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      }\n    ]\n  })\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"log_delivery\" {\n  bucket        = \"my-log-delivery-bucket\"\n  force_destroy = true\n\n  lifecycle_rule {\n    enabled = true\n\n    noncurrent_version_transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    noncurrent_version_expiration {\n      days = 365\n    }\n  }\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_policy\" \"log_delivery\" {\n  bucket = aws_s3_bucket.log_delivery.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"AWSCloudFrontLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::cloudfront:user/CloudFront Origin Identity <CloudFront-Origin-Identity>\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      },\n      {\n        Sid       = \"AWSELBLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::156058536743:role/ELBLogging\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      }\n    ]\n  })\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"log_delivery\" {\n  bucket        = \"my-log-delivery-bucket\"\n  force_destroy = true\n\n  lifecycle_rule {\n    enabled = true\n\n    noncurrent_version_transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    noncurrent_version_expiration {\n      days = 365\n    }\n  }\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_policy\" \"log_delivery\" {\n  bucket = aws_s3_bucket.log_delivery.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"AWSCloudFrontLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::cloudfront:user/CloudFront Origin Identity <CloudFront-Origin-Identity>\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      },\n      {\n        Sid       = \"AWSELBLogsDelivery\"\n        Effect    = \"Allow\"\n        Principal = {\n          AWS = \"arn:aws:iam::156058536743:role/ELBLogging\"\n        }\n        Action   = \"s3:PutObject\"\n        Resource = \"${aws_s3_bucket.log_delivery.arn}/*\"\n      }\n    ]\n  })\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724056,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 171,
+      "output_tokens": 347,
+      "raw_input_tokens": 171
+    }
+  },
+  "started_at": "2026-05-25T15:47:34.347932+00:00",
+  "elapsed_seconds": 1.812
+}

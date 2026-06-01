@@ -1,0 +1,145 @@
+imports:
+  - path: gke-cluster.jinja
+
+resources:
+  - name: prod-gke-cluster
+    type: gke-cluster.jinja
+    properties:
+      clusterName: prod-cluster
+      region: us-central1
+      network: default
+      subnetwork: default
+      releaseChannel: REGULAR
+      masterIpv4CidrBlock: 172.16.0.0/28
+      podsSecondaryRangeName: gke-pods
+      servicesSecondaryRangeName: gke-services
+      masterAuthorizedNetworks:
+        - displayName: corp-network
+          cidrBlock: 10.0.0.0/8
+      nodePoolName: prod-pool
+      nodeCount: 3
+      minNodes: 3
+      maxNodes: 10
+      machineType: e2-standard-4
+      diskSizeGb: 100
+      diskType: pd-ssd
+      serviceAccount: gke-node-sa@PROJECT_ID.iam.gserviceaccount.com
+
+outputs:
+  - name: clusterEndpoint
+    value: $(ref.prod-gke-cluster.endpoint)
+  - name: clusterName
+    value: $(ref.prod-gke-cluster.name)
+
+---
+# gke-cluster.jinja
+{% set CLUSTER_NAME = properties['clusterName'] %}
+{% set REGION = properties['region'] %}
+{% set PROJECT = env['project'] %}
+
+resources:
+  - name: {{ CLUSTER_NAME }}
+    type: gcp-types/container-v1:projects.locations.clusters
+    properties:
+      parent: projects/{{ PROJECT }}/locations/{{ REGION }}
+      cluster:
+        name: {{ CLUSTER_NAME }}
+        description: Production GKE Standard cluster
+        location: {{ REGION }}
+        network: projects/{{ PROJECT }}/global/networks/{{ properties['network'] }}
+        subnetwork: projects/{{ PROJECT }}/regions/{{ REGION }}/subnetworks/{{ properties['subnetwork'] }}
+        initialClusterVersion: "1.28"
+        releaseChannel:
+          channel: {{ properties['releaseChannel'] }}
+        loggingService: logging.googleapis.com/kubernetes
+        monitoringService: monitoring.googleapis.com/kubernetes
+        monitoringConfig:
+          componentConfig:
+            enableComponents:
+              - SYSTEM_COMPONENTS
+              - WORKLOADS
+          managedPrometheusConfig:
+            enabled: true
+        loggingConfig:
+          componentConfig:
+            enableComponents:
+              - SYSTEM_COMPONENTS
+              - WORKLOADS
+        ipAllocationPolicy:
+          useIpAliases: true
+          clusterSecondaryRangeName: {{ properties['podsSecondaryRangeName'] }}
+          servicesSecondaryRangeName: {{ properties['servicesSecondaryRangeName'] }}
+        privateClusterConfig:
+          enablePrivateNodes: true
+          enablePrivateEndpoint: false
+          masterIpv4CidrBlock: {{ properties['masterIpv4CidrBlock'] }}
+        masterAuthorizedNetworksConfig:
+          enabled: true
+          cidrBlocks:
+          {% for net in properties['masterAuthorizedNetworks'] %}
+            - displayName: {{ net['displayName'] }}
+              cidrBlock: {{ net['cidrBlock'] }}
+          {% endfor %}
+        networkPolicy:
+          enabled: true
+          provider: CALICO
+        addonsConfig:
+          httpLoadBalancing:
+            disabled: false
+          horizontalPodAutoscaling:
+            disabled: false
+          networkPolicyConfig:
+            disabled: false
+          gcePersistentDiskCsiDriverConfig:
+            enabled: true
+          gcpFilestoreCsiDriverConfig:
+            enabled: true
+        workloadIdentityConfig:
+          workloadPool: {{ PROJECT }}.svc.id.goog
+        databaseEncryption:
+          state: ENCRYPTED
+          keyName: projects/{{ PROJECT }}/locations/{{ REGION }}/keyRings/gke-ring/cryptoKeys/gke-key
+        binaryAuthorization:
+          evaluationMode: PROJECT_SINGLETON_POLICY_ENFORCE
+        shieldedNodes:
+          enabled: true
+        verticalPodAutoscaling:
+          enabled: true
+        maintenancePolicy:
+          window:
+            recurringWindow:
+              window:
+                startTime: "2024-01-01T03:00:00Z"
+                endTime: "2024-01-01T07:00:00Z"
+              recurrence: "FREQ=WEEKLY;BYDAY=SA,SU"
+        nodePools:
+          - name: {{ properties['nodePoolName'] }}
+            initialNodeCount: {{ properties['nodeCount'] }}
+            autoscaling:
+              enabled: true
+              minNodeCount: {{ properties['minNodes'] }}
+              maxNodeCount: {{ properties['maxNodes'] }}
+            management:
+              autoUpgrade: true
+              autoRepair: true
+            upgradeSettings:
+              maxSurge: 1
+              maxUnavailable: 0
+              strategy: SURGE
+            config:
+              machineType: {{ properties['machineType'] }}
+              diskSizeGb: {{ properties['diskSizeGb'] }}
+              diskType: {{ properties['diskType'] }}
+              imageType: COS_CONTAINERD
+              serviceAccount: {{ properties['serviceAccount'] }}
+              oauthScopes:
+                - https://www.googleapis.com/auth/cloud-platform
+              metadata:
+                disable-legacy-endpoints: "true"
+              labels:
+                env: production
+                workload: general
+              tags:
+                - gke-node
+                - prod
+              shieldedInstanceConfig:

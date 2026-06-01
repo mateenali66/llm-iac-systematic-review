@@ -1,0 +1,37 @@
+resources:
+- name: saas-postgres
+  type: sqladmin.v1beta4.instance
+  properties:
+    region: us-central1
+    databaseVersion: POSTGRES_15
+    settings:
+      tier: db-custom-2-7680
+      availabilityType: REGIONAL
+      dataDiskType: PD_SSD
+      dataDiskSizeGb: 100
+      storageAutoResize: true
+      storageAutoResizeLimit: 0
+      backupConfiguration:
+        enabled: true
+        startTime: "03:00"
+        pointInTimeRecoveryEnabled: true
+        backupRetentionSettings:
+          retainedBackups: 30
+          retentionUnit: COUNT
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: projects/{{ env["project"] }}/global/networks/default
+        requireSsl: true
+        sslMode: ENCRYPTED_ONLY
+      maintenanceWindow:
+        day: 7
+        hour: 4
+      userLabels:
+        application: saas
+        environment: production
+        managed-by: deployment-manager
+      databaseFlags:
+      - name: cloudsql.iam_authentication
+        value: "on"
+      - name: log_min_duration_statement
+        value: "1000"

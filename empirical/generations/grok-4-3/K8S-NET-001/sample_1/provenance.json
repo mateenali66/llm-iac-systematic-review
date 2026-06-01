@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-NET-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Kubernetes Service manifest exposing a Deployment named 'api-server' on port 80 internally to other cluster services.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Write a Kubernetes Service manifest exposing a Deployment named 'api-server' on port 80 internally to other cluster services.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api-server\n  labels:\n    app: api-server\nspec:\n  type: ClusterIP\n  selector:\n    app: api-server\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n    protocol: TCP",
+  "cleaned_response": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api-server\n  labels:\n    app: api-server\nspec:\n  type: ClusterIP\n  selector:\n    app: api-server\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n    protocol: TCP",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: Service\nmetadata:\n  name: api-server\n  labels:\n    app: api-server\nspec:\n  type: ClusterIP\n  selector:\n    app: api-server\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n    protocol: TCP",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725891,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 140,
+      "output_tokens": 70,
+      "reasoning_tokens": 401,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 120
+    }
+  },
+  "started_at": "2026-05-25T16:18:08.050497+00:00",
+  "elapsed_seconds": 3.73
+}

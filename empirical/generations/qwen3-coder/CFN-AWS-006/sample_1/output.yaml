@@ -1,0 +1,206 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Fargate cluster with two microservices behind internal NLB'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the ECS cluster
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet IDs for ECS tasks
+  Service1Image:
+    Type: String
+    Default: nginx:latest
+    Description: Docker image for service 1
+  Service2Image:
+    Type: String
+    Default: httpd:latest
+    Description: Docker image for service 2
+  Service1Port:
+    Type: Number
+    Default: 80
+    Description: Container port for service 1
+  Service2Port:
+    Type: Number
+    Default: 80
+    Description: Container port for service 2
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${AWS::StackName}-cluster'
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-execution-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  Service1TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AWS::StackName}-service1'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: service1
+          Image: !Ref Service1Image
+          PortMappings:
+            - ContainerPort: !Ref Service1Port
+              Protocol: tcp
+
+  Service2TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AWS::StackName}-service2'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: service2
+          Image: !Ref Service2Image
+          PortMappings:
+            - ContainerPort: !Ref Service2Port
+              Protocol: tcp
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub '${AWS::StackName}-nlb'
+      Type: network
+      Scheme: internal
+      Subnets: !Ref PrivateSubnetIds
+
+  Service1TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${AWS::StackName}-service1-tg'
+      Port: !Ref Service1Port
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 6
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  Service2TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${AWS::StackName}-service2-tg'
+      Port: !Ref Service2Port
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 6
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref Service1TargetGroup
+
+  Service1:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${AWS::StackName}-service1'
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref Service1TaskDefinition
+      LaunchType: FARGATE
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref Service1TargetGroup
+          ContainerName: service1
+          ContainerPort: !Ref Service1Port
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+
+  Service2:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub '${AWS::StackName}-service2'
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref Service2TaskDefinition
+      LaunchType: FARGATE
+      DesiredCount: 2
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref PrivateSubnetIds
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref Service2TargetGroup
+          ContainerName: service2
+          ContainerPort: !Ref Service2Port
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-service-sg'
+      GroupDescription: Security group for ECS services
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref Service1Port
+          ToPort: !Ref Service1Port
+          SourceSecurityGroupId: !GetAtt LoadBalancer.SecurityGroups[0]
+        - IpProtocol: tcp
+          FromPort: !Ref Service2Port
+          ToPort: !Ref Service2Port
+          SourceSecurityGroupId: !GetAtt LoadBalancer.SecurityGroups[0]
+
+Outputs:
+  ClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub '${AWS::StackName}-ClusterName'
+  LoadBalancerDNS:
+    Description: Internal NLB DNS Name
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub '${AWS::StackName}-LoadBalancerDNS'
+  Service1Endpoint:
+    Description: Service 1 endpoint
+    Value: !Sub '${LoadBalancer.DNSName}:80'
+    Export:
+      Name: !Sub '${AWS::StackName}-Service1Endpoint'

@@ -1,0 +1,137 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  vars:
+    node_exporter_version: "1.8.2"
+    node_exporter_user: node_exporter
+    node_exporter_group: node_exporter
+    node_exporter_bin_dir: /usr/local/bin
+    node_exporter_listen_address: "0.0.0.0:9100"
+    node_exporter_arch: amd64
+    node_exporter_download_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    node_exporter_checksum: "sha256:6809dd0b3ec45fd6e992c19071d6b5253aed3ead7c4ba22ec3a31f1a2d28e1c2"
+
+  tasks:
+    - name: Ensure node_exporter group exists
+      ansible.builtin.group:
+        name: "{{ node_exporter_group }}"
+        system: true
+        state: present
+
+    - name: Ensure node_exporter system user exists
+      ansible.builtin.user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        createhome: false
+        home: /
+        state: present
+
+    - name: Create temporary download directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: node_exporter
+      register: ne_tmp
+      changed_when: false
+
+    - name: Check current installed node_exporter version
+      ansible.builtin.command: "{{ node_exporter_bin_dir }}/node_exporter --version"
+      register: ne_version_check
+      failed_when: false
+      changed_when: false
+
+    - name: Download node_exporter tarball
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_download_url }}"
+        dest: "{{ ne_tmp.path }}/node_exporter.tar.gz"
+        checksum: "{{ node_exporter_checksum }}"
+        mode: "0644"
+      when: node_exporter_version not in (ne_version_check.stderr | default('')) and node_exporter_version not in (ne_version_check.stdout | default(''))
+
+    - name: Extract node_exporter
+      ansible.builtin.unarchive:
+        src: "{{ ne_tmp.path }}/node_exporter.tar.gz"
+        dest: "{{ ne_tmp.path }}"
+        remote_src: true
+      when: node_exporter_version not in (ne_version_check.stderr | default('')) and node_exporter_version not in (ne_version_check.stdout | default(''))
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "{{ ne_tmp.path }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}/node_exporter"
+        dest: "{{ node_exporter_bin_dir }}/node_exporter"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      when: node_exporter_version not in (ne_version_check.stderr | default('')) and node_exporter_version not in (ne_version_check.stdout | default(''))
+      notify: Restart node_exporter
+
+    - name: Remove temporary download directory
+      ansible.builtin.file:
+        path: "{{ ne_tmp.path }}"
+        state: absent
+      changed_when: false
+
+    - name: Deploy node_exporter systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          Documentation=https://github.com/prometheus/node_exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ node_exporter_user }}
+          Group={{ node_exporter_group }}
+          ExecStart={{ node_exporter_bin_dir }}/node_exporter \
+            --web.listen-address={{ node_exporter_listen_address }}
+          Restart=on-failure
+          RestartSec=5s
+
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+          PrivateTmp=true
+          PrivateDevices=true
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          ProtectControlGroups=true
+          RestrictNamespaces=true
+          RestrictRealtime=true
+          RestrictSUIDSGID=true
+          LockPersonality=true
+          MemoryDenyWriteExecute=true
+          SystemCallArchitectures=native
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Restart node_exporter
+
+    - name: Ensure node_exporter service is enabled and started
+      ansible.builtin.systemd:
+        name: node_exporter
+        state: started
+        enabled: true
+        daemon_reload: true
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart node_exporter
+      ansible.builtin.systemd:
+        name: node_exporter
+        state: restarted

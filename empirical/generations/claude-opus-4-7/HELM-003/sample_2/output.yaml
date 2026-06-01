@@ -1,0 +1,179 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: A Helm chart for deploying PostgreSQL in a non-production environment
+type: application
+version: 0.1.0
+appVersion: "16.2"
+keywords:
+  - postgres
+  - postgresql
+  - database
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: postgres
+  tag: "16.2-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+service:
+  port: 5432
+
+postgres:
+  # Superuser (postgres) credentials
+  superuser: postgres
+  superuserPassword: ""  # Auto-generated if empty
+  # Application user / database created by the init job
+  appUser: appuser
+  appUserPassword: ""    # Auto-generated if empty
+  appDatabase: appdb
+  # Default DB the container starts with (postgres superuser DB)
+  defaultDatabase: postgres
+  port: 5432
+  # Extra PostgreSQL configuration parameters
+  parameters:
+    max_connections: "100"
+    shared_buffers: "128MB"
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+podSecurityContext:
+  fsGroup: 70
+  runAsNonRoot: true
+  runAsUser: 70
+  runAsGroup: 70
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 70
+  runAsGroup: 70
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+initJob:
+  enabled: true
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+  image:
+    repository: postgres
+    tag: "16.2-alpine"
+    pullPolicy: IfNotPresent
+
+networkPolicy:
+  enabled: false
+  # Selectors for pods allowed to connect to PostgreSQL
+  allowedPodSelectors: []
+  # - matchLabels:
+  #     app.kubernetes.io/name: my-app
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "postgres-nonprod.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Chart label
+*/}}
+{{- define "postgres-nonprod.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "postgres-nonprod.labels" -}}
+helm.sh/chart: {{ include "postgres-nonprod.chart" . }}
+{{ include "postgres-nonprod.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: database
+environment: nonprod
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "postgres-nonprod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Secret name
+*/}}
+{{- define "postgres-nonprod.secretName" -}}
+{{- printf "%s-credentials" (include "postgres-nonprod.fullname" .) -}}
+{{- end -}}
+
+{{/*
+Headless service name
+*/}}
+{{- define "postgres-nonprod.headlessServiceName" -}}
+{{- printf "%s-headless" (include "postgres-nonprod.fullname" .) -}}
+{{- end -}}
+---
+# FILE: templates/secret.yaml
+{{- $secretName := include "postgres-nonprod.secretName" . -}}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace $secretName -}}
+{{- $superPass := "" -}}
+{{- $appPass := "" -}}
+{{- if $existing -}}
+{{- $superPass = index $existing.data "POSTGRES_PASSWORD" | b64dec -}}
+{{- $appPass = index $existing.data "APP_USER_PASSWORD" | b64dec -}}
+{{- else -}}
+{{- $superPass = default (randAlphaNum

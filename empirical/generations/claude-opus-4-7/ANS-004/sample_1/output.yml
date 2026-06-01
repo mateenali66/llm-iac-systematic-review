@@ -1,0 +1,149 @@
+---
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  vars:
+    node_exporter_version: "1.8.2"
+    node_exporter_user: "node_exporter"
+    node_exporter_group: "node_exporter"
+    node_exporter_binary_dir: "/usr/local/bin"
+    node_exporter_listen_address: "0.0.0.0:9100"
+    node_exporter_arch_map:
+      x86_64: "amd64"
+      aarch64: "arm64"
+      armv7l: "armv7"
+    node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] | default('amd64') }}"
+    node_exporter_archive: "node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch }}.tar.gz"
+    node_exporter_download_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/{{ node_exporter_archive }}"
+    node_exporter_checksums:
+      "1.8.2-amd64": "6809dd0b3ec45fd6e992c19071d6b5253aed3ead7bf0686885a51d85c6643c66"
+      "1.8.2-arm64": "627382b9723c642411c33f30c68ac86e7c41ff1ee8d9469a90291cb88aadefdc"
+
+  pre_tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - tar
+          - gzip
+        state: present
+
+  tasks:
+    - name: Create node_exporter group
+      ansible.builtin.group:
+        name: "{{ node_exporter_group }}"
+        system: true
+        state: present
+
+    - name: Create node_exporter user
+      ansible.builtin.user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: /
+        create_home: false
+        state: present
+
+    - name: Check if node_exporter binary exists
+      ansible.builtin.stat:
+        path: "{{ node_exporter_binary_dir }}/node_exporter"
+      register: node_exporter_binary
+
+    - name: Get installed node_exporter version
+      ansible.builtin.command: "{{ node_exporter_binary_dir }}/node_exporter --version"
+      register: node_exporter_installed_version
+      changed_when: false
+      failed_when: false
+      when: node_exporter_binary.stat.exists
+
+    - name: Set installation required flag
+      ansible.builtin.set_fact:
+        node_exporter_install_required: >-
+          {{ not node_exporter_binary.stat.exists or
+             node_exporter_version not in (node_exporter_installed_version.stdout | default('')) }}
+
+    - name: Download node_exporter archive
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_download_url }}"
+        dest: "/tmp/{{ node_exporter_archive }}"
+        checksum: "sha256:{{ node_exporter_checksums[node_exporter_version + '-' + node_exporter_arch] }}"
+        mode: "0644"
+        force: true
+      when: node_exporter_install_required
+
+    - name: Create temporary extraction directory
+      ansible.builtin.file:
+        path: "/tmp/node_exporter-{{ node_exporter_version }}"
+        state: directory
+        mode: "0755"
+      when: node_exporter_install_required
+
+    - name: Extract node_exporter archive
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ node_exporter_archive }}"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}"
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+      when: node_exporter_install_required
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "/tmp/node_exporter-{{ node_exporter_version }}/node_exporter"
+        dest: "{{ node_exporter_binary_dir }}/node_exporter"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      when: node_exporter_install_required
+      notify: Restart node_exporter
+
+    - name: Cleanup temporary files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/{{ node_exporter_archive }}"
+        - "/tmp/node_exporter-{{ node_exporter_version }}"
+      when: node_exporter_install_required
+
+    - name: Deploy node_exporter systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          Documentation=https://github.com/prometheus/node_exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ node_exporter_user }}
+          Group={{ node_exporter_group }}
+          ExecStart={{ node_exporter_binary_dir }}/node_exporter \
+            --web.listen-address={{ node_exporter_listen_address }}
+          Restart=on-failure
+          RestartSec=5
+          SyslogIdentifier=node_exporter
+
+          # Security hardening
+          NoNewPrivileges=true
+          ProtectHome=true
+          ProtectSystem=strict
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          ProtectControlGroups=true
+          ProtectKernelLogs=true
+          ProtectClock=true
+          ProtectHostname=true
+          PrivateTmp=true
+          PrivateDevices=true
+          RestrictSUIDSGID=true
+          RestrictRealtime=true
+          RestrictNamespaces=true
+          LockPersonality=true
+          MemoryDenyWrite

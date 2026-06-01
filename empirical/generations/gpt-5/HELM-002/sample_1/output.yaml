@@ -1,0 +1,249 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A Helm chart for deploying a secure Redis cache with StatefulSet, headless Service, PVC, and Secret-managed password
+type: application
+version: 0.1.0
+appVersion: "7.2"
+keywords:
+  - redis
+  - cache
+  - statefulset
+  - database
+maintainers:
+  - name: devops-team
+    email: devops@example.com
+sources:
+  - https://github.com/redis/redis
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: redis
+  tag: "7.2-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  port: 6379
+  annotations: {}
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+auth:
+  existingSecret: ""
+  password: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints: []
+priorityClassName: ""
+
+updateStrategy:
+  type: RollingUpdate
+---
+# FILE: templates/secret.yaml
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $fullName := default (printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-") .Values.fullnameOverride -}}
+{{- $secretName := (default (printf "%s-auth" $fullName) .Values.auth.existingSecret) -}}
+{{- if not .Values.auth.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $secretName }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+type: Opaque
+data:
+  {{- $existing := (lookup "v1" "Secret" .Release.Namespace $secretName) -}}
+  redis-password: {{- if $existing -}}{{ index $existing.data "redis-password" }}{{- else -}}{{ (default (randAlphaNum 32) .Values.auth.password) | b64enc }}{{- end }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $fullName := default (printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-") .Values.fullnameOverride -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-headless" $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: redis
+      port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+# FILE: templates/statefulset.yaml
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- $fullName := default (printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-") .Values.fullnameOverride -}}
+{{- $secretName := (default (printf "%s-auth" $fullName) .Values.auth.existingSecret) -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app.kubernetes.io/name: {{ $name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  serviceName: {{ printf "%s-headless" $fullName }}
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    type: {{ .Values.updateStrategy.type }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: redis
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              exec redis-server \
+                --appendonly yes \
+                --save "60 1000" \
+                --protected-mode yes \
+                --requirepass "$REDIS_PASSWORD"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: redis-password
+          ports:
+            - name: redis
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep -q PONG'
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep -q PONG'
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: {{ $name }}
+          app.kubernetes.io/instance: {{ .Release.Name }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- else }}
+  volumeClaimTemplates: []
+  {{- end }}

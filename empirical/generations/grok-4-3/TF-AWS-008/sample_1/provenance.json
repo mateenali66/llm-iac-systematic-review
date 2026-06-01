@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-008",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM user named 'jenkins-deploy' for a CI/CD pipeline that needs to deploy AWS Lambda functions and update CloudFormation stacks.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM user named 'jenkins-deploy' for a CI/CD pipeline that needs to deploy AWS Lambda functions and update CloudFormation stacks.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/ci-cd/\"\n}\n\nresource \"aws_iam_policy\" \"jenkins_deploy_policy\" {\n  name        = \"jenkins-deploy-lambda-cfn-policy\"\n  description = \"Least-privilege policy for Jenkins to deploy Lambda functions and manage CloudFormation stacks\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:GetFunctionConfiguration\",\n          \"lambda:ListFunctions\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ListStacks\",\n          \"cloudformation:GetTemplate\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:PutObject\",\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Resource = [\n          \"arn:aws:s3:::*-lambda-deployments\",\n          \"arn:aws:s3:::*-lambda-deployments/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_user_policy_attachment\" \"jenkins_deploy_attach\" {\n  user       = aws_iam_user.jenkins_deploy.name\n  policy_arn = aws_iam_policy.jenkins_deploy_policy.arn\n}",
+  "cleaned_response": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/ci-cd/\"\n}\n\nresource \"aws_iam_policy\" \"jenkins_deploy_policy\" {\n  name        = \"jenkins-deploy-lambda-cfn-policy\"\n  description = \"Least-privilege policy for Jenkins to deploy Lambda functions and manage CloudFormation stacks\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:GetFunctionConfiguration\",\n          \"lambda:ListFunctions\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ListStacks\",\n          \"cloudformation:GetTemplate\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:PutObject\",\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Resource = [\n          \"arn:aws:s3:::*-lambda-deployments\",\n          \"arn:aws:s3:::*-lambda-deployments/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_user_policy_attachment\" \"jenkins_deploy_attach\" {\n  user       = aws_iam_user.jenkins_deploy.name\n  policy_arn = aws_iam_policy.jenkins_deploy_policy.arn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_iam_user\" \"jenkins_deploy\" {\n  name = \"jenkins-deploy\"\n  path = \"/ci-cd/\"\n}\n\nresource \"aws_iam_policy\" \"jenkins_deploy_policy\" {\n  name        = \"jenkins-deploy-lambda-cfn-policy\"\n  description = \"Least-privilege policy for Jenkins to deploy Lambda functions and manage CloudFormation stacks\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"lambda:CreateFunction\",\n          \"lambda:UpdateFunctionCode\",\n          \"lambda:UpdateFunctionConfiguration\",\n          \"lambda:PublishVersion\",\n          \"lambda:CreateAlias\",\n          \"lambda:UpdateAlias\",\n          \"lambda:GetFunction\",\n          \"lambda:GetFunctionConfiguration\",\n          \"lambda:ListFunctions\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"cloudformation:CreateStack\",\n          \"cloudformation:UpdateStack\",\n          \"cloudformation:DescribeStacks\",\n          \"cloudformation:DescribeStackEvents\",\n          \"cloudformation:ListStacks\",\n          \"cloudformation:GetTemplate\"\n        ]\n        Resource = \"*\"\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"iam:PassRole\"\n        ]\n        Resource = \"*\"\n        Condition = {\n          StringEquals = {\n            \"iam:PassedToService\" = \"lambda.amazonaws.com\"\n          }\n        }\n      },\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"s3:PutObject\",\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Resource = [\n          \"arn:aws:s3:::*-lambda-deployments\",\n          \"arn:aws:s3:::*-lambda-deployments/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_user_policy_attachment\" \"jenkins_deploy_attach\" {\n  user       = aws_iam_user.jenkins_deploy.name\n  policy_arn = aws_iam_policy.jenkins_deploy_policy.arn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726585,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 96,
+      "output_tokens": 411,
+      "reasoning_tokens": 588,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 66
+    }
+  },
+  "started_at": "2026-05-25T16:29:36.973988+00:00",
+  "elapsed_seconds": 8.616
+}

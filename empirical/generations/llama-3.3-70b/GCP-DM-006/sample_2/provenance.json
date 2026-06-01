@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "GCP-DM-006",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n  - name: cloud-function-service-account\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cloud-function-sa\n      displayName: Cloud Function Service Account\n\n  - name: cloud-function-service-account-key\n    type: iam.v1.serviceAccountKey\n    properties:\n      serviceAccountId: $(ref.cloud-function-service-account.name)\n\n  - name: cloud-function-service-account-iam-policy\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/storage.objectViewer\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-storage-bucket.name)\n\n  - name: cloud-storage-bucket\n    type: storage.v1.bucket\n    properties:\n      location: US\n      storageClass: STANDARD\n\n  - name: cloud-function-service-account-iam-binding\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/iam.serviceAccountTokenCreator\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-function-service-account.name)\n\noutputs:\n  - name: cloud-function-service-account-email\n    value: $(ref.cloud-function-service-account.email)",
+  "cleaned_response": "resources:\n  - name: cloud-function-service-account\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cloud-function-sa\n      displayName: Cloud Function Service Account\n\n  - name: cloud-function-service-account-key\n    type: iam.v1.serviceAccountKey\n    properties:\n      serviceAccountId: $(ref.cloud-function-service-account.name)\n\n  - name: cloud-function-service-account-iam-policy\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/storage.objectViewer\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-storage-bucket.name)\n\n  - name: cloud-storage-bucket\n    type: storage.v1.bucket\n    properties:\n      location: US\n      storageClass: STANDARD\n\n  - name: cloud-function-service-account-iam-binding\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/iam.serviceAccountTokenCreator\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-function-service-account.name)\n\noutputs:\n  - name: cloud-function-service-account-email\n    value: $(ref.cloud-function-service-account.email)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n  - name: cloud-function-service-account\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cloud-function-sa\n      displayName: Cloud Function Service Account\n\n  - name: cloud-function-service-account-key\n    type: iam.v1.serviceAccountKey\n    properties:\n      serviceAccountId: $(ref.cloud-function-service-account.name)\n\n  - name: cloud-function-service-account-iam-policy\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/storage.objectViewer\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-storage-bucket.name)\n\n  - name: cloud-storage-bucket\n    type: storage.v1.bucket\n    properties:\n      location: US\n      storageClass: STANDARD\n\n  - name: cloud-function-service-account-iam-binding\n    type: iam.v1.policy\n    properties:\n      bindings:\n        - role: roles/iam.serviceAccountTokenCreator\n          members:\n            - serviceAccount:$(ref.cloud-function-service-account.email)\n      resource: $(ref.cloud-function-service-account.name)\n\noutputs:\n  - name: cloud-function-service-account-email\n    value: $(ref.cloud-function-service-account.email)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723768,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 165,
+      "output_tokens": 256,
+      "raw_input_tokens": 165
+    }
+  },
+  "started_at": "2026-05-25T15:42:47.506379+00:00",
+  "elapsed_seconds": 0.952
+}

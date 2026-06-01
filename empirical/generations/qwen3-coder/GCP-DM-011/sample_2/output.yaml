@@ -1,0 +1,103 @@
+imports:
+- path: instance-template.jinja
+
+resources:
+- name: mig-instance-template
+  type: instance-template.jinja
+  properties:
+    machineType: e2-medium
+    imageFamily: ubuntu-2004-lts
+    imageProject: ubuntu-os-cloud
+    network: default
+    subnetwork: default
+    tags:
+      - http-server
+      - https-server
+    metadata:
+      items:
+        - key: startup-script
+          value: |
+            #!/bin/bash
+            apt-get update
+            apt-get install -y nginx
+            systemctl start nginx
+            systemctl enable nginx
+
+- name: mig-instance-group
+  type: compute.v1.instanceGroupManager
+  properties:
+    zone: us-central1-a
+    instanceTemplate: $(ref.mig-instance-template.selfLink)
+    targetSize: 1
+    baseInstanceName: mig-instance
+    namedPorts:
+      - name: http
+        port: 80
+
+- name: mig-autoscaler
+  type: compute.v1.autoscaler
+  properties:
+    zone: us-central1-a
+    target: $(ref.mig-instance-group.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cpuUtilization:
+        utilizationTarget: 0.6
+      coolDownPeriodSec: 60
+
+- name: health-check
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    checkIntervalSec: 5
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+
+- name: backend-service
+  type: compute.v1.backendService
+  properties:
+    backends:
+      - group: $(ref.mig-instance-group.instanceGroup)
+    healthChecks:
+      - $(ref.health-check.selfLink)
+    protocol: HTTP
+    portName: http
+    timeoutSec: 30
+    connectionDraining:
+      drainingTimeoutSec: 300
+
+- name: url-map
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.backend-service.selfLink)
+
+- name: ssl-certificate
+  type: compute.v1.sslCertificate
+  properties:
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      MIICljCCAX4CCQD+dummy+certificate+data+replace+with+real+cert
+      -----END CERTIFICATE-----
+    privateKey: |
+      -----BEGIN PRIVATE KEY-----
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7+dummy+key
+      -----END PRIVATE KEY-----
+
+- name: target-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    urlMap: $(ref.url-map.selfLink)
+    sslCertificates:
+      - $(ref.ssl-certificate.selfLink)
+
+- name: forwarding-rule
+  type: compute.v1.globalForwardingRule
+  properties:
+    IPProtocol: TCP
+    portRange: 443
+    target: $(ref.target-https-proxy.selfLink)

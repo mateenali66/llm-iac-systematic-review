@@ -1,0 +1,124 @@
+imports:
+  - path: cloud-run-service.jinja
+
+resources:
+  - name: api-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloudrun-api-sa
+      displayName: Cloud Run API Service Account
+      description: Dedicated service account for the Cloud Run Python API
+
+  - name: api-sa-logging-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project-id)
+      role: roles/logging.logWriter
+      member: $(ref.api-service-account.email)
+
+  - name: api-sa-monitoring-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project-id)
+      role: roles/monitoring.metricWriter
+      member: $(ref.api-service-account.email)
+
+  - name: api-sa-trace-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project-id)
+      role: roles/cloudtrace.agent
+      member: $(ref.api-service-account.email)
+
+  - name: python-api-service
+    type: gcp-types/run-v1:namespaces.services
+    properties:
+      parent: namespaces/[PROJECT_ID]
+      location: us-central1
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      metadata:
+        name: python-api
+        namespace: '[PROJECT_ID]'
+        annotations:
+          run.googleapis.com/ingress: internal-and-cloud-load-balancing
+          run.googleapis.com/launch-stage: GA
+        labels:
+          app: python-api
+          environment: production
+          managed-by: deployment-manager
+      spec:
+        template:
+          metadata:
+            name: python-api-v1
+            annotations:
+              autoscaling.knative.dev/minScale: '1'
+              autoscaling.knative.dev/maxScale: '10'
+              run.googleapis.com/execution-environment: gen2
+              run.googleapis.com/cpu-throttling: 'true'
+              run.googleapis.com/startup-cpu-boost: 'true'
+            labels:
+              app: python-api
+              version: v1
+          spec:
+            serviceAccountName: $(ref.api-service-account.email)
+            containerConcurrency: 80
+            timeoutSeconds: 300
+            containers:
+              - name: api
+                image: gcr.io/[PROJECT_ID]/python-api:latest
+                ports:
+                  - name: http1
+                    containerPort: 8080
+                env:
+                  - name: PYTHONUNBUFFERED
+                    value: '1'
+                  - name: PYTHONDONTWRITEBYTECODE
+                    value: '1'
+                  - name: PORT
+                    value: '8080'
+                  - name: ENVIRONMENT
+                    value: production
+                resources:
+                  limits:
+                    cpu: '1000m'
+                    memory: '512Mi'
+                startupProbe:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+                livenessProbe:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+        traffic:
+          - percent: 100
+            latestRevision: true
+
+  - name: python-api-iam-policy
+    type: gcp-types/run-v1:run.projects.locations.services.setIamPolicy
+    properties:
+      resource: projects/[PROJECT_ID]/locations/us-central1/services/python-api
+      policy:
+        bindings:
+          - role: roles/run.invoker
+            members:
+              - allUsers
+    metadata:
+      dependsOn:
+        - python-api-service
+
+outputs:
+  - name: serviceUrl
+    value: $(ref.python-api-service.status.url)
+  - name: serviceAccountEmail
+    value: $(ref.api-service-account.email)
+  - name: latestRevision
+    value: $(ref.python-api-service.status.latestReadyRevisionName)

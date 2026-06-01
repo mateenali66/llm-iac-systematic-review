@@ -1,0 +1,60 @@
+resources:
+- name: static-website-bucket
+  type: storage.v1.bucket
+  properties:
+    name: my-static-website-bucket-prod
+    location: US
+    storageClass: STANDARD
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: inherited
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: false
+      - action:
+          type: SetStorageClass
+          storageClass: NEARLINE
+        condition:
+          age: 30
+          isLive: false
+    cors:
+    - origin:
+      - "https://example.com"
+      method:
+      - GET
+      - HEAD
+      responseHeader:
+      - Content-Type
+      maxAgeSeconds: 3600
+    logging:
+      logBucket: my-access-logs-bucket
+      logObjectPrefix: static-website-access-logs
+    labels:
+      environment: production
+      purpose: static-website
+      managed-by: deployment-manager
+
+- name: bucket-public-read-access
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    role: roles/storage.objectViewer
+    member: allUsers
+
+outputs:
+- name: bucketName
+  value: $(ref.static-website-bucket.name)
+- name: bucketSelfLink
+  value: $(ref.static-website-bucket.selfLink)
+- name: websiteUrl
+  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/index.html

@@ -1,0 +1,278 @@
+- name: Harden CentOS 9 server
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Ensure EPEL repository is enabled (EL9)
+      ansible.builtin.package:
+        name: epel-release
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.package:
+        name:
+          - libpwquality
+          - audit
+          - fail2ban
+        state: present
+
+    - name: Configure password quality requirements
+      ansible.builtin.lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: '^#?\s*{{ item.key }}\s*='
+        line: '{{ item.key }} = {{ item.value }}'
+        create: true
+        backup: true
+      loop: "{{ pwquality_settings }}"
+      vars:
+        pwquality_settings:
+          - { key: minlen, value: 14 }
+          - { key: dcredit, value: -1 }
+          - { key: ucredit, value: -1 }
+          - { key: lcredit, value: -1 }
+          - { key: ocredit, value: -1 }
+          - { key: minclass, value: 4 }
+          - { key: maxrepeat, value: 3 }
+          - { key: dictcheck, value: 1 }
+          - { key: enforce_for_root, value: 1 }
+
+    - name: Ensure sshd include directory exists
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy SSH hardening snippet
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-hardening.conf
+        owner: root
+        group: root
+        mode: '0644'
+        backup: true
+        content: |
+          # Managed by Ansible - SSH hardening
+          PermitRootLogin no
+          PasswordAuthentication yes
+          ChallengeResponseAuthentication no
+          UsePAM yes
+          X11Forwarding no
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+          LoginGraceTime 30
+          MaxAuthTries 3
+          AllowAgentForwarding no
+          AllowTcpForwarding no
+      notify: Validate and restart sshd
+
+    - name: Ensure sshd service enabled and started
+      ansible.builtin.service:
+        name: sshd
+        state: started
+        enabled: true
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Determine if firewalld is available
+      ansible.builtin.set_fact:
+        use_firewalld: "{{ ('firewalld.service' in ansible_facts.services) and (ansible_facts.services['firewalld.service'].state in ['running', 'stopped']) }}"
+
+    - name: Configure fail2ban
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+        backup: true
+        content: |
+          [DEFAULT]
+          bantime = 1h
+          findtime = 10m
+          maxretry = 5
+          backend = systemd
+          usedns = warn
+          destemail = root@localhost
+          sender = fail2ban@{{ ansible_fqdn | default(inventory_hostname) }}
+          mta = sendmail
+          banaction = {{ 'firewallcmd-rich-rules' if use_firewalld else 'iptables-multiport' }}
+          action = %(action_)s
+
+          [sshd]
+          enabled = true
+          backend = systemd
+          port = ssh
+          logpath = %(sshd_log)s
+          filter = sshd
+          banaction = {{ 'firewallcmd-rich-rules' if use_firewalld else 'iptables-multiport' }}
+          maxretry = 5
+      notify: Validate and reload fail2ban
+
+    - name: Ensure fail2ban service enabled and started
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+    - name: Configure auditd - log format
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^#?\s*log_format\s*='
+        line: 'log_format = ENRICHED'
+        backup: true
+      notify: Restart auditd
+
+    - name: Configure auditd - max log file size
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^#?\s*max_log_file\s*='
+        line: 'max_log_file = 50'
+        backup: true
+      notify: Restart auditd
+
+    - name: Configure auditd - number of rotated logs
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^#?\s*num_logs\s*='
+        line: 'num_logs = 7'
+        backup: true
+      notify: Restart auditd
+
+    - name: Configure auditd - space left and actions
+      ansible.builtin.blockinfile:
+        path: /etc/audit/auditd.conf
+        marker: "# {mark} ANSIBLE MANAGED SPACE ACTIONS"
+        block: |
+          space_left = 75
+          space_left_action = email
+          action_mail_acct = root
+          admin_space_left = 50
+          admin_space_left_action = single
+          disk_full_action = halt
+          disk_error_action = halt
+        backup: true
+      notify: Restart auditd
+
+    - name: Determine if 32-bit audit arch rules are needed
+      ansible.builtin.set_fact:
+        audit_has_b32: "{{ ansible_facts['architecture'] == 'x86_64' }}"
+
+    - name: Deploy baseline audit rules
+      ansible.builtin.copy:
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: '0640'
+        backup: true
+        content: |
+          # Managed by Ansible - baseline audit rules
+
+          ## Time change monitoring
+          -a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time-change
+          {% if audit_has_b32 %}
+          -a always,exit -F arch=b32 -S adjtimex,settimeofday,stime -k time-change
+          {% endif %}
+          -w /etc/localtime -p wa -k time-change
+
+          ## Identity and account databases
+          -w /etc/group -p wa -k identity
+          -w /etc/passwd -p wa -k identity
+          -w /etc/gshadow -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+
+          ## Sudoers
+          -w /etc/sudoers -p wa -k scope
+          -w /etc/sudoers.d/ -p wa -k scope
+
+          ## SSH configuration
+          -w /etc/ssh/sshd_config -p wa -k ssh
+          -w /etc/ssh/sshd_config.d/ -p wa -k ssh
+
+          ## Login and authentication logs
+          -w /var/log/lastlog -p wa -k logins
+          -w /var/run/faillock/ -p wa -k authfail
+          -w /var/log/tallylog -p wa -k logins
+          -w /var/log/secure -p wa -k auth
+
+          ## System locale and hostname/domain changes
+          -a always,exit -F arch=b64 -S sethostname,setdomainname -k system-locale
+          {% if audit_has_b32 %}
+          -a always,exit -F arch=b32 -S sethostname,setdomainname -k system-locale
+          {% endif %}
+
+          ## MAC policy (SELinux) changes
+          -w /etc/selinux/ -p wa -k MAC-policy
+
+          ## Unauthorized access attempts (file access denials)
+          -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -k access
+          -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -k access
+          {% if audit_has_b32 %}
+          -a always,exit -F arch=b32 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -k access
+          -a always,exit -F arch=b32 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -k access
+          {% endif %}
+
+          ## File permission and ownership modifications
+          -a always,exit -F arch=b64 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown,utime,utimes,utimensat -k perm_mod
+          {% if audit_has_b32 %}
+          -a always,exit -F arch=b32 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown,utime,utimes,utimensat -k perm_mod
+          {% endif %}
+
+          ## Kernel module loading/unloading
+          -w /sbin/insmod -p x -k modules
+          -w /sbin/rmmod -p x -k modules
+          -w /sbin/modprobe -p x -k modules
+          -a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules
+          {% if audit_has_b32 %}
+          -a always,exit -F arch=b32 -S init_module,delete_module -k modules
+          {% endif %}
+
+          ## Audit configuration changes
+          -w /etc/audit/auditd.conf -p wa -k auditconfig
+          -w /etc/audit/rules.d/ -p wa -k auditconfig
+          -w /etc/libaudit.conf -p wa -k auditconfig
+      notify: Reload audit rules
+
+    - name: Ensure auditd service enabled and started
+      ansible.builtin.service:
+        name: auditd
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Validate and restart sshd
+      listen: Validate and restart sshd
+      block:
+        - name: Validate sshd configuration
+          ansible.builtin.command: /usr/sbin/sshd -t
+        - name: Restart sshd
+          ansible.builtin.service:
+            name: sshd
+            state: restarted
+            enabled: true
+
+    - name: Validate and reload fail2ban
+      listen: Validate and reload fail2ban
+      block:
+        - name: Validate fail2ban configuration
+          ansible.builtin.command: fail2ban-client -d
+        - name: Reload fail2ban
+          ansible.builtin.command: fail2ban-client reload
+        - name: Ensure fail2ban is running
+          ansible.builtin.service:
+            name: fail2ban
+            state: started
+            enabled: true
+
+    - name: Reload audit rules
+      listen: Reload audit rules
+      ansible.builtin.command: /sbin/augenrules --load
+
+    - name: Restart auditd
+      listen: Restart auditd
+      ansible.builtin.service:
+        name: auditd
+        state: restarted

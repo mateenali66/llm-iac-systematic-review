@@ -1,0 +1,426 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres
+description: Helm chart deploying PostgreSQL for non-production with StatefulSet, headless Service, PVC, Secret for credentials, and an init Job to create the application database.
+type: application
+version: 0.1.0
+appVersion: "16.3"
+kubeVersion: ">=1.21.0-0"
+---
+# FILE: values.yaml
+image:
+  repository: postgres
+  tag: "16.3"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: my-registry-secret
+
+replicaCount: 1
+
+service:
+  port: 5432
+  annotations: {}
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClass: "" # if empty, default storage class is used
+
+credentials:
+  # If set, the chart will not create a Secret and will reference this one instead.
+  # The Secret must contain keys: postgres-username, postgres-password, app-username, app-password
+  existingSecret: ""
+  superuser:
+    username: "postgres"
+    password: "" # REQUIRED if credentials.existingSecret is not set
+  appUser:
+    username: "appuser"
+    password: "" # REQUIRED if credentials.existingSecret is not set
+
+appDatabase:
+  name: "appdb"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+podSecurityContext:
+  enabled: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 6
+
+terminationGracePeriodSeconds: 60
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+initJob:
+  enabled: true
+  useHelmHook: true
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  annotations: {}
+---
+# FILE: templates/secret.yaml
+{{- if not .Values.credentials.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    environment: nonprod
+type: Opaque
+stringData:
+  postgres-username: {{ .Values.credentials.superuser.username | default "postgres" | quote }}
+  postgres-password: {{ required "A valid .Values.credentials.superuser.password is required when no existingSecret is provided" .Values.credentials.superuser.password | quote }}
+  app-username: {{ .Values.credentials.appUser.username | default "appuser" | quote }}
+  app-password: {{ required "A valid .Values.credentials.appUser.password is required when no existingSecret is provided" .Values.credentials.appUser.password | quote }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-postgres" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    environment: nonprod
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - name: postgres
+      port: {{ .Values.service.port }}
+      targetPort: postgres
+  selector:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ printf "%s-postgres" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    environment: nonprod
+spec:
+  serviceName: {{ printf "%s-postgres" .Release.Name | trunc 63 | trimSuffix "-" }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: database
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: database
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        environment: nonprod
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy | quote }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfile.type }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.service.port }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: postgres-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: postgres-password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities:
+              {{- toYaml .Values.containerSecurityContext.capabilities | nindent 14 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -h 127.0.0.1 -p {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.enabled }}
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/instance: {{ .Release.Name }}
+          app.kubernetes.io/component: database
+          environment: nonprod
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}
+    {{- else }}
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/instance: {{ .Release.Name }}
+          app.kubernetes.io/component: database
+          environment: nonprod
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    {{- end }}
+---
+# FILE: templates/job-initdb.yaml
+{{- if .Values.initJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-postgres-initdb" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database-init
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    environment: nonprod
+  annotations:
+    {{- if .Values.initJob.useHelmHook }}
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- end }}
+    {{- toYaml .Values.initJob.annotations | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.initJob.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.initJob.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: database-init
+        environment: nonprod
+    spec:
+      restartPolicy: OnFailure
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext:
+        runAsUser: {{ .Values.podSecurityContext.runAsUser }}
+        runAsGroup: {{ .Values.podSecurityContext.runAsGroup }}
+        fsGroup: {{ .Values.podSecurityContext.fsGroup }}
+        fsGroupChangePolicy: {{ .Values.podSecurityContext.fsGroupChangePolicy | quote }}
+        seccompProfile:
+          type: {{ .Values.podSecurityContext.seccompProfile.type }}
+      {{- end }}
+      containers:
+        - name: initdb
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities:
+              {{- toYaml .Values.containerSecurityContext.capabilities | nindent 14 }}
+          {{- end }}
+          env:
+            - name: PGHOST
+              value: {{ printf "%s-postgres" .Release.Name | trunc 63 | trimSuffix "-" }}
+            - name: PGPORT
+              value: "{{ .Values.service.port }}"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: postgres-username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: postgres-password
+            - name: APP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: app-username
+            - name: APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-postgres-credentials" .Release.Name | trunc 63 | trimSuffix "-") .Values.credentials.existingSecret }}
+                  key: app-password
+            - name: APP_DB
+              value: {{ .Values.appDatabase.name | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+
+              echo "Waiting for PostgreSQL to be ready at ${PGHOST}:${PGPORT}..."
+              for i in $(seq 1 60); do
+                if PGPASSWORD="${POSTGRES_PASSWORD}" pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${POSTGRES_USER}" >/dev/null 2>&1; then
+                  echo "PostgreSQL is ready."
+                  break
+                fi
+                sleep 5
+              done
+
+              if ! PGPASSWORD="${POSTGRES_PASSWORD}" pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${POSTGRES_USER}" >/dev/null 2>&1; then
+                echo "PostgreSQL not ready after waiting, exiting."
+                exit 1
+              fi
+
+              PSQL="psql --no-password -h ${PGHOST} -p ${PGPORT} -U ${POSTGRES_USER} -v ON_ERROR_STOP=1"
+
+              # Create role and database idempotently using safe quoting
+              ${PSQL} -v app_user="${APP_USER}" -v app_password="${APP_PASSWORD}" -v app_db="${APP_DB}" <<'SQL'
+              DO
+              $do$
+              BEGIN
+                IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = :'app_user') THEN
+                  EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', :'app_user', :'app_password');
+                END IF;
+              END
+              $do$;
+              DO
+              $do$
+              BEGIN
+                IF NOT EXISTS (SELECT FROM pg_database WHERE datname = :'app_db') THEN
+                  EXECUTE format('CREATE DATABASE %I OWNER %I', :'app_db', :'app_user');
+                END IF;
+              END
+              $do$;
+              SQL
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

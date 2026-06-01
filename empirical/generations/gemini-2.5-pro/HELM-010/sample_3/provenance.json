@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "HELM-010",
+  "language": "helm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Helm chart for a multi-tier application: a frontend Deployment, a backend Deployment, a Postgres StatefulSet, ConfigMaps for each tier, Secrets for credentials, and Services wiring them together.",
+  "user_message_sent": "Target IaC language: Helm chart templates (YAML; provide Chart.yaml, values.yaml, and templates/ as separate files concatenated with '---' YAML document separators and clearly labeled '# FILE: <path>' comments)\n\nTask: Create a Helm chart for a multi-tier application: a frontend Deployment, a backend Deployment, a Postgres StatefulSet, ConfigMaps for each tier, Secrets for credentials, and Services wiring them together.\n\nOutput only the Helm chart templates (YAML; provide Chart.yaml, values.yaml, and templates/ as separate files concatenated with '---' YAML document separators and clearly labeled '# FILE: <path>' comments) code, no commentary or markdown fences.",
+  "raw_response": "# FILE: Chart.yaml\napiVersion: v2\nname: multi-tier-app\ndescription: A Helm chart for a generic multi-tier application with frontend, backend, and database.\ntype: application\nversion: 0.1.0\nappVersion: \"1.0.0\"\n\n---\n# FILE: values.yaml\n# Global values\nglobal:\n  # -- Common labels to add to all resources\n  labels: {}\n\n# -- Frontend tier configuration\nfrontend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: nginx\n    tag: \"1.25\"\n    pullPolicy: IfNotPresent\n  service:\n    type: ClusterIP\n    port: 80\n  # -- Ingress configuration for the frontend\n  ingress:\n    enabled: false\n    # className: \"nginx\"\n    # annotations:\n    #   kubernetes.io/ingress.class: nginx\n    #   cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n    # hosts:\n    #   - host: chart-example.local\n    #     paths:\n    #       - path: /\n    #         pathType: ImplementationSpecific\n    # tls: []\n    #  - secretName: chart-example-tls\n    #    hosts:\n    #      - chart-example.local\n  # -- Resource requests and limits\n  resources:\n    limits:\n      cpu: 200m\n      memory: 128Mi\n    requests:\n      cpu: 100m\n      memory: 64Mi\n  # -- Pod security context\n  podSecurityContext:\n    fsGroup: 101 # NGINX group\n  # -- Container security context\n  securityContext:\n    runAsUser: 101 # NGINX user\n    runAsGroup: 101 # NGINX group\n    runAsNonRoot: true\n    readOnlyRootFilesystem: true\n    allowPrivilegeEscalation: false\n    capabilities:\n      drop: [\"ALL\"]\n  # -- Non-sensitive configuration data for the frontend\n  config:\n    API_URL: \"http://{{ .Release.Name }}-backend:8080/api\"\n  nodeSelector: {}\n  tolerations: []\n  affinity: {}\n\n# -- Backend tier configuration\nbackend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: bitnami/node-exporter\n    tag: \"1.7.0\" #",
+  "cleaned_response": "# FILE: Chart.yaml\napiVersion: v2\nname: multi-tier-app\ndescription: A Helm chart for a generic multi-tier application with frontend, backend, and database.\ntype: application\nversion: 0.1.0\nappVersion: \"1.0.0\"\n\n---\n# FILE: values.yaml\n# Global values\nglobal:\n  # -- Common labels to add to all resources\n  labels: {}\n\n# -- Frontend tier configuration\nfrontend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: nginx\n    tag: \"1.25\"\n    pullPolicy: IfNotPresent\n  service:\n    type: ClusterIP\n    port: 80\n  # -- Ingress configuration for the frontend\n  ingress:\n    enabled: false\n    # className: \"nginx\"\n    # annotations:\n    #   kubernetes.io/ingress.class: nginx\n    #   cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n    # hosts:\n    #   - host: chart-example.local\n    #     paths:\n    #       - path: /\n    #         pathType: ImplementationSpecific\n    # tls: []\n    #  - secretName: chart-example-tls\n    #    hosts:\n    #      - chart-example.local\n  # -- Resource requests and limits\n  resources:\n    limits:\n      cpu: 200m\n      memory: 128Mi\n    requests:\n      cpu: 100m\n      memory: 64Mi\n  # -- Pod security context\n  podSecurityContext:\n    fsGroup: 101 # NGINX group\n  # -- Container security context\n  securityContext:\n    runAsUser: 101 # NGINX user\n    runAsGroup: 101 # NGINX group\n    runAsNonRoot: true\n    readOnlyRootFilesystem: true\n    allowPrivilegeEscalation: false\n    capabilities:\n      drop: [\"ALL\"]\n  # -- Non-sensitive configuration data for the frontend\n  config:\n    API_URL: \"http://{{ .Release.Name }}-backend:8080/api\"\n  nodeSelector: {}\n  tolerations: []\n  affinity: {}\n\n# -- Backend tier configuration\nbackend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: bitnami/node-exporter\n    tag: \"1.7.0\" #",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "# FILE: Chart.yaml\napiVersion: v2\nname: multi-tier-app\ndescription: A Helm chart for a generic multi-tier application with frontend, backend, and database.\ntype: application\nversion: 0.1.0\nappVersion: \"1.0.0\"\n\n---\n# FILE: values.yaml\n# Global values\nglobal:\n  # -- Common labels to add to all resources\n  labels: {}\n\n# -- Frontend tier configuration\nfrontend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: nginx\n    tag: \"1.25\"\n    pullPolicy: IfNotPresent\n  service:\n    type: ClusterIP\n    port: 80\n  # -- Ingress configuration for the frontend\n  ingress:\n    enabled: false\n    # className: \"nginx\"\n    # annotations:\n    #   kubernetes.io/ingress.class: nginx\n    #   cert-manager.io/cluster-issuer: \"letsencrypt-prod\"\n    # hosts:\n    #   - host: chart-example.local\n    #     paths:\n    #       - path: /\n    #         pathType: ImplementationSpecific\n    # tls: []\n    #  - secretName: chart-example-tls\n    #    hosts:\n    #      - chart-example.local\n  # -- Resource requests and limits\n  resources:\n    limits:\n      cpu: 200m\n      memory: 128Mi\n    requests:\n      cpu: 100m\n      memory: 64Mi\n  # -- Pod security context\n  podSecurityContext:\n    fsGroup: 101 # NGINX group\n  # -- Container security context\n  securityContext:\n    runAsUser: 101 # NGINX user\n    runAsGroup: 101 # NGINX group\n    runAsNonRoot: true\n    readOnlyRootFilesystem: true\n    allowPrivilegeEscalation: false\n    capabilities:\n      drop: [\"ALL\"]\n  # -- Non-sensitive configuration data for the frontend\n  config:\n    API_URL: \"http://{{ .Release.Name }}-backend:8080/api\"\n  nodeSelector: {}\n  tolerations: []\n  affinity: {}\n\n# -- Backend tier configuration\nbackend:\n  enabled: true\n  replicaCount: 2\n  image:\n    repository: bitnami/node-exporter\n    tag: \"1.7.0\" #",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779728615,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 207,
+      "output_tokens": 2044,
+      "raw_input_tokens": 207
+    }
+  },
+  "started_at": "2026-05-25T17:03:15.388947+00:00",
+  "elapsed_seconds": 20.192
+}

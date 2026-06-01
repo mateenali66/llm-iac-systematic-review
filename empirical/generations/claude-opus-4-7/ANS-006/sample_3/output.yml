@@ -1,0 +1,136 @@
+---
+- name: Provision deploy user and harden SSH
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    deploy_user: deploy
+    deploy_user_shell: /bin/bash
+    deploy_user_groups:
+      - sudo
+    # deploy_user_pubkey must be provided via Ansible Vault, e.g.:
+    #   ansible-vault encrypt_string 'ssh-ed25519 AAAA...' --name 'deploy_user_pubkey'
+    # deploy_user_pubkey: !vault |
+    #   $ANSIBLE_VAULT;1.1;AES256
+    #   ...
+
+  pre_tasks:
+    - name: Ensure deploy_user_pubkey is defined and non-empty
+      ansible.builtin.assert:
+        that:
+          - deploy_user_pubkey is defined
+          - deploy_user_pubkey | length > 0
+          - deploy_user_pubkey is search('^(ssh-(rsa|ed25519|dss)|ecdsa-sha2-nistp(256|384|521)) ')
+        fail_msg: "deploy_user_pubkey must be defined (via Ansible Vault) and contain a valid SSH public key."
+
+    - name: Determine sudo group name by OS family
+      ansible.builtin.set_fact:
+        sudo_group: "{{ 'wheel' if ansible_os_family in ['RedHat', 'Suse'] else 'sudo' }}"
+
+  tasks:
+    - name: Ensure sudo is installed
+      ansible.builtin.package:
+        name: sudo
+        state: present
+
+    - name: Ensure sudo group exists
+      ansible.builtin.group:
+        name: "{{ sudo_group }}"
+        state: present
+        system: true
+
+    - name: Create deploy user
+      ansible.builtin.user:
+        name: "{{ deploy_user }}"
+        shell: "{{ deploy_user_shell }}"
+        groups: "{{ sudo_group }}"
+        append: true
+        create_home: true
+        state: present
+        password: '!'
+        password_lock: true
+
+    - name: Ensure ~/.ssh directory exists with strict permissions
+      ansible.builtin.file:
+        path: "/home/{{ deploy_user }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0700'
+
+    - name: Install authorized SSH public key for deploy user
+      ansible.posix.authorized_key:
+        user: "{{ deploy_user }}"
+        key: "{{ deploy_user_pubkey }}"
+        state: present
+        exclusive: true
+        manage_dir: true
+
+    - name: Configure passwordless sudo for deploy user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/90-{{ deploy_user }}"
+        content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Ensure /etc/ssh/sshd_config.d directory exists
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Check if sshd_config includes sshd_config.d drop-in directory
+      ansible.builtin.command:
+        cmd: "grep -E '^\\s*Include\\s+/etc/ssh/sshd_config\\.d/\\*\\.conf' /etc/ssh/sshd_config"
+      register: sshd_include_check
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Harden SSH via drop-in config (preferred)
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/10-hardening.conf
+        content: |
+          # Managed by Ansible - do not edit manually
+          PasswordAuthentication no
+          ChallengeResponseAuthentication no
+          KbdInteractiveAuthentication no
+          PermitRootLogin no
+          PubkeyAuthentication yes
+          UsePAM yes
+        owner: root
+        group: root
+        mode: '0644'
+        validate: '/usr/sbin/sshd -t -f %s'
+      when: sshd_include_check.rc == 0
+      notify: Restart sshd
+
+    - name: Harden SSH via main sshd_config (fallback)
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+        owner: root
+        group: root
+        mode: '0600'
+        validate: '/usr/sbin/sshd -t -f %s'
+      loop:
+        - { regexp: '^\s*#?\s*PasswordAuthentication\s+.*$', line: 'PasswordAuthentication no' }
+        - { regexp: '^\s*#?\s*ChallengeResponseAuthentication\s+.*$', line: 'ChallengeResponseAuthentication no' }
+        - { regexp: '^\s*#?\s*KbdInteractiveAuthentication\s+.*$', line: 'KbdInteractiveAuthentication no' }
+        - { regexp: '^\s*#?\s*PermitRootLogin\s+.*$', line: 'PermitRootLogin no' }
+        - { regexp: '^\s*#?\s*PubkeyAuthentication\s+.*$', line: 'PubkeyAuthentication yes' }
+      when: sshd_include_check.rc != 0
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: "{{ 'ssh' if ansible_os_family == 'Debian' else 'sshd' }}"
+        state: restarted

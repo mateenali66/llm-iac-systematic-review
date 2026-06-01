@@ -1,0 +1,109 @@
+resources:
+- name: logging-sink-bigquery-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: logging_sink_dataset
+    location: US
+    description: "Dataset for Cloud Logging sink exports"
+    access:
+    - role: OWNER
+      members:
+      - "projectEditor:$(ref.logging-sink-project.projectId)"
+    - role: READER
+      members:
+      - "projectViewer:$(ref.logging-sink-project.projectId)"
+
+- name: logging-sink-bigquery-table
+  type: gcp-types/bigquery-v2:tables
+  properties:
+    datasetId: $(ref.logging-sink-bigquery-dataset.datasetId)
+    tableReference:
+      tableId: log_entries
+    schema:
+      fields:
+      - name: timestamp
+        type: TIMESTAMP
+      - name: logName
+        type: STRING
+      - name: resource
+        type: RECORD
+        fields:
+        - name: type
+          type: STRING
+        - name: labels
+          type: RECORD
+          mode: REPEATED
+          fields:
+          - name: key
+            type: STRING
+          - name: value
+            type: STRING
+      - name: severity
+        type: STRING
+      - name: insertId
+        type: STRING
+      - name: httpRequest
+        type: RECORD
+        fields:
+        - name: requestMethod
+          type: STRING
+        - name: requestUrl
+          type: STRING
+        - name: status
+          type: INTEGER
+        - name: userAgent
+          type: STRING
+        - name: remoteIp
+          type: STRING
+      - name: textPayload
+        type: STRING
+      - name: jsonPayload
+        type: STRING
+      - name: protoPayload
+        type: STRING
+      - name: labels
+        type: RECORD
+        mode: REPEATED
+        fields:
+        - name: key
+          type: STRING
+        - name: value
+          type: STRING
+
+- name: logging-sink-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: logging-bq-exporter
+    displayName: "Service account for Cloud Logging to BigQuery export"
+
+- name: logging-sink-bigquery-dataset-access
+  type: gcp-types/bigquery-v2:datasets
+  metadata:
+    dependsOn:
+    - logging-sink-bigquery-dataset
+    - logging-sink-service-account
+  properties:
+    datasetReference:
+      datasetId: logging_sink_dataset
+    access:
+    - role: WRITER
+      members:
+      - "serviceAccount:$(ref.logging-sink-service-account.email)"
+
+- name: project-logging-sink
+  type: logging.v2.sink
+  properties:
+    name: project-log-sink-to-bigquery
+    destination: "bigquery.googleapis.com/projects/$(ref.logging-sink-project.projectId)/datasets/$(ref.logging-sink-bigquery-dataset.datasetId)"
+    filter: "resource.type=\"gce_instance\" AND severity>=ERROR"
+    writerIdentity: "serviceAccount:$(ref.logging-sink-service-account.email)"
+  metadata:
+    dependsOn:
+    - logging-sink-bigquery-dataset-access
+
+- name: logging-sink-project
+  type: gcp-types/cloudresourcemanager-v1:projects
+  properties:
+    projectId: {{ env["project"] }}
+    lifecycleState: ACTIVE

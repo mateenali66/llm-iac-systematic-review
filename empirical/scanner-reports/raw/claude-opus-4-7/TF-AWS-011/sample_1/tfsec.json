@@ -1,0 +1,50 @@
+{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0017",
+			"long_id": "aws-cloudwatch-log-group-customer-key",
+			"rule_description": "CloudWatch log groups should be encrypted using CMK",
+			"rule_provider": "aws",
+			"rule_service": "cloudwatch",
+			"impact": "Log data may be leaked if the logs are compromised. No auditing of who have viewed the logs.",
+			"resolution": "Enable CMK encryption of CloudWatch Log Groups",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/cloudwatch/log-group-customer-key/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group#kms_key_id"
+			],
+			"description": "Log group is not encrypted.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_cloudwatch_log_group.lambda_logs",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 125,
+				"end_line": 130
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0057",
+			"long_id": "aws-iam-no-policy-wildcards",
+			"rule_description": "IAM policy should avoid use of wildcards and instead apply the principle of least privilege",
+			"rule_provider": "aws",
+			"rule_service": "iam",
+			"impact": "Overly permissive policies may grant access to sensitive resources",
+			"resolution": "Specify the exact permissions required, and to which resources they should apply instead of using wildcards.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/iam/no-policy-wildcards/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document"
+			],
+			"description": "IAM policy document uses sensitive action 'logs:CreateLogStream' on wildcarded resource '7bd4c5f7-55de-4825-8d5a-e0e9ac2e1e0e:*'",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_iam_role_policy.lambda_logging",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 111,
+				"end_line": 111
+			}
+		}
+	]
+}

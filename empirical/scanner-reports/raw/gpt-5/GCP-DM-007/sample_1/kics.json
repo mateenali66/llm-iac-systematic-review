@@ -1,0 +1,323 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 139,
+	"files_parsed": 1,
+	"lines_parsed": 139,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 9,
+		"TRACE": 0
+	},
+	"total_counter": 11,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:13:27.164187045Z",
+	"end": "2026-05-26T05:13:27.467697503Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Client Certificate Disabled",
+			"query_id": "dd690686-2bf9-4012-a821-f61912dd77be",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "HIGH",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Clusters must be created with Client Certificate enabled, which means 'masterAuth' must have 'clientCertificateConfig' with the attribute 'issueClientCertificate' equal to true",
+			"description_id": "e74562aa",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "220cf14581fcf529640e283bdaf56adb88313b7a44e5a336a302d026467d6750",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'masterAuth' should be defined and not null",
+					"actual_value": "'masterAuth' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Cluster Master Authentication Disabled",
+			"query_id": "7ef7d141-9fbb-4679-a977-fd0883436906",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Engine Clusters must have Master Authentication set to enabled, which means the attribute 'masterAuth' must have the subattributes 'username' and 'password' defined and not empty",
+			"description_id": "4a9cd0c6",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f4cd34c105b4acea9f0331c52d30f05d7df6d37a1ffcc8258c132eb92db1625b",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'masterAuth' should be defined and not null",
+					"actual_value": "'masterAuth' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "GKE Master Authorized Networks Disabled",
+			"query_id": "62c8cf50-87f0-4295-a974-8184ed78fe02",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "284",
+			"cloud_provider": "GCP",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Master authorized networks must be enabled in GKE clusters",
+			"description_id": "be3364b4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "50a44a8d83fa67eb0c534a38ceb33f6597d0858e58350f7ccb40b866c498c47c",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'masterAuthorizedNetworksConfig' should be defined and not null",
+					"actual_value": "'masterAuthorizedNetworksConfig' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IP Aliasing Disabled",
+			"query_id": "28727987-e398-49b8-aef1-8a3e7789d111",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Clusters must be created with Alias IP ranges enabled, which means the attribute 'ipAllocationPolicy' must be defined and the subattribute 'useIpAliases' must be set to 'true'.",
+			"description_id": "34473a24",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1ce59c7d0be00f9f8d0fa28480e99e16458b6a56f02311bff8bfc9730cf8430c",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'ipAllocationPolicy' should be defined and not null",
+					"actual_value": "'ipAllocationPolicy' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Network Policy Disabled",
+			"query_id": "c47f90e8-4a19-43f0-8413-cc434d286c4e",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Engine Clusters must have Network Policy enabled, meaning that the attribute 'networkPolicy.enabled' must be true and the attribute 'addonsConfig.networkPolicyConfig.disabled' must be false",
+			"description_id": "e28f5312",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "01ea4c761c9abffd465d243118bd6bcae9e59d7c4709d12bbe1eb4ab43110d7d",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'networkPolicy' should be defined and not null",
+					"actual_value": "'networkPolicy' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "01ea4c761c9abffd465d243118bd6bcae9e59d7c4709d12bbe1eb4ab43110d7d",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'addonsConfig' should be defined and not null",
+					"actual_value": "'addonsConfig' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Node Auto Upgrade Disabled",
+			"query_id": "dc5c5fee-6c53-43b0-ab11-4c660e064aaf",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Kubernetes nodes must have auto upgrades set to true, which means the attribute 'nodePools' must be defined and the subattribute 'managment' must be defined and have the attribute 'autoUpgrade' set to true",
+			"description_id": "40051d4a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bc86270fbceb284a8f5887aa78410d6079928e8aad29752057e60a77f474a6de",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'nodePools' should be defined and not null",
+					"actual_value": "'nodePools' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Private Cluster Disabled",
+			"query_id": "48c61fbd-09c9-46cc-a521-012e0c325412",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "295",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Clusters must be created with Private Clusters enabled, meaning the 'privateClusterConfig' must be defined and the attributes 'enablePrivateEndpoint' and 'enablePrivateNodes' must be true.",
+			"description_id": "c65a868d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9e1f78c6d105cb407b9774216f5eddae26dbbdccce42b1942ce35f9e4621eb5b",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'privateClusterConfig' should be defined and not null",
+					"actual_value": "'privateClusterConfig' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Stackdriver Logging Disabled",
+			"query_id": "95601b9a-7fe8-4aee-9b58-d36fd9382dfc",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "778",
+			"cloud_provider": "GCP",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Kubernetes Engine Clusters must have Stackdriver Logging enabled, which means the attribute 'loggingService' must be defined and different from 'none'",
+			"description_id": "ba92577c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5967940edf02f08c6619d046fe0b1869185f5086782ebe11addfa63bc249c6ae",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'loggingService' should be defined and not null",
+					"actual_value": "'loggingService' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Stackdriver Monitoring Disabled",
+			"query_id": "bbfc97ab-e92a-4a7b-954c-e88cec815011",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "732",
+			"cloud_provider": "GCP",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Kubernetes Engine Clusters must have Stackdriver Monitoring enabled, which means the attribute 'monitoringService' must be defined and different than 'none'",
+			"description_id": "c1eb34ef",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "457df09f8c27b09ee0b4343ab5a5615480e188459d6ddee318a85d7b8bece1a4",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'monitoringService' should be defined and not null",
+					"actual_value": "'monitoringService' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Cluster Labels Disabled",
+			"query_id": "8810968b-4b15-421d-918b-d91eb4bb8d1d",
+			"query_url": "https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.zones.clusters",
+			"severity": "LOW",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Kubernetes Clusters must be configured with labels, which means the attribute 'resourceLabels' must be defined",
+			"description_id": "8c094804",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "20466bedbc2a372d1a97a301d4c71d855c03126b744d4e75eb7a6680b209538b",
+					"line": 70,
+					"resource_type": "container.v1.cluster",
+					"resource_name": "prod-gke-cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{prod-gke-cluster}}.properties",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "'resourceLabels' should be defined and not null",
+					"actual_value": "'resourceLabels' is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,100 @@
+imports:
+- path: gke-cluster.jinja
+
+resources:
+- name: production-gke-cluster
+  type: gke-cluster.jinja
+  properties:
+    cluster:
+      name: production-cluster
+      location: us-central1
+      initialNodeCount: 1
+      network: projects/{{ env["project"] }}/global/networks/default
+      subnetwork: projects/{{ env["project"] }}/regions/us-central1/subnetworks/default
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      clusterTelemetry:
+        type: ENABLED
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+        networkPolicyConfig:
+          disabled: false
+      nodePools:
+      - name: production-pool
+        initialNodeCount: 3
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-standard
+          imageType: COS_CONTAINERD
+          serviceAccount: default
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          metadata:
+            disable-legacy-endpoints: "true"
+          tags:
+          - gke-node
+          - production
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        upgradeSettings:
+          strategy: SURGE
+          maxSurge: 1
+          maxUnavailable: 0
+      authenticatorGroupsConfig:
+        securityGroup: gke-security-groups@{{ env["project"] }}.iam.gserviceaccount.com
+      databaseEncryption:
+        state: DECRYPTED
+      shieldedNodes:
+        enabled: true
+      releaseChannel:
+        channel: REGULAR
+      verticalPodAutoscaling:
+        enabled: true
+      enableTpu: false
+      networkConfig:
+        datapathProvider: ADVANCED_DATAPATH
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: office-network
+          cidrBlock: 192.168.1.0/24
+      privateClusterConfig:
+        enablePrivateNodes: false
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterSecondaryRangeName: gke-pods
+        servicesSecondaryRangeName: gke-services
+      legacyAbac:
+        enabled: false
+      resourceLabels:
+        environment: production
+        team: infrastructure
+      maintenancePolicy:
+        window:
+          dailyMaintenanceWindow:
+            startTime: "02:00"
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 110
+      datapathProvider: ADVANCED_DATAPATH
+      enableKubernetesAlpha: false
+      enableIntranodeVisibility: true
+      enableL4ilbSubsetting: true
+      privateCluster: false
+      costManagementConfig:
+        enabled: true

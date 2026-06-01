@@ -1,0 +1,109 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "diagnostic errors while loading terraform config dir '/in'. error from terraform:\n/in/output.tf:214,5-18: Argument or block definition required; An argument or block definition is required here. To set an argument, use the equals sign \"=\" to introduce the argument value.\n"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "cloudfrontNoLogging",
+        "description": "Ensure that your AWS Cloudfront distributions have the Logging feature enabled in order to track all viewer requests for the content delivered through the Content Delivery Network (CDN).",
+        "rule_id": "AC_AWS_0025",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "site",
+        "resource_type": "aws_cloudfront_distribution",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 187
+      },
+      {
+        "rule_name": "noWafEnabled",
+        "description": "Ensure that cloud-front has web application firewall enabled",
+        "rule_id": "AC_AWS_0032",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "site",
+        "resource_type": "aws_cloudfront_distribution",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 187
+      },
+      {
+        "rule_name": "s3Versioning",
+        "description": "Enabling S3 versioning will enable easy recovery from both unintended user actions, like deletes and overwrites",
+        "rule_id": "AC_AWS_0214",
+        "severity": "HIGH",
+        "category": "Resilience",
+        "resource_name": "logs",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 95
+      },
+      {
+        "rule_name": "s3BucketSseRulesWithKmsNull",
+        "description": "Ensure that S3 Buckets have server side encryption at rest enabled with KMS key to protect sensitive data.",
+        "rule_id": "AC_AWS_0207",
+        "severity": "HIGH",
+        "category": "Data Protection",
+        "resource_name": "logs",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 117
+      },
+      {
+        "rule_name": "s3BucketSseRulesWithKmsNull",
+        "description": "Ensure that S3 Buckets have server side encryption at rest enabled with KMS key to protect sensitive data.",
+        "rule_id": "AC_AWS_0207",
+        "severity": "HIGH",
+        "category": "Data Protection",
+        "resource_name": "site",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 78
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 04:28:55.645862419 +0000 UTC",
+      "policies_validated": 15,
+      "violated_policies": 5,
+      "low": 0,
+      "medium": 2,
+      "high": 3
+    }
+  }
+}

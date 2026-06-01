@@ -1,0 +1,220 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 110,
+	"files_parsed": 1,
+	"lines_parsed": 110,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 7,
+		"LOW": 2,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 10,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:17:20.901922213Z",
+	"end": "2026-05-26T06:17:41.610754125Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "KMS Key With Vulnerable Policy",
+			"query_id": "7ebc9038-0bde-479a-acc4-6ed7b6758899",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Checks if the policy is vulnerable and needs updating.",
+			"description_id": "32b2985e",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b7fb93f5cb6f9fb4349bacbab9d9830155212646a30599e3b52714c957816c70",
+					"line": 13,
+					"resource_type": "aws_kms_key",
+					"resource_name": "ebs",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[ebs]",
+					"search_line": 13,
+					"search_value": "",
+					"expected_value": "aws_kms_key[ebs].policy should be defined and not null",
+					"actual_value": "aws_kms_key[ebs].policy is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CMK Rotation Disabled",
+			"query_id": "22fbfeac-7b5a-421a-8a27-7a2178bb910b",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key#enable_key_rotation",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Customer Master Keys (CMK) must have rotation enabled, which means the attribute 'enable_key_rotation' must be set to 'true' when the key is enabled.",
+			"description_id": "64cfa70f",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "dd3ed82d1bba48d38b128e69c483e7a69cd3c37cfe3480b18e47f0744940c78f",
+					"line": 13,
+					"resource_type": "aws_kms_key",
+					"resource_name": "ebs",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[ebs]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[ebs].enable_key_rotation should be set to true",
+					"actual_value": "aws_kms_key[ebs].enable_key_rotation is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "cd4e9b4d52e9f1506e7b5251c42986f9d32ba536e37f35be4136de1632337d82",
+					"line": 77,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "database-backup-policy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{backup}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{backup}}].tags should be defined and not null",
+					"actual_value": "aws_iam_policy[{{backup}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "27bb5befcaa290f9a99b695144a3fda2ce27b922b9b5a3384fae0e48a18b1be4",
+					"line": 58,
+					"resource_type": "aws_iam_role",
+					"resource_name": "database-backup-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{backup}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{backup}}].tags should be defined and not null",
+					"actual_value": "aws_iam_role[{{backup}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1c71a806d97aad6ef94dcbea16d508f694fe4cf9f884d2ee98cc85413abf21ec",
+					"line": 34,
+					"resource_type": "aws_backup_plan",
+					"resource_name": "database-backup-plan",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_plan[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_plan[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_backup_plan[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "145ad23a64a64468985ea429245fbb811dcae58c7c9de419c0ce7a24446dcbbc",
+					"line": 30,
+					"resource_type": "aws_backup_vault",
+					"resource_name": "database-backup-vault",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_vault[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_vault[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_backup_vault[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8cb3060c679f889c0c322923b0631cf137eb3decea88b3a7314cb08336f3f77e",
+					"line": 25,
+					"resource_type": "aws_ebs_snapshot",
+					"resource_name": "database-snapshot",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_ebs_snapshot[{{database}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_ebs_snapshot[{{database}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_ebs_snapshot[{{database}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "30b9ab9ae7bc82552d30dff29bcd2a16b6811260b2d7c29875c21b966b0ebd94",
+					"line": 5,
+					"resource_type": "aws_ebs_volume",
+					"resource_name": "database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_ebs_volume[{{database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_ebs_volume[{{database}}].tags should be defined and not null",
+					"actual_value": "aws_ebs_volume[{{database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "60216287eeb449d9b16cb5b5382163fcca6dbc84a575bc38470b0657241c27b3",
+					"line": 13,
+					"resource_type": "aws_kms_key",
+					"resource_name": "ebs",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{ebs}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{ebs}}].tags should be defined and not null",
+					"actual_value": "aws_kms_key[{{ebs}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

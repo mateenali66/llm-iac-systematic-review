@@ -1,0 +1,31 @@
+---
+- name: Install and configure Docker
+  hosts: all
+  become: true
+  vars:
+    docker_user: appuser
+  tasks:
+    - name: Install Docker on Debian-based systems
+      ansible.builtin.apt:
+        name: docker.io
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker on RedHat-based systems
+      ansible.builtin.yum:
+        name: docker
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+
+    - name: Ensure Docker daemon is running and enabled
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true

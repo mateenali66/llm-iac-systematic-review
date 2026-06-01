@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-004",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: custom-vpc\n  type: compute.v1.network\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.1.0/24\n    privateIpGoogleAccess: false\n\n- name: private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.2.0/24\n    privateIpGoogleAccess: true\n\n- name: cloud-router\n  type: compute.v1.router\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    nats:\n    - name: nat-config\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.private-subnet.selfLink)\n        sourceIpRangesToNat: ALL_IP_RANGES\n\n- name: allow-internal-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: all\n    sourceRanges:\n    - 10.0.0.0/8\n    direction: INGRESS\n    disabled: false\n\n- name: allow-ssh-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n      ports:\n      - \"22\"\n    sourceRanges:\n    - 0.0.0.0/0\n    direction: INGRESS\n    disabled: false\n\n- name: allow-health-check-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n    sourceRanges:\n    - 35.191.0.0/16\n    - 130.211.0.0/22\n    direction: INGRESS\n    disabled: false",
+  "cleaned_response": "resources:\n- name: custom-vpc\n  type: compute.v1.network\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.1.0/24\n    privateIpGoogleAccess: false\n\n- name: private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.2.0/24\n    privateIpGoogleAccess: true\n\n- name: cloud-router\n  type: compute.v1.router\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    nats:\n    - name: nat-config\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.private-subnet.selfLink)\n        sourceIpRangesToNat: ALL_IP_RANGES\n\n- name: allow-internal-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: all\n    sourceRanges:\n    - 10.0.0.0/8\n    direction: INGRESS\n    disabled: false\n\n- name: allow-ssh-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n      ports:\n      - \"22\"\n    sourceRanges:\n    - 0.0.0.0/0\n    direction: INGRESS\n    disabled: false\n\n- name: allow-health-check-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n    sourceRanges:\n    - 35.191.0.0/16\n    - 130.211.0.0/22\n    direction: INGRESS\n    disabled: false",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: custom-vpc\n  type: compute.v1.network\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.1.0/24\n    privateIpGoogleAccess: false\n\n- name: private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    ipCidrRange: 10.0.2.0/24\n    privateIpGoogleAccess: true\n\n- name: cloud-router\n  type: compute.v1.router\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    region: us-central1\n    nats:\n    - name: nat-config\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.private-subnet.selfLink)\n        sourceIpRangesToNat: ALL_IP_RANGES\n\n- name: allow-internal-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: all\n    sourceRanges:\n    - 10.0.0.0/8\n    direction: INGRESS\n    disabled: false\n\n- name: allow-ssh-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n      ports:\n      - \"22\"\n    sourceRanges:\n    - 0.0.0.0/0\n    direction: INGRESS\n    disabled: false\n\n- name: allow-health-check-firewall\n  type: compute.v1.firewall\n  properties:\n    network: $(ref.custom-vpc.selfLink)\n    priority: 1000\n    allowed:\n    - IPProtocol: tcp\n    sourceRanges:\n    - 35.191.0.0/16\n    - 130.211.0.0/22\n    direction: INGRESS\n    disabled: false",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725013,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 155,
+      "output_tokens": 537,
+      "raw_input_tokens": 155
+    }
+  },
+  "started_at": "2026-05-25T16:03:27.474263+00:00",
+  "elapsed_seconds": 6.239
+}

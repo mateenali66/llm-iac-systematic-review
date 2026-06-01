@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "K8S-SEC-002",
+  "language": "k8s_yaml",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Kubernetes PodSecurityAdmission configuration enforcing the 'restricted' Pod Security Standard for all Pods in the 'production' namespace.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Write a Kubernetes PodSecurityAdmission configuration enforcing the 'restricted' Pod Security Standard for all Pods in the 'production' namespace.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: policy/v1\nkind: PodSecurityAdmissionConfiguration\nmetadata:\n  name: restricted-psa-config\nspec:\n  defaultAdmissionRule:\n    podSecurityLevel: restricted\n  exemptions:\n    namespaces:\n    - kube-system\n  mode: enforce\n  namespaceSelectors:\n  - matchFields:\n    - key: metadata.name\n      operator: In\n      values:\n      - production\n  version: v1.24.0",
+  "cleaned_response": "apiVersion: policy/v1\nkind: PodSecurityAdmissionConfiguration\nmetadata:\n  name: restricted-psa-config\nspec:\n  defaultAdmissionRule:\n    podSecurityLevel: restricted\n  exemptions:\n    namespaces:\n    - kube-system\n  mode: enforce\n  namespaceSelectors:\n  - matchFields:\n    - key: metadata.name\n      operator: In\n      values:\n      - production\n  version: v1.24.0",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: policy/v1\nkind: PodSecurityAdmissionConfiguration\nmetadata:\n  name: restricted-psa-config\nspec:\n  defaultAdmissionRule:\n    podSecurityLevel: restricted\n  exemptions:\n    namespaces:\n    - kube-system\n  mode: enforce\n  namespaceSelectors:\n  - matchFields:\n    - key: metadata.name\n      operator: In\n      values:\n      - production\n  version: v1.24.0",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723908,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 159,
+      "output_tokens": 94,
+      "raw_input_tokens": 159
+    }
+  },
+  "started_at": "2026-05-25T15:45:08.280406+00:00",
+  "elapsed_seconds": 0.613
+}

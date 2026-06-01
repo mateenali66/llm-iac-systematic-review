@@ -1,0 +1,109 @@
+- name: Install and configure PostgreSQL 15
+  hosts: all
+  become: yes
+  vars:
+    postgresql_version: "15"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_conf_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_databases:
+      - name: myapp
+        owner: myappuser
+    postgresql_users:
+      - name: myappuser
+        password: "{{ vault_postgresql_password }}"
+        db: myapp
+        priv: "ALL"
+    postgresql_shared_buffers: "256MB"
+    postgresql_effective_cache_size: "768MB"
+    postgresql_maintenance_work_mem: "64MB"
+    postgresql_checkpoint_completion_target: 0.9
+    postgresql_wal_buffers: "16MB"
+    postgresql_default_statistics_target: 100
+    postgresql_random_page_cost: 1.1
+    postgresql_effective_io_concurrency: 200
+    postgresql_work_mem: "6553kB"
+    postgresql_min_wal_size: "1GB"
+    postgresql_max_wal_size: "4GB"
+    postgresql_max_connections: 100
+
+  tasks:
+    - name: Add PostgreSQL 15 repository
+      ansible.builtin.apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        update_cache: yes
+
+    - name: Add PostgreSQL GPG key
+      ansible.builtin.apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Install PostgreSQL 15
+      ansible.builtin.apt:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-client-{{ postgresql_version }}
+          - libpq-dev
+        state: present
+        update_cache: yes
+
+    - name: Ensure PostgreSQL is running
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure pg_hba.conf for local connections
+      ansible.builtin.lineinfile:
+        path: "{{ postgresql_conf_dir }}/pg_hba.conf"
+        regexp: '^local\s+all\s+all\s+peer'
+        line: 'local   all             all                                     peer'
+        backup: yes
+
+    - name: Configure pg_hba.conf for allowed CIDRs
+      ansible.builtin.blockinfile:
+        path: "{{ postgresql_conf_dir }}/pg_hba.conf"
+        block: |
+          {% for cidr in postgresql_allowed_cidrs %}
+          host    all             all             {{ cidr }}               md5
+          {% endfor %}
+        marker: "# {mark} ANSIBLE MANAGED: ALLOWED CIDRS"
+        insertafter: "^# IPv4 local connections:"
+        backup: yes
+
+    - name: Configure postgresql.conf for production
+      ansible.builtin.template:
+        src: postgresql.conf.j2
+        dest: "{{ postgresql_conf_dir }}/postgresql.conf"
+        owner: postgres
+        group: postgres
+        mode: '0640'
+      notify: restart postgresql
+
+    - name: Create databases
+      community.postgresql.postgresql_db:
+        name: "{{ item.name }}"
+        owner: "{{ item.owner }}"
+        state: present
+      loop: "{{ postgresql_databases }}"
+      become_user: postgres
+
+    - name: Create users
+      community.postgresql.postgresql_user:
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        db: "{{ item.db }}"
+        priv: "{{ item.priv }}"
+        state: present
+      loop: "{{ postgresql_users }}"
+      become_user: postgres
+
+  handlers:
+    - name: restart postgresql
+      ansible.builtin.systemd:
+        name: postgresql
+        state: restarted

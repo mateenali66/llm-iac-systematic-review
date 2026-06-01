@@ -1,0 +1,107 @@
+resources:
+  - name: cloud-armor-policy
+    type: compute.v1.securityPolicy
+    properties:
+      description: Cloud Armor security policy
+      rules:
+        - action: deny
+          preview: false
+          priority: 1000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Block traffic from specific countries
+          ipBlock:
+            destinations:
+              - '*'
+            sources:
+              - 'country_code:CN'
+              - 'country_code:RU'
+        - action: rateBasedBan
+          preview: false
+          priority: 2000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Rate limit requests per IP
+          rateLimit:
+            rateLimitThreshold:
+              count: 100
+              intervalSec: 60
+            banThreshold:
+              count: 1000
+              intervalSec: 3600
+            banDurationSec: 3600
+          ipBlock:
+            destinations:
+              - '*'
+            sources:
+              - '*'
+      enabled: true
+
+  - name: backend-service
+    type: compute.v1.backendService
+    properties:
+      description: Backend service
+      backends:
+        - group: $(ref.instance-group.selfLink)
+      enableCDN: false
+      securityPolicy:
+        - $(ref.cloud-armor-policy.selfLink)
+
+  - name: instance-group
+    type: compute.v1.instanceGroupManager
+    properties:
+      description: Instance group
+      instanceTemplate: $(ref.instance-template.selfLink)
+      targetSize: 1
+
+  - name: instance-template
+    type: compute.v1.instanceTemplate
+    properties:
+      description: Instance template
+      properties:
+        machineType: f1-micro
+        disks:
+          - deviceName: boot
+            type: PERSISTENT
+            boot: true
+            initializeParams:
+              diskSizeGb: 10
+              sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20230214
+        networkInterfaces:
+          - accessConfigs:
+              - name: External NAT
+                type: ONE_TO_ONE_NAT
+            network: $(ref.network.selfLink)
+        tags:
+          - http-server
+          - https-server
+
+  - name: network
+    type: compute.v1.network
+    properties:
+      description: Network
+      autoCreateSubnetworks: true
+
+  - name: firewall-rule
+    type: compute.v1.firewall
+    properties:
+      description: Firewall rule
+      network: $(ref.network.selfLink)
+      sourceRanges:
+        - 0.0.0.0/0
+      allowed:
+        - IPProtocol: TCP
+          ports:
+            - 80
+            - 443
+      targetTags:
+        - http-server
+        - https-server
+
+outputs:
+  - name: cloud-armor-policy
+    value: $(ref.cloud-armor-policy.selfLink)

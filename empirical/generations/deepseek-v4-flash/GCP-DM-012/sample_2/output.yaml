@@ -1,0 +1,46 @@
+imports:
+  - path: templates/cloud_armor_policy.py
+    name: cloud_armor_policy.py
+
+resources:
+  - name: cloud-armor-security-policy
+    type: cloud_armor_policy.py
+    properties:
+      policyName: my-cloud-armor-policy
+      description: "Cloud Armor policy blocking specific countries and rate-limiting per IP"
+      defaultRuleAction: allow
+      rules:
+        - action: deny
+          priority: 1000
+          match:
+            versionedExpr: SRC_IPS_V1
+            config:
+              srcIpRanges:
+                - "1.2.3.4/32"
+          description: "Block specific IP"
+        - action: deny
+          priority: 2000
+          match:
+            expr:
+              expression: "origin.region_code == 'RU' || origin.region_code == 'CN' || origin.region_code == 'KP'"
+          description: "Block traffic from Russia, China, North Korea"
+        - action: throttle
+          priority: 3000
+          match:
+            versionedExpr: SRC_IPS_V1
+            config:
+              srcIpRanges:
+                - "*"
+          rateLimitThreshold:
+            count: 100
+            intervalSec: 60
+          enforceOnKey: "HTTP-X-Forwarded-For"
+          description: "Rate limit 100 requests per 60 seconds per IP"
+        - action: allow
+          priority: 2147483647
+          match:
+            versionedExpr: SRC_IPS_V1
+            config:
+              srcIpRanges:
+                - "*"
+          description: "Default allow rule"

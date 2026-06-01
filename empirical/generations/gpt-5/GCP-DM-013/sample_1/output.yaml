@@ -1,0 +1,51 @@
+resources:
+- name: redis-vpc
+  type: compute.v1.network
+  properties:
+    description: Dedicated VPC network for application caching and Redis access
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+- name: redis-subnet-us-central1
+  type: compute.v1.subnetwork
+  properties:
+    description: Subnet for application workloads accessing Memorystore Redis
+    region: us-central1
+    network: $(ref.redis-vpc.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+- name: app-cache-redis
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    parent: projects/YOUR_PROJECT_ID/locations/us-central1
+    instanceId: app-cache-redis
+    resource:
+      displayName: app-cache-redis
+      tier: BASIC
+      memorySizeGb: 1
+      authorizedNetwork: $(ref.redis-vpc.selfLink)
+      connectMode: DIRECT_PEERING
+      redisVersion: REDIS_7_0
+      labels:
+        environment: prod
+        component: cache
+        managed-by: deployment-manager
+      redisConfigs:
+        maxmemory-policy: allkeys-lru
+      maintenancePolicy:
+        weeklyMaintenanceWindow:
+        - day: SUNDAY
+          startTime:
+            hours: 3
+            minutes: 0
+            seconds: 0
+            nanos: 0
+outputs:
+- name: redis-host
+  value: $(ref.app-cache-redis.host)
+- name: redis-port
+  value: $(ref.app-cache-redis.port)
+- name: redis-connection-string
+  value: $(ref.app-cache-redis.host):$(ref.app-cache-redis.port)
+- name: redis-network
+  value: $(ref.redis-vpc.selfLink)

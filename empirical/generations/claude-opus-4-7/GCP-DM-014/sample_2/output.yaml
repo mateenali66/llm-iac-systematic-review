@@ -1,0 +1,125 @@
+imports:
+- path: wif_template.jinja
+
+resources:
+- name: github-actions-wif
+  type: wif_template.jinja
+  properties:
+    projectId: my-gcp-project-id
+    projectNumber: '123456789012'
+    poolId: github-actions-pool
+    poolDisplayName: GitHub Actions Pool
+    poolDescription: Workload Identity Pool for GitHub Actions
+    providerId: github-provider
+    providerDisplayName: GitHub Provider
+    githubOrg: my-github-org
+    githubRepo: my-repo
+    githubRef: refs/heads/main
+    serviceAccountId: github-actions-cloud-run-deployer
+    serviceAccountDisplayName: GitHub Actions Cloud Run Deployer
+    region: us-central1
+
+outputs:
+- name: workloadIdentityPoolName
+  value: $(ref.github-actions-wif.workloadIdentityPoolName)
+- name: workloadIdentityProviderName
+  value: $(ref.github-actions-wif.workloadIdentityProviderName)
+- name: serviceAccountEmail
+  value: $(ref.github-actions-wif.serviceAccountEmail)
+
+---
+# wif_template.jinja
+{% set projectId = properties['projectId'] %}
+{% set projectNumber = properties['projectNumber'] %}
+{% set poolId = properties['poolId'] %}
+{% set providerId = properties['providerId'] %}
+{% set githubOrg = properties['githubOrg'] %}
+{% set githubRepo = properties['githubRepo'] %}
+{% set githubRef = properties['githubRef'] %}
+{% set serviceAccountId = properties['serviceAccountId'] %}
+{% set saEmail = serviceAccountId + '@' + projectId + '.iam.gserviceaccount.com' %}
+
+resources:
+
+- name: {{ env['deployment'] }}-wif-pool
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/{{ projectId }}/locations/global
+    workloadIdentityPoolId: {{ poolId }}
+    workloadIdentityPool:
+      displayName: {{ properties['poolDisplayName'] }}
+      description: {{ properties['poolDescription'] }}
+      disabled: false
+
+- name: {{ env['deployment'] }}-wif-provider
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: projects/{{ projectId }}/locations/global/workloadIdentityPools/{{ poolId }}
+    workloadIdentityPoolProviderId: {{ providerId }}
+    workloadIdentityPoolProvider:
+      displayName: {{ properties['providerDisplayName'] }}
+      disabled: false
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.actor: assertion.actor
+        attribute.aud: assertion.aud
+        attribute.repository: assertion.repository
+        attribute.repository_owner: assertion.repository_owner
+        attribute.ref: assertion.ref
+        attribute.workflow: assertion.workflow
+      attributeCondition: "assertion.repository_owner == '{{ githubOrg }}'"
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+        allowedAudiences:
+        - https://iam.googleapis.com/projects/{{ projectNumber }}/locations/global/workloadIdentityPools/{{ poolId }}/providers/{{ providerId }}
+  metadata:
+    dependsOn:
+    - {{ env['deployment'] }}-wif-pool
+
+- name: {{ env['deployment'] }}-deployer-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    accountId: {{ serviceAccountId }}
+    projectId: {{ projectId }}
+    serviceAccount:
+      displayName: {{ properties['serviceAccountDisplayName'] }}
+      description: Service account used by GitHub Actions to deploy Cloud Run services
+
+- name: {{ env['deployment'] }}-sa-wif-binding
+  action: gcp-types/iam-v1:iam.projects.serviceAccounts.setIamPolicy
+  properties:
+    resource: projects/{{ projectId }}/serviceAccounts/{{ saEmail }}
+    policy:
+      bindings:
+      - role: roles/iam.workloadIdentityUser
+        members:
+        - principalSet://iam.googleapis.com/projects/{{ projectNumber }}/locations/global/workloadIdentityPools/{{ poolId }}/attribute.repository/{{ githubOrg }}/{{ githubRepo }}
+  metadata:
+    dependsOn:
+    - {{ env['deployment'] }}-deployer-sa
+    - {{ env['deployment'] }}-wif-provider
+
+- name: {{ env['deployment'] }}-run-admin-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ projectId }}
+    role: roles/run.admin
+    member: serviceAccount:{{ saEmail }}
+  metadata:
+    dependsOn:
+    - {{ env['deployment'] }}-deployer-sa
+
+- name: {{ env['deployment'] }}-sa-user-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ projectId }}
+    role: roles/iam.serviceAccountUser
+    member: serviceAccount:{{ saEmail }}
+  metadata:
+    dependsOn:
+    - {{ env['deployment'] }}-deployer-sa
+
+- name: {{ env['deployment'] }}-ar-writer-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{

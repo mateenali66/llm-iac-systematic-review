@@ -1,0 +1,320 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:18:44.663364595Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 56,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_security_group_rule.egress_ipv4[0]",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 179,
+            "EndLine": 179,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 172,
+                  "Content": "resource \"aws_security_group_rule\" \"egress_ipv4\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_security_group_rule\"\u001b[0m \u001b[38;5;37m\"egress_ipv4\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 173,
+                  "Content": "  count             = length(var.allowed_egress_cidr_blocks) \u003e 0 ? 1 : 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mcount\u001b[0m             =\u001b[38;5;33m length\u001b[0m(\u001b[38;5;33mvar\u001b[0m.allowed_egress_cidr_blocks) \u001b[38;5;245m\u003e\u001b[0m \u001b[38;5;37m0\u001b[0m \u001b[38;5;245m?\u001b[0m \u001b[38;5;37m1\u001b[0m \u001b[38;5;245m:\u001b[0m \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 174,
+                  "Content": "  type              = \"egress\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mtype\u001b[0m              = \u001b[38;5;37m\"egress\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 175,
+                  "Content": "  from_port         = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mfrom_port\u001b[0m         = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 176,
+                  "Content": "  to_port           = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mto_port\u001b[0m           = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 177,
+                  "Content": "  protocol          = \"-1\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mprotocol\u001b[0m          = \u001b[38;5;37m\"-1\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 178,
+                  "Content": "  security_group_id = aws_security_group.bastion.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245msecurity_group_id\u001b[0m = aws_security_group.bastion.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 179,
+                  "Content": "  cidr_blocks       = var.allowed_egress_cidr_blocks",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mcidr_blocks\u001b[0m       = \u001b[38;5;33mvar\u001b[0m.allowed_egress_cidr_blocks",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 180,
+                  "Content": "  description       = \"Allow all outbound IPv4 traffic\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdescription\u001b[0m       = \u001b[38;5;37m\"Allow all outbound IPv4 traffic\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 181,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_security_group_rule.egress_ipv4[0]",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 172,
+                  "EndLine": 181
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "aws-vpc-no-public-egress-sgr",
+          "AVDID": "AVD-AWS-0104",
+          "Title": "A security group rule should not allow unrestricted egress to any IP address.",
+          "Description": "Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.\n",
+          "Message": "Security group rule allows unrestricted egress to any IP address.",
+          "Namespace": "builtin.aws.ec2.aws0104",
+          "Query": "data.builtin.aws.ec2.aws0104.deny",
+          "Resolution": "Set a more restrictive cidr range",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr",
+          "References": [
+            "https://docs.aws.amazon.com/whitepapers/latest/building-scalable-secure-multi-vpc-network-infrastructure/centralized-egress-to-internet.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_security_group_rule.egress_ipv6[0]",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 190,
+            "EndLine": 190,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 183,
+                  "Content": "resource \"aws_security_group_rule\" \"egress_ipv6\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_security_group_rule\"\u001b[0m \u001b[38;5;37m\"egress_ipv6\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 184,
+                  "Content": "  count             = length(var.allowed_egress_ipv6_cidr_blocks) \u003e 0 ? 1 : 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mcount\u001b[0m             =\u001b[38;5;33m length\u001b[0m(\u001b[38;5;33mvar\u001b[0m.allowed_egress_ipv6_cidr_blocks) \u001b[38;5;245m\u003e\u001b[0m \u001b[38;5;37m0\u001b[0m \u001b[38;5;245m?\u001b[0m \u001b[38;5;37m1\u001b[0m \u001b[38;5;245m:\u001b[0m \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 185,
+                  "Content": "  type              = \"egress\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mtype\u001b[0m              = \u001b[38;5;37m\"egress\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 186,
+                  "Content": "  from_port         = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mfrom_port\u001b[0m         = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 187,
+                  "Content": "  to_port           = 0",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mto_port\u001b[0m           = \u001b[38;5;37m0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 188,
+                  "Content": "  protocol          = \"-1\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mprotocol\u001b[0m          = \u001b[38;5;37m\"-1\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 189,
+                  "Content": "  security_group_id = aws_security_group.bastion.id",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245msecurity_group_id\u001b[0m = aws_security_group.bastion.id",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 190,
+                  "Content": "  ipv6_cidr_blocks  = var.allowed_egress_ipv6_cidr_blocks",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mipv6_cidr_blocks\u001b[0m  = \u001b[38;5;33mvar\u001b[0m.allowed_egress_ipv6_cidr_blocks",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 191,
+                  "Content": "  description       = \"Allow all outbound IPv6 traffic\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdescription\u001b[0m       = \u001b[38;5;37m\"Allow all outbound IPv6 traffic\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 192,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_security_group_rule.egress_ipv6[0]",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 183,
+                  "EndLine": 192
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

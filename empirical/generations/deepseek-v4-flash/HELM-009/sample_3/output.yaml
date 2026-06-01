@@ -1,0 +1,202 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: nginx-reverse-proxy
+description: A Helm chart for deploying NGINX as a reverse proxy
+type: application
+version: 0.1.0
+appVersion: 1.25.3
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: 1.25.3
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+configMap:
+  name: nginx-config
+  data:
+    nginx.conf: |
+      events {
+        worker_connections 1024;
+      }
+      http {
+        server {
+          listen 80;
+          location / {
+            proxy_pass http://upstream-service:8080;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+          }
+        }
+      }
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: upstream-service
+      ports:
+        - port: 80
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: upstream-service
+      ports:
+        - port: 8080
+          protocol: TCP
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+---
+# FILE: templates/_helpers.tpl
+{{- define "nginx-reverse-proxy.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "nginx-reverse-proxy.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "nginx-reverse-proxy.labels" -}}
+helm.sh/chart: {{ include "nginx-reverse-proxy.name" . }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "nginx-reverse-proxy.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "nginx-reverse-proxy.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nginx-reverse-proxy.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.name }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+{{ .Values.configMap.data.nginx.conf | indent 4 }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: nginx
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.configMap.name }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    {{- toYaml .Values.networkPolicy.ingress | nindent 4 }}
+  egress:
+    {{- toYaml .Values.networkPolicy.egress | nindent 4 }}
+{{- end }}

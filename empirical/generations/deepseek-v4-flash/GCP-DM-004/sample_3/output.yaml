@@ -1,0 +1,74 @@
+imports:
+  - path: templates/vpc.py
+    name: vpc.py
+  - path: templates/subnet.py
+    name: subnet.py
+  - path: templates/nat.py
+    name: nat.py
+  - path: templates/firewall.py
+    name: firewall.py
+
+resources:
+  - name: custom-vpc
+    type: vpc.py
+    properties:
+      name: my-custom-vpc
+      autoCreateSubnetworks: false
+      routingConfig:
+        routingMode: REGIONAL
+
+  - name: public-subnet
+    type: subnet.py
+    properties:
+      name: public-subnet
+      network: $(ref.custom-vpc.selfLink)
+      region: us-central1
+      ipCidrRange: 10.0.1.0/24
+      privateIpGoogleAccess: false
+      purpose: PRIVATE
+      role: null
+
+  - name: private-subnet
+    type: subnet.py
+    properties:
+      name: private-subnet
+      network: $(ref.custom-vpc.selfLink)
+      region: us-central1
+      ipCidrRange: 10.0.2.0/24
+      privateIpGoogleAccess: true
+      purpose: PRIVATE
+      role: null
+
+  - name: cloud-nat-router
+    type: compute.v1.router
+    properties:
+      name: cloud-nat-router
+      network: $(ref.custom-vpc.selfLink)
+      region: us-central1
+      nats:
+        - name: cloud-nat
+          sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+          subnetworks:
+            - name: $(ref.private-subnet.selfLink)
+              sourceIpRangesToNat:
+                - ALL_IP_RANGES
+          natIpAllocateOption: AUTO_ONLY
+
+  - name: allow-internal-firewall
+    type: firewall.py
+    properties:
+      name: allow-internal
+      network: $(ref.custom-vpc.selfLink)
+      priority: 1000
+      direction: INGRESS
+      sourceRanges:
+        - 10.0.0.0/16
+      allowed:
+        - IPProtocol: tcp
+          ports:
+            - 0-65535
+        - IPProtocol: udp
+          ports:
+            - 0-65535
+        - IPProtocol: icmp
+      targetTags: []

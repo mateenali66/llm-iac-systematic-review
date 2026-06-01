@@ -1,0 +1,62 @@
+resources:
+- name: gke-prod-cluster
+  type: gcp-types/container-v1:projects.locations.clusters
+  properties:
+    parent: projects/{{ env["project"] }}/locations/us-central1
+    cluster:
+      name: gke-prod-cluster
+      description: Production GKE Standard cluster
+      releaseChannel:
+        channel: REGULAR
+      network: projects/{{ env["project"] }}/global/networks/default
+      subnetwork: projects/{{ env["project"] }}/regions/us-central1/subnetworks/default
+      ipAllocationPolicy:
+        useIpAliases: true
+        createSubnetwork: false
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: corporate-vpn
+          cidrBlock: 10.0.0.0/8
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      binaryAuthorization:
+        enabled: true
+      shieldedNodes:
+        enabled: true
+      workloadIdentityConfig:
+        workloadPool: "{{ env['project'] }}.svc.id.goog"
+      nodePools:
+      - name: prod-node-pool
+        config:
+          machineType: n2-standard-4
+          diskSizeGb: 100
+          diskType: pd-ssd
+          imageType: COS_CONTAINERD
+          preemptible: false
+          shieldedInstanceConfig:
+            enableSecureBoot: true
+            enableIntegrityMonitoring: true
+          serviceAccount: default
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          labels:
+            environment: production
+            workload: standard
+          tags:
+          - gke-prod
+        initialNodeCount: 3
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 20
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        maxPodsConstraint:
+          maxPodsPerNode: 64

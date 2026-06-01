@@ -1,0 +1,30 @@
+imports:
+- path: cloud_run_service.py
+  name: cloud_run_service
+
+resources:
+- name: python-api-cloud-run-service
+  type: cloud_run_service.py
+  properties:
+    serviceName: python-api-service
+    containerImage: gcr.io/your-project-id/python-api:latest
+    region: us-central1
+    cpu: 1
+    memory: 512Mi
+    maxInstances: 100
+    concurrency: 80
+    port: 8080
+    envVars:
+      - name: ENV
+        value: production
+      - name: LOG_LEVEL
+        value: INFO
+    serviceAccountEmail: your-service-account@your-project-id.iam.gserviceaccount.com
+    allowUnauthenticated: true
+    timeoutSeconds: 300
+    vpcConnector: projects/your-project-id/locations/us-central1/connectors/your-vpc-connector
+    vpcEgress: ALL_TRAFFIC
+
+outputs:
+- name: serviceUrl
+  value: $(ref.python-api-cloud-run-service.status.url)

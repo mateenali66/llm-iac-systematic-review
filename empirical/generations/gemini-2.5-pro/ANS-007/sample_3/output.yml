@@ -1,0 +1,43 @@
+---
+- name: Configure static network interface with netplan
+  hosts: all
+  become: true
+  vars:
+    netplan_config_file: /etc/netplan/50-ansible-static.yaml
+    netplan_interface_name: eth0
+    netplan_static_ip: 192.168.1.10/24
+    netplan_gateway_ip: 192.168.1.1
+    netplan_dns_servers:
+      - 8.8.8.8
+      - 1.1.1.1
+
+  tasks:
+    - name: Ensure netplan dependencies are installed
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+
+    - name: Configure static IP address using netplan
+      community.general.netplan:
+        state: present
+        path: "{{ netplan_config_file }}"
+        network:
+          version: 2
+          renderer: networkd
+          ethernets:
+            "{{ netplan_interface_name }}":
+              dhcp4: false
+              dhcp6: false
+              addresses:
+                - "{{ netplan_static_ip }}"
+              gateway4: "{{ netplan_gateway_ip }}"
+              nameservers:
+                addresses: "{{ netplan_dns_servers }}"
+      notify:
+        - Apply netplan configuration
+
+  handlers:
+    - name: Apply netplan configuration
+      ansible.builtin.command: netplan apply
+      listen: "Apply netplan configuration"

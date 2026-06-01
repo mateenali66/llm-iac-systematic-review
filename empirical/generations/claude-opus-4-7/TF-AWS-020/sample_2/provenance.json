@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-020",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for provider configuration. Organizations is a global service, but a region is required.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"target_ou_id\" {\n  description = \"The ID of the Organizational Unit to which the SCP will be attached (e.g., ou-abcd-12345678).\"\n  type        = string\n\n  validation {\n    condition     = can(regex(\"^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$\", var.target_ou_id))\n    error_message = \"The target_ou_id must be a valid AWS Organizations OU ID (e.g., ou-abcd-12345678).\"\n  }\n}\n\nvariable \"policy_name\" {\n  description = \"Name of the Service Control Policy.\"\n  type        = string\n  default     = \"DenyIAMUserCreation\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to the SCP.\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"IAMGuardrail\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIAMUserCreation\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:CreateUser\",\n      \"iam:CreateLoginProfile\",\n      \"iam:CreateAccessKey\",\n    ]\n\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"DenyIAMUserGroupAndPolicyAttachments\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:AddUserToGroup\",\n      \"iam:AttachUserPolicy\",\n      \"iam:PutUserPolicy\",\n      \"iam:CreateGroup\",\n    ]\n\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = var.policy_name\n  description = \"Denies the creation of IAM users and related credentials across member accounts. Only IAM roles are permitted for identity management.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n\n  tags = var.tags\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.target_ou_id\n}\n\noutput \"policy_id\" {\n  description = \"The ID of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.id\n}\n\noutput \"policy_arn\" {\n  description = \"The ARN of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.arn\n}\n\noutput \"attached_ou_id\" {\n  description = \"The OU ID to which the SCP is attached.\"\n  value       = var.target_ou_id\n}",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for provider configuration. Organizations is a global service, but a region is required.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"target_ou_id\" {\n  description = \"The ID of the Organizational Unit to which the SCP will be attached (e.g., ou-abcd-12345678).\"\n  type        = string\n\n  validation {\n    condition     = can(regex(\"^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$\", var.target_ou_id))\n    error_message = \"The target_ou_id must be a valid AWS Organizations OU ID (e.g., ou-abcd-12345678).\"\n  }\n}\n\nvariable \"policy_name\" {\n  description = \"Name of the Service Control Policy.\"\n  type        = string\n  default     = \"DenyIAMUserCreation\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to the SCP.\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"IAMGuardrail\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIAMUserCreation\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:CreateUser\",\n      \"iam:CreateLoginProfile\",\n      \"iam:CreateAccessKey\",\n    ]\n\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"DenyIAMUserGroupAndPolicyAttachments\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:AddUserToGroup\",\n      \"iam:AttachUserPolicy\",\n      \"iam:PutUserPolicy\",\n      \"iam:CreateGroup\",\n    ]\n\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = var.policy_name\n  description = \"Denies the creation of IAM users and related credentials across member accounts. Only IAM roles are permitted for identity management.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n\n  tags = var.tags\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.target_ou_id\n}\n\noutput \"policy_id\" {\n  description = \"The ID of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.id\n}\n\noutput \"policy_arn\" {\n  description = \"The ARN of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.arn\n}\n\noutput \"attached_ou_id\" {\n  description = \"The OU ID to which the SCP is attached.\"\n  value       = var.target_ou_id\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_version = \">= 1.5.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for provider configuration. Organizations is a global service, but a region is required.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"target_ou_id\" {\n  description = \"The ID of the Organizational Unit to which the SCP will be attached (e.g., ou-abcd-12345678).\"\n  type        = string\n\n  validation {\n    condition     = can(regex(\"^ou-[a-z0-9]{4,32}-[a-z0-9]{8,32}$\", var.target_ou_id))\n    error_message = \"The target_ou_id must be a valid AWS Organizations OU ID (e.g., ou-abcd-12345678).\"\n  }\n}\n\nvariable \"policy_name\" {\n  description = \"Name of the Service Control Policy.\"\n  type        = string\n  default     = \"DenyIAMUserCreation\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to the SCP.\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"IAMGuardrail\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"deny_iam_user_creation\" {\n  statement {\n    sid    = \"DenyIAMUserCreation\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:CreateUser\",\n      \"iam:CreateLoginProfile\",\n      \"iam:CreateAccessKey\",\n    ]\n\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"DenyIAMUserGroupAndPolicyAttachments\"\n    effect = \"Deny\"\n\n    actions = [\n      \"iam:AddUserToGroup\",\n      \"iam:AttachUserPolicy\",\n      \"iam:PutUserPolicy\",\n      \"iam:CreateGroup\",\n    ]\n\n    resources = [\"*\"]\n  }\n}\n\nresource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = var.policy_name\n  description = \"Denies the creation of IAM users and related credentials across member accounts. Only IAM roles are permitted for identity management.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content     = data.aws_iam_policy_document.deny_iam_user_creation.json\n\n  tags = var.tags\n}\n\nresource \"aws_organizations_policy_attachment\" \"deny_iam_user_creation\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.target_ou_id\n}\n\noutput \"policy_id\" {\n  description = \"The ID of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.id\n}\n\noutput \"policy_arn\" {\n  description = \"The ARN of the created SCP.\"\n  value       = aws_organizations_policy.deny_iam_user_creation.arn\n}\n\noutput \"attached_ou_id\" {\n  description = \"The OU ID to which the SCP is attached.\"\n  value       = var.target_ou_id\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729327,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 254,
+      "output_tokens": 1087,
+      "raw_input_tokens": 254
+    }
+  },
+  "started_at": "2026-05-25T17:15:14.597367+00:00",
+  "elapsed_seconds": 12.947
+}

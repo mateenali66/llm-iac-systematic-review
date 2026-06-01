@@ -1,0 +1,15 @@
+resources:
+- name: cloud-function-reader-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cf-gcs-reader
+    displayName: Cloud Function GCS Reader Service Account
+- name: gcs-bucket-object-viewer-binding
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: TARGET_BUCKET_NAME
+    role: roles/storage.objectViewer
+    member: serviceAccount:$(ref.cloud-function-reader-sa.email)
+outputs:
+- name: serviceAccountEmail
+  value: $(ref.cloud-function-reader-sa.email)

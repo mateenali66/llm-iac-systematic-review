@@ -1,0 +1,148 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/output.yaml', err: failed to find valid Resources key in file: /in/output.yaml"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "appArmorProfile",
+        "description": "AppArmor profile not set to default or custom profile will make the container vulnerable to kernel level threats",
+        "rule_id": "AC_K8S_0073",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "falseHostNetwork",
+        "description": "Containers Should Not Share the Host Network Namespace",
+        "rule_id": "AC_K8S_0084",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "nolivenessProbe",
+        "description": "No liveness probe will ensure there is no recovery in case of unexpected errors",
+        "rule_id": "AC_K8S_0070",
+        "severity": "LOW",
+        "category": "Security Best Practices",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "noReadinessProbe",
+        "description": "No readiness probe will affect automatic recovery in case of unexpected errors",
+        "rule_id": "AC_K8S_0072",
+        "severity": "LOW",
+        "category": "Security Best Practices",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "imageWithoutDigest",
+        "description": "Image without digest affects the integrity principle of image security",
+        "rule_id": "AC_K8S_0069",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "allowedVolumes",
+        "description": "Some volume types mount the host file system paths to the pod or container, thus increasing the chance of escaping the container to access the host",
+        "rule_id": "AC_K8S_0081",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "falseHostPID",
+        "description": "Containers Should Not Share Host Process ID Namespace",
+        "rule_id": "AC_K8S_0082",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "secCompProfile",
+        "description": "Default seccomp profile not enabled will make the container to make non-essential system calls",
+        "rule_id": "AC_K8S_0080",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "allowedHostPath",
+        "description": "Allowing hostPaths to mount to Pod arise the probability of getting access to the node's filesystem",
+        "rule_id": "AC_K8S_0076",
+        "severity": "HIGH",
+        "category": "Identity and Access Management",
+        "resource_name": "node-exporter",
+        "resource_type": "kubernetes_daemonset",
+        "file": "output.yaml",
+        "line": 1
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "k8s",
+      "scanned_at": "2026-05-26 06:29:38.195259054 +0000 UTC",
+      "policies_validated": 42,
+      "violated_policies": 9,
+      "low": 2,
+      "medium": 6,
+      "high": 1
+    }
+  }
+}

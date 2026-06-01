@@ -1,0 +1,63 @@
+resources:
+  - name: logging-sink
+    type: logging.v2.sink
+    properties:
+      parent: projects/${PROJECT_ID}
+      sink: logging-sink
+      destination: bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${BIGQUERY_DATASET_ID}
+      filter: 'NOT LOG_ID("cloudaudit.googleapis.com/activity")'
+      uniqueWriterIdentity: true
+      includeChildren: false
+
+  - name: bigquery-dataset
+    type: bigquery.dataset
+    properties:
+      datasetId: ${BIGQUERY_DATASET_ID}
+      friendlyName: Logging Dataset
+      description: Dataset for storing logs
+      location: US
+
+  - name: bigquery-table
+    type: bigquery.table
+    properties:
+      datasetId: ${BIGQUERY_DATASET_ID}
+      tableId: logs
+      friendlyName: Logs Table
+      description: Table for storing logs
+      schema:
+        fields:
+          - name: timestamp
+            type: TIMESTAMP
+            mode: NULLABLE
+          - name: logName
+            type: STRING
+            mode: NULLABLE
+          - name: resource
+            type: RECORD
+            mode: NULLABLE
+            fields:
+              - name: type
+                type: STRING
+                mode: NULLABLE
+              - name: labels
+                type: RECORD
+                mode: REPEATED
+                fields:
+                  - name: key
+                    type: STRING
+                    mode: NULLABLE
+                  - name: value
+                    type: STRING
+                    mode: NULLABLE
+          - name: textPayload
+            type: STRING
+            mode: NULLABLE
+          - name: severity
+            type: STRING
+            mode: NULLABLE
+
+outputs:
+  - name: logging-sink-name
+    value: $(ref.logging-sink.name)
+  - name: bigquery-dataset-id
+    value: $(ref.bigquery-dataset.datasetId)

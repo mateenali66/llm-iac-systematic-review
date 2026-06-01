@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-021",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for the resources.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"app_name\" {\n  description = \"Name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"Name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 .* running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = var.app_name\n  description = \"Node.js application\"\n}\n\nresource \"aws_iam_role\" \"ebs_ec2_role\" {\n  name = \"${var.app_name}-ebs-ec2-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_ec2_policy\" {\n  role       = aws_iam_role.ebs_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws_iam_instance_profile\" \"ebs_instance_profile\" {\n  name = \"${var.app_name}-ebs-instance-profile\"\n  role = aws_iam_role.ebs_ec2_role.name\n}\n\nresource \"aws_iam_role\" \"ebs_service_role\" {\n  name = \"${var.app_name}-ebs-service-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"elasticbeanstalk.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_service_policy\" {\n  role       = aws_iam_role.ebs",
+  "cleaned_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for the resources.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"app_name\" {\n  description = \"Name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"Name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 .* running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = var.app_name\n  description = \"Node.js application\"\n}\n\nresource \"aws_iam_role\" \"ebs_ec2_role\" {\n  name = \"${var.app_name}-ebs-ec2-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_ec2_policy\" {\n  role       = aws_iam_role.ebs_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws_iam_instance_profile\" \"ebs_instance_profile\" {\n  name = \"${var.app_name}-ebs-instance-profile\"\n  role = aws_iam_role.ebs_ec2_role.name\n}\n\nresource \"aws_iam_role\" \"ebs_service_role\" {\n  name = \"${var.app_name}-ebs-service-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"elasticbeanstalk.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_service_policy\" {\n  role       = aws_iam_role.ebs",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region for the resources.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"app_name\" {\n  description = \"Name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"Name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 .* running Node.js 18$\"\n}\n\nresource \"aws_elastic_beanstalk_application\" \"app\" {\n  name        = var.app_name\n  description = \"Node.js application\"\n}\n\nresource \"aws_iam_role\" \"ebs_ec2_role\" {\n  name = \"${var.app_name}-ebs-ec2-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_ec2_policy\" {\n  role       = aws_iam_role.ebs_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws_iam_instance_profile\" \"ebs_instance_profile\" {\n  name = \"${var.app_name}-ebs-instance-profile\"\n  role = aws_iam_role.ebs_ec2_role.name\n}\n\nresource \"aws_iam_role\" \"ebs_service_role\" {\n  name = \"${var.app_name}-ebs-service-role\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"elasticbeanstalk.amazonaws.com\"\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ebs_service_policy\" {\n  role       = aws_iam_role.ebs",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779731043,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 129,
+      "output_tokens": 2044,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T17:43:40.489156+00:00",
+  "elapsed_seconds": 22.641
+}

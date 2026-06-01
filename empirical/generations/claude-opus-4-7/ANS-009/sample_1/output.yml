@@ -1,0 +1,170 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_version: "0.111.0"
+    otelcol_distribution: "otelcol-contrib"
+    otelcol_user: "otelcol"
+    otelcol_group: "otelcol"
+    otelcol_install_dir: "/usr/local/bin"
+    otelcol_config_dir: "/etc/otelcol"
+    otelcol_log_dir: "/var/log/otelcol"
+    otelcol_otlp_grpc_port: 4317
+    otelcol_otlp_http_port: 4318
+    otelcol_remote_endpoint: "https://otlp.example.com:4317"
+    otelcol_remote_headers:
+      authorization: "Bearer REPLACE_WITH_TOKEN"
+    otelcol_remote_tls_insecure: false
+
+  pre_tasks:
+    - name: Detect system architecture
+      ansible.builtin.set_fact:
+        otelcol_arch: >-
+          {{ {'x86_64': 'amd64',
+              'aarch64': 'arm64',
+              'armv7l': 'armhf'}[ansible_architecture] | default('amd64') }}
+
+    - name: Ensure required packages are installed (Debian)
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - tar
+        state: present
+        update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure required packages are installed (RedHat)
+      ansible.builtin.yum:
+        name:
+          - ca-certificates
+          - curl
+          - tar
+        state: present
+      when: ansible_os_family == "RedHat"
+
+  tasks:
+    - name: Create otelcol group
+      ansible.builtin.group:
+        name: "{{ otelcol_group }}"
+        system: true
+        state: present
+
+    - name: Create otelcol system user
+      ansible.builtin.user:
+        name: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ otelcol_config_dir }}"
+        create_home: false
+        state: present
+
+    - name: Create configuration directory
+      ansible.builtin.file:
+        path: "{{ otelcol_config_dir }}"
+        state: directory
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: "0750"
+
+    - name: Create log directory
+      ansible.builtin.file:
+        path: "{{ otelcol_log_dir }}"
+        state: directory
+        owner: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        mode: "0750"
+
+    - name: Create temporary download directory
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: otelcol
+      register: otelcol_tmp
+
+    - name: Download OpenTelemetry Collector tarball
+      ansible.builtin.get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/{{ otelcol_distribution }}_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+        dest: "{{ otelcol_tmp.path }}/otelcol.tar.gz"
+        mode: "0644"
+        timeout: 60
+
+    - name: Extract OpenTelemetry Collector binary
+      ansible.builtin.unarchive:
+        src: "{{ otelcol_tmp.path }}/otelcol.tar.gz"
+        dest: "{{ otelcol_tmp.path }}"
+        remote_src: true
+
+    - name: Install OpenTelemetry Collector binary
+      ansible.builtin.copy:
+        src: "{{ otelcol_tmp.path }}/{{ otelcol_distribution }}"
+        dest: "{{ otelcol_install_dir }}/{{ otelcol_distribution }}"
+        remote_src: true
+        owner: root
+        group: root
+        mode: "0755"
+      notify: Restart otelcol
+
+    - name: Deploy OpenTelemetry Collector configuration
+      ansible.builtin.copy:
+        dest: "{{ otelcol_config_dir }}/config.yaml"
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: "0640"
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:{{ otelcol_otlp_grpc_port }}
+                http:
+                  endpoint: 0.0.0.0:{{ otelcol_otlp_http_port }}
+
+          processors:
+            batch:
+              send_batch_size: 8192
+              timeout: 10s
+            memory_limiter:
+              check_interval: 5s
+              limit_percentage: 80
+              spike_limit_percentage: 25
+
+          exporters:
+            otlp:
+              endpoint: "{{ otelcol_remote_endpoint }}"
+              tls:
+                insecure: {{ otelcol_remote_tls_insecure | lower }}
+              headers:
+          {% for k, v in otelcol_remote_headers.items() %}
+                {{ k }}: "{{ v }}"
+          {% endfor %}
+              sending_queue:
+                enabled: true
+                num_consumers: 4
+                queue_size: 1000
+              retry_on_failure:
+                enabled: true
+                initial_interval: 5s
+                max_interval: 30s
+                max_elapsed_time: 300s
+
+          extensions:
+            health_check:
+              endpoint: 127.0.0.1:13133
+            zpages:
+              endpoint: 127.0.0.1:55679
+
+          service:
+            extensions: [health_check, zpages]
+            telemetry:
+              logs:
+                level: info
+              metrics:
+                level: basic
+                address: 127.0.0.1:8888
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [

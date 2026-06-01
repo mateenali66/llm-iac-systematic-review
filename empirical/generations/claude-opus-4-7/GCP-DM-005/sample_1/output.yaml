@@ -1,0 +1,142 @@
+resources:
+- name: saas-postgres-instance
+  type: gcp-types/sqladmin-v1beta4:instances
+  properties:
+    region: us-central1
+    databaseVersion: POSTGRES_15
+    rootPassword: $(ref.db-root-password.secretData)
+    settings:
+      tier: db-custom-2-7680
+      edition: ENTERPRISE
+      availabilityType: REGIONAL
+      diskType: PD_SSD
+      diskSize: 100
+      diskAutoresize: true
+      diskAutoresizeLimit: 500
+      deletionProtectionEnabled: true
+      activationPolicy: ALWAYS
+      pricingPlan: PER_USE
+      storageAutoResize: true
+      backupConfiguration:
+        enabled: true
+        startTime: "03:00"
+        location: us
+        pointInTimeRecoveryEnabled: true
+        transactionLogRetentionDays: 7
+        backupRetentionSettings:
+          retentionUnit: COUNT
+          retainedBackups: 30
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: $(ref.saas-vpc.selfLink)
+        requireSsl: true
+        sslMode: TRUSTED_CLIENT_CERTIFICATE_REQUIRED
+        enablePrivatePathForGoogleCloudServices: true
+      maintenanceWindow:
+        day: 7
+        hour: 4
+        updateTrack: stable
+      databaseFlags:
+      - name: log_connections
+        value: "on"
+      - name: log_disconnections
+        value: "on"
+      - name: log_checkpoints
+        value: "on"
+      - name: log_lock_waits
+        value: "on"
+      - name: log_temp_files
+        value: "0"
+      - name: log_min_duration_statement
+        value: "1000"
+      - name: log_statement
+        value: "ddl"
+      - name: cloudsql.iam_authentication
+        value: "on"
+      - name: max_connections
+        value: "200"
+      insightsConfig:
+        queryInsightsEnabled: true
+        queryStringLength: 1024
+        recordApplicationTags: true
+        recordClientAddress: true
+        queryPlansPerMinute: 5
+      passwordValidationPolicy:
+        minLength: 16
+        complexity: COMPLEXITY_DEFAULT
+        reuseInterval: 5
+        disallowUsernameSubstring: true
+        passwordChangeInterval: 30s
+        enablePasswordPolicy: true
+      userLabels:
+        environment: production
+        application: saas
+        managed-by: deployment-manager
+        data-classification: confidential
+
+- name: saas-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: saas-private-ip-range
+  type: compute.v1.globalAddress
+  properties:
+    name: saas-private-ip-range
+    purpose: VPC_PEERING
+    addressType: INTERNAL
+    prefixLength: 16
+    network: $(ref.saas-vpc.selfLink)
+
+- name: saas-vpc-peering
+  type: gcp-types/servicenetworking-v1:servicenetworking.services.connections.create
+  properties:
+    parent: services/servicenetworking.googleapis.com
+    network: $(ref.saas-vpc.selfLink)
+    service: servicenetworking.googleapis.com
+    reservedPeeringRanges:
+    - $(ref.saas-private-ip-range.name)
+
+- name: db-root-password
+  type: gcp-types/secretmanager-v1:projects.secrets
+  properties:
+    parent: projects/$(ref.project.projectNumber)
+    secretId: saas-db-root-password
+    replication:
+      automatic: true
+
+- name: saas-app-database
+  type: gcp-types/sqladmin-v1beta4:databases
+  properties:
+    name: saas_app
+    instance: $(ref.saas-postgres-instance.name)
+    charset: UTF8
+    collation: en_US.UTF8
+
+- name: saas-app-user
+  type: gcp-types/sqladmin-v1beta4:users
+  properties:
+    name: saas_app_user
+    instance: $(ref.saas-postgres-instance.name)
+    type: BUILT_IN
+    password: $(ref.app-user-password.secretData)
+
+- name: app-user-password
+  type: gcp-types/secretmanager-v1:projects.secrets
+  properties:
+    parent: projects/$(ref.project.projectNumber)
+    secretId: saas-db-app-user-password
+    replication:
+      automatic: true
+
+outputs:
+- name: instanceConnectionName
+  value: $(ref.saas-postgres-instance.connectionName)
+- name: instancePrivateIp
+  value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)
+- name: instanceSelfLink
+  value: $(ref.saas-postgres-instance.selfLink)
+- name: databaseName
+  value: $(ref.saas-app-database.name)

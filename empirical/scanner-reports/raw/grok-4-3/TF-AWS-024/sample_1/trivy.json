@@ -1,0 +1,180 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:44:01.989628377Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 39,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0136",
+          "AVDID": "AVD-AWS-0136",
+          "Title": "SNS topic not encrypted with CMK.",
+          "Description": "Topics should be encrypted with customer managed KMS keys and not default AWS managed keys, in order to allow granular key management.\n",
+          "Message": "Topic encryption does not use a customer managed key.",
+          "Namespace": "builtin.aws.sns.aws0136",
+          "Query": "data.builtin.aws.sns.aws0136.deny",
+          "Resolution": "Use a CMK for SNS Topic encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0136",
+          "References": [
+            "https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0136"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_sns_topic.critical_alerts",
+            "Provider": "AWS",
+            "Service": "sns",
+            "StartLine": 9,
+            "EndLine": 9,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 7,
+                  "Content": "resource \"aws_sns_topic\" \"critical_alerts\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_sns_topic\"\u001b[0m \u001b[38;5;37m\"critical_alerts\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 8,
+                  "Content": "  name              = \"critical-alerts\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mname\u001b[0m              = \u001b[38;5;37m\"critical-alerts\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 9,
+                  "Content": "  kms_master_key_id = \"alias/aws/sns\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mkms_master_key_id\u001b[0m = \u001b[38;5;37m\"alias/aws/sns\"",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 10,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 11,
+                  "Content": "  tags = {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mtags\u001b[0m = {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 12,
+                  "Content": "    Environment = \"production\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mEnvironment\u001b[0m = \u001b[38;5;37m\"production\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "    Purpose     = \"incident-notifications\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;245mPurpose\u001b[0m     = \u001b[38;5;37m\"incident-notifications\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "    ManagedBy   = \"terraform\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;245mManagedBy\u001b[0m   = \u001b[38;5;37m\"terraform\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "  }",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  }",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_sns_topic.critical_alerts",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 7,
+                  "EndLine": 16
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

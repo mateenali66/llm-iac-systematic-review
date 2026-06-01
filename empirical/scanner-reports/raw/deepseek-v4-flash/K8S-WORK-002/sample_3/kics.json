@@ -1,0 +1,310 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 108,
+	"files_parsed": 2,
+	"lines_parsed": 108,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 7,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 10,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:43:12.589060802Z",
+	"end": "2026-05-26T04:43:15.429042012Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4e29694d15e77107effe7507a0fa239f0e79eaa40de01372ed4514d3e2e01baf",
+					"line": 48,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.securityContext.runAsUser=1000",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.securityContext.runAsUser is set to a low UID"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "239332513f409ef7a87c74dc91a06884186a26011645380fc6e6080ece1c6e52",
+					"line": 16,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{api-deployment}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "acd0dc1702a9212eb96c2b1b822809b8c239f52bacf78a4a8d815f45137c9fea",
+					"line": 10,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=api-deployment is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=api-deployment is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "39c99db1b78927ba1ebd6af7e4904e9d76ebb104a7fbaf73343257d276e1cccf",
+					"line": 18,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "96ff02e6f2132f9e716f38f91f70990537d0f10ef51ad0da797149e4aba1e79e",
+					"line": 19,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a034f502a549f330e41391f6de01dad296b351d08f77464ea06ee559775b694",
+					"line": 13,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{api}}",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{api}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ca1d175e2c9621af35187138275e83b9d4bd0f71f0854c61b4ff16e26acd01a3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{api-deployment}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fa1943f3a55961849b409cf5a274e187090a42876f81e8a3d19576dde6de92fb",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{api-deployment}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Root Container Not Mounted Read-only",
+			"query_id": "a9c2f49d-0671-4fc9-9ece-f4e261e128d0",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "668",
+			"cloud_provider": "COMMON",
+			"category": "Build Process",
+			"experimental": false,
+			"description": "Check if the root container filesystem is not being mounted as read-only.",
+			"description_id": "0d2df1e5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1c9cf604590b5ab660f8b3cab75159655553483ddd5c26668e61fcd7a28b8e74",
+					"line": 45,
+					"resource_type": "Deployment",
+					"resource_name": "api-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}",
+					"search_line": 45,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.securityContext.readOnlyRootFilesystem should be set to true",
+					"actual_value": "metadata.name={{api-deployment}}.spec.template.spec.containers.name={{api}}.securityContext.readOnlyRootFilesystem is undefined"
+				}
+			]
+		}
+	]
+}

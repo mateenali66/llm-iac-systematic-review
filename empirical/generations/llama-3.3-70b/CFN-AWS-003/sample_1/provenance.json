@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CFN-AWS-003",
+  "language": "cloudformation",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudFormation template provisioning an Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Create a CloudFormation template provisioning an Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application'\n\nResources:\n  DatabaseSubnetGroup:\n    Type: 'AWS::RDS::DBSubnetGroup'\n    Properties:\n      DBSubnetGroupName: !Sub 'saas-app-subnet-group-${AWS::Region}'\n      DBSubnetGroupDescription: 'Subnet group for Aurora PostgreSQL Serverless v2 cluster'\n      SubnetIds: !GetAZs [ !Sub '${AWS::Region}' ]\n\n  DatabaseCluster:\n    Type: 'AWS::RDS::DBCluster'\n    Properties:\n      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'\n      Engine: 'aurora-postgresql'\n      EngineMode: 'serverless'\n      EngineVersion: '14.3'\n      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'\n      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'\n      DBSubnetGroupName: !Ref DatabaseSubnetGroup\n      VpcSecurityGroupIds:\n        - !GetAtt 'DatabaseSecurityGroup.GroupId'\n      ScalingConfiguration:\n        AutoPause: true\n        MaxCapacity: 64\n        MinCapacity: 4\n        SecondsUntilAutoPause: 300\n\n  DatabaseSecurityGroup:\n    Type: 'AWS::EC2::SecurityGroup'\n    Properties:\n      GroupDescription: 'Security group for Aurora PostgreSQL Serverless v2 cluster'\n      VpcId: !GetAtt 'VPC.Id'\n      SecurityGroupIngress:\n        - IpProtocol: tcp\n          FromPort: 5432\n          ToPort: 5432\n          CidrIp: '0.0.0.0/0'\n\n  VPC:\n    Type: 'AWS::EC2::VPC'\n    Properties:\n      CidrBlock: '10.0.0.0/16'\n\nOutputs:\n  DatabaseClusterIdentifier:\n    Value: !Ref DatabaseCluster\n    Description: 'Aurora PostgreSQL Serverless v2 cluster identifier'\n  DatabaseClusterEndpoint:\n    Value: !GetAtt 'DatabaseCluster.Endpoint'\n    Description: 'Aurora PostgreSQL Serverless v2 cluster endpoint'",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application'\n\nResources:\n  DatabaseSubnetGroup:\n    Type: 'AWS::RDS::DBSubnetGroup'\n    Properties:\n      DBSubnetGroupName: !Sub 'saas-app-subnet-group-${AWS::Region}'\n      DBSubnetGroupDescription: 'Subnet group for Aurora PostgreSQL Serverless v2 cluster'\n      SubnetIds: !GetAZs [ !Sub '${AWS::Region}' ]\n\n  DatabaseCluster:\n    Type: 'AWS::RDS::DBCluster'\n    Properties:\n      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'\n      Engine: 'aurora-postgresql'\n      EngineMode: 'serverless'\n      EngineVersion: '14.3'\n      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'\n      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'\n      DBSubnetGroupName: !Ref DatabaseSubnetGroup\n      VpcSecurityGroupIds:\n        - !GetAtt 'DatabaseSecurityGroup.GroupId'\n      ScalingConfiguration:\n        AutoPause: true\n        MaxCapacity: 64\n        MinCapacity: 4\n        SecondsUntilAutoPause: 300\n\n  DatabaseSecurityGroup:\n    Type: 'AWS::EC2::SecurityGroup'\n    Properties:\n      GroupDescription: 'Security group for Aurora PostgreSQL Serverless v2 cluster'\n      VpcId: !GetAtt 'VPC.Id'\n      SecurityGroupIngress:\n        - IpProtocol: tcp\n          FromPort: 5432\n          ToPort: 5432\n          CidrIp: '0.0.0.0/0'\n\n  VPC:\n    Type: 'AWS::EC2::VPC'\n    Properties:\n      CidrBlock: '10.0.0.0/16'\n\nOutputs:\n  DatabaseClusterIdentifier:\n    Value: !Ref DatabaseCluster\n    Description: 'Aurora PostgreSQL Serverless v2 cluster identifier'\n  DatabaseClusterEndpoint:\n    Value: !GetAtt 'DatabaseCluster.Endpoint'\n    Description: 'Aurora PostgreSQL Serverless v2 cluster endpoint'",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application'\n\nResources:\n  DatabaseSubnetGroup:\n    Type: 'AWS::RDS::DBSubnetGroup'\n    Properties:\n      DBSubnetGroupName: !Sub 'saas-app-subnet-group-${AWS::Region}'\n      DBSubnetGroupDescription: 'Subnet group for Aurora PostgreSQL Serverless v2 cluster'\n      SubnetIds: !GetAZs [ !Sub '${AWS::Region}' ]\n\n  DatabaseCluster:\n    Type: 'AWS::RDS::DBCluster'\n    Properties:\n      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'\n      Engine: 'aurora-postgresql'\n      EngineMode: 'serverless'\n      EngineVersion: '14.3'\n      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'\n      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'\n      DBSubnetGroupName: !Ref DatabaseSubnetGroup\n      VpcSecurityGroupIds:\n        - !GetAtt 'DatabaseSecurityGroup.GroupId'\n      ScalingConfiguration:\n        AutoPause: true\n        MaxCapacity: 64\n        MinCapacity: 4\n        SecondsUntilAutoPause: 300\n\n  DatabaseSecurityGroup:\n    Type: 'AWS::EC2::SecurityGroup'\n    Properties:\n      GroupDescription: 'Security group for Aurora PostgreSQL Serverless v2 cluster'\n      VpcId: !GetAtt 'VPC.Id'\n      SecurityGroupIngress:\n        - IpProtocol: tcp\n          FromPort: 5432\n          ToPort: 5432\n          CidrIp: '0.0.0.0/0'\n\n  VPC:\n    Type: 'AWS::EC2::VPC'\n    Properties:\n      CidrBlock: '10.0.0.0/16'\n\nOutputs:\n  DatabaseClusterIdentifier:\n    Value: !Ref DatabaseCluster\n    Description: 'Aurora PostgreSQL Serverless v2 cluster identifier'\n  DatabaseClusterEndpoint:\n    Value: !GetAtt 'DatabaseCluster.Endpoint'\n    Description: 'Aurora PostgreSQL Serverless v2 cluster endpoint'",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723689,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 158,
+      "output_tokens": 473,
+      "raw_input_tokens": 158
+    }
+  },
+  "started_at": "2026-05-25T15:41:27.971171+00:00",
+  "elapsed_seconds": 1.404
+}

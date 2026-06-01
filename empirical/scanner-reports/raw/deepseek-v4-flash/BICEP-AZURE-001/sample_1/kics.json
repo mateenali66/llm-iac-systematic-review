@@ -1,0 +1,112 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 131,
+	"files_parsed": 1,
+	"lines_parsed": 131,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:34:06.358251632Z",
+	"end": "2026-05-26T04:34:06.945496591Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "3b46e29b53acd62663144be813098cf77cce61000bf2cc504d918395624e3cdb",
+					"line": 112,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Azure Instance Using Basic Authentication",
+			"query_id": "6797f581-0433-4768-ae3e-7ceb2f8b138e",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.compute/virtualmachines?tabs=json#linuxconfiguration-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "522",
+			"cloud_provider": "AZURE",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Azure Instances should use SSH Key instead of basic authentication",
+			"description_id": "98ba05ca",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "4601ef197a7de7c1331dba90729dafbea72c78f1b9a108c0e37da682176cf1de",
+					"line": 114,
+					"resource_type": "Microsoft.Compute/virtualMachines",
+					"resource_name": "[parameters('vmName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[parameters('vmName')].properties.osProfile.linuxConfiguration.disablePasswordAuthentication",
+					"search_line": 114,
+					"search_value": "",
+					"expected_value": "'disablePasswordAuthentication' should be set to true",
+					"actual_value": "'disablePasswordAuthentication' property value is set to false"
+				}
+			]
+		},
+		{
+			"query_name": "Network Security Group With Unrestricted Access To SSH",
+			"query_id": "2ade1579-4b2c-4590-bebb-f99bf597f612",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.network/networksecuritygroups?pivots=deployment-language-bicep#securityrulepropertiesformat",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Port 22 (SSH) is exposed to the Internet",
+			"description_id": "97b6233c",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "12480c4abae8530fb06bcafac18c64ee454fcd6a68ee63745b3457b592735c81",
+					"line": 44,
+					"resource_type": "Microsoft.Network/networkSecurityGroups",
+					"resource_name": "['${parameters('vmName')}-nsg']",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name={{['${parameters('vmName')}-nsg']}}.properties.securityRules",
+					"search_line": 44,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Network/networkSecurityGroups' restricts access to SSH",
+					"actual_value": "resource with type 'Microsoft.Network/networkSecurityGroups' does not restrict access to SSH"
+				}
+			]
+		}
+	]
+}

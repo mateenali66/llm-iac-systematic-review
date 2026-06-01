@@ -1,0 +1,30 @@
+---
+- name: Configure static network interface on Debian 12
+  hosts: all
+  become: true
+  vars:
+    netplan_interface: eth0
+    netplan_ip: 192.168.1.50/24
+    netplan_gateway: 192.168.1.1
+    netplan_dns:
+      - 8.8.8.8
+      - 1.1.1.1
+  tasks:
+    - name: Install netplan.io
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+    - name: Configure static IP via netplan
+      community.general.netplan:
+        state: present
+        renderer: networkd
+        ethernets:
+          "{{ netplan_interface }}":
+            dhcp4: false
+            addresses:
+              - "{{ netplan_ip }}"
+            gateway4: "{{ netplan_gateway }}"
+            nameservers:
+              addresses: "{{ netplan_dns }}"
+        apply: true

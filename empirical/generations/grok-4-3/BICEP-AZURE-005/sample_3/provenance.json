@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-005",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam sqlServerName string\nparam databaseName string\nparam administratorLogin string\n@secure()\nparam administratorLoginPassword string\nparam tags object = {}\n\nresource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  tags: tags\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Disabled'\n    minimalTlsVersion: '1.2'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  tags: tags\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n    capacity: 50\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    readScale: 'Disabled'\n    autoPauseDelay: 0\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam sqlServerName string\nparam databaseName string\nparam administratorLogin string\n@secure()\nparam administratorLoginPassword string\nparam tags object = {}\n\nresource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  tags: tags\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Disabled'\n    minimalTlsVersion: '1.2'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  tags: tags\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n    capacity: 50\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    readScale: 'Disabled'\n    autoPauseDelay: 0\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam sqlServerName string\nparam databaseName string\nparam administratorLogin string\n@secure()\nparam administratorLoginPassword string\nparam tags object = {}\n\nresource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  tags: tags\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Disabled'\n    minimalTlsVersion: '1.2'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  tags: tags\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n    capacity: 50\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    readScale: 'Disabled'\n    autoPauseDelay: 0\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723875,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 139,
+      "output_tokens": 247,
+      "reasoning_tokens": 566,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 119
+    }
+  },
+  "started_at": "2026-05-25T15:44:29.119098+00:00",
+  "elapsed_seconds": 6.291
+}

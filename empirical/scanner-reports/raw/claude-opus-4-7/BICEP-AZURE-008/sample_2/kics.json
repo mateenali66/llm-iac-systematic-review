@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 144,
+	"files_parsed": 1,
+	"lines_parsed": 144,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T03:48:18.473953251Z",
+	"end": "2026-05-26T03:48:19.083085335Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Key Vault Not Recoverable",
+			"query_id": "7c25f361-7c66-44bf-9b69-022acd5eb4bd",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/2019-09-01/vaults?tabs=json#vaultproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "530",
+			"cloud_provider": "AZURE",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Key Vault should have 'enableSoftDelete' and 'enablePurgeProtection' set to true",
+			"description_id": "8e3ca202",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "00c3330041bf71a41d68c97526b483d5f03dd48441733b7b2fa7610bdd2c13b6",
+					"line": 66,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('keyVaultName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('keyVaultName')]}}.properties",
+					"search_line": 66,
+					"search_value": "enablePurgeProtection",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enablePurgeProtection' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enablePurgeProtection' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Web App Not Using TLS Last Version",
+			"query_id": "b5c851d5-00f1-43dc-a8de-3218fd6f71be",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteconfig-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "327",
+			"cloud_provider": "AZURE",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Resources of type 'Microsoft.Web/sites' should define 'properties.siteConfig.minTlsVersion' with '1.2'",
+			"description_id": "1a442064",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "2a9a8d290644af7cea88c4acac1438e8c67886835ff04cfde514819b04ce6683",
+					"line": 59,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('webAppName')]",
+					"search_line": 59,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Azure Active Directory Disabled",
+			"query_id": "e9c133e5-c2dd-4b7b-8fff-40f2de367b56",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/2019-08-01/sites?tabs=json#ManagedServiceIdentity",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "WebApp should have Azure Active Directory enabled with 'identity.type' set to 'SystemAssigned' or 'userAssignedIdentities' set to 'true'",
+			"description_id": "f50ec4cb",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "46ba4c2f1e541ca6ffc3d6f404030162833f08b79ef22ae1deeca9d197c2e7db",
+					"line": 59,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('webAppName')]}}",
+					"search_line": 59,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'identity' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'identity' property defined"
+				}
+			]
+		}
+	]
+}

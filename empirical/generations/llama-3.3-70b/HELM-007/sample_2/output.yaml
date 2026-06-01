@@ -1,0 +1,111 @@
+# FILE: Chart.yaml
+name: stateful-app
+version: 1.0.0
+description: A Helm chart for a stateful application
+type: application
+appVersion: 1.0.0
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: stateful-app
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  name: stateful-app
+  type: ClusterIP
+  port: 80
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 1Gi
+database:
+  migration:
+    image:
+      repository: stateful-app-migration
+      tag: latest
+    command: ["migrate"]
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "stateful-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "stateful-app.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ {{ .Values.persistence.accessMode }} ]
+      resources:
+        requests:
+          storage: {{ .Values.persistence.size }}
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+  selector:
+    app: {{ include "stateful-app.name" . }}
+  clusterIP: None
+
+---
+# FILE: templates/pre-install-migration.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migration
+  annotations:
+    helm.sh/hook: pre-install
+    helm.sh/hook-delete-policy: hook-failed
+spec:
+  template:
+    spec:
+      containers:
+      - name: migration
+        image: "{{ .Values.database.migration.image.repository }}:{{ .Values.database.migration.image.tag }}"
+        command: {{ .Values.database.migration.command }}
+      restartPolicy: OnFailure
+  backoffLimit: 4
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "stateful-app.name" -}}
+{{ .Chart.Name }}
+{{- end -}}
+
+{{- define "stateful-app.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

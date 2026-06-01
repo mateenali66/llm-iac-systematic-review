@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-008",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that sets up CloudWatch alarms and an SNS topic for paging the on-call engineer when API Gateway error rate exceeds 1%.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that sets up CloudWatch alarms and an SNS topic for paging the on-call engineer when API Gateway error rate exceeds 1%.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "```python\nfrom aws_cdk import (\n    Stack,\n    Duration,\n    aws_sns as sns,\n    aws_cloudwatch as cw,\n    aws_cloudwatch_actions as cw_actions,\n)\nfrom constructs import Construct\n\n\nclass ApiGatewayErrorRateAlarmStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        oncall_topic = sns.Topic(\n            self,\n            \"OnCallTopic\",\n            display_name=\"API Gateway On-Call Paging\",\n            fifo=False,\n        )\n\n        api_name = \"MyApi\"\n        stage = \"prod\"\n\n        error_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"5XXError\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        request_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"Count\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        error_rate_expression = cw.MathExpression(\n            expression=\"IF(requests > 0, (errors / requests) * 100, 0)\",\n            using_metrics={\"errors\": error_count_metric, \"requests\": request_count_metric},\n            label=\"ErrorRatePercent\",\n            period=Duration.minutes(5),\n        )\n\n        alarm = cw.Alarm(\n            self,\n            \"ApiGatewayErrorRateAlarm\",\n            metric=error_rate_expression,\n            threshold=1,\n            comparison_operator=cw.ComparisonOperator.GREATER_THAN_THRESHOLD,\n            evaluation_periods=2,\n            datapoints_to_alarm=2,\n            treat_missing_data=cw.TreatMissingData.NOT_BREACHING,\n            alarm_description=\"API Gateway 5XX error rate exceeded 1% - paging on-call engineer\",\n        )\n\n        alarm.add_alarm_action(cw_actions.SnsAction(oncall_topic))\n```",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    Duration,\n    aws_sns as sns,\n    aws_cloudwatch as cw,\n    aws_cloudwatch_actions as cw_actions,\n)\nfrom constructs import Construct\n\n\nclass ApiGatewayErrorRateAlarmStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        oncall_topic = sns.Topic(\n            self,\n            \"OnCallTopic\",\n            display_name=\"API Gateway On-Call Paging\",\n            fifo=False,\n        )\n\n        api_name = \"MyApi\"\n        stage = \"prod\"\n\n        error_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"5XXError\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        request_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"Count\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        error_rate_expression = cw.MathExpression(\n            expression=\"IF(requests > 0, (errors / requests) * 100, 0)\",\n            using_metrics={\"errors\": error_count_metric, \"requests\": request_count_metric},\n            label=\"ErrorRatePercent\",\n            period=Duration.minutes(5),\n        )\n\n        alarm = cw.Alarm(\n            self,\n            \"ApiGatewayErrorRateAlarm\",\n            metric=error_rate_expression,\n            threshold=1,\n            comparison_operator=cw.ComparisonOperator.GREATER_THAN_THRESHOLD,\n            evaluation_periods=2,\n            datapoints_to_alarm=2,\n            treat_missing_data=cw.TreatMissingData.NOT_BREACHING,\n            alarm_description=\"API Gateway 5XX error rate exceeded 1% - paging on-call engineer\",\n        )\n\n        alarm.add_alarm_action(cw_actions.SnsAction(oncall_topic))",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```python\nfrom aws_cdk import (\n    Stack,\n    Duration,\n    aws_sns as sns,\n    aws_cloudwatch as cw,\n    aws_cloudwatch_actions as cw_actions,\n)\nfrom constructs import Construct\n\n\nclass ApiGatewayErrorRateAlarmStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        oncall_topic = sns.Topic(\n            self,\n            \"OnCallTopic\",\n            display_name=\"API Gateway On-Call Paging\",\n            fifo=False,\n        )\n\n        api_name = \"MyApi\"\n        stage = \"prod\"\n\n        error_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"5XXError\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        request_count_metric = cw.Metric(\n            namespace=\"AWS/ApiGateway\",\n            metric_name=\"Count\",\n            dimensions_map={\"ApiName\": api_name, \"Stage\": stage},\n            statistic=\"Sum\",\n            period=Duration.minutes(5),\n        )\n\n        error_rate_expression = cw.MathExpression(\n            expression=\"IF(requests > 0, (errors / requests) * 100, 0)\",\n            using_metrics={\"errors\": error_count_metric, \"requests\": request_count_metric},\n            label=\"ErrorRatePercent\",\n            period=Duration.minutes(5),\n        )\n\n        alarm = cw.Alarm(\n            self,\n            \"ApiGatewayErrorRateAlarm\",\n            metric=error_rate_expression,\n            threshold=1,\n            comparison_operator=cw.ComparisonOperator.GREATER_THAN_THRESHOLD,\n            evaluation_periods=2,\n            datapoints_to_alarm=2,\n            treat_missing_data=cw.TreatMissingData.NOT_BREACHING,\n            alarm_description=\"API Gateway 5XX error rate exceeded 1% - paging on-call engineer\",\n        )\n\n        alarm.add_alarm_action(cw_actions.SnsAction(oncall_topic))\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724390,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 92,
+      "output_tokens": 422,
+      "reasoning_tokens": 656,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 62
+    }
+  },
+  "started_at": "2026-05-25T15:53:00.963253+00:00",
+  "elapsed_seconds": 9.358
+}

@@ -1,0 +1,119 @@
+- name: Configure Linux firewall to allow only SSH and HTTPS
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    fw_allowed_ports:
+      - 22
+      - 443
+    firewalld_zone: lockeddown
+    interface_name_pattern: '^(en|eth|em|p[0-9]|bond|team|wlan).*'
+
+  tasks:
+    - name: Use UFW on Debian-based systems
+      block:
+        - name: Ensure UFW is installed
+          ansible.builtin.package:
+            name: ufw
+            state: present
+
+        - name: Ensure UFW manages IPv6
+          ansible.builtin.lineinfile:
+            path: /etc/default/ufw
+            regexp: '^IPV6='
+            line: 'IPV6=yes'
+          notify: Reload UFW
+
+        - name: Reset UFW rules to a clean state
+          community.general.ufw:
+            state: reset
+
+        - name: Set default incoming policy to deny
+          community.general.ufw:
+            direction: incoming
+            policy: deny
+
+        - name: Set default outgoing policy to allow
+          community.general.ufw:
+            direction: outgoing
+            policy: allow
+
+        - name: Allow required TCP ports
+          community.general.ufw:
+            rule: allow
+            port: "{{ item }}"
+            proto: tcp
+          loop: "{{ fw_allowed_ports }}"
+
+        - name: Enable UFW
+          community.general.ufw:
+            state: enabled
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Use firewalld on RedHat/Suse-based systems
+      block:
+        - name: Ensure firewalld is installed
+          ansible.builtin.package:
+            name: firewalld
+            state: present
+
+        - name: Ensure firewalld is enabled and running
+          ansible.builtin.service:
+            name: firewalld
+            enabled: true
+            state: started
+
+        - name: Create dedicated locked-down zone
+          ansible.posix.firewalld:
+            zone: "{{ firewalld_zone }}"
+            state: present
+            permanent: true
+            immediate: true
+
+        - name: Allow SSH and HTTPS in locked-down zone
+          ansible.posix.firewalld:
+            zone: "{{ firewalld_zone }}"
+            service: "{{ item }}"
+            state: enabled
+            permanent: true
+            immediate: true
+          loop:
+            - ssh
+            - https
+
+        - name: Set zone target to DROP to deny all other inbound
+          ansible.posix.firewalld:
+            zone: "{{ firewalld_zone }}"
+            target: DROP
+            state: present
+            permanent: true
+            immediate: true
+
+        - name: Build candidate interface list from facts
+          ansible.builtin.set_fact:
+            _candidate_ifaces: >-
+              {{ (ansible_facts.interfaces | default([]))
+                 | select('match', interface_name_pattern) | list }}
+
+        - name: Determine interfaces to assign to locked-down zone
+          ansible.builtin.set_fact:
+            _managed_ifaces: >-
+              {{ (_candidate_ifaces | length > 0)
+                 | ternary(_candidate_ifaces, ([ansible_facts.default_ipv4.interface] if ansible_facts.default_ipv4 is defined and ansible_facts.default_ipv4.interface is defined else [])) }}
+
+        - name: Assign interfaces to locked-down zone
+          ansible.posix.firewalld:
+            zone: "{{ firewalld_zone }}"
+            interface: "{{ item }}"
+            state: enabled
+            permanent: true
+            immediate: true
+          loop: "{{ _managed_ifaces }}"
+          when: _managed_ifaces | length > 0
+      when: ansible_facts.os_family in ["RedHat", "Suse"]
+
+  handlers:
+    - name: Reload UFW
+      ansible.builtin.command: ufw reload
+      changed_when: false

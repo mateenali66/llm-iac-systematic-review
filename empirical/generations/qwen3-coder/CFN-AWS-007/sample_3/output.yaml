@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch Dashboard for Lambda-based API Health Monitoring'
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor
+    Default: MyLambdaAPI
+
+  DashboardName:
+    Type: String
+    Description: Name of the CloudWatch Dashboard
+    Default: LambdaAPIHealthDashboard
+
+Resources:
+  LambdaHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Invocations",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Errors", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Errors",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Throttles", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Throttles",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Duration", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Average Duration",
+                "period": 300,
+                "stat": "Average",
+                "yAxis": {
+                  "left": {
+                    "label": "Milliseconds",
+                    "showUnits": false
+                  }
+                }
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [".", "Invocations", "FunctionName", "${LambdaFunctionName}"],
+                  [".", "Errors", "FunctionName", "${LambdaFunctionName}"],
+                  [".", "Throttles", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Health Overview",
+                "period": 300,
+                "stat": "Sum"
+              }
+            }
+          ]
+        }

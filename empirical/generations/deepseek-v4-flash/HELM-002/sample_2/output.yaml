@@ -1,0 +1,223 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A Helm chart for deploying a Redis cache
+type: application
+version: 1.0.0
+appVersion: 7.2.4
+---
+# FILE: values.yaml
+replicaCount: 1
+
+image:
+  repository: redis
+  tag: 7.2.4-alpine
+  pullPolicy: IfNotPresent
+
+service:
+  port: 6379
+
+persistence:
+  enabled: true
+  size: 8Gi
+  storageClass: ""
+  accessMode: ReadWriteOnce
+
+auth:
+  enabled: true
+  existingSecret: ""
+  password: ""
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+---
+# FILE: templates/_helpers.tpl
+{{- define "redis-cache.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "redis-cache.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "redis-cache.labels" -}}
+helm.sh/chart: {{ include "redis-cache.name" . }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "redis-cache.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "redis-cache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+---
+# FILE: templates/secret.yaml
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecret) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+type: Opaque
+data:
+  redis-password: {{ .Values.auth.password | default (randAlphaNum 32) | b64enc | quote }}
+{{- end }}
+---
+# FILE: templates/pvc.yaml
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis-cache.fullname" . }}-headless
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+      name: redis
+  selector:
+    {{- include "redis-cache.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "redis-cache.fullname" . }}-headless
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "redis-cache.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis-cache.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: redis
+              protocol: TCP
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- if and .Values.auth.enabled .Values.auth.existingSecret }}
+                  name: {{ .Values.auth.existingSecret }}
+                  {{- else if .Values.auth.enabled }}
+                  name: {{ include "redis-cache.fullname" . }}
+                  {{- end }}
+                  key: redis-password
+          args:
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
+            - "--appendonly"
+            - "yes"
+            - "--save"
+            - "900 1"
+            - "--save"
+            - "300 10"
+            - "--save"
+            - "60 10000"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes:
+          - {{ .Values.persistence.accessMode | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}

@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-024",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon SNS topic named 'critical-alerts' for delivering production incident notifications to an on-call email distribution list.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon SNS topic named 'critical-alerts' for delivering production incident notifications to an on-call email distribution list.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "variable \"on_call_email_distribution_list\" {\n  description = \"The email address for the on-call distribution list to receive critical alerts.\"\n  type        = string\n  validation {\n    condition     = can(regex(\"@\", var.on_call_email_distribution_list))\n    error_message = \"The on_call_email_distribution_list must be a valid email address.\"\n  }\n}\n\nlocals {\n  name = \"critical-alerts\"\n  tags = {\n    Environment = \"production\"\n    ManagedBy   = \"Terraform\"\n    Project     = \"incident-management\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_sns_topic\" \"critical_alerts\" {\n  name              = local.name\n  kms_master_key_id = \"alias/aws/sns\"\n  tags              =",
+  "cleaned_response": "variable \"on_call_email_distribution_list\" {\n  description = \"The email address for the on-call distribution list to receive critical alerts.\"\n  type        = string\n  validation {\n    condition     = can(regex(\"@\", var.on_call_email_distribution_list))\n    error_message = \"The on_call_email_distribution_list must be a valid email address.\"\n  }\n}\n\nlocals {\n  name = \"critical-alerts\"\n  tags = {\n    Environment = \"production\"\n    ManagedBy   = \"Terraform\"\n    Project     = \"incident-management\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_sns_topic\" \"critical_alerts\" {\n  name              = local.name\n  kms_master_key_id = \"alias/aws/sns\"\n  tags              =",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "variable \"on_call_email_distribution_list\" {\n  description = \"The email address for the on-call distribution list to receive critical alerts.\"\n  type        = string\n  validation {\n    condition     = can(regex(\"@\", var.on_call_email_distribution_list))\n    error_message = \"The on_call_email_distribution_list must be a valid email address.\"\n  }\n}\n\nlocals {\n  name = \"critical-alerts\"\n  tags = {\n    Environment = \"production\"\n    ManagedBy   = \"Terraform\"\n    Project     = \"incident-management\"\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nresource \"aws_sns_topic\" \"critical_alerts\" {\n  name              = local.name\n  kms_master_key_id = \"alias/aws/sns\"\n  tags              =",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779731311,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 128,
+      "output_tokens": 2044,
+      "raw_input_tokens": 128
+    }
+  },
+  "started_at": "2026-05-25T17:48:08.808336+00:00",
+  "elapsed_seconds": 23.038
+}

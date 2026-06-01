@@ -1,0 +1,388 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 281,
+	"files_parsed": 2,
+	"lines_parsed": 281,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 4,
+		"INFO": 1,
+		"LOW": 6,
+		"MEDIUM": 5,
+		"TRACE": 0
+	},
+	"total_counter": 16,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:25:14.846777001Z",
+	"end": "2026-05-26T06:25:21.768221671Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CMK Unencrypted Storage",
+			"query_id": "ffee2785-c347-451e-89f3-11aeb08e5c84",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Ensure that storage is encrypted.",
+			"description_id": "ba38e42e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5efdc828f99f0e3fb54736cb4395fcf741c34407cb28907a939317964042e500",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraReaderInstance.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.AuroraReaderInstance.Properties.StorageEncrypted is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ab07e07e77311e5547794817a617a98d588c02fd903b4429db463cff36412a60",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraPrimaryInstance.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.AuroraPrimaryInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Not Encrypted",
+			"query_id": "5beacce3-4020-4a3d-9e1d-a36f953df630",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS Storage should be encrypted, which means the attribute 'StorageEncrypted' should be set to 'true'",
+			"description_id": "f052de92",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "071cf7e73034896c9dccb44276f464fe06cd6f9414b170f173a5cd65bdf71ed8",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraReaderInstance.Properties.StorageEncrypted should be defined and set to true",
+					"actual_value": "Resources.AuroraReaderInstance.Properties.StorageEncrypted is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "978b24e182aa6291dcb83c68bba9aa4b3d68af75ab7534e58cf868538697af36",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraPrimaryInstance.Properties.StorageEncrypted should be defined and set to true",
+					"actual_value": "Resources.AuroraPrimaryInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Default KMS Key Usage",
+			"query_id": "e52395b4-250b-4c60-81d5-2e58c1d37abc",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "When `StorageEncrypted` is set to true, `KmsKeyId` should be defined, to avoid the use of the default KMS Key",
+			"description_id": "d479130b",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c4bda13555188aa58b6097d18bdbdf5c3bcb06bf261876312d2ff740cdd344b3",
+					"line": 96,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "DatabaseName",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraDBCluster.Properties",
+					"search_line": 96,
+					"search_value": "",
+					"expected_value": "Resources.AuroraDBCluster.Properties.KmsKeyId should be defined with AWS-Managed CMK",
+					"actual_value": "Resources.AuroraDBCluster.Properties.KmsKeyId is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "9fcd0a0a-9b6f-4670-a215-d94e6bf3f184",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-enableiamdatabaseauthentication",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "e4c2c085",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b4e411d33f60ba54aef7e4812fb20085fba004b5472aa1c36884541fa49e1019",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraPrimaryInstance.Properties.EnableIAMDatabaseAuthentication should be defined",
+					"actual_value": "Resources.AuroraPrimaryInstance.Properties.EnableIAMDatabaseAuthentication is not defined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "45293ea5bc2a6d93c17e4b7d4a69d11d2603d0e6fb936528182b9caf566ebee5",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraReaderInstance.Properties.EnableIAMDatabaseAuthentication should be defined",
+					"actual_value": "Resources.AuroraReaderInstance.Properties.EnableIAMDatabaseAuthentication is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Multi-AZ Deployment Disabled",
+			"query_id": "2b1d4935-9acf-48a7-8466-10d18bf51a69",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "AWS RDS Instance should have a multi-az deployment",
+			"description_id": "4bdb6677",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "55b6566e562c208f3731ebd4095c1ba36650d1670100fd86475901a5af4d1f66",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBInstance 'AuroraReaderInstance' should have Multi-Availability Zone enabled",
+					"actual_value": "The RDS DBInstance 'AuroraReaderInstance' MultiAZ property is undefined and by default disabled"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "cc541a0fdb8aa8ed838f463f06e77518762626ec52a26d252e896a69a065acaf",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBInstance 'AuroraPrimaryInstance' should have Multi-Availability Zone enabled",
+					"actual_value": "The RDS DBInstance 'AuroraPrimaryInstance' MultiAZ property is undefined and by default disabled"
+				}
+			]
+		},
+		{
+			"query_name": "Automatic Minor Upgrades Disabled",
+			"query_id": "f0104061-8bfc-4b45-8a7d-630eb502f281",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "RDS instance should have automatic minor upgrades enabled, which means the attribute 'AutoMinorVersionUpgrade' must be set to true.",
+			"description_id": "e2908402",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0a030a4bf8610294a92da2a9246cb9365c015277aec34d9f1d54dbab1d57a593",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.AuroraReaderInstance.Properties.AutoMinorVersionUpgrade' should be defined",
+					"actual_value": "'Resources.AuroraReaderInstance.Properties.AutoMinorVersionUpgrade' is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f39f05c392c41b41fdbff517ecd089a5a49d7118e6e4a96ec918a04234a601d6",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.AuroraPrimaryInstance.Properties.AutoMinorVersionUpgrade' should be defined",
+					"actual_value": "'Resources.AuroraPrimaryInstance.Properties.AutoMinorVersionUpgrade' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 49,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS DB Instance With Deletion Protection Disabled",
+			"query_id": "2c161e58-cb52-454f-abea-6470c37b5e6e",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-deletionprotection",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "459",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "RDS DBInstance should have deletion protection set to true",
+			"description_id": "606a0602",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4017fbabcc53cfb4a2af8b71527de622c9e15146b3ad79931991ccff2ffe0fac",
+					"line": 144,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-reader",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraReaderInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraReaderInstance.Properties.DeletionProtection should be defined",
+					"actual_value": "Resources.AuroraReaderInstance.Properties.DeletionProtection is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4439ec495efd3afdf68ffe2e442db37936a7490f196df52d6e46e0c38bf40f43",
+					"line": 124,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${EnvironmentName}-aurora-primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraPrimaryInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraPrimaryInstance.Properties.DeletionProtection should be defined",
+					"actual_value": "Resources.AuroraPrimaryInstance.Properties.DeletionProtection is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Secrets Manager Should Specify KmsKeyId",
+			"query_id": "c8ae9ba9-c2f7-4e5c-b32e-a4b7712d4d22",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-secretsmanager-secret.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Secrets Manager Secret should explicitly specify KmsKeyId, this will allow the secret to be shared cross-account",
+			"description_id": "d78bb871",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c4d13d07298ec345734ba71b3d1f79abeb45279bdb34d8d90aac37eee09dfbeb",
+					"line": 177,
+					"resource_type": "AWS::SecretsManager::Secret",
+					"resource_name": "${EnvironmentName}-aurora-secret",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Secret.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Secret.Properties.KmsKeyId should be defined",
+					"actual_value": "Resources.Secret.Properties.KmsKeyId is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e6d60cb4cb0679eb8236e36c5fb94266523efac1203da3ec91ed10dcc9e4a8b6",
+					"line": 55,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "${EnvironmentName}-aurora-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraSecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraSecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.AuroraSecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

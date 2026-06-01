@@ -1,0 +1,187 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for application user uploads with secure defaults and appropriate access controls.
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: ''
+    Description: Optional. Provide a globally-unique S3 bucket name. If empty, CloudFormation will generate one.
+    AllowedPattern: '(^$)|(^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$)'
+    ConstraintDescription: Must be empty or a valid S3 bucket name (3-63 chars, lowercase, numbers, dots, hyphens).
+  KmsKeyArn:
+    Type: String
+    Default: ''
+    Description: Optional. Provide an existing KMS Key ARN to use for SSE-KMS. If empty, a new key will be created.
+    AllowedPattern: '(^$)|(^arn:aws(-[a-z]+)?:kms:[a-z0-9-]+:\d{12}:key\/[a-f0-9-]+$)'
+  AllowedCorsOrigins:
+    Type: String
+    Default: ''
+    Description: Optional. Comma-separated list of allowed CORS origins for browser uploads (e.g. https://app.example.com,https://admin.example.com). Leave empty to disable CORS.
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - prod
+      - staging
+      - dev
+    Description: Environment tag for resources.
+  Application:
+    Type: String
+    Default: user-uploads
+    Description: Application name tag.
+
+Conditions:
+  UseProvidedBucketName: !Not [!Equals [!Ref BucketName, '']]
+  UseProvidedKmsKey: !Not [!Equals [!Ref KmsKeyArn, '']]
+  CreateKmsKey: !Equals [!Ref KmsKeyArn, '']
+  UseCors: !Not [!Equals [!Ref AllowedCorsOrigins, '']]
+
+Resources:
+  KmsKey:
+    Type: AWS::KMS::Key
+    Condition: CreateKmsKey
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: SSE-KMS key for S3 user uploads
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: key-default-1
+        Statement:
+          - Sid: EnableIAMUserPermissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowUseOfKeyForS3InThisAccount
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub s3.${AWS::Region}.amazonaws.com
+                kms:CallerAccount: !Sub ${AWS::AccountId}
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  KmsAlias:
+    Type: AWS::KMS::Alias
+    Condition: CreateKmsKey
+    Properties:
+      AliasName: !Sub alias/s3-${AWS::StackName}-uploads
+      TargetKeyId: !Ref KmsKey
+
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !If [UseProvidedBucketName, !Ref BucketName, !Ref AWS::NoValue]
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !If [UseProvidedKmsKey, !Ref KmsKeyArn, !GetAtt KmsKey.Arn]
+            BucketKeyEnabled: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+          - Id: NoncurrentVersionLifecycle
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 180
+              NewerNoncurrentVersions: 10
+      CorsConfiguration: !If
+        - UseCors
+        - CorsRules:
+            - AllowedMethods: [GET, PUT, POST, HEAD]
+              AllowedOrigins: !Split [",", !Ref AllowedCorsOrigins]
+              AllowedHeaders: ["*"]
+              ExposedHeaders: ["ETag", "x-amz-request-id", "x-amz-version-id"]
+              MaxAge: 3600
+        - !Ref AWS::NoValue
+      Tags:
+        - Key: Application
+          Value: !Ref Application
+        - Key: Environment
+          Value: !Ref Environment
+
+  UploadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt UploadBucket.Arn
+              - !Sub "${UploadBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: EnforceKMSEncryptionAlgorithmIfSpecified
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Sub "${UploadBucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+              Null:
+                s3:x-amz-server-side-encryption: false
+          - Sid: EnforceSpecificKmsKeyIfSpecified
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Sub "${UploadBucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !If [UseProvidedKmsKey, !Ref KmsKeyArn, !GetAtt KmsKey.Arn]
+              Null:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: false
+
+Outputs:
+  UploadBucketName:
+    Description: Name of the S3 bucket for user uploads
+    Value: !Ref UploadBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-UploadBucketName"
+  UploadBucketArn:
+    Description: ARN of the S3 bucket for user uploads
+    Value: !GetAtt UploadBucket.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UploadBucketArn"
+  SseKmsKeyArn:
+    Description: ARN of the KMS key used for bucket default encryption
+    Value: !If [UseProvidedKmsKey, !Ref KmsKeyArn, !GetAtt KmsKey.Arn]
+    Export:
+      Name: !Sub "${AWS::StackName}-SseKmsKeyArn"

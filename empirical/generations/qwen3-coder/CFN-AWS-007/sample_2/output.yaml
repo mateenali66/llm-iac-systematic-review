@@ -1,0 +1,131 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Dashboard for Lambda-based API Health Monitoring
+
+Parameters:
+  ApiName:
+    Type: String
+    Description: Name of the API for dashboard labeling
+    Default: MyLambdaAPI
+  
+  LambdaFunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor
+  
+  DashboardName:
+    Type: String
+    Description: Name of the CloudWatch Dashboard
+    Default: !Sub '${ApiName}-Health-Dashboard'
+
+Resources:
+  LambdaHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Invocations",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Errors", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Errors",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Throttles", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Lambda Throttles",
+                "period": 300,
+                "stat": "Sum"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  ["AWS/Lambda", "Duration", "FunctionName", "${LambdaFunctionName}"]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Average Duration (ms)",
+                "period": 300,
+                "stat": "Average"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "metrics": [
+                  [ { "expression": "IF(invocations > 0, 100 - (errors/invocations)*100, 100)", "label": "Success Rate (%)", "id": "success_rate" } ],
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}", { "id": "invocations", "visible": false } ],
+                  [ "AWS/Lambda", "Errors", "FunctionName", "${LambdaFunctionName}", { "id": "errors", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "${AWS::Region}",
+                "title": "Success Rate (%)",
+                "period": 300,
+                "stat": "Average",
+                "yAxis": {
+                  "left": {
+                    "min": 0,
+                    "max": 100
+                  }
+                }
+              }
+            }
+          ]
+        }
+
+Outputs:
+  DashboardUrl:
+    Description: URL to access the CloudWatch Dashboard
+    Value: !Sub 'https://console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${DashboardName}'

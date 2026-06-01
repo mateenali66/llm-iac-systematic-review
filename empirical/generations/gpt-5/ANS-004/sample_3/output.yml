@@ -1,0 +1,210 @@
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    node_exporter_version: '1.8.1'
+    node_exporter_user: 'node_exporter'
+    node_exporter_group: 'node_exporter'
+    node_exporter_bin_dir: '/usr/local/bin'
+    node_exporter_install_dir: '/usr/local/src'
+    node_exporter_port: 9100
+    node_exporter_listen_ip: '0.0.0.0'
+    node_exporter_listen_address: '{{ node_exporter_listen_ip }}:{{ node_exporter_port }}'
+    node_exporter_additional_flags: []
+    node_exporter_service_name: 'node_exporter'
+    node_exporter_checksum_file_tmp: '/tmp/node_exporter-{{ node_exporter_version }}-sha256sums.txt'
+
+  tasks:
+    - name: Assert Linux system
+      ansible.builtin.assert:
+        that:
+          - ansible_system == 'Linux'
+        fail_msg: "This playbook supports Linux systems only."
+
+    - name: Determine nologin shell path
+      ansible.builtin.stat:
+        path: /usr/sbin/nologin
+      register: nologin_usr
+
+    - name: Determine alternate nologin shell path
+      ansible.builtin.stat:
+        path: /sbin/nologin
+      register: nologin_sbin
+
+    - name: Set nologin shell fact
+      ansible.builtin.set_fact:
+        node_exporter_nologin_shell: "{{ '/usr/sbin/nologin' if nologin_usr.stat.exists else '/sbin/nologin' if nologin_sbin.stat.exists else '/bin/false' }}"
+
+    - name: Create node_exporter group
+      ansible.builtin.group:
+        name: "{{ node_exporter_group }}"
+        system: true
+
+    - name: Create node_exporter user
+      ansible.builtin.user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        shell: "{{ node_exporter_nologin_shell }}"
+        system: true
+        create_home: false
+
+    - name: Map architecture to Go arch
+      ansible.builtin.set_fact:
+        go_arch_map:
+          x86_64: amd64
+          aarch64: arm64
+          arm64: arm64
+          armv7l: armv7
+          armv6l: armv6
+          i386: '386'
+          i686: '386'
+          ppc64le: ppc64le
+          s390x: s390x
+
+    - name: Set Go architecture
+      ansible.builtin.set_fact:
+        go_arch: "{{ go_arch_map.get(ansible_architecture, 'amd64') }}"
+
+    - name: Define URLs and filenames
+      ansible.builtin.set_fact:
+        node_exporter_base_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}"
+        node_exporter_tarball: "node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}.tar.gz"
+        node_exporter_dir: "node_exporter-{{ node_exporter_version }}.linux-{{ go_arch }}"
+
+    - name: Download node_exporter checksums
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_base_url }}/sha256sums.txt"
+        dest: "{{ node_exporter_checksum_file_tmp }}"
+        mode: '0644'
+
+    - name: Read checksums file
+      ansible.builtin.slurp:
+        src: "{{ node_exporter_checksum_file_tmp }}"
+      register: checksum_slurp
+
+    - name: Extract checksum for tarball
+      ansible.builtin.set_fact:
+        node_exporter_checksum: "{{ ((checksum_slurp.content | b64decode).splitlines() | select('search', node_exporter_tarball + '$') | list | first).split()[0] }}"
+
+    - name: Download node_exporter binary tarball
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_base_url }}/{{ node_exporter_tarball }}"
+        dest: "/tmp/{{ node_exporter_tarball }}"
+        mode: '0644'
+        checksum: "sha256:{{ node_exporter_checksum }}"
+
+    - name: Create install directory
+      ansible.builtin.file:
+        path: "{{ node_exporter_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extract node_exporter
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ node_exporter_tarball }}"
+        dest: "{{ node_exporter_install_dir }}"
+        remote_src: true
+        creates: "{{ node_exporter_install_dir }}/{{ node_exporter_dir }}"
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "{{ node_exporter_install_dir }}/{{ node_exporter_dir }}/node_exporter"
+        dest: "{{ node_exporter_bin_dir }}/node_exporter"
+        owner: root
+        group: root
+        mode: '0755'
+        remote_src: true
+      notify:
+        - restart node_exporter
+
+    - name: Create systemd unit file for node_exporter
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ node_exporter_service_name }}.service"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          Documentation=https://github.com/prometheus/node_exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User={{ node_exporter_user }}
+          Group={{ node_exporter_group }}
+          Type=simple
+          ExecStart={{ node_exporter_bin_dir }}/node_exporter --web.listen-address={{ node_exporter_listen_address }}{% if node_exporter_additional_flags | length > 0 %} {{ node_exporter_additional_flags | join(' ') }}{% endif %}
+          Restart=on-failure
+          RestartSec=5s
+
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+          PrivateTmp=true
+          PrivateDevices=true
+          ProtectHostname=true
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          ProtectControlGroups=true
+          MemoryDenyWriteExecute=true
+          LockPersonality=true
+          RestrictRealtime=true
+          RestrictSUIDSGID=true
+          SystemCallArchitectures=native
+          RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+          SystemCallFilter=~ @mount @privileged @resources
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - reload systemd
+        - restart node_exporter
+
+    - name: Reload systemd to apply changes
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Ensure node_exporter service is enabled and running
+      ansible.builtin.systemd:
+        name: "{{ node_exporter_service_name }}"
+        enabled: true
+        state: started
+
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Open port {{ node_exporter_port }} in firewalld if running
+      when:
+        - ansible_facts.services is defined
+        - "'firewalld.service' in ansible_facts.services"
+        - ansible_facts.services['firewalld.service'].state == 'running'
+      ansible.posix.firewalld:
+        port: "{{ node_exporter_port }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Remove downloaded tarball
+      ansible.builtin.file:
+        path: "/tmp/{{ node_exporter_tarball }}"
+        state: absent
+
+    - name: Remove downloaded checksums file
+      ansible.builtin.file:
+        path: "{{ node_exporter_checksum_file_tmp }}"
+        state: absent
+
+  handlers:
+    - name: reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: restart node_exporter
+      ansible.builtin.systemd:
+        name: "{{ node_exporter_service_name }}"
+        state: restarted

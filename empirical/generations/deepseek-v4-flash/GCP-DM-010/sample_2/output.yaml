@@ -1,0 +1,17 @@
+imports:
+  - path: templates/bucket.py
+    name: bucket.py
+
+resources:
+  - name: multi-region-bucket
+    type: bucket.py
+    properties:
+      name: my-multi-region-bucket-${PROJECT_ID}
+      location: US
+      storageClass: STANDARD
+      uniformBucketLevelAccess: true
+      lifecycleRules:
+        - action:
+            type: Delete
+          condition:
+            age: 365

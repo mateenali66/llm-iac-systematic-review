@@ -1,0 +1,206 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-tier-app
+description: Production-grade Helm chart for a multi-tier application (frontend, backend, Postgres)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - multi-tier
+  - frontend
+  - backend
+  - postgres
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+commonLabels: {}
+commonAnnotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+frontend:
+  replicaCount: 3
+  image:
+    repository: nginx
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  podAnnotations: {}
+  config:
+    LOG_LEVEL: "info"
+    BACKEND_TIMEOUT: "30s"
+  env: []
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+backend:
+  replicaCount: 3
+  image:
+    repository: myorg/backend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  podAnnotations: {}
+  config:
+    LOG_LEVEL: "info"
+    DB_POOL_SIZE: "20"
+    DB_NAME: "appdb"
+    DB_USER: "appuser"
+  env: []
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 75
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: ["ALL"]
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+postgres:
+  image:
+    repository: postgres
+    tag: "16.3-alpine"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    port: 5432
+  auth:
+    database: "appdb"
+    username: "appuser"
+    # If empty, a random password is generated on first install
+    password: ""
+    postgresPassword: ""
+    # Use an existing secret instead (must contain keys: postgres-password, password)
+    existingSecret: ""
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  config:
+    PGDATA: "/var/lib/postgresql/data/pgdata"
+    POSTGRES_INITDB_ARGS: "--data-checksums"
+  podAnnotations: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: ["ALL"]
+
+networkPolicy:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "multi-tier-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "multi-tier-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trun

@@ -1,0 +1,83 @@
+resources:
+- name: vpc-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+    description: Custom-mode VPC for public/private subnets
+
+- name: subnet-public-us-central1
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    ipCidrRange: 10.10.0.0/20
+    network: $(ref.vpc-network.selfLink)
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+    logConfig:
+      aggregationInterval: INTERVAL_5_MIN
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    description: Public subnet (allows external IPs) in us-central1
+
+- name: subnet-private-us-central1
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    ipCidrRange: 10.20.0.0/20
+    network: $(ref.vpc-network.selfLink)
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+    logConfig:
+      aggregationInterval: INTERVAL_5_MIN
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+    description: Private subnet (no external IPs) in us-central1 with Private Google Access
+
+- name: fw-allow-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.vpc-network.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 10.10.0.0/20
+    - 10.20.0.0/20
+    allowed:
+    - IPProtocol: all
+    description: Allow all internal traffic within VPC CIDR ranges
+
+- name: nat-ip-us-central1
+  type: compute.v1.address
+  properties:
+    region: us-central1
+    addressType: EXTERNAL
+    description: Static external IP for Cloud NAT in us-central1
+
+- name: nat-router-us-central1
+  type: gcp-types/compute-v1:routers
+  properties:
+    region: us-central1
+    network: $(ref.vpc-network.selfLink)
+    bgp:
+      asn: 64514
+    nats:
+    - name: nat-config-us-central1
+      natIpAllocateOption: MANUAL_ONLY
+      natIps:
+      - $(ref.nat-ip-us-central1.selfLink)
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.subnet-private-us-central1.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+      enableEndpointIndependentMapping: true
+      minPortsPerVm: 2048
+      logConfig:
+        enable: true
+        filter: ERRORS_ONLY
+      udpIdleTimeoutSec: 30
+      tcpEstablishedIdleTimeoutSec: 1200
+      tcpTransitoryIdleTimeoutSec: 30
+    description: Cloud Router with Cloud NAT for private subnet only

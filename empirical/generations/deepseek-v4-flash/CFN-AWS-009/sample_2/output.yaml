@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 bucket with SSE-S3 encryption, public access restrictions, and CloudFront distribution with OAI'
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: 'Name of the S3 bucket'
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]*[a-z0-9]$'
+    ConstraintDescription: 'Bucket name must be lowercase alphanumeric, hyphens, and periods'
+
+  CloudFrontPriceClass:
+    Type: String
+    Description: 'CloudFront price class'
+    Default: PriceClass_100
+    AllowedValues:
+      - PriceClass_100
+      - PriceClass_200
+      - PriceClass_All
+
+  DefaultRootObject:
+    Type: String
+    Description: 'Default root object for CloudFront'
+    Default: index.html
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-bucket'
+        - Key: Environment
+          Value: Production
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOAI
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}'
+            Action: s3:GetObject
+            Resource: !Sub '${S3Bucket.Arn}/*'
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'OAI for ${BucketName}'
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: !Ref DefaultRootObject
+        PriceClass: !Ref CloudFrontPriceClass
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt S3Bucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: !Sub '/${DefaultRootObject}'
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: !Sub '/${DefaultRootObject}'
+        Logging:
+          Bucket: !GetAtt S3Bucket.RegionalDomainName
+          Prefix: cloudfront-logs/
+        Tags:
+          - Key: Name
+            Value: !Sub '${AWS::StackName}-distribution'
+          - Key: Environment
+            Value: Production
+
+Outputs:
+  BucketName:
+    Description: 'S3 bucket name'
+    Value: !Ref S3Bucket
+
+  CloudFrontDistributionId:
+    Description: 'CloudFront distribution ID'
+    Value: !Ref CloudFrontDistribution
+
+  CloudFrontDomainName:
+    Description: 'CloudFront distribution domain name'
+    Value: !GetAtt CloudFrontDistribution.DomainName
+
+  CloudFrontOriginAccessIdentityId:
+    Description: 'CloudFront OAI ID'
+    Value: !Ref CloudFrontOriginAccessIdentity

@@ -1,0 +1,378 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora PostgreSQL Serverless v2 Cluster for SaaS multi-tenant application with secure defaults
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: saas-app
+    Description: Project or application name for tagging
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues: [prod, staging, dev]
+    Description: Deployment environment
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where the Aurora cluster will be deployed
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of private subnet IDs in at least two AZs for the DB subnet group
+  AppSecurityGroupId:
+    Type: String
+    Default: ''
+    Description: Optional Security Group ID for application servers allowed to access the DB (leave blank to skip)
+  AllowedCidr:
+    Type: String
+    Default: ''
+    Description: Optional CIDR block allowed to access the DB (e.g., 10.0.0.0/16) (leave blank to skip)
+  ClusterIdentifier:
+    Type: String
+    Default: saas-aurora-pg
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9-]+$'
+    Description: DB cluster identifier (used in endpoints and CloudWatch log group names)
+  DatabaseName:
+    Type: String
+    Default: app
+    AllowedPattern: '^[a-zA-Z0-9_]+$'
+    Description: Initial database name
+  MasterUsername:
+    Type: String
+    Default: svcdbadmin
+    AllowedPattern: '^[a-zA-Z0-9_]+$'
+    Description: Master username. Password is managed automatically by RDS and stored in Secrets Manager.
+  DBEngineVersion:
+    Type: String
+    Default: '15.4'
+    Description: Aurora PostgreSQL engine version (e.g., 15.4). Ensure it matches the parameter group family.
+  DBFamily:
+    Type: String
+    Default: aurora-postgresql15
+    AllowedPattern: '^aurora-postgresql(11|12|13|14|15|16)$'
+    Description: DB parameter group family matching the engine major version (e.g., aurora-postgresql15)
+  DBPort:
+    Type: Number
+    Default: 5432
+    Description: Database port
+  BackupRetentionDays:
+    Type: Number
+    Default: 7
+    MinValue: 1
+    MaxValue: 35
+    Description: Backup retention period in days
+  PreferredBackupWindow:
+    Type: String
+    Default: 03:00-04:00
+    Description: Preferred backup window (UTC) in hh24:mi-hh24:mi
+  PreferredMaintenanceWindow:
+    Type: String
+    Default: Sun:04:00-Sun:05:00
+    Description: Preferred maintenance window (UTC) ddd:hh24:mi-ddd:hh24:mi
+  ServerlessMinACU:
+    Type: Number
+    Default: 0.5
+    MinValue: 0.5
+    MaxValue: 128
+    Description: Minimum Aurora capacity units (ACUs) for Serverless v2
+  ServerlessMaxACU:
+    Type: Number
+    Default: 64
+    MinValue: 0.5
+    MaxValue: 128
+    Description: Maximum Aurora capacity units (ACUs) for Serverless v2
+  LogRetentionInDays:
+    Type: Number
+    Default: 30
+    AllowedValues: [1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1096,1827,2192,2557,2922,3288,3653]
+    Description: CloudWatch LogGroup retention in days for RDS logs
+  EnableIAMAuth:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Enable IAM database authentication
+
+Conditions:
+  HasAppSG: !Not [!Equals [!Ref AppSecurityGroupId, '']]
+  HasAllowedCidr: !Not [!Equals [!Ref AllowedCidr, '']]
+  EnableIAMDatabaseAuth: !Equals [!Ref EnableIAMAuth, 'true']
+
+Resources:
+  RdsKmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS CMK for encrypting Aurora PostgreSQL cluster, Performance Insights, and CloudWatch Logs
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-rds-kms
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+  RdsKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/${ProjectName}-${Environment}-rds
+      TargetKeyId: !Ref RdsKmsKey
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Sub Subnet group for ${ProjectName} Aurora PostgreSQL
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-db-subnets
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Sub Access control for ${ProjectName} Aurora PostgreSQL
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-db-sg
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  SGIngressFromAppSG:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: HasAppSG
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref DBPort
+      ToPort: !Ref DBPort
+      SourceSecurityGroupId: !Ref AppSecurityGroupId
+      Description: Allow DB access from application security group
+
+  SGIngressFromCidr:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: HasAllowedCidr
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: !Ref DBPort
+      ToPort: !Ref DBPort
+      CidrIp: !Ref AllowedCidr
+      Description: Allow DB access from specified CIDR
+
+  ClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: !Sub Cluster parameter group for ${ProjectName} Aurora PostgreSQL
+      Family: !Ref DBFamily
+      Parameters:
+        rds.force_ssl: '1'
+        log_min_duration_statement: '1000'
+        log_connections: '1'
+        log_disconnections: '1'
+        shared_preload_libraries: 'pg_stat_statements'
+        # Enable logging collector and log settings suitable for Aurora PostgreSQL
+        log_statement: 'none'
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-cluster-param
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  InstanceParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: !Sub Instance parameter group for ${ProjectName} Aurora PostgreSQL
+      Family: !Ref DBFamily
+      Parameters:
+        track_io_timing: '1'
+        log_min_duration_statement: '1000'
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-instance-param
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  RDSMonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${ProjectName}-${Environment}-rds-monitoring
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: monitoring.rds.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-rds-monitoring
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  RdsLogGroupPostgresql:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/rds/cluster/${ClusterIdentifier}/postgresql
+      RetentionInDays: !Ref LogRetentionInDays
+      KmsKeyId: !Ref RdsKmsKey
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  RdsLogGroupUpgrade:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/rds/cluster/${ClusterIdentifier}/upgrade
+      RetentionInDays: !Ref LogRetentionInDays
+      KmsKeyId: !Ref RdsKmsKey
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBClusterIdentifier: !Ref ClusterIdentifier
+      Engine: aurora-postgresql
+      EngineVersion: !Ref DBEngineVersion
+      EngineMode: provisioned
+      DatabaseName: !Ref DatabaseName
+      Port: !Ref DBPort
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBSecurityGroup
+      DBClusterParameterGroupName: !Ref ClusterParameterGroup
+      StorageEncrypted: true
+      KmsKeyId: !Ref RdsKmsKey
+      DeletionProtection: true
+      BackupRetentionPeriod: !Ref BackupRetentionDays
+      PreferredBackupWindow: !Ref PreferredBackupWindow
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+      EnableCloudwatchLogsExports:
+        - postgresql
+        - upgrade
+      CopyTagsToSnapshot: true
+      ManageMasterUserPassword: true
+      MasterUserSecretKmsKeyId: !Ref RdsKmsKey
+      MasterUsername: !Ref MasterUsername
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref ServerlessMinACU
+        MaxCapacity: !Ref ServerlessMaxACU
+      EnableIAMDatabaseAuthentication: !If [EnableIAMDatabaseAuth, true, false]
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-aurora-pg
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  DBInstanceWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${ClusterIdentifier}-writer
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: db.serverless
+      PubliclyAccessible: false
+      AutoMinorVersionUpgrade: true
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSMonitoringRole.Arn
+      PerformanceInsightsEnabled: true
+      PerformanceInsightsKMSKeyId: !Ref RdsKmsKey
+      DBParameterGroupName: !Ref InstanceParameterGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-db-writer
+        - Key: Role
+          Value: writer
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+  DBInstanceReader:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${ClusterIdentifier}-reader
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: db.serverless
+      PubliclyAccessible: false
+      AutoMinorVersionUpgrade: true
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSMonitoringRole.Arn
+      PerformanceInsightsEnabled: true
+      PerformanceInsightsKMSKeyId: !Ref RdsKmsKey
+      DBParameterGroupName: !Ref InstanceParameterGroup
+      PromotionTier: 15
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-${Environment}-db-reader
+        - Key: Role
+          Value: reader
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+
+Outputs:
+  DBClusterArn:
+    Description: ARN of the Aurora PostgreSQL cluster
+    Value: !Ref DBCluster
+    Export:
+      Name: !Sub ${AWS::StackName}-DBClusterArn
+  ClusterEndpoint:
+    Description: Writer endpoint of the Aurora cluster
+    Value: !GetAtt DBCluster.Endpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-ClusterEndpoint
+  ReaderEndpoint:
+    Description: Reader endpoint of the Aurora cluster
+    Value: !GetAtt DBCluster.ReadEndpoint.Address
+    Export:
+      Name: !Sub ${AWS::StackName}-ReaderEndpoint
+  MasterUserSecretArn:
+    Description: Secrets Manager ARN for the RDS managed master user secret
+    Value: !GetAtt DBCluster.MasterUserSecret.SecretArn
+    Export:
+      Name: !Sub ${AWS::StackName}-MasterUserSecretArn
+  SecurityGroupId:
+    Description: Security group ID attached to the Aurora cluster
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSecurityGroupId
+  SubnetGroupName:
+    Description: Name of the DB subnet group
+    Value: !Ref DBSubnetGroup
+    Export:
+      Name: !Sub ${AWS::StackName}-DBSubnetGroup

@@ -1,0 +1,77 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "cloudfrontNoLogging",
+        "description": "Ensure that your AWS Cloudfront distributions have the Logging feature enabled in order to track all viewer requests for the content delivered through the Content Delivery Network (CDN).",
+        "rule_id": "AC_AWS_0025",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "CloudFrontDistribution",
+        "resource_type": "aws_cloudfront_distribution",
+        "file": "output.yaml",
+        "line": 49
+      },
+      {
+        "rule_name": "s3BucketSseRulesWithKmsNull",
+        "description": "Ensure that S3 Buckets have server side encryption at rest enabled with KMS key to protect sensitive data.",
+        "rule_id": "AC_AWS_0207",
+        "severity": "HIGH",
+        "category": "Data Protection",
+        "resource_name": "S3Bucket",
+        "resource_type": "aws_s3_bucket_server_side_encryption_configuration",
+        "file": "output.yaml",
+        "line": 11
+      },
+      {
+        "rule_name": "noWafEnabled",
+        "description": "Ensure that cloud-front has web application firewall enabled",
+        "rule_id": "AC_AWS_0032",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "CloudFrontDistribution",
+        "resource_type": "aws_cloudfront_distribution",
+        "file": "output.yaml",
+        "line": 49
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "cft",
+      "scanned_at": "2026-05-26 06:26:20.217966379 +0000 UTC",
+      "policies_validated": 21,
+      "violated_policies": 3,
+      "low": 0,
+      "medium": 2,
+      "high": 1
+    }
+  }
+}

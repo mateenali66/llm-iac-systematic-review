@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-003",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n- path: cloud_run_service.py\n  name: cloud_run_service\n\nresources:\n- name: python-api-cloud-run-service\n  type: cloud_run_service.py\n  properties:\n    serviceName: python-api-service\n    containerImage: gcr.io/your-project-id/python-api:latest\n    region: us-central1\n    cpu: 1\n    memory: 512Mi\n    maxInstances: 100\n    concurrency: 80\n    port: 8080\n    envVars:\n      - name: ENV\n        value: production\n      - name: LOG_LEVEL\n        value: INFO\n    serviceAccountEmail: your-service-account@your-project-id.iam.gserviceaccount.com\n    allowUnauthenticated: true\n    timeoutSeconds: 300\n    vpcConnector: projects/your-project-id/locations/us-central1/connectors/your-vpc-connector\n    vpcEgress: ALL_TRAFFIC\n\noutputs:\n- name: serviceUrl\n  value: $(ref.python-api-cloud-run-service.status.url)",
+  "cleaned_response": "imports:\n- path: cloud_run_service.py\n  name: cloud_run_service\n\nresources:\n- name: python-api-cloud-run-service\n  type: cloud_run_service.py\n  properties:\n    serviceName: python-api-service\n    containerImage: gcr.io/your-project-id/python-api:latest\n    region: us-central1\n    cpu: 1\n    memory: 512Mi\n    maxInstances: 100\n    concurrency: 80\n    port: 8080\n    envVars:\n      - name: ENV\n        value: production\n      - name: LOG_LEVEL\n        value: INFO\n    serviceAccountEmail: your-service-account@your-project-id.iam.gserviceaccount.com\n    allowUnauthenticated: true\n    timeoutSeconds: 300\n    vpcConnector: projects/your-project-id/locations/us-central1/connectors/your-vpc-connector\n    vpcEgress: ALL_TRAFFIC\n\noutputs:\n- name: serviceUrl\n  value: $(ref.python-api-cloud-run-service.status.url)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n- path: cloud_run_service.py\n  name: cloud_run_service\n\nresources:\n- name: python-api-cloud-run-service\n  type: cloud_run_service.py\n  properties:\n    serviceName: python-api-service\n    containerImage: gcr.io/your-project-id/python-api:latest\n    region: us-central1\n    cpu: 1\n    memory: 512Mi\n    maxInstances: 100\n    concurrency: 80\n    port: 8080\n    envVars:\n      - name: ENV\n        value: production\n      - name: LOG_LEVEL\n        value: INFO\n    serviceAccountEmail: your-service-account@your-project-id.iam.gserviceaccount.com\n    allowUnauthenticated: true\n    timeoutSeconds: 300\n    vpcConnector: projects/your-project-id/locations/us-central1/connectors/your-vpc-connector\n    vpcEgress: ALL_TRAFFIC\n\noutputs:\n- name: serviceUrl\n  value: $(ref.python-api-cloud-run-service.status.url)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725001,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 227,
+      "raw_input_tokens": 141
+    }
+  },
+  "started_at": "2026-05-25T16:03:18.271518+00:00",
+  "elapsed_seconds": 3.683
+}

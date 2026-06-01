@@ -1,0 +1,67 @@
+imports:
+- path: random.py
+  name: random.py
+
+resources:
+- name: saas-vpc-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: saas-app-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.saas-vpc-network.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    region: us-central1
+    privateIpGoogleAccess: true
+
+- name: private-service-access-range
+  type: compute.v1.globalAddress
+  properties:
+    purpose: VPC_PEERING
+    addressType: INTERNAL
+    prefixLength: 16
+    network: $(ref.saas-vpc-network.selfLink)
+
+- name: private-service-access-connection
+  type: servicenetworking.v1.connection
+  properties:
+    parent: services/servicenetworking.googleapis.com
+    network: $(ref.saas-vpc-network.selfLink)
+    reservedPeeringRanges:
+    - $(ref.private-service-access-range.name)
+  metadata:
+    dependsOn:
+    - saas-vpc-network
+
+- name: root-password
+  type: random.py
+  properties:
+    length: 24
+    include_symbols: True
+
+- name: saas-pg15-instance
+  type: sqladmin.v1beta4.instance
+  properties:
+    name: saas-pg15-instance-{{ env["deployment"] }}
+    region: us-central1
+    databaseVersion: POSTGRES_15
+    rootPassword: $(ref.root-password.random)
+    settings:
+      tier: db-custom-2-7680
+      dataDiskType: PD_SSD
+      dataDiskSizeGb: 20
+      storageAutoResize: true
+      storageAutoResizeLimit: 0
+      availabilityType: REGIONAL
+      backupConfiguration:
+        enabled: true
+        pointInTimeRecoveryEnabled: true
+        startTime: "03:00"
+        backupRetentionSettings:
+          retainedBackups: 14
+          retentionUnit: COUNT
+        transactionLogRetentionDays:

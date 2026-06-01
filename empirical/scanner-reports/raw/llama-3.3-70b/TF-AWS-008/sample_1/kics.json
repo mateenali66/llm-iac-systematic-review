@@ -1,0 +1,183 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 71,
+	"files_parsed": 1,
+	"lines_parsed": 71,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 2,
+		"LOW": 1,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:14:39.96274193Z",
+	"end": "2026-05-26T06:15:05.332815636Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Policies Attached To User",
+			"query_id": "b4378389-a9aa-44ee-91e7-ef183f11079e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "IAM policies should be attached only to groups or roles",
+			"description_id": "32ec58ec",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6de5746ef22005771f6fe6636e7d2626f64a03f2af6b36790460df5555b5e01a",
+					"line": 65,
+					"resource_type": "aws_iam_user_policy_attachment",
+					"resource_name": "jenkins_deploy_attach",
+					"issue_type": "RedundantAttribute",
+					"search_key": "aws_iam_user_policy_attachment[{{jenkins_deploy_attach}}].user",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'user' is redundant",
+					"actual_value": "'user' exists"
+				}
+			]
+		},
+		{
+			"query_name": "User With Privilege Escalation By Actions 'cloudformation:CreateStack' And 'iam:PassRole'",
+			"query_id": "19ffbe31-9d72-4379-9768-431195eae328",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy#policy",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "269",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "User with privilege escalation by actions 'cloudformation:CreateStack' and 'iam:PassRole' and Resource set to '*'. For more information see https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/.",
+			"description_id": "c878232c",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5b5d601caf90d7393812286b5791717bd4d244270fb1bb760acc4346c3ae8d27",
+					"line": 5,
+					"resource_type": "aws_iam_user",
+					"resource_name": "jenkins-deploy",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_iam_user[jenkins_deploy]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "user jenkins_deploy shouldn't be associated with a policy that has Action set to 'cloudformation:CreateStack' and 'iam:PassRole' and Resource set to '*'",
+					"actual_value": "user jenkins_deploy is associated with a policy that has Action set to 'cloudformation:CreateStack' and 'iam:PassRole' and Resource set to '*'"
+				}
+			]
+		},
+		{
+			"query_name": "User With Privilege Escalation By Actions 'lambda:UpdateFunctionCode'",
+			"query_id": "b69247e5-7e73-464e-ba74-ec9b715c6e12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user_policy#policy",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "269",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "User with privilege escalation by actions 'lambda:UpdateFunctionCode' and Resource set to '*'. For more information see https://rhinosecuritylabs.com/aws/aws-privilege-escalation-methods-mitigation/.",
+			"description_id": "f5d372a0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4c00086f3f8567a9bb4550a74bcab858302cd674a23371ed9e24b69a3e8fdbf7",
+					"line": 5,
+					"resource_type": "aws_iam_user",
+					"resource_name": "jenkins-deploy",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_iam_user[jenkins_deploy]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "user jenkins_deploy shouldn't be associated with a policy that has Action set to 'lambda:UpdateFunctionCode' and Resource set to '*'",
+					"actual_value": "user jenkins_deploy is associated with a policy that has Action set to 'lambda:UpdateFunctionCode' and Resource set to '*'"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "46da5698fc202aebc0abc6529e6d3c2166ede0d5a6ea0019a9371484ae16e5b3",
+					"line": 10,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "jenkins-deploy-policy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{jenkins_deploy_policy}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{jenkins_deploy_policy}}].tags should be defined and not null",
+					"actual_value": "aws_iam_policy[{{jenkins_deploy_policy}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9a0f7dc2e4f020e9b5a11b3bc2f57b6e3db79852cf48fe6a1f74a8f6b33f1de4",
+					"line": 5,
+					"resource_type": "aws_iam_user",
+					"resource_name": "jenkins-deploy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_user[{{jenkins_deploy}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_user[{{jenkins_deploy}}].tags should be defined and not null",
+					"actual_value": "aws_iam_user[{{jenkins_deploy}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

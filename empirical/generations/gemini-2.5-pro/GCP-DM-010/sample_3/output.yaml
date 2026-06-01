@@ -1,0 +1,23 @@
+resources:
+- name: multi-region-lifecycle-bucket
+  type: gcp-types/storage-v1:buckets
+  properties:
+    name: $(env.deployment)-bucket-$(uniqueId)
+    location: US
+    storageClass: MULTI_REGIONAL
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: true
+      - action:
+          type: Delete
+        condition:
+          numNewerVersions: 10

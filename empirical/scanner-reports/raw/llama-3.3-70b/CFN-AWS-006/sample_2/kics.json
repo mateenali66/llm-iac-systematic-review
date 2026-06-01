@@ -1,0 +1,362 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 255,
+	"files_parsed": 2,
+	"lines_parsed": 255,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 1,
+		"LOW": 6,
+		"MEDIUM": 7,
+		"TRACE": 0
+	},
+	"total_counter": 14,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:06:44.822571293Z",
+	"end": "2026-05-26T06:06:52.981271255Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "ECS No Load Balancer Attached",
+			"query_id": "fb2b0ecf-1492-491a-a70d-ba1df579175d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "400",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Amazon ECS service should be configured to use Load Balancing to distribute traffic evenly across the tasks, which means there must exist at least one LoadBalancer.",
+			"description_id": "2f3ec772",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3c6ee02065434211750f3f0978e14f84cfa9eeaf86bd71d5d3056de4d33c2c54",
+					"line": 94,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Service1.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.Service1.Properties.LoadBalancers' should be defined",
+					"actual_value": "'Resources.Service1.Properties.LoadBalancers' is not defined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "cf4ec959427ce2fa0ba046a9351e8b3514dbb41b9e42fc8ce318f1ea4bfbb805",
+					"line": 110,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-2",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Service2.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.Service2.Properties.LoadBalancers' should be defined",
+					"actual_value": "'Resources.Service2.Properties.LoadBalancers' is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "ELBv2 ALB Access Log Disabled",
+			"query_id": "c62e8b7d-1fdf-4050-ac4c-76ba9e1d9621",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-elasticloadbalancingv2-loadbalancer-loadbalancerattributes.html#cfn-elasticloadbalancingv2-loadbalancer-loadbalancerattributes-key",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "ELBv2 ALBs should have access log enabled to capture detailed information about requests sent to your load balancer.",
+			"description_id": "1b941e35",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "282862b3c38d63e4580f0a9b3a6e35c525dc8bf7b9c8bfbbc87712d2c318a9b4",
+					"line": 137,
+					"resource_type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+					"resource_name": "my-internal-nlb",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.LoadBalancer.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.LoadBalancer.Properties' has LoadBalancerAttributes defined",
+					"actual_value": "'Resources.LoadBalancer.Properties' doesn't have LoadBalancerAttributes defined"
+				}
+			]
+		},
+		{
+			"query_name": "Empty Roles For ECS Cluster Task Definitions",
+			"query_id": "7f384a5f-b5a2-4d84-8ca3-ee0a5247becb",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Check if any ECS cluster has not defined proper roles for services' task definitions.",
+			"description_id": "b47b42b2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7d5fc6bd9e99227de5e20d5f48d49f8be3d4e2eba96ec3dfed8ddeab17a71d4d",
+					"line": 113,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.Service2.Properties.TaskDefinition",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.Service2.Properties.TaskDefinition' refers to a TaskDefinition with Role",
+					"actual_value": "'Resources.Service2.Properties.TaskDefinition' does not refer to a TaskDefinition with Role"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fe121b6ea2d9cee271559ff528fe941f720363e6ff8835621daae0dfa9b36682",
+					"line": 97,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.Service1.Properties.TaskDefinition",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.Service1.Properties.TaskDefinition' refers to a TaskDefinition with Role",
+					"actual_value": "'Resources.Service1.Properties.TaskDefinition' does not refer to a TaskDefinition with Role"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 5,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b2257dd0f56746e7c53eae455a712fc0daaa60e06c1509244ddf51b1368ed031",
+					"line": 5,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "ECS Cluster with Container Insights Disabled",
+			"query_id": "ab759fde-e1e8-4b0e-ad73-ba856e490ed8",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-cluster.html#cfn-ecs-cluster-clustersettings",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "ECS Cluster should enable container insights",
+			"description_id": "1751124e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3f330c5c7caa645b30a36af11243328c13eb5923ad160cfb56d5a2c632349224",
+					"line": 26,
+					"resource_type": "AWS::ECS::Cluster",
+					"resource_name": "ECS Cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.ECS Cluster.Properties",
+					"search_line": 26,
+					"search_value": "",
+					"expected_value": "Resources.ECS Cluster.Properties.ClusterSettings should be defined and have a ClusterSetting named containerInsights which value is 'enabled'",
+					"actual_value": "Resources.ECS Cluster.Properties.ClusterSettings is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "ECS Service Without Running Tasks",
+			"query_id": "79d745f0-d5f3-46db-9504-bef73e9fd528",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ecs-service.html#cfn-ecs-service-deploymentconfiguration",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "ECS Service should have at least 1 task running",
+			"description_id": "cd242bdd",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "557f37f519995e06d68f86acfafc1834afdc1c476293d9a91aaaeda7b424f713",
+					"line": 94,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Service1.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Service1.Properties.DeploymentConfiguration should be defined and not null",
+					"actual_value": "Resources.Service1.Properties.DeploymentConfiguration is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "80deaad77cab3230c5fa0dfd6c0ebcb1c5e21b40d7e2964dbeefb1ae58b460a5",
+					"line": 110,
+					"resource_type": "AWS::ECS::Service",
+					"resource_name": "my-service-2",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Service2.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Service2.Properties.DeploymentConfiguration should be defined and not null",
+					"actual_value": "Resources.Service2.Properties.DeploymentConfiguration is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "ECS Task Definition HealthCheck Missing",
+			"query_id": "d24389b4-b209-4ff0-8345-dc7a4569dcdd",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ecs-taskdefinition-healthcheck.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Amazon ECS must have the HealthCheck property defined to give more control over monitoring the health of tasks",
+			"description_id": "e2e3a50a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0676a88ddd7b942bb06f162a6458cff81b1fa1dc5ca0eb41c4693f5fe8fb73c5",
+					"line": 61,
+					"resource_type": "AWS::ECS::TaskDefinition",
+					"resource_name": "TaskDefinition2",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.TaskDefinition2.Properties.ContainerDefinitions.0.Name=my-container-2",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.TaskDefinition2.Properties.ContainerDefinitions' should contain 'HealthCheck' property",
+					"actual_value": "'Resources.TaskDefinition2.Properties.ContainerDefinitions' doesn't contain 'HealthCheck' property"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6e02a9771cc78d94733c23fe2873d919521133ca3998858b07bc40d6dea84881",
+					"line": 43,
+					"resource_type": "AWS::ECS::TaskDefinition",
+					"resource_name": "TaskDefinition1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.TaskDefinition1.Properties.ContainerDefinitions.0.Name=my-container-1",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.TaskDefinition1.Properties.ContainerDefinitions' should contain 'HealthCheck' property",
+					"actual_value": "'Resources.TaskDefinition1.Properties.ContainerDefinitions' doesn't contain 'HealthCheck' property"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 4,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a7945f510656954b54ca9e04965686273ffb1fcbb1b8a3e71c2897f0caa08bb",
+					"line": 129,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

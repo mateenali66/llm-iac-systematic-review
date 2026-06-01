@@ -1,0 +1,12 @@
+resources:
+- name: cloud-function-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cloud-function-reader
+    displayName: Cloud Function Storage Reader
+- name: bucket-iam-binding
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: my-target-bucket
+    role: roles/storage.objectViewer
+    member: serviceAccount:$(ref.cloud-function-sa.email)

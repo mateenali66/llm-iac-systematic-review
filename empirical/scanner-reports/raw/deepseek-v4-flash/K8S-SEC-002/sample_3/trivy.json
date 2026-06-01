@@ -1,0 +1,600 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:42:40.188140134Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 74,
+        "Failures": 5
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV039",
+          "AVDID": "AVD-KSV-0039",
+          "Title": "limit range usage",
+          "Description": "Ensure that a LimitRange policy is configured to limit resource usage for namespaces or nodes",
+          "Message": "A LimitRange policy with a default requests and limits for each container should be configured",
+          "Namespace": "builtin.kubernetes.KSV039",
+          "Query": "data.builtin.kubernetes.KSV039.deny",
+          "Resolution": "Create a LimitRange policy with default requests and limits for each container",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv039",
+          "References": [
+            "https://kubernetes.io/docs/concepts/policy/limit-range/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-constraint-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv039"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 12,
+            "EndLine": 17,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 12,
+                  "Content": "  hard:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mhard\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "    pods: \"100\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mpods\u001b[0m: \u001b[38;5;37m\"100\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "    requests.cpu: \"10\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mrequests.cpu\u001b[0m: \u001b[38;5;37m\"10\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "    requests.memory: 20Gi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mrequests.memory\u001b[0m: 20Gi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "    limits.cpu: \"20\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mlimits.cpu\u001b[0m: \u001b[38;5;37m\"20\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "    limits.memory: 40Gi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mlimits.memory\u001b[0m: 40Gi",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV039",
+          "AVDID": "AVD-KSV-0039",
+          "Title": "limit range usage",
+          "Description": "Ensure that a LimitRange policy is configured to limit resource usage for namespaces or nodes",
+          "Message": "A LimitRange policy with a default requests and limits for each container should be configured",
+          "Namespace": "builtin.kubernetes.KSV039",
+          "Query": "data.builtin.kubernetes.KSV039.deny",
+          "Resolution": "Create a LimitRange policy with default requests and limits for each container",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv039",
+          "References": [
+            "https://kubernetes.io/docs/concepts/policy/limit-range/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-constraint-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv039"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 25,
+            "EndLine": 32,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 25,
+                  "Content": "  limits:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mlimits\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 26,
+                  "Content": "  - default:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mdefault\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 27,
+                  "Content": "      cpu: \"500m\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mcpu\u001b[0m: \u001b[38;5;37m\"500m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 28,
+                  "Content": "      memory: 512Mi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mmemory\u001b[0m: 512Mi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "    defaultRequest:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mdefaultRequest\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "      cpu: \"250m\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mcpu\u001b[0m: \u001b[38;5;37m\"250m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "      memory: 256Mi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mmemory\u001b[0m: 256Mi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "    type: Container",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mtype\u001b[0m: Container",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV039",
+          "AVDID": "AVD-KSV-0039",
+          "Title": "limit range usage",
+          "Description": "Ensure that a LimitRange policy is configured to limit resource usage for namespaces or nodes",
+          "Message": "A LimitRange policy with a default requests and limits for each container should be configured",
+          "Namespace": "builtin.kubernetes.KSV039",
+          "Query": "data.builtin.kubernetes.KSV039.deny",
+          "Resolution": "Create a LimitRange policy with default requests and limits for each container",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv039",
+          "References": [
+            "https://kubernetes.io/docs/concepts/policy/limit-range/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-default-namespace/",
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/memory-constraint-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv039"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 44,
+            "EndLine": 72,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 44,
+                  "Content": "  privileged: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mprivileged\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 45,
+                  "Content": "  allowPrivilegeEscalation: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;33mallowPrivilegeEscalation\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 46,
+                  "Content": "  requiredDropCapabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;33mrequiredDropCapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 47,
+                  "Content": "    - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    - ALL",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 48,
+                  "Content": "  volumes:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mvolumes\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 49,
+                  "Content": "    - 'configMap'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    - \u001b[38;5;37m'configMap'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 50,
+                  "Content": "    - 'emptyDir'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'emptyDir'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 51,
+                  "Content": "    - 'projected'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'projected'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "    - 'secret'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'secret'",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 53,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV040",
+          "AVDID": "AVD-KSV-0040",
+          "Title": "resource quota usage",
+          "Description": "Ensure that a ResourceQuota policy is configured to limit aggregate resource usage within a namespace",
+          "Message": "A resource quota policy with hard memory and CPU limits should be configured per namespace",
+          "Namespace": "builtin.kubernetes.KSV040",
+          "Query": "data.builtin.kubernetes.KSV040.deny",
+          "Resolution": "Create a ResourceQuota policy with memory and CPU quotas for each namespace",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv040",
+          "References": [
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/quota-memory-cpu-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv040"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 25,
+            "EndLine": 32,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 25,
+                  "Content": "  limits:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mlimits\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 26,
+                  "Content": "  - default:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  - \u001b[38;5;33mdefault\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 27,
+                  "Content": "      cpu: \"500m\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mcpu\u001b[0m: \u001b[38;5;37m\"500m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 28,
+                  "Content": "      memory: 512Mi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mmemory\u001b[0m: 512Mi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "    defaultRequest:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mdefaultRequest\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "      cpu: \"250m\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mcpu\u001b[0m: \u001b[38;5;37m\"250m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "      memory: 256Mi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mmemory\u001b[0m: 256Mi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "    type: Container",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mtype\u001b[0m: Container",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV040",
+          "AVDID": "AVD-KSV-0040",
+          "Title": "resource quota usage",
+          "Description": "Ensure that a ResourceQuota policy is configured to limit aggregate resource usage within a namespace",
+          "Message": "A resource quota policy with hard memory and CPU limits should be configured per namespace",
+          "Namespace": "builtin.kubernetes.KSV040",
+          "Query": "data.builtin.kubernetes.KSV040.deny",
+          "Resolution": "Create a ResourceQuota policy with memory and CPU quotas for each namespace",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv040",
+          "References": [
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/quota-memory-cpu-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv040"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 44,
+            "EndLine": 72,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 44,
+                  "Content": "  privileged: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mprivileged\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 45,
+                  "Content": "  allowPrivilegeEscalation: false",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;33mallowPrivilegeEscalation\u001b[0m: \u001b[38;5;166mfalse",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 46,
+                  "Content": "  requiredDropCapabilities:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;33mrequiredDropCapabilities\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 47,
+                  "Content": "    - ALL",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    - ALL",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 48,
+                  "Content": "  volumes:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mvolumes\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 49,
+                  "Content": "    - 'configMap'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    - \u001b[38;5;37m'configMap'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 50,
+                  "Content": "    - 'emptyDir'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'emptyDir'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 51,
+                  "Content": "    - 'projected'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'projected'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "    - 'secret'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    - \u001b[38;5;37m'secret'",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 53,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-013",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template provisioning a Memorystore Redis instance (Basic tier, 1 GB) for application caching.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template provisioning a Memorystore Redis instance (Basic tier, 1 GB) for application caching.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: redis-cache-instance\n  type: gcp-types/redis-v1beta1:projects.locations.instances\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    instanceId: app-cache-instance\n    tier: BASIC\n    memorySizeGb: 1\n    locationId: us-central1-a\n    redisVersion: REDIS_6_X\n    authorizedNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n    connectMode: DIRECT_PEERING\n    maintenancePolicy:\n      weeklyMaintenanceWindow:\n        - day: MONDAY\n          startTime:\n            hours: 2\n            minutes: 0\n            seconds: 0\n            nanos: 0\n    persistenceConfig:\n      persistenceMode: DISABLED\n    transitEncryptionMode: SERVER_AUTHENTICATION\n    labels:\n      environment: production\n      service: application-cache\n      managed-by: deployment-manager",
+  "cleaned_response": "resources:\n- name: redis-cache-instance\n  type: gcp-types/redis-v1beta1:projects.locations.instances\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    instanceId: app-cache-instance\n    tier: BASIC\n    memorySizeGb: 1\n    locationId: us-central1-a\n    redisVersion: REDIS_6_X\n    authorizedNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n    connectMode: DIRECT_PEERING\n    maintenancePolicy:\n      weeklyMaintenanceWindow:\n        - day: MONDAY\n          startTime:\n            hours: 2\n            minutes: 0\n            seconds: 0\n            nanos: 0\n    persistenceConfig:\n      persistenceMode: DISABLED\n    transitEncryptionMode: SERVER_AUTHENTICATION\n    labels:\n      environment: production\n      service: application-cache\n      managed-by: deployment-manager",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: redis-cache-instance\n  type: gcp-types/redis-v1beta1:projects.locations.instances\n  properties:\n    parent: projects/{{ env[\"project\"] }}/locations/us-central1\n    instanceId: app-cache-instance\n    tier: BASIC\n    memorySizeGb: 1\n    locationId: us-central1-a\n    redisVersion: REDIS_6_X\n    authorizedNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n    connectMode: DIRECT_PEERING\n    maintenancePolicy:\n      weeklyMaintenanceWindow:\n        - day: MONDAY\n          startTime:\n            hours: 2\n            minutes: 0\n            seconds: 0\n            nanos: 0\n    persistenceConfig:\n      persistenceMode: DISABLED\n    transitEncryptionMode: SERVER_AUTHENTICATION\n    labels:\n      environment: production\n      service: application-cache\n      managed-by: deployment-manager",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725243,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 142,
+      "output_tokens": 192,
+      "raw_input_tokens": 142
+    }
+  },
+  "started_at": "2026-05-25T16:07:20.033758+00:00",
+  "elapsed_seconds": 3.041
+}

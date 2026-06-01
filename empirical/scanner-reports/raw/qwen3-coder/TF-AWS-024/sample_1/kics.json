@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 40,
+	"files_parsed": 1,
+	"lines_parsed": 40,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:38:13.456597626Z",
+	"end": "2026-05-26T06:38:38.538369388Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "SNS Topic Encrypted With AWS Managed Key",
+			"query_id": "b1a72f66-2236-4f3b-87ba-0da1b366956f",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic#kms_master_key_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "SNS (Simple Notification Service) Topic should be encrypted with customer-managed KMS keys instead of AWS managed keys",
+			"description_id": "ecb127ec",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2b0f0c27bd5004f17d76f51fef9782a7482e94f9e5849006d359b6a20467f129",
+					"line": 4,
+					"resource_type": "aws_sns_topic",
+					"resource_name": "critical-alerts",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_sns_topic[critical_alerts].kms_master_key_id",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "SNS Topic should not be encrypted with AWS managed key",
+					"actual_value": "SNS Topic is encrypted with AWS managed key"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		}
+	]
+}

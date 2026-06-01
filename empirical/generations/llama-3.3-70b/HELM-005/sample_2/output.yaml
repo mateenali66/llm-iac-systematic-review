@@ -1,0 +1,133 @@
+# FILE: Chart.yaml
+name: multi-container-pod
+version: 1.0.0
+description: A Helm chart for deploying a multi-container Pod with a sidecar
+
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+fluentBit:
+  image:
+    repository: fluent/fluent-bit
+    tag: latest
+  config:
+    input:
+      - name: tail
+        tag: kube.*
+        path: /var/log/containers/*.log
+        db: /var/log/flb_kube.db
+        mem_buf_limit: 10MB
+        skip_long_lines: On
+    filter:
+      - name: kubernetes
+        match: kube.*
+        merge_json: log
+        keep_time_key: On
+    output:
+      - name: es
+        match: kube.*
+        host: elasticsearch
+        port: 9200
+        index: logs
+        type: log
+        retry_limit: 5
+        buffer:
+          type: file
+          path: /var/log/flb_es
+          sync: normal
+          chunk_limit_size: 5M
+          queue_limit_size: 10M
+volume:
+  size: 1Gi
+
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-container-pod.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "multi-container-pod.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+      - name: fluent-bit
+        image: "{{ .Values.fluentBit.image.repository }}:{{ .Values.fluentBit.image.tag }}"
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+        - name: flb-config
+          mountPath: /etc/fluent-bit
+        - name: flb-db
+          mountPath: /var/log/flb_kube.db
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: flb-config
+        configMap:
+          name: {{ include "multi-container-pod.fullname" . }}-flb-config
+      - name: flb-db
+        emptyDir: {}
+
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}-flb-config
+data:
+  fluent-bit.conf: |
+    [INPUT]
+      name = tail
+      tag = kube.*
+      path = /var/log/containers/*.log
+      db = /var/log/flb_kube.db
+      mem_buf_limit = 10MB
+      skip_long_lines = On
+    [FILTER]
+      name = kubernetes
+      match = kube.*
+      merge_json = log
+      keep_time_key = On
+    [OUTPUT]
+      name = es
+      match = kube.*
+      host = elasticsearch
+      port = 9200
+      index = logs
+      type = log
+      retry_limit = 5
+      buffer:
+        type = file
+        path = /var/log/flb_es
+        sync = normal
+        chunk_limit_size = 5M
+        queue_limit_size = 10M
+
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "multi-container-pod.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+  selector:
+    {{- include "multi-container-pod.labels" . | nindent 4 }}

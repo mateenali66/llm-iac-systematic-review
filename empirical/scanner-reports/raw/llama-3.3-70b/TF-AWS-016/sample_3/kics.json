@@ -1,0 +1,127 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 32,
+	"files_parsed": 1,
+	"lines_parsed": 32,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 2,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:17:17.798493086Z",
+	"end": "2026-05-26T06:17:39.328329555Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Secretsmanager Secret Without KMS",
+			"query_id": "a2f548f2-188c-4fff-b172-e9a6acb216bd",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret#kms_key_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS Secretmanager should use AWS KMS customer master key (CMK) to encrypt the secret values in the versions stored in the secret",
+			"description_id": "c9c95b59",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4787532d92ef528696863293159dc23b8dd53885482f341a314ef96f6450b5ba",
+					"line": 5,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "prod/database/password",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{database_password}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret.kms_key_id should be defined and not null",
+					"actual_value": "aws_secretsmanager_secret.kms_key_id is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "bebd0418efccc7dc48644a26ed97876d66d5e0a3e378f623c281d938b7db67c8",
+					"line": 5,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "prod/database/password",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{database_password}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret[{{database_password}}].tags should be defined and not null",
+					"actual_value": "aws_secretsmanager_secret[{{database_password}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "20e78d5ac7fdbba3c59a656c5d4c0c47dd301a59fdeeeb84c1aa23135bae86ed",
+					"line": 15,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "secrets-manager-policy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{secrets_manager_policy}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{secrets_manager_policy}}].tags should be defined and not null",
+					"actual_value": "aws_iam_policy[{{secrets_manager_policy}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CFN-AWS-010",
+  "language": "cloudformation",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "Resources:\n  OrderProcessorQueue:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-queue\n      VisibilityTimeout: 30\n      MessageRetentionPeriod: 345600\n  OrderProcessorRole:\n    Type: AWS::IAM::Role\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service: lambda.amazonaws.com\n            Action: sts:AssumeRole\n      Policies:\n        - PolicyName: OrderProcessorPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*\n              - Effect: Allow\n                Action:\n                  - sqs:ReceiveMessage\n                  - sqs:DeleteMessage\n                  - sqs:GetQueueAttributes\n                  - sqs:ChangeMessageVisibility\n                Resource: !GetAtt OrderProcessorQueue.Arn\n  OrderProcessorFunction:\n    Type: AWS::Lambda::Function\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt OrderProcessorRole.Arn\n      Code:\n        ZipFile: |\n          import json\n          def lambda_handler(event, context):\n              for record in event.get('Records', []):\n                  body = record.get('body')\n                  print(f\"Processing message: {body}\")\n              return {'statusCode': 200, 'body': json.dumps('Processed')}\n      Timeout: 30\n      MemorySize: 256\n      TracingConfig:\n        Mode: Active\n  OrderProcessorEventSourceMapping:\n    Type: AWS::Lambda::EventSourceMapping\n    Properties:\n      EventSourceArn: !GetAtt OrderProcessorQueue.Arn\n      FunctionName: !Ref OrderProcessorFunction\n      BatchSize: 10\n      Enabled: true\n      MaximumBatchingWindowInSeconds: 5",
+  "cleaned_response": "Resources:\n  OrderProcessorQueue:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-queue\n      VisibilityTimeout: 30\n      MessageRetentionPeriod: 345600\n  OrderProcessorRole:\n    Type: AWS::IAM::Role\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service: lambda.amazonaws.com\n            Action: sts:AssumeRole\n      Policies:\n        - PolicyName: OrderProcessorPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*\n              - Effect: Allow\n                Action:\n                  - sqs:ReceiveMessage\n                  - sqs:DeleteMessage\n                  - sqs:GetQueueAttributes\n                  - sqs:ChangeMessageVisibility\n                Resource: !GetAtt OrderProcessorQueue.Arn\n  OrderProcessorFunction:\n    Type: AWS::Lambda::Function\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt OrderProcessorRole.Arn\n      Code:\n        ZipFile: |\n          import json\n          def lambda_handler(event, context):\n              for record in event.get('Records', []):\n                  body = record.get('body')\n                  print(f\"Processing message: {body}\")\n              return {'statusCode': 200, 'body': json.dumps('Processed')}\n      Timeout: 30\n      MemorySize: 256\n      TracingConfig:\n        Mode: Active\n  OrderProcessorEventSourceMapping:\n    Type: AWS::Lambda::EventSourceMapping\n    Properties:\n      EventSourceArn: !GetAtt OrderProcessorQueue.Arn\n      FunctionName: !Ref OrderProcessorFunction\n      BatchSize: 10\n      Enabled: true\n      MaximumBatchingWindowInSeconds: 5",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "Resources:\n  OrderProcessorQueue:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-queue\n      VisibilityTimeout: 30\n      MessageRetentionPeriod: 345600\n  OrderProcessorRole:\n    Type: AWS::IAM::Role\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service: lambda.amazonaws.com\n            Action: sts:AssumeRole\n      Policies:\n        - PolicyName: OrderProcessorPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*\n              - Effect: Allow\n                Action:\n                  - sqs:ReceiveMessage\n                  - sqs:DeleteMessage\n                  - sqs:GetQueueAttributes\n                  - sqs:ChangeMessageVisibility\n                Resource: !GetAtt OrderProcessorQueue.Arn\n  OrderProcessorFunction:\n    Type: AWS::Lambda::Function\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt OrderProcessorRole.Arn\n      Code:\n        ZipFile: |\n          import json\n          def lambda_handler(event, context):\n              for record in event.get('Records', []):\n                  body = record.get('body')\n                  print(f\"Processing message: {body}\")\n              return {'statusCode': 200, 'body': json.dumps('Processed')}\n      Timeout: 30\n      MemorySize: 256\n      TracingConfig:\n        Mode: Active\n  OrderProcessorEventSourceMapping:\n    Type: AWS::Lambda::EventSourceMapping\n    Properties:\n      EventSourceArn: !GetAtt OrderProcessorQueue.Arn\n      FunctionName: !Ref OrderProcessorFunction\n      BatchSize: 10\n      Enabled: true\n      MaximumBatchingWindowInSeconds: 5",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724832,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 149,
+      "output_tokens": 449,
+      "reasoning_tokens": 943,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T16:00:17.040834+00:00",
+  "elapsed_seconds": 15.386
+}

@@ -1,0 +1,76 @@
+---
+- name: Configure firewall rules
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure ufw is installed
+      apt:
+        name: ufw
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure firewalld is installed
+      yum:
+        name: firewalld
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Start and enable ufw service
+      systemd:
+        name: ufw
+        state: started
+        enabled: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Start and enable firewalld service
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Allow SSH traffic on port 22 (ufw)
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+      when: ansible_os_family == "Debian"
+
+    - name: Allow HTTPS traffic on port 443 (ufw)
+      ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+      when: ansible_os_family == "Debian"
+
+    - name: Deny all other incoming traffic by default (ufw)
+      ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+      when: ansible_os_family == "Debian"
+
+    - name: Allow SSH service (firewalld)
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Allow HTTPS service (firewalld)
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+        immediate: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Set default zone to drop all incoming traffic (firewalld)
+      firewalld:
+        zone: public
+        permanent: yes
+        state: enabled
+        target: DROP
+        immediate: yes
+      when: ansible_os_family == "RedHat"

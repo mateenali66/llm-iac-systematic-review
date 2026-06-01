@@ -1,0 +1,18 @@
+apiVersion: policy/v1
+kind: PodSecurityAdmissionConfiguration
+metadata:
+  name: restricted-psa-config
+spec:
+  defaultAdmissionRule:
+    podSecurityLevel: restricted
+  exemptions:
+    namespaces:
+    - kube-system
+  mode: enforce
+  namespaceSelectors:
+  - matchFields:
+    - key: metadata.name
+      operator: In
+      values:
+      - production
+  version: v1.24.0

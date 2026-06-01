@@ -1,0 +1,55 @@
+---
+- name: Configure Linux firewall
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Ensure firewalld is installed and enabled
+    apt:
+      name: firewalld
+      state: present
+    notify: enable firewalld
+
+  - name: Enable firewalld service
+    service:
+      name: firewalld
+      state: started
+      enabled: yes
+
+  - name: Allow SSH traffic
+    firewalld:
+      service: ssh
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Allow HTTPS traffic
+    firewalld:
+      service: https
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Deny all other inbound traffic
+    firewalld:
+      zone: public
+      state: enabled
+      permanent: yes
+      immediate: yes
+    when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat" or ansible_distribution == "Fedora"
+
+  - name: Set default zone to drop
+    firewalld:
+      zone: public
+      set_default: yes
+      state: enabled
+      permanent: yes
+      immediate: yes
+    when: ansible_distribution == "Ubuntu" or ansible_distribution == "Debian"
+
+  handlers:
+  - name: enable firewalld
+    service:
+      name: firewalld
+      state: started
+      enabled: yes

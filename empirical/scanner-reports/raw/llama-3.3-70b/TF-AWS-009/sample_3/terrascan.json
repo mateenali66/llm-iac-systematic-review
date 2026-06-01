@@ -1,0 +1,91 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "rdsIamAuthEnabled",
+        "description": "Ensure that your RDS database has IAM Authentication enabled.",
+        "rule_id": "AC_AWS_0053",
+        "severity": "MEDIUM",
+        "category": "Data Protection",
+        "resource_name": "primary_database",
+        "resource_type": "aws_db_instance",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 5
+      },
+      {
+        "rule_name": "vpcFlowLogsNotEnabled",
+        "description": "Ensure VPC flow logging is enabled in all VPCs",
+        "rule_id": "AC_AWS_0369",
+        "severity": "LOW",
+        "category": "Logging and Monitoring",
+        "resource_name": "primary_vpc",
+        "resource_type": "aws_vpc",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 51
+      },
+      {
+        "rule_name": "rdsLogExportDisabled",
+        "description": "Ensure CloudWatch logging is enabled for AWS DB instances",
+        "rule_id": "AC_AWS_0454",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "primary_database",
+        "resource_type": "aws_db_instance",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 5
+      },
+      {
+        "rule_name": "networkPort5432ExposedToprivate",
+        "description": "Ensure PostgresSQL' (TCP,5432) is not exposed to private hosts more than 32",
+        "rule_id": "AC_AWS_0351",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "primary_database_sg",
+        "resource_type": "aws_security_group",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 31
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 06:15:42.373577417 +0000 UTC",
+      "policies_validated": 146,
+      "violated_policies": 4,
+      "low": 2,
+      "medium": 2,
+      "high": 0
+    }
+  }
+}

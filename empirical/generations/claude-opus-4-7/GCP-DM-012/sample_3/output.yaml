@@ -1,0 +1,109 @@
+resources:
+- name: cloud-armor-security-policy
+  type: gcp-types/compute-beta:securityPolicies
+  properties:
+    description: "Production Cloud Armor security policy with geo-blocking and rate limiting"
+    type: CLOUD_ARMOR
+    adaptiveProtectionConfig:
+      layer7DdosDefenseConfig:
+        enable: true
+        ruleVisibility: STANDARD
+    advancedOptionsConfig:
+      jsonParsing: STANDARD
+      logLevel: VERBOSE
+    rules:
+    - description: "Block traffic from restricted countries (North Korea, Iran, Syria, Cuba)"
+      priority: 1000
+      action: deny(403)
+      match:
+        expr:
+          expression: "origin.region_code == 'KP' || origin.region_code == 'IR' || origin.region_code == 'SY' || origin.region_code == 'CU'"
+      preview: false
+    - description: "Block known malicious IP ranges via Tor exit nodes"
+      priority: 1100
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('sourceiplist-tor')"
+      preview: false
+    - description: "OWASP ProtectionSQL injection"
+      priority: 2000
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('sqli-v33-stable')"
+      preview: false
+    - description: "OWASP Protection - Cross-site scripting (XSS)"
+      priority: 2100
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('xss-v33-stable')"
+      preview: false
+    - description: "OWASP Protection - Local file inclusion"
+      priority: 2200
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('lfi-v33-stable')"
+      preview: false
+    - description: "OWASP Protection - Remote code execution"
+      priority: 2300
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('rce-v33-stable')"
+      preview: false
+    - description: "Rate limit requests per IP - throttle excessive traffic"
+      priority: 3000
+      action: throttle
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      rateLimitOptions:
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 60
+      preview: false
+    - description: "Ban abusive IPs exceeding aggressive rate limits"
+      priority: 3100
+      action: rate_based_ban
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      rateLimitOptions:
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+        rateLimitThreshold:
+          count: 1000
+          intervalSec: 60
+        banDurationSec: 600
+        banThreshold:
+          count: 2000
+          intervalSec: 600
+      preview: false
+    - description: "Default rule - allow all other traffic"
+      priority: 2147483647
+      action: allow
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      preview: false
+
+outputs:
+- name: securityPolicyName
+  value: $(ref.cloud-armor-security-policy.name)
+- name: securityPolicySelfLink
+  value: $(ref.cloud-armor-security-policy.selfLink)
+- name: securityPolicyId
+  value: $(ref.cloud-armor-security-policy.id)

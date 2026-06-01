@@ -1,0 +1,198 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 194,
+	"files_parsed": 2,
+	"lines_parsed": 194,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 4,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:24:55.349665965Z",
+	"end": "2026-05-26T06:25:01.92026976Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "S3 Bucket Logging Disabled",
+			"query_id": "4552b71f-0a2a-4bc4-92dd-ed7ec1b4674c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-loggingconfig",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Server Access Logging should be enabled on S3 Buckets so that all changes are logged and trackable",
+			"description_id": "ce3728e6",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5f6cb08c710aedcfe4145704c3c9d16d4f7fccdb530326b94c9ecca09975af35",
+					"line": 15,
+					"resource_type": "AWS::S3::Bucket",
+					"resource_name": "${BucketNamePrefix}-${AWS::AccountId}-${AWS::Region}",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.UserUploadsBucket.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.UserUploadsBucket.Properties' should have property 'LoggingConfiguration'",
+					"actual_value": "'Resources.UserUploadsBucket.Properties' doesn't have property 'LoggingConfiguration'"
+				}
+			]
+		},
+		{
+			"query_name": "S3 Bucket With Unsecured CORS Rule",
+			"query_id": "3609d27c-3698-483a-9402-13af6ae80583",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-cors.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "If the CORS (Cross-Origin Resource Sharing) rule is defined in an S3 bucket, it should be secure",
+			"description_id": "f616509e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ff485a41475b92a1ca2fad44b415c7d19c024a2b6bd1e0c82e671812e67a9ad5",
+					"line": 39,
+					"resource_type": "AWS::S3::Bucket",
+					"resource_name": "${BucketNamePrefix}-${AWS::AccountId}-${AWS::Region}",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.UserUploadsBucket.Properties.CorsConfiguration.CorsRules",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.UserUploadsBucket.Properties.CorsConfiguration.CorsRules[0] should not allow all methods, all headers or several origins",
+					"actual_value": "Resources.UserUploadsBucket.Properties.CorsConfiguration.CorsRules[0] allows all methods, all headers or several origins"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 12,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Function Without Dead Letter Queue",
+			"query_id": "c2eae442-d3ba-4cb1-84ca-1db4f80eae3d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-deadletterconfig",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "390",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "AWS Lambda Function should be configured for a Dead Letter Queue(DLQ)",
+			"description_id": "d5d9d047",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c8795de47d0fa5105ba8f6ab9941182af1a8c91c385a0ea65f93f5bc12b57ef0",
+					"line": 101,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "${AWS::StackName}-upload-processor",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.UploadProcessorFunction.Properties",
+					"search_line": 101,
+					"search_value": "",
+					"expected_value": "'Resources.UploadProcessorFunction.Properties.DeadLetterConfig' should be defined and not null",
+					"actual_value": "'Resources.UploadProcessorFunction.Properties.DeadLetterConfig' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Function Without Tags",
+			"query_id": "8df8e857-bd59-44fa-9f4c-d77594b95b46",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "AWS Lambda Functions must have associated tags.",
+			"description_id": "664675e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "17f3d0f3e1598768894a0845902fdece744d213a381e5350f4eac5b69e360df2",
+					"line": 101,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "${AWS::StackName}-upload-processor",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.UploadProcessorFunction.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.UploadProcessorFunction.Properties.Tags' should be defined",
+					"actual_value": "'Resources.UploadProcessorFunction.Properties.Tags' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Functions Without X-Ray Tracing",
+			"query_id": "9488c451-074e-4cd3-aee3-7db6104f542c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-tracingconfig.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "AWS Lambda functions should have TracingConfig enabled. For this, property 'tracingConfig.mode' should have the value 'Active'",
+			"description_id": "26afaa67",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fedce840c30f81d5e2c567079101c4d72571ae8b5fde453e19bb045fddd1cf21",
+					"line": 101,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "${AWS::StackName}-upload-processor",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.UploadProcessorFunction.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Property 'TracingConfig' should be defined",
+					"actual_value": "Property 'TracingConfig' is undefined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application'
+
+Resources:
+  DatabaseSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupName: !Sub 'saas-app-subnet-group-${AWS::Region}'
+      DBSubnetGroupDescription: 'Subnet group for Aurora PostgreSQL Serverless v2 cluster'
+      SubnetIds: !GetAZs [ !Sub '${AWS::Region}' ]
+
+  DatabaseCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'
+      Engine: 'aurora-postgresql'
+      EngineMode: 'serverless'
+      EngineVersion: '14.3'
+      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'
+      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt 'DatabaseSecurityGroup.GroupId'
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 64
+        MinCapacity: 4
+        SecondsUntilAutoPause: 300
+
+  DatabaseSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Security group for Aurora PostgreSQL Serverless v2 cluster'
+      VpcId: !GetAtt 'VPC.Id'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: '0.0.0.0/0'
+
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+
+Outputs:
+  DatabaseClusterIdentifier:
+    Value: !Ref DatabaseCluster
+    Description: 'Aurora PostgreSQL Serverless v2 cluster identifier'
+  DatabaseClusterEndpoint:
+    Value: !GetAtt 'DatabaseCluster.Endpoint'
+    Description: 'Aurora PostgreSQL Serverless v2 cluster endpoint'

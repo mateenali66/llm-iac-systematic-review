@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'KMS key for encrypting database backups with automatic rotation'
+
+Resources:
+  DatabaseBackupKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'Customer managed key for database backup encryption'
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: 'key-policy-db-backups'
+        Statement:
+          - Sid: 'Enable IAM User Permissions'
+            Effect: 'Allow'
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: 'Allow service-linked role to use the key'
+            Effect: 'Allow'
+            Principal:
+              Service: 'rds.amazonaws.com'
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+          - Sid: 'Allow attachment of persistent resources'
+            Effect: 'Allow'
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:CreateGrant'
+              - 'kms:ListGrants'
+              - 'kms:RevokeGrant'
+            Resource: '*'
+            Condition:
+              Bool:
+                'kms:GrantIsForAWSResource': 'true'
+      Tags:
+        - Key: 'Name'
+          Value: 'DatabaseBackupKey'
+        - Key: 'Environment'
+          Value: 'Production'
+
+  DatabaseBackupKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: 'alias/database-backup-key'
+      TargetKeyId: !Ref DatabaseBackupKey
+
+Outputs:
+  DatabaseBackupKeyId:
+    Description: 'KMS Key ID for database backups'
+    Value: !Ref DatabaseBackupKey
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabaseBackupKeyId'
+
+  DatabaseBackupKeyArn:
+    Description: 'KMS Key ARN for database backups'
+    Value: !GetAtt DatabaseBackupKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-DatabaseBackupKeyArn'

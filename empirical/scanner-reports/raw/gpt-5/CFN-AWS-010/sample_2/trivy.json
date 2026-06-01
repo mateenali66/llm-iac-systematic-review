@@ -1,0 +1,419 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:13:01.332136047Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 28,
+        "Failures": 3
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0017",
+          "AVDID": "AVD-AWS-0017",
+          "Title": "CloudWatch log groups should be encrypted using CMK",
+          "Description": "CloudWatch log groups are encrypted by default, however, to get the full benefit of controlling key rotation and other KMS aspects a KMS CMK should be used.\n",
+          "Message": "Log group is not encrypted.",
+          "Namespace": "builtin.aws.cloudwatch.aws0017",
+          "Query": "data.builtin.aws.cloudwatch.aws0017.deny",
+          "Resolution": "Enable CMK encryption of CloudWatch Log Groups",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0017",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0017"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:137-146",
+            "Provider": "AWS",
+            "Service": "cloudwatch",
+            "StartLine": 137,
+            "EndLine": 146,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 137,
+                  "Content": "  OrderProcessorLogGroup:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mOrderProcessorLogGroup\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 138,
+                  "Content": "    Type: AWS::Logs::LogGroup",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::Logs::LogGroup",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 139,
+                  "Content": "    DeletionPolicy: Retain",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mDeletionPolicy\u001b[0m: Retain",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 140,
+                  "Content": "    UpdateReplacePolicy: Retain",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mUpdateReplacePolicy\u001b[0m: Retain",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 141,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 142,
+                  "Content": "      LogGroupName: /aws/lambda/order-processor",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mLogGroupName\u001b[0m: /aws/lambda/order-processor",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 143,
+                  "Content": "      RetentionInDays: !Ref LogRetentionDays",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mRetentionInDays\u001b[0m: !Ref LogRetentionDays",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 144,
+                  "Content": "      Tags:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mTags\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 145,
+                  "Content": "        - Key: Project",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mKey\u001b[0m: Project",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 146,
+                  "Content": "          Value: order-processor",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mValue\u001b[0m: order-processor",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0096",
+          "AVDID": "AVD-AWS-0096",
+          "Title": "Unencrypted SQS queue.",
+          "Description": "Queues should be encrypted to protect queue contents.\n",
+          "Message": "Queue is not encrypted",
+          "Namespace": "builtin.aws.sqs.aws0096",
+          "Query": "data.builtin.aws.sqs.aws0096.deny",
+          "Resolution": "Turn on SQS Queue encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0096",
+          "References": [
+            "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0096"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:44-55",
+            "Provider": "AWS",
+            "Service": "sqs",
+            "StartLine": 44,
+            "EndLine": 55,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 44,
+                  "Content": "  OrdersDLQ:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mOrdersDLQ\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 45,
+                  "Content": "    Type: AWS::SQS::Queue",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::SQS::Queue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 46,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 47,
+                  "Content": "      SqsManagedSseEnabled: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSqsManagedSseEnabled\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 48,
+                  "Content": "      MessageRetentionPeriod: 1209600",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mMessageRetentionPeriod\u001b[0m: \u001b[38;5;37m1209600",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 49,
+                  "Content": "      RedriveAllowPolicy:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mRedriveAllowPolicy\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 50,
+                  "Content": "        redrivePermission: byQueue",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mredrivePermission\u001b[0m: byQueue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 51,
+                  "Content": "        sourceQueueArns:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33msourceQueueArns\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "          - !GetAtt OrdersQueue.Arn",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          - !GetAtt OrdersQueue.Arn",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 53,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0096",
+          "AVDID": "AVD-AWS-0096",
+          "Title": "Unencrypted SQS queue.",
+          "Description": "Queues should be encrypted to protect queue contents.\n",
+          "Message": "Queue is not encrypted",
+          "Namespace": "builtin.aws.sqs.aws0096",
+          "Query": "data.builtin.aws.sqs.aws0096.deny",
+          "Resolution": "Turn on SQS Queue encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0096",
+          "References": [
+            "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0096"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:57-67",
+            "Provider": "AWS",
+            "Service": "sqs",
+            "StartLine": 57,
+            "EndLine": 67,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 57,
+                  "Content": "  OrdersQueue:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mOrdersQueue\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 58,
+                  "Content": "    Type: AWS::SQS::Queue",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::SQS::Queue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "      SqsManagedSseEnabled: true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSqsManagedSseEnabled\u001b[0m: \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "      VisibilityTimeout: !Ref QueueVisibilityTimeout",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mVisibilityTimeout\u001b[0m: !Ref QueueVisibilityTimeout",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "      RedrivePolicy:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mRedrivePolicy\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "        deadLetterTargetArn: !GetAtt OrdersDLQ.Arn",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mdeadLetterTargetArn\u001b[0m: !GetAtt OrdersDLQ.Arn",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "        maxReceiveCount: 5",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;33mmaxReceiveCount\u001b[0m: \u001b[38;5;37m5",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "      Tags:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mTags\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 66,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

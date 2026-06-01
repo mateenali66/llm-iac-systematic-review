@@ -1,0 +1,43 @@
+resources:
+- name: prod-gke-cluster
+  type: container.v1.cluster
+  properties:
+    cluster:
+      name: prod-gke-cluster
+      location: us-central1
+      releaseChannel:
+        channel: REGULAR
+      networkPolicy:
+        enabled: true
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      workloadIdentityConfig:
+        workloadPool: PROJECT_ID.svc.id.goog
+      resourceLabels:
+        environment: production
+        managed-by: deployment-manager
+      nodePools:
+      - name: prod-node-pool
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-ssd
+          imageType: COS_CONTAINERD
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          labels:
+            environment: production
+            node-pool: prod
+          tags:
+          - gke-prod-nodes
+        initialNodeCount: 3
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 20
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0

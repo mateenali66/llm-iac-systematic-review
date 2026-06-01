@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-005",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: saas-postgres\n  type: sqladmin.v1beta4.instance\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 100\n      storageAutoResize: true\n      storageAutoResizeLimit: 0\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        backupRetentionSettings:\n          retainedBackups: 30\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n        requireSsl: true\n        sslMode: ENCRYPTED_ONLY\n      maintenanceWindow:\n        day: 7\n        hour: 4\n      userLabels:\n        application: saas\n        environment: production\n        managed-by: deployment-manager\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: \"on\"\n      - name: log_min_duration_statement\n        value: \"1000\"",
+  "cleaned_response": "resources:\n- name: saas-postgres\n  type: sqladmin.v1beta4.instance\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 100\n      storageAutoResize: true\n      storageAutoResizeLimit: 0\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        backupRetentionSettings:\n          retainedBackups: 30\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n        requireSsl: true\n        sslMode: ENCRYPTED_ONLY\n      maintenanceWindow:\n        day: 7\n        hour: 4\n      userLabels:\n        application: saas\n        environment: production\n        managed-by: deployment-manager\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: \"on\"\n      - name: log_min_duration_statement\n        value: \"1000\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: saas-postgres\n  type: sqladmin.v1beta4.instance\n  properties:\n    region: us-central1\n    databaseVersion: POSTGRES_15\n    settings:\n      tier: db-custom-2-7680\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 100\n      storageAutoResize: true\n      storageAutoResizeLimit: 0\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        backupRetentionSettings:\n          retainedBackups: 30\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: projects/{{ env[\"project\"] }}/global/networks/default\n        requireSsl: true\n        sslMode: ENCRYPTED_ONLY\n      maintenanceWindow:\n        day: 7\n        hour: 4\n      userLabels:\n        application: saas\n        environment: production\n        managed-by: deployment-manager\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: \"on\"\n      - name: log_min_duration_statement\n        value: \"1000\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724968,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 97,
+      "output_tokens": 258,
+      "reasoning_tokens": 791,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 67
+    }
+  },
+  "started_at": "2026-05-25T16:02:35.821784+00:00",
+  "elapsed_seconds": 12.487
+}

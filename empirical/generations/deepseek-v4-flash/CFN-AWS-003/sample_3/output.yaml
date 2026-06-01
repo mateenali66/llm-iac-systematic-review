@@ -1,0 +1,246 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL Serverless v2 Cluster for SaaS Multi-Tenant Application'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Environment name for resource tagging
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the database cluster will be deployed
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of subnet IDs for the DB subnet group (minimum 2 subnets in different AZs)
+
+  DatabaseName:
+    Type: String
+    Default: saasapp
+    Description: Name of the initial database to create
+
+  MasterUsername:
+    Type: String
+    Default: dbadmin
+    Description: Master username for the database cluster
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the database cluster
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9!@#$%^&*()_+=]+'
+
+  MinACU:
+    Type: Number
+    Default: 0.5
+    MinValue: 0.5
+    MaxValue: 128
+    Description: Minimum Aurora Capacity Units for Serverless v2
+
+  MaxACU:
+    Type: Number
+    Default: 8
+    MinValue: 0.5
+    MaxValue: 128
+    Description: Maximum Aurora Capacity Units for Serverless v2
+
+  BackupRetentionPeriod:
+    Type: Number
+    Default: 7
+    MinValue: 1
+    MaxValue: 35
+    Description: Number of days to retain automated backups
+
+  PreferredBackupWindow:
+    Type: String
+    Default: '03:00-04:00'
+    Description: Daily time range for automated backups (UTC)
+
+  PreferredMaintenanceWindow:
+    Type: String
+    Default: 'sun:04:00-sun:05:00'
+    Description: Weekly time range for maintenance (UTC)
+
+Conditions:
+  IsProduction: !Equals [!Ref EnvironmentName, 'production']
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Aurora Serverless v2 cluster
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-subnet-group'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora Serverless v2 cluster
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !Ref VpcCidr
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster-sg'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Family: aurora-postgresql15
+      Description: Parameter group for Aurora Serverless v2 cluster
+      Parameters:
+        timezone: UTC
+        log_statement: ddl
+        log_min_duration_statement: 1000
+        shared_preload_libraries: pg_stat_statements
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster-params'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBInstanceParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: aurora-postgresql15
+      Description: Parameter group for Aurora Serverless v2 instances
+      Parameters:
+        max_connections: 1000
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-instance-params'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      EngineMode: provisioned
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinACU
+        MaxCapacity: !Ref MaxACU
+      DBClusterIdentifier: !Sub '${AWS::StackName}-cluster'
+      DatabaseName: !Ref DatabaseName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBClusterSecurityGroup
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      BackupRetentionPeriod: !Ref BackupRetentionPeriod
+      PreferredBackupWindow: !Ref PreferredBackupWindow
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+      StorageEncrypted: true
+      KmsKeyId: !If [IsProduction, !Ref DBClusterKmsKey, !Ref AWS::NoValue]
+      DeletionProtection: !If [IsProduction, true, false]
+      CopyTagsToSnapshot: true
+      EnableHttpEndpoint: false
+      EnableCloudwatchLogsExports:
+        - postgresql
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Application
+          Value: SaaS-MultiTenant
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-writer-instance'
+      DBInstanceClass: db.serverless
+      DBParameterGroupName: !Ref DBInstanceParameterGroup
+      PubliclyAccessible: false
+      AutoMinorVersionUpgrade: true
+      PromotionTier: 0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-writer-instance'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Application
+          Value: SaaS-MultiTenant
+
+  DBClusterKmsKey:
+    Type: AWS::KMS::Key
+    Condition: IsProduction
+    Properties:
+      Description: KMS key for Aurora Serverless v2 cluster encryption
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: kms:*
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-kms-key'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DBClusterKmsKeyAlias:
+    Type: AWS::KMS::Alias
+    Condition: IsProduction
+    Properties:
+      AliasName: !Sub 'alias/${AWS::StackName}-cluster-key'
+      TargetKeyId: !Ref DBClusterKmsKey
+
+Outputs:
+  DBClusterEndpoint:
+    Description: Writer endpoint for the Aurora Serverless v2 cluster
+    Value: !GetAtt DBCluster.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-endpoint'
+
+  DBClusterPort:
+    Description: Port for the Aurora Serverless v2 cluster
+    Value: !GetAtt DBCluster.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-port'
+
+  DBClusterReaderEndpoint:
+    Description: Reader endpoint for the Aurora Serverless v2 cluster
+    Value: !GetAtt DBCluster.ReadEndpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-reader-endpoint'
+
+  DBClusterResourceId:
+    Description: Resource ID for the Aurora Serverless v2 cluster
+    Value: !GetAtt DBCluster.DBClusterResourceId
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-resource-id'
+
+  DBClusterSecurityGroupId:
+    Description: Security group ID for the Aurora Serverless v2 cluster
+    Value: !Ref DBClusterSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-sg-id'

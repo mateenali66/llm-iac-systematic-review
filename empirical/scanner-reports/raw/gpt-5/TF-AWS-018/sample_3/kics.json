@@ -1,0 +1,401 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 252,
+	"files_parsed": 1,
+	"lines_parsed": 252,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 6,
+		"INFO": 5,
+		"LOW": 3,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 18,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:22:20.144226805Z",
+	"end": "2026-05-26T05:22:43.031263927Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Sensitive Port Is Exposed To Entire Network",
+			"query_id": "381c3f2a-ef6f-4eff-99f7-b169cda3422c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for the whole network in either TCP or UDP protocol",
+			"description_id": "5be78364",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "399c497c2bb5fa4bc61c6833a92b95ad8616c5ee67e40c0dbd15c11fc67fbcfb",
+					"line": 81,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb].ingress",
+					"search_line": -1,
+					"search_value": "TCP,443",
+					"expected_value": "HTTPS (TCP:443) should not be allowed",
+					"actual_value": "HTTPS (TCP:443) is allowed"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "89e43b030388ca3111633fb5d107cddc5fb0edac9bec1373b49350dd1425c510",
+					"line": 81,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb].ingress",
+					"search_line": -1,
+					"search_value": "TCP,80",
+					"expected_value": "HTTP (TCP:80) should not be allowed",
+					"actual_value": "HTTP (TCP:80) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4728cd65-a20c-49da-8b31-9c08b423e4db",
+			"query_url": "https://www.terraform.io/docs/providers/aws/r/security_group.html",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Security groups allow ingress from 0.0.0.0:0 and/or ::/0",
+			"description_id": "ce3ee5e0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2d73f03aefd76e122d066315fce776a782788c8ab2d1ecd1dd6f7a5a98af0220",
+					"line": 86,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 86,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "34aabb60bf838496370887514e8f9ad9a2f56328ae86e36cc6f642881e6eb207",
+					"line": 95,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 95,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "7a51a38cea57d15a1e1bc798f47e438e9b718e8edaea98d547db0aaafb5fdedc",
+					"line": 87,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 87,
+					"search_value": "",
+					"expected_value": "One of 'ingress.ipv6_cidr_blocks' should not be equal to '::/0'",
+					"actual_value": "One of 'ingress.ipv6_cidr_blocks' is equal '::/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "452b45557729f4fa3d9a816539a61a638533c746888ecc4c1e1adb6f7df68049",
+					"line": 96,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": 96,
+					"search_value": "",
+					"expected_value": "One of 'ingress.ipv6_cidr_blocks' should not be equal to '::/0'",
+					"actual_value": "One of 'ingress.ipv6_cidr_blocks' is equal '::/0'"
+				}
+			]
+		},
+		{
+			"query_name": "ALB Is Not Integrated With WAF",
+			"query_id": "0afa6ab8-a047-48cf-be07-93a2f8c34cf7",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/wafregional_web_acl_association",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "All Application Load Balancers (ALB) must be protected with Web Application Firewall (WAF) service",
+			"description_id": "4e4c668d",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5f17bf06ddf3b0034a81c9d650555dad3e18f601ada0c0f6169a6290ee559252",
+					"line": 111,
+					"resource_type": "aws_lb",
+					"resource_name": "app-alb",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lb[app]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_lb[app]' should not be 'internal' and has a 'aws_wafregional_web_acl_association' associated",
+					"actual_value": "'aws_lb[app]' is not 'internal' and does not have a 'aws_wafregional_web_acl_association' associated"
+				}
+			]
+		},
+		{
+			"query_name": "ALB Not Dropping Invalid Headers",
+			"query_id": "6e3fd2ed-5c83-4c68-9679-7700d224d379",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb#drop_invalid_header_fields",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "693",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice when using Application Load Balancers to drop invalid header fields",
+			"description_id": "7560e4d2",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9d9b3b8686d766c3ba638d406099a67b0ade7d1359c7174b4324b9bac2267739",
+					"line": 111,
+					"resource_type": "aws_lb",
+					"resource_name": "app-alb",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lb[{{app}}]",
+					"search_line": 111,
+					"search_value": "",
+					"expected_value": "aws_lb[{{app}}].drop_invalid_header_fields should be set to true",
+					"actual_value": "aws_lb[{{app}}].drop_invalid_header_fields is missing",
+					"remediation": "drop_invalid_header_fields = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "CloudWatch Logging Disabled",
+			"query_id": "7dbba512-e244-42dc-98bb-422339827967",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_query_log",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Check if CloudWatch logging is disabled for Route53 hosted zones",
+			"description_id": "b4a8c275",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "93992185a068cc76c46f6a1200cb3bca615c3c19af2086309c71174379968118",
+					"line": 68,
+					"resource_type": "aws_route53_zone",
+					"resource_name": "mycompany.com",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_route53_zone[primary]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_route53_query_log' should be set for respective 'aws_route53_zone'",
+					"actual_value": "'aws_route53_query_log' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "HTTP Port Open To Internet",
+			"query_id": "ffac8a12-322e-42c1-b9b9-81ff85c39ef7",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "319",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The HTTP port is open to the internet in a Security Group",
+			"description_id": "a829609b",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "238094fb7e66385aad1ef02dfc8b2b1f7cbaf359ee74e19d31a76cf352154ad4",
+					"line": 76,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[alb]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group.ingress shouldn't open the HTTP port (80)",
+					"actual_value": "aws_security_group.ingress opens the HTTP port (80)"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 68,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "084c6686-2a70-4710-91b1-000393e54c12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/shield_protection#resource_arn",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "e09b31c7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "632a3cf83aae52b6865e95cddb25dd1678431d4a21317bd8df36be8745a187e1",
+					"line": 111,
+					"resource_type": "aws_lb",
+					"resource_name": "app-alb",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lb[app]",
+					"search_line": 111,
+					"search_value": "",
+					"expected_value": "aws_lb has shield advanced associated",
+					"actual_value": "aws_lb does not have shield advanced associated"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "c81a723e48bbc4e2daba9bbc336648e1ef0fc87c105b725a2ba036dbd77d0d65",
+					"line": 68,
+					"resource_type": "aws_route53_zone",
+					"resource_name": "mycompany.com",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_route53_zone[primary]",
+					"search_line": 68,
+					"search_value": "",
+					"expected_value": "aws_route53_zone has shield advanced associated",
+					"actual_value": "aws_route53_zone does not have shield advanced associated"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d1c3e9a2d211d15e21660ffda7328004089a0b2d3cd2f27d4c34942b6f7b0e20",
+					"line": 171,
+					"resource_type": "aws_acm_certificate",
+					"resource_name": "app",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_acm_certificate[{{app}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_acm_certificate[{{app}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_acm_certificate[{{app}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0098e28e9c0a7650afdf5dbf3ea5f194426ca7c5f7b36e9dbe6cfa728e47ff2b",
+					"line": 73,
+					"resource_type": "aws_route53_zone",
+					"resource_name": "mycompany.com",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_route53_zone[{{primary}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_route53_zone[{{primary}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_route53_zone[{{primary}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "72157438543a1309cfee15e589c3e1ddfa47308675b9e576c40bdbfca554727b",
+					"line": 121,
+					"resource_type": "aws_lb",
+					"resource_name": "app-alb",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lb[{{app}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_lb[{{app}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_lb[{{app}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8df7f42cd3d65dd2dad8115acb09836859cbc66890497ac69a85f3b78e755c92",
+					"line": 108,
+					"resource_type": "aws_security_group",
+					"resource_name": "app-alb-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{alb}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{alb}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{alb}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "261b5b36db9d5a3bc582bf99613de416c95f41fc8424995b2195858e37b0d553",
+					"line": 147,
+					"resource_type": "aws_lb_target_group",
+					"resource_name": "app-tg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lb_target_group[{{app}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_lb_target_group[{{app}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_lb_target_group[{{app}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,169 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:43:20.99165097Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 41,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0010",
+          "AVDID": "AVD-AWS-0010",
+          "Title": "Cloudfront distribution should have Access Logging configured",
+          "Description": "You should configure CloudFront Access Logging to create log files that contain detailed information about every user request that CloudFront receives\n",
+          "Message": "Distribution does not have logging enabled",
+          "Namespace": "builtin.aws.cloudfront.aws0010",
+          "Query": "data.builtin.aws.cloudfront.aws0010.deny",
+          "Resolution": "Enable logging for CloudFront distributions",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0010",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0010"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudfront_distribution.main",
+            "Provider": "AWS",
+            "Service": "cloudfront",
+            "StartLine": 65,
+            "EndLine": 107,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 65,
+                  "Content": "resource \"aws_cloudfront_distribution\" \"main\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudfront_distribution\"\u001b[0m \u001b[38;5;37m\"main\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "  enabled = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245menabled\u001b[0m = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 68,
+                  "Content": "  origin {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  origin {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 69,
+                  "Content": "    domain_name = \"example-bucket.s3.amazonaws.com\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mdomain_name\u001b[0m = \u001b[38;5;37m\"example-bucket.s3.amazonaws.com\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 70,
+                  "Content": "    origin_id   = \"S3Origin\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;245morigin_id\u001b[0m   = \u001b[38;5;37m\"S3Origin\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 71,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 72,
+                  "Content": "    s3_origin_config {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    s3_origin_config {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 73,
+                  "Content": "      origin_access_identity = \"\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;245morigin_access_identity\u001b[0m = \u001b[38;5;37m\"\"",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 74,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

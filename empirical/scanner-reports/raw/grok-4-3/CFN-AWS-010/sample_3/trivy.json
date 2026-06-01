@@ -1,0 +1,121 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:30:26.554027919Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 28,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0096",
+          "AVDID": "AVD-AWS-0096",
+          "Title": "Unencrypted SQS queue.",
+          "Description": "Queues should be encrypted to protect queue contents.\n",
+          "Message": "Queue is not encrypted",
+          "Namespace": "builtin.aws.sqs.aws0096",
+          "Query": "data.builtin.aws.sqs.aws0096.deny",
+          "Resolution": "Turn on SQS Queue encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0096",
+          "References": [
+            "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0096"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:2-7",
+            "Provider": "AWS",
+            "Service": "sqs",
+            "StartLine": 2,
+            "EndLine": 7,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 2,
+                  "Content": "  OrderProcessorQueue:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mOrderProcessorQueue\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 3,
+                  "Content": "    Type: AWS::SQS::Queue",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::SQS::Queue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 4,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 5,
+                  "Content": "      QueueName: order-processor-queue",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mQueueName\u001b[0m: order-processor-queue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 6,
+                  "Content": "      VisibilityTimeout: 30",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mVisibilityTimeout\u001b[0m: \u001b[38;5;37m30",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 7,
+                  "Content": "      MessageRetentionPeriod: 345600",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mMessageRetentionPeriod\u001b[0m: \u001b[38;5;37m345600\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

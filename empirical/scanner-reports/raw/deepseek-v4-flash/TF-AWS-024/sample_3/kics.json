@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 14,
+	"files_parsed": 1,
+	"lines_parsed": 14,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 1,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:49:55.44571196Z",
+	"end": "2026-05-26T04:50:18.197918263Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "SNS Topic Not Encrypted",
+			"query_id": "28545147-2fc6-42d5-a1f9-cf226658e591",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic#kms_master_key_id",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "SNS (Simple Notification Service) Topic should be encrypted",
+			"description_id": "2f15b2d0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8ea915bb1a8745b276b34633dee5284d08f31fbb7fdf0f34ea8919a5f728615c",
+					"line": 1,
+					"resource_type": "aws_sns_topic",
+					"resource_name": "critical-alerts",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_sns_topic[critical_alerts]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "SNS Topic should be encrypted",
+					"actual_value": "SNS Topic is not encrypted"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0758a72c3b78a81334d29dfc95e3a6f27afd3c303730ba21b76f1c709b8a3f4c",
+					"line": 1,
+					"resource_type": "aws_sns_topic",
+					"resource_name": "critical-alerts",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_sns_topic[{{critical_alerts}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_sns_topic[{{critical_alerts}}].tags should be defined and not null",
+					"actual_value": "aws_sns_topic[{{critical_alerts}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

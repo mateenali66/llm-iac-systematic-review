@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 72,
+	"files_parsed": 2,
+	"lines_parsed": 72,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:41:07.87522605Z",
+	"end": "2026-05-26T04:41:10.670207968Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Service With External Load Balancer",
+			"query_id": "26763a1c-5dda-4772-b507-5fca7fb5f165",
+			"query_url": "https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "552",
+			"cloud_provider": "COMMON",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Service has an external load balancer, which may cause accessibility from other networks and the Internet",
+			"description_id": "2e090344",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "04817e6c5f3f61b2b2f76ed446242e18ad07c8b0991926784bc99eaf6cdfeff8",
+					"line": 4,
+					"resource_type": "Service",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'metadata.annotations' should be set",
+					"actual_value": "'metadata.annotations' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Service",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Service}}.metadata.name={{web-frontend}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Service Does Not Target Pod",
+			"query_id": "3ca03a61-3249-4c16-8427-6f8e47dda729",
+			"query_url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Service should Target a Pod",
+			"description_id": "e7c26645",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "14435c9643ce6203ebb67ef02ead37e4cff6c9100c9c159494d035c25aa87406",
+					"line": 9,
+					"resource_type": "Service",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.selector",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.selector label refers to a Pod label",
+					"actual_value": "metadata.name={{web-frontend}}.spec.selector label does not match with any Pod label"
+				}
+			]
+		}
+	]
+}

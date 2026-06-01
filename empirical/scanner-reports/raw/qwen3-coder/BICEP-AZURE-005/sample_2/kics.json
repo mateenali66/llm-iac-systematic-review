@@ -1,0 +1,84 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 44,
+	"files_parsed": 1,
+	"lines_parsed": 44,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:22:36.308579137Z",
+	"end": "2026-05-26T06:22:36.843787179Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "3fb3d37ca7fe852fca83378896788398ff32444a1ef429813444559b0823204b",
+					"line": 12,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "SQL Server Database Without Auditing",
+			"query_id": "e055285c-bc01-48b4-8aa5-8a54acdd29df",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases/auditingsettings",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "778",
+			"cloud_provider": "AZURE",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every 'Microsoft.Sql/servers/databases' resource should have Auditing Enabled",
+			"description_id": "16d077a1",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "04c278691c882828368c8e2a6013f13509f0d16504fa4067c59c01ac319fef3a",
+					"line": 19,
+					"resource_type": "Microsoft.Sql/servers/databases",
+					"resource_name": "['${sqlServer.name}/${parameters('databaseName')}']",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=['${sqlServer.name}/${parameters('databaseName')}']",
+					"search_line": 19,
+					"search_value": "",
+					"expected_value": "resource '['${sqlServer.name}/${parameters('databaseName')}']' should have an enabled 'auditingsettings' resource",
+					"actual_value": "resource '['${sqlServer.name}/${parameters('databaseName')}']' is missing an enabled 'auditingsettings' resource"
+				}
+			]
+		}
+	]
+}

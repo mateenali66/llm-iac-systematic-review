@@ -1,0 +1,582 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: stateful-app
+description: A Helm chart for a stateful application with pre-install database migration Job, StatefulSet, headless Service, and PVC
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.22.0-0"
+home: https://example.com/stateful-app
+sources:
+  - https://example.com/stateful-app/repo
+keywords:
+  - statefulset
+  - job
+  - migration
+  - database
+  - headless
+  - pvc
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: ghcr.io/example/stateful-app
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: regcred
+
+replicaCount: 3
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+rbac:
+  create: false
+
+podAnnotations: {}
+podLabels: {}
+
+priorityClassName: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  port: 8080
+  portName: http
+  annotations: {}
+  # Headless service settings
+  publishNotReadyAddresses: true
+
+persistence:
+  enabled: true
+  # If existingClaim is set, the StatefulSet will mount that claim instead of creating per-pod PVCs
+  existingClaim: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+  mountPath: /var/lib/app/data
+
+  # Optionally create a standalone PVC (not recommended for multi-replica StatefulSets).
+  # When true and existingClaim is empty, a single PVC will be created and mounted if replicaCount=1.
+  useStandalonePVC: false
+  standalone:
+    nameSuffix: data
+    annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+topologySpreadConstraints: []
+terminationGracePeriodSeconds: 30
+
+probes:
+  liveness:
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    httpGet:
+      path: /readyz
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+    successThreshold: 1
+  startup:
+    enabled: true
+    httpGet:
+      path: /startupz
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 30
+    successThreshold: 1
+
+env: []
+# - name: EXAMPLE_ENV
+#   value: "example"
+
+envFrom: []
+# - secretRef:
+#     name: mysecret
+# - configMapRef:
+#     name: myconfig
+
+database:
+  # Connection string env var name inside the container
+  envName: DATABASE_URL
+  # Use an existing secret containing the connection string
+  existingSecret: ""
+  secretKey: url
+  # Optionally create a secret with the database URL (not recommended for production)
+  createSecret: false
+  url: ""
+
+migration:
+  enabled: true
+  # Use a dedicated image for migrations. If empty, uses .Values.image
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: ""
+  command: ["sh", "-c"]
+  args: ["./app migrate"]
+  backoffLimit: 6
+  activeDeadlineSeconds: 1800
+  ttlSecondsAfterFinished: 300
+  annotations: {}
+  podAnnotations: {}
+  podLabels: {}
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  # Optional extra env for migration job
+  env: []
+  # Whether to run migration on upgrade as well
+  runOnUpgrade: true
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  # Allow ingress to app from the same namespace
+  allowSameNamespace: true
+  # Allow egress to kube-dns for name resolution
+  allowDNS: true
+  # Additional egress rules (e.g., to database IP/CIDR if needed)
+  extraEgress: []
+  # Additional ingress rules
+  extraIngress: []
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "stateful-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "stateful-app.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := include "stateful-app.name" . -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.chart" -}}
+{{- printf "%s-%s" .Chart.Name (.Chart.Version | replace "+" "_") -}}
+{{- end -}}
+
+{{- define "stateful-app.labels" -}}
+helm.sh/chart: {{ include "stateful-app.chart" . }}
+app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end -}}
+
+{{- define "stateful-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "stateful-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "stateful-app.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.dbSecretName" -}}
+{{- if .Values.database.createSecret -}}
+{{- printf "%s-db" (include "stateful-app.fullname" .) -}}
+{{- else -}}
+{{- default "" .Values.database.existingSecret -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.migrationHook" -}}
+{{- if and .Values.migration.enabled .Values.migration.runOnUpgrade -}}
+pre-install,pre-upgrade
+{{- else if .Values.migration.enabled -}}
+pre-install
+{{- else -}}
+""
+{{- end -}}
+{{- end -}}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "stateful-app.serviceAccountName" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/secret-db.yaml
+{{- if .Values.database.createSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "stateful-app.dbSecretName" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.database.secretKey }}: {{ required "Values.database.url must be set when database.createSecret=true" .Values.database.url | quote }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-headless
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: {{ .Values.service.publishNotReadyAddresses }}
+  selector:
+    {{- include "stateful-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: {{ .Values.service.portName }}
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.portName }}
+---
+# FILE: templates/pvc.yaml
+{{- if and .Values.persistence.enabled .Values.persistence.useStandalonePVC (empty .Values.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-{{ .Values.persistence.standalone.nameSuffix }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  {{- with .Values.persistence.standalone.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+{{- end }}
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "stateful-app.fullname" . }}-headless
+  replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "stateful-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "stateful-app.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.database.createSecret }}
+        checksum/database-secret: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "stateful-app.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: {{ .Values.service.portName }}
+              containerPort: {{ .Values.service.port }}
+          env:
+            {{- range .Values.env }}
+            - {{ toYaml . | nindent 14 | trim }}
+            {{- end }}
+            {{- if or .Values.database.createSecret .Values.database.existingSecret }}
+            - name: {{ .Values.database.envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (include "stateful-app.dbSecretName" .) .Values.database.existingSecret }}
+                  key: {{ .Values.database.secretKey }}
+            {{- end }}
+            {{- range .Values.migration.env }}
+            # Expose migration envs to app as well if needed
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            {{- toYaml .Values.probes.startup | nindent 12 }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.probes.liveness | nindent 12 }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            {{- toYaml .Values.probes.readiness | nindent 12 }}
+          {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    {{- if and .Values.persistence.enabled (empty .Values.persistence.existingClaim) (not .Values.persistence.useStandalonePVC) }}
+    - metadata:
+        name: data
+        labels:
+          {{- include "stateful-app.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+    {{- else }}
+    []
+    {{- end }}
+  {{- if or .Values.persistence.existingClaim .Values.persistence.useStandalonePVC }}
+  # When using an existing or standalone PVC, mount it via volumes
+  template:
+    spec:
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{- if .Values.persistence.existingClaim -}}{{ .Values.persistence.existingClaim }}{{- else -}}{{ include "stateful-app.fullname" . }}-{{ .Values.persistence.standalone.nameSuffix }}{{- end -}}
+  {{- end }}
+---
+# FILE: templates/job-migrate.yaml
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migrate
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": {{ include "stateful-app.migrationHook" . | quote }}
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- with .Values.migration.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migration.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "stateful-app.selectorLabels" . | nindent 8 }}
+        job-name: {{ include "stateful-app.fullname" . }}-migrate
+        {{- with .Values.migration.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- with .Values.migration.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.database.createSecret }}
+        checksum/database-secret: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "stateful-app.serviceAccountName" . }}
+      restartPolicy: OnFailure
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ if .Values.migration.image.repository }}{{ .Values.migration.image.repository }}{{ else }}{{ .Values.image.repository }}{{ end }}:{{ if .Values.migration.image.tag }}{{ .Values.migration.image.tag }}{{ else }}{{ .Values.image.tag }}{{ end }}"
+          imagePullPolicy: {{ if .Values.migration.image.pullPolicy }}{{ .Values.migration.image.pullPolicy }}{{ else }}{{ .Values.image.pullPolicy }}{{ end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          command:
+            {{- toYaml .Values.migration.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.migration.args | nindent 12 }}
+          env:
+            {{- range .Values.migration.env }}
+            - {{ toYaml . | nindent 14 | trim }}
+            {{- end }}
+            {{- if or .Values.database.createSecret .Values.database.existingSecret }}
+            - name: {{ .Values.database.envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (include "stateful-app.dbSecretName" .) .Values.database.existingSecret }}
+                  key: {{ .Values.database.secretKey }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "stateful-app.selectorLabels" . | nindent 6 }}
+{{- end }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "stateful-app.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    {{- if .Values.networkPolicy.allowSameNamespace }}
+    - from:
+        - podSelector: {}
+    {{- else }}
+    - {}
+    {{- end }}
+    {{- with .Values.networkPolicy.extraIngress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    {{- if .Values.networkPolicy.allowDNS }}
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- end }}
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

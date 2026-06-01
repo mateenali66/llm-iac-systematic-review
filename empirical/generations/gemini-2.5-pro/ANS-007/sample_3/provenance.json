@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-007",
+  "language": "ansible",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Configure static network interface with netplan\n  hosts: all\n  become: true\n  vars:\n    netplan_config_file: /etc/netplan/50-ansible-static.yaml\n    netplan_interface_name: eth0\n    netplan_static_ip: 192.168.1.10/24\n    netplan_gateway_ip: 192.168.1.1\n    netplan_dns_servers:\n      - 8.8.8.8\n      - 1.1.1.1\n\n  tasks:\n    - name: Ensure netplan dependencies are installed\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static IP address using netplan\n      community.general.netplan:\n        state: present\n        path: \"{{ netplan_config_file }}\"\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ netplan_interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ netplan_static_ip }}\"\n              gateway4: \"{{ netplan_gateway_ip }}\"\n              nameservers:\n                addresses: \"{{ netplan_dns_servers }}\"\n      notify:\n        - Apply netplan configuration\n\n  handlers:\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      listen: \"Apply netplan configuration\"",
+  "cleaned_response": "---\n- name: Configure static network interface with netplan\n  hosts: all\n  become: true\n  vars:\n    netplan_config_file: /etc/netplan/50-ansible-static.yaml\n    netplan_interface_name: eth0\n    netplan_static_ip: 192.168.1.10/24\n    netplan_gateway_ip: 192.168.1.1\n    netplan_dns_servers:\n      - 8.8.8.8\n      - 1.1.1.1\n\n  tasks:\n    - name: Ensure netplan dependencies are installed\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static IP address using netplan\n      community.general.netplan:\n        state: present\n        path: \"{{ netplan_config_file }}\"\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ netplan_interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ netplan_static_ip }}\"\n              gateway4: \"{{ netplan_gateway_ip }}\"\n              nameservers:\n                addresses: \"{{ netplan_dns_servers }}\"\n      notify:\n        - Apply netplan configuration\n\n  handlers:\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      listen: \"Apply netplan configuration\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Configure static network interface with netplan\n  hosts: all\n  become: true\n  vars:\n    netplan_config_file: /etc/netplan/50-ansible-static.yaml\n    netplan_interface_name: eth0\n    netplan_static_ip: 192.168.1.10/24\n    netplan_gateway_ip: 192.168.1.1\n    netplan_dns_servers:\n      - 8.8.8.8\n      - 1.1.1.1\n\n  tasks:\n    - name: Ensure netplan dependencies are installed\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static IP address using netplan\n      community.general.netplan:\n        state: present\n        path: \"{{ netplan_config_file }}\"\n        network:\n          version: 2\n          renderer: networkd\n          ethernets:\n            \"{{ netplan_interface_name }}\":\n              dhcp4: false\n              dhcp6: false\n              addresses:\n                - \"{{ netplan_static_ip }}\"\n              gateway4: \"{{ netplan_gateway_ip }}\"\n              nameservers:\n                addresses: \"{{ netplan_dns_servers }}\"\n      notify:\n        - Apply netplan configuration\n\n  handlers:\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      listen: \"Apply netplan configuration\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779724009,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 132,
+      "output_tokens": 1438,
+      "raw_input_tokens": 132
+    }
+  },
+  "started_at": "2026-05-25T15:46:31.317787+00:00",
+  "elapsed_seconds": 18.697
+}

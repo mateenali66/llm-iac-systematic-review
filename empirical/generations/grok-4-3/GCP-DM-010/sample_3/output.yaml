@@ -1,0 +1,15 @@
+resources:
+- name: multi-region-bucket
+  type: storage.v1.bucket
+  properties:
+    location: US
+    storageClass: STANDARD
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365

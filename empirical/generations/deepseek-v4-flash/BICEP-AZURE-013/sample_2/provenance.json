@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "BICEP-AZURE-013",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam accountName string = 'cosmos-${uniqueString(resourceGroup().id)}'\nparam databaseName string = 'maindb'\nparam containerName string = 'items'\nparam partitionKeyPath string = '/partitionKey'\nparam throughput int = 400\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: false\n      }\n    ]\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    enableMultipleWriteLocations: false\n    isVirtualNetworkFilterEnabled: false\n    disableKeyBasedMetadataWriteAccess: false\n    enableAutomaticFailover: false\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    apiProperties: {\n      serverVersion: '4.2'\n    }\n    networkAclBypass: 'None'\n    networkAclBypassResourceIds: []\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 8\n      }\n    }\n    cors: []\n    ipRules: []\n    publicNetworkAccess: 'Enabled'\n    enableFreeTier: false\n    analyticalStorageConfiguration: {\n      schemaType: 'WellDefined'\n    }\n    disableLocalAuth: false\n    defaultIdentity: 'FirstPartyIdentity'\n  }\n}\n\nresource sqlDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-11-15' = {\n  parent: cosmosAccount\n  name: databaseName\n  properties: {\n    resource: {\n      id: databaseName\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}\n\nresource sqlContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-11-15' = {\n  parent: sqlDatabase\n  name: containerName\n  properties: {\n    resource: {\n      id: containerName\n      partitionKey: {\n        paths: [\n          partitionKeyPath\n        ]\n        kind: 'Hash'\n      }\n      indexingPolicy: {\n        indexingMode: 'consistent'\n        automatic: true\n        includedPaths: [\n          {\n            path: '/*'\n          }\n        ]\n        excludedPaths: [\n          {\n            path: '/\"_etag\"/?'\n          }\n        ]\n      }\n      defaultTtl: -1\n      uniqueKeyPolicy: {\n        uniqueKeys: []\n      }\n      conflictResolutionPolicy: {\n        mode: 'LastWriterWins'\n        conflictResolutionPath: '/_ts'\n      }\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam accountName string = 'cosmos-${uniqueString(resourceGroup().id)}'\nparam databaseName string = 'maindb'\nparam containerName string = 'items'\nparam partitionKeyPath string = '/partitionKey'\nparam throughput int = 400\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: false\n      }\n    ]\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    enableMultipleWriteLocations: false\n    isVirtualNetworkFilterEnabled: false\n    disableKeyBasedMetadataWriteAccess: false\n    enableAutomaticFailover: false\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    apiProperties: {\n      serverVersion: '4.2'\n    }\n    networkAclBypass: 'None'\n    networkAclBypassResourceIds: []\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 8\n      }\n    }\n    cors: []\n    ipRules: []\n    publicNetworkAccess: 'Enabled'\n    enableFreeTier: false\n    analyticalStorageConfiguration: {\n      schemaType: 'WellDefined'\n    }\n    disableLocalAuth: false\n    defaultIdentity: 'FirstPartyIdentity'\n  }\n}\n\nresource sqlDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-11-15' = {\n  parent: cosmosAccount\n  name: databaseName\n  properties: {\n    resource: {\n      id: databaseName\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}\n\nresource sqlContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-11-15' = {\n  parent: sqlDatabase\n  name: containerName\n  properties: {\n    resource: {\n      id: containerName\n      partitionKey: {\n        paths: [\n          partitionKeyPath\n        ]\n        kind: 'Hash'\n      }\n      indexingPolicy: {\n        indexingMode: 'consistent'\n        automatic: true\n        includedPaths: [\n          {\n            path: '/*'\n          }\n        ]\n        excludedPaths: [\n          {\n            path: '/\"_etag\"/?'\n          }\n        ]\n      }\n      defaultTtl: -1\n      uniqueKeyPolicy: {\n        uniqueKeys: []\n      }\n      conflictResolutionPolicy: {\n        mode: 'LastWriterWins'\n        conflictResolutionPath: '/_ts'\n      }\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam accountName string = 'cosmos-${uniqueString(resourceGroup().id)}'\nparam databaseName string = 'maindb'\nparam containerName string = 'items'\nparam partitionKeyPath string = '/partitionKey'\nparam throughput int = 400\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-11-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: false\n      }\n    ]\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    enableMultipleWriteLocations: false\n    isVirtualNetworkFilterEnabled: false\n    disableKeyBasedMetadataWriteAccess: false\n    enableAutomaticFailover: false\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    apiProperties: {\n      serverVersion: '4.2'\n    }\n    networkAclBypass: 'None'\n    networkAclBypassResourceIds: []\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 8\n      }\n    }\n    cors: []\n    ipRules: []\n    publicNetworkAccess: 'Enabled'\n    enableFreeTier: false\n    analyticalStorageConfiguration: {\n      schemaType: 'WellDefined'\n    }\n    disableLocalAuth: false\n    defaultIdentity: 'FirstPartyIdentity'\n  }\n}\n\nresource sqlDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-11-15' = {\n  parent: cosmosAccount\n  name: databaseName\n  properties: {\n    resource: {\n      id: databaseName\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}\n\nresource sqlContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-11-15' = {\n  parent: sqlDatabase\n  name: containerName\n  properties: {\n    resource: {\n      id: containerName\n      partitionKey: {\n        paths: [\n          partitionKeyPath\n        ]\n        kind: 'Hash'\n      }\n      indexingPolicy: {\n        indexingMode: 'consistent'\n        automatic: true\n        includedPaths: [\n          {\n            path: '/*'\n          }\n        ]\n        excludedPaths: [\n          {\n            path: '/\"_etag\"/?'\n          }\n        ]\n      }\n      defaultTtl: -1\n      uniqueKeyPolicy: {\n        uniqueKeys: []\n      }\n      conflictResolutionPolicy: {\n        mode: 'LastWriterWins'\n        conflictResolutionPath: '/_ts'\n      }\n    }\n    options: {\n      throughput: throughput\n    }\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727889,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 126,
+      "output_tokens": 624,
+      "raw_input_tokens": 126
+    }
+  },
+  "started_at": "2026-05-25T16:51:22.490937+00:00",
+  "elapsed_seconds": 6.613
+}

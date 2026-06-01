@@ -1,0 +1,144 @@
+# FILE: Chart.yaml
+name: spring-boot-app
+version: 1.0.0
+description: A Helm chart for deploying a Java Spring Boot application
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: spring-boot-app
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: spring-boot-app.local
+      paths:
+        - "/"
+  tls:
+    - hosts:
+        - spring-boot-app.local
+      secretName: spring-boot-app-tls
+config:
+  spring:
+    profile: dev
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-boot-app-config
+data:
+  application.properties: |
+    spring.profiles.active=${config.spring.profile}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: spring-boot-app-config-secret
+type: Opaque
+data:
+  SPRING_PROFILES_ACTIVE: ${config.spring.profile | b64enc}
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-app
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: spring-boot-app
+  template:
+    metadata:
+      labels:
+        app: spring-boot-app
+    spec:
+      containers:
+        - name: spring-boot-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelay: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelay: 30
+            periodSeconds: 30
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                secretKeyRef:
+                  name: spring-boot-app-config-secret
+                  key: SPRING_PROFILES_ACTIVE
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: spring-boot-app-config
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-boot-app
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+  selector:
+    app: spring-boot-app
+
+---
+# FILE: templates/ingress.yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spring-boot-app
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.ingress.hosts[0].host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.hosts[0].paths[0] }}
+            pathType: Prefix
+            backend:
+              service:
+                name: spring-boot-app
+                port:
+                  number: {{ .Values.service.port }}
+  tls:
+    - hosts:
+        {{- range .Values.ingress.tls }}
+        - {{ .hosts[0] | quote }}
+        {{- end }}
+      secretName: {{ .Values.ingress.tls[0].secretName }}
+{{- end }}

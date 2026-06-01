@@ -1,0 +1,63 @@
+resources:
+  - name: cloudrun-service
+    type: cloudrun.v1.service
+    properties:
+      service:
+        metadata:
+          name: python-api-service
+        spec:
+          template:
+            spec:
+              containers:
+              - image: gcr.io/[PROJECT_ID]/python-api:latest
+                ports:
+                - containerPort: 8080
+              service:
+                ports:
+                - port: 8080
+                  targetPort: 8080
+          traffic:
+          - percent: 100
+            latestRevision: true
+      location: us-central1
+
+  - name: cloudrun-service-iam
+    type: cloudrun.v1.serviceIamPolicy
+    properties:
+      service: python-api-service
+      location: us-central1
+      policy:
+        bindings:
+        - role: roles/run.serviceAgent
+          members:
+          - serviceAccount:service-[PROJECT_NUMBER]@serverless-robot.iam.gserviceaccount.com
+        - role: roles/iam.serviceAccountUser
+          members:
+          - serviceAccount:service-[PROJECT_NUMBER]@gcf-admin-robot.iam.gserviceaccount.com
+
+  - name: python-api-image
+    action: gcr.io/cloud-builders/docker
+    properties:
+      docker:
+        dockerfile: Dockerfile
+        args:
+        - IMAGE_NAME=python-api
+        - TAG=latest
+      location: us-central1
+
+  - name: python-api-repo
+    type: storage.v1.bucket
+    properties:
+      bucket:
+        name: python-api-repo
+        location: us-central1
+        storageClass: REGIONAL
+      iam:
+        bindings:
+        - role: roles/storage.objectViewer
+          members:
+          - serviceAccount:service-[PROJECT_NUMBER]@gcf-admin-robot.iam.gserviceaccount.com
+
+outputs:
+  - name: cloudrun-service-url
+    value: https://${python-api-service}.run.app

@@ -1,0 +1,172 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 bucket for application user uploads with secure defaults and access controls.
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: ""
+    Description: Optional. Specify to create the bucket with a custom name. Leave blank to auto-generate.
+    AllowedPattern: "^$|^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"
+    ConstraintDescription: Must be a valid S3 bucket name or empty.
+  AllowedCORSOrigins:
+    Type: CommaDelimitedList
+    Default: "https://example.com"
+    Description: Comma-separated list of allowed CORS origins (e.g., https://app.example.com,https://admin.example.com).
+
+Conditions:
+  HasBucketName: !Not [!Equals [!Ref BucketName, ""]]
+
+Resources:
+  UploadsKmsKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: KMS key for encrypting S3 user uploads
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowRootAccountAdministration
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: AllowUseOfKeyViaS3InThisAccount
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+            Resource: "*"
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+                kms:ViaService: !Sub s3.${AWS::Region}.amazonaws.com
+  UploadsKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/s3-uploads-${AWS::StackName}
+      TargetKeyId: !Ref UploadsKmsKey
+
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !If [HasBucketName, !Ref BucketName, !Ref "AWS::NoValue"]
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - BucketKeyEnabled: true
+            ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !Ref UploadsKmsKey
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins: !Ref AllowedCORSOrigins
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - HEAD
+            AllowedHeaders:
+              - "*"
+            ExposedHeaders:
+              - ETag
+            MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            Filter: {}
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      Tags:
+        - Key: Name
+          Value: !If [HasBucketName, !Ref BucketName, !Sub "s3-uploads-${AWS::StackName}"]
+        - Key: Purpose
+          Value: UserUploads
+
+  UploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt UploadsBucket.Arn
+              - !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+          - Sid: DenyPublicAnonymousAccess
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !GetAtt UploadsBucket.Arn
+              - !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                aws:PrincipalType: "Anonymous"
+          - Sid: EnforceKmsEncryptionWhenSpecified
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:PutObject
+            Resource: !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: aws:kms
+              Null:
+                s3:x-amz-server-side-encryption: "false"
+          - Sid: EnforceSpecificKmsKeyWhenSpecified
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:PutObject
+            Resource: !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption-aws-kms-key-id:
+                  - !GetAtt UploadsKmsKey.Arn
+                  - !Ref UploadsKmsKey
+                  - !Sub
+                    - "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:${AliasName}"
+                    - { AliasName: !Ref UploadsKmsAlias }
+                  - !Ref UploadsKmsAlias
+              Null:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: "false"
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket for user uploads
+    Value: !Ref UploadsBucket
+  BucketArn:
+    Description: ARN of the S3 bucket for user uploads
+    Value: !GetAtt UploadsBucket.Arn
+  KmsKeyArn:
+    Description: ARN of the KMS key used for encrypting uploads
+    Value: !GetAtt UploadsKmsKey.Arn
+  KmsAliasName:
+    Description: Alias name of the KMS key
+    Value: !Ref UploadsKmsAlias

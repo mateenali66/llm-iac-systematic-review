@@ -1,0 +1,64 @@
+imports:
+  - path: path/to/iam_service_account.py
+  - path: path/to/iam_workload_identity_pool.py
+  - path: path/to/iam_workload_identity_pool_provider.py
+
+resources:
+  - name: github-deploy-sa
+    type: iam_service_account.py
+    properties:
+      accountId: github-actions-deploy
+      displayName: GitHub Actions Cloud Run Deployer
+      description: Service account for GitHub Actions to deploy Cloud Run services via WIF
+
+  - name: github-wif-pool
+    type: iam_workload_identity_pool.py
+    properties:
+      workloadIdentityPoolId: github-pool
+      displayName: GitHub Actions Pool
+      description: Workload Identity Pool for GitHub Actions
+      disabled: false
+
+  - name: github-wif-provider
+    type: iam_workload_identity_pool_provider.py
+    properties:
+      workloadIdentityPoolId: $(ref.github-wif-pool.workloadIdentityPoolId)
+      workloadIdentityPoolProviderId: github-provider
+      displayName: GitHub OIDC Provider
+      description: OIDC provider for GitHub Actions
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.repository: assertion.repository
+        attribute.repository_owner: assertion.repository_owner
+      attributeCondition: "assertion.repository_owner == 'your-org' && assertion.repository == 'your-org/your-repo'"
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+      disabled: false
+
+  - name: bind-wif-to-sa
+    type: gcp-types/iam-v1:virtual.projects.serviceAccounts.setIamPolicy
+    properties:
+      resource: $(ref.github-deploy-sa.email)
+      policy:
+        bindings:
+          - role: roles/iam.workloadIdentityUser
+            members:
+              - serviceAccount:$(ref.github-deploy-sa.email)
+              - principal://iam.googleapis.com/projects/{{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/$(ref.github-wif-pool.workloadIdentityPoolId)/subject/repo:your-org/your-repo:ref:refs/heads/main
+
+  - name: grant-cloudrun-permissions
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.setIamPolicy
+    properties:
+      bindings:
+        - role: roles/run.developer
+          members:
+            - serviceAccount:$(ref.github-deploy-sa.email)
+        - role: roles/iam.serviceAccountUser
+          members:
+            - serviceAccount:$(ref.github-deploy-sa.email)
+        - role: roles/storage.objectAdmin
+          members:
+            - serviceAccount:$(ref.github-deploy-sa.email)
+        - role: roles/artifactregistry.writer
+          members:
+            - serviceAccount:$(ref.github-deploy-sa.email)

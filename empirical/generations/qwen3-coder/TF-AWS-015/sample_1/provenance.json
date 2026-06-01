@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-015",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS KMS key for encrypting customer PII stored in an S3 bucket. The key should be usable by the application's IAM role only.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS KMS key for encrypting customer PII stored in an S3 bucket. The key should be usable by the application's IAM role only.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_kms_key\" \"pii_encryption_key\" {\n  description             = \"KMS key for encrypting customer PII data in S3\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n  policy                  = data.aws_iam_policy_document.kms_key_policy.json\n}\n\nresource \"aws_kms_alias\" \"pii_encryption_key_alias\" {\n  name          = \"alias/pii-encryption-key\"\n  target_key_id = aws_kms_key.pii_encryption_key.key_id\n}\n\ndata \"aws_iam_policy_document\" \"kms_key_policy\" {\n  statement {\n    sid    = \"Enable IAM User Permissions\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    actions   = [\"kms:*\"]\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"Allow application role to use the key\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [var.application_role_arn]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nvariable \"application_role_arn\" {\n  description = \"ARN of the application IAM role that will use this KMS key\"\n  type        = string\n}",
+  "cleaned_response": "resource \"aws_kms_key\" \"pii_encryption_key\" {\n  description             = \"KMS key for encrypting customer PII data in S3\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n  policy                  = data.aws_iam_policy_document.kms_key_policy.json\n}\n\nresource \"aws_kms_alias\" \"pii_encryption_key_alias\" {\n  name          = \"alias/pii-encryption-key\"\n  target_key_id = aws_kms_key.pii_encryption_key.key_id\n}\n\ndata \"aws_iam_policy_document\" \"kms_key_policy\" {\n  statement {\n    sid    = \"Enable IAM User Permissions\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    actions   = [\"kms:*\"]\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"Allow application role to use the key\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [var.application_role_arn]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nvariable \"application_role_arn\" {\n  description = \"ARN of the application IAM role that will use this KMS key\"\n  type        = string\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_kms_key\" \"pii_encryption_key\" {\n  description             = \"KMS key for encrypting customer PII data in S3\"\n  deletion_window_in_days = 30\n  enable_key_rotation     = true\n  policy                  = data.aws_iam_policy_document.kms_key_policy.json\n}\n\nresource \"aws_kms_alias\" \"pii_encryption_key_alias\" {\n  name          = \"alias/pii-encryption-key\"\n  target_key_id = aws_kms_key.pii_encryption_key.key_id\n}\n\ndata \"aws_iam_policy_document\" \"kms_key_policy\" {\n  statement {\n    sid    = \"Enable IAM User Permissions\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [\"arn:aws:iam::${data.aws_caller_identity.current.account_id}:root\"]\n    }\n    actions   = [\"kms:*\"]\n    resources = [\"*\"]\n  }\n\n  statement {\n    sid    = \"Allow application role to use the key\"\n    effect = \"Allow\"\n    principals {\n      type        = \"AWS\"\n      identifiers = [var.application_role_arn]\n    }\n    actions = [\n      \"kms:Encrypt\",\n      \"kms:Decrypt\",\n      \"kms:ReEncrypt*\",\n      \"kms:GenerateDataKey*\",\n      \"kms:DescribeKey\"\n    ]\n    resources = [\"*\"]\n  }\n}\n\ndata \"aws_caller_identity\" \"current\" {}\n\nvariable \"application_role_arn\" {\n  description = \"ARN of the application IAM role that will use this KMS key\"\n  type        = string\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726688,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 149,
+      "output_tokens": 342,
+      "raw_input_tokens": 149
+    }
+  },
+  "started_at": "2026-05-25T16:31:23.793410+00:00",
+  "elapsed_seconds": 4.804
+}

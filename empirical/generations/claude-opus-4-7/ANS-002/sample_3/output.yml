@@ -1,0 +1,59 @@
+---
+- name: Configure host firewall (SSH + HTTPS only)
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    allowed_tcp_ports:
+      - 22
+      - 443
+
+  tasks:
+    - name: Ensure UFW is installed
+      ansible.builtin.package:
+        name: ufw
+        state: present
+
+    - name: Ensure UFW service is enabled and running
+      ansible.builtin.service:
+        name: ufw
+        state: started
+        enabled: true
+
+    - name: Set UFW default incoming policy to deny
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set UFW default outgoing policy to allow
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Set UFW default routed policy to deny
+      community.general.ufw:
+        direction: routed
+        policy: deny
+
+    - name: Enable UFW logging
+      community.general.ufw:
+        logging: 'low'
+
+    - name: Rate-limit SSH (port 22/tcp) to mitigate brute-force attacks
+      community.general.ufw:
+        rule: limit
+        port: '22'
+        proto: tcp
+        comment: 'Allow and rate-limit SSH'
+
+    - name: Allow HTTPS (port 443/tcp)
+      community.general.ufw:
+        rule: allow
+        port: '443'
+        proto: tcp
+        comment: 'Allow HTTPS'
+
+    - name: Enable UFW and deny all other inbound traffic
+      community.general.ufw:
+        state: enabled

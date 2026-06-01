@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-006",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    CfnParameter,\n    Duration,\n    CfnOutput,\n)\nfrom aws_cdk import aws_iam as iam\nfrom constructs import Construct\n\n\nclass CrossAccountLambdaInvokeRoleStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(\n            self,\n            \"PartnerAccountId\",\n            type=\"String\",\n            description=\"AWS Account ID of the partner who will assume the role.\"\n        )\n\n        external_id = CfnParameter(\n            self,\n            \"ExternalId\",\n            type=\"String\",\n            no_echo=True,\n            description=\"External ID required by the partner to assume this role.\"\n        )\n\n        allowed_lambda_arns = CfnParameter(\n            self,\n            \"AllowedLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-delimited list of Lambda function ARNs that this role can invoke. Include aliases/versions as needed.\"\n        )\n\n        role_name = CfnParameter(\n            self,\n            \"RoleName\",\n            type=\"String\",\n            default=\"PartnerInvokeLambdaRole\",\n            description=\"Name of the IAM role to create.\"\n        )\n\n        assumed_by = iam.AccountPrincipal(partner_account_id.value_as_string).with_conditions({\n            \"StringEquals\": {\n                \"sts:ExternalId\": external_id.value_as_string\n            }\n        })\n\n        role = iam.Role(\n            self,\n            \"CrossAccountLambdaInvokeRole\",\n            role_name=role_name.value_as_string,\n            assumed_by=assumed_by,\n            description=\"Role assumed by a partner account to invoke specific Lambda functions cross-account.\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        role.add_to_policy(\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=allowed_lambda_arns.value_as_list\n            )\n        )\n\n        CfnOutput(self, \"RoleArn\", value=role.role_arn)\n        CfnOutput(self, \"RoleName\", value=role.role_name)",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    CfnParameter,\n    Duration,\n    CfnOutput,\n)\nfrom aws_cdk import aws_iam as iam\nfrom constructs import Construct\n\n\nclass CrossAccountLambdaInvokeRoleStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(\n            self,\n            \"PartnerAccountId\",\n            type=\"String\",\n            description=\"AWS Account ID of the partner who will assume the role.\"\n        )\n\n        external_id = CfnParameter(\n            self,\n            \"ExternalId\",\n            type=\"String\",\n            no_echo=True,\n            description=\"External ID required by the partner to assume this role.\"\n        )\n\n        allowed_lambda_arns = CfnParameter(\n            self,\n            \"AllowedLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-delimited list of Lambda function ARNs that this role can invoke. Include aliases/versions as needed.\"\n        )\n\n        role_name = CfnParameter(\n            self,\n            \"RoleName\",\n            type=\"String\",\n            default=\"PartnerInvokeLambdaRole\",\n            description=\"Name of the IAM role to create.\"\n        )\n\n        assumed_by = iam.AccountPrincipal(partner_account_id.value_as_string).with_conditions({\n            \"StringEquals\": {\n                \"sts:ExternalId\": external_id.value_as_string\n            }\n        })\n\n        role = iam.Role(\n            self,\n            \"CrossAccountLambdaInvokeRole\",\n            role_name=role_name.value_as_string,\n            assumed_by=assumed_by,\n            description=\"Role assumed by a partner account to invoke specific Lambda functions cross-account.\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        role.add_to_policy(\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=allowed_lambda_arns.value_as_list\n            )\n        )\n\n        CfnOutput(self, \"RoleArn\", value=role.role_arn)\n        CfnOutput(self, \"RoleName\", value=role.role_name)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    CfnParameter,\n    Duration,\n    CfnOutput,\n)\nfrom aws_cdk import aws_iam as iam\nfrom constructs import Construct\n\n\nclass CrossAccountLambdaInvokeRoleStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(\n            self,\n            \"PartnerAccountId\",\n            type=\"String\",\n            description=\"AWS Account ID of the partner who will assume the role.\"\n        )\n\n        external_id = CfnParameter(\n            self,\n            \"ExternalId\",\n            type=\"String\",\n            no_echo=True,\n            description=\"External ID required by the partner to assume this role.\"\n        )\n\n        allowed_lambda_arns = CfnParameter(\n            self,\n            \"AllowedLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-delimited list of Lambda function ARNs that this role can invoke. Include aliases/versions as needed.\"\n        )\n\n        role_name = CfnParameter(\n            self,\n            \"RoleName\",\n            type=\"String\",\n            default=\"PartnerInvokeLambdaRole\",\n            description=\"Name of the IAM role to create.\"\n        )\n\n        assumed_by = iam.AccountPrincipal(partner_account_id.value_as_string).with_conditions({\n            \"StringEquals\": {\n                \"sts:ExternalId\": external_id.value_as_string\n            }\n        })\n\n        role = iam.Role(\n            self,\n            \"CrossAccountLambdaInvokeRole\",\n            role_name=role_name.value_as_string,\n            assumed_by=assumed_by,\n            description=\"Role assumed by a partner account to invoke specific Lambda functions cross-account.\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        role.add_to_policy(\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=allowed_lambda_arns.value_as_list\n            )\n        )\n\n        CfnOutput(self, \"RoleArn\", value=role.role_arn)\n        CfnOutput(self, \"RoleName\", value=role.role_name)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779706213,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 130,
+      "output_tokens": 3556,
+      "raw_input_tokens": 130
+    }
+  },
+  "started_at": "2026-05-25T10:49:30.370161+00:00",
+  "elapsed_seconds": 43.439
+}

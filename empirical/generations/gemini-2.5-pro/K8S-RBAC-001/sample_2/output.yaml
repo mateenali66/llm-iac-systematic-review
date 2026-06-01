@@ -1,0 +1,29 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: monitoring-reader-role
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: monitoring
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: monitoring-reader-binding
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: monitoring
+subjects:
+- kind: ServiceAccount
+  name: monitoring-reader
+  namespace: monitoring
+roleRef:
+  kind: Role
+  name: monitoring-reader-role
+  apiGroup: rbac.authorization.k8s.io

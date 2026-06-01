@@ -1,0 +1,41 @@
+imports:
+- path: redis-instance.jinja
+
+resources:
+- name: app-cache-redis
+  type: redis-instance.jinja
+  properties:
+    region: us-central1
+    zone: us-central1-a
+    tier: BASIC
+    memorySizeGb: 1
+    redisVersion: REDIS_7_0
+    displayName: Application Cache Redis
+    authEnabled: true
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    connectMode: PRIVATE_SERVICE_ACCESS
+    authorizedNetwork: projects/{{ env["project"] }}/global/networks/default
+    reservedIpRange: 10.100.0.0/29
+    redisConfigs:
+      maxmemory-policy: allkeys-lru
+      notify-keyspace-events: Ex
+    labels:
+      environment: production
+      application: cache
+      managed-by: deployment-manager
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+        day: SUNDAY
+        startTime:
+          hours: 3
+          minutes: 0
+          seconds: 0
+          nanos: 0
+
+outputs:
+- name: redisHost
+  value: $(ref.app-cache-redis.host)
+- name: redisPort
+  value: $(ref.app-cache-redis.port)
+- name: redisCurrentLocationId
+  value: $(ref.app-cache-redis.currentLocationId)

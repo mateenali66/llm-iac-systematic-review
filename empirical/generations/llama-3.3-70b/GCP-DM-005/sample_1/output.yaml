@@ -1,0 +1,74 @@
+resources:
+  - name: saas-postgres-instance
+    type: sql.v1beta4.instance
+    properties:
+      region: us-central1
+      databaseVersion: POSTGRES_15
+      settings:
+        tier: db-custom-2-7680
+        availabilityType: REGIONAL
+        diskAutoresize: true
+        diskSize: 50
+        diskType: PD_SSD
+        backupConfiguration:
+          enabled: true
+          binaryLogEnabled: true
+          pointInTimeRecoveryEnabled: true
+          location: us
+          startTime: 00:00
+          retentionUnit: DAYS
+          retention: 7
+        ipConfiguration:
+          ipv4Enabled: true
+          requireSsl: true
+        maintenanceWindow:
+          hour: 3
+          day: 0
+          updateTrack: stable
+        dataDiskSizeGb: 50
+        dataDiskType: PD_SSD
+      instanceType: CLOUD_SQL_INSTANCE
+      backupRuns:
+        - kind: sql#backupRun
+          status: SUCCESSFUL
+      etag: ''
+      failureTimeline:
+        - kind: sql#operationError
+          error: {}
+      kind: sql#instance
+      project: $(ref.project-id)
+      selfLink: ''
+      serverCaCert:
+        kind: sql#serverCaCert
+        cert: ''
+        commonName: ''
+        createTime: ''
+        expirationTime: ''
+        sha1Fingerprint: ''
+      serviceAccountEmailAddress: ''
+  - name: saas-postgres-database
+    type: sql.v1beta4.database
+    properties:
+      instance: $(ref.saas-postgres-instance.name)
+      name: saasdb
+      project: $(ref.project-id)
+  - name: saas-postgres-user
+    type: sql.v1beta4.user
+    properties:
+      instance: $(ref.saas-postgres-instance.name)
+      name: saasuser
+      password: $(var.saas-postgres-password)
+      project: $(ref.project-id)
+      host: '%'
+      type: CLOUD_SQL_INSTANCE
+inputs:
+  - name: project-id
+    default: ''
+  - name: saas-postgres-password
+    default: ''
+    sensitive: true
+outputs:
+  - name: instance-name
+    value: $(ref.saas-postgres-instance.name)
+  - name: instance-ip
+    value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)

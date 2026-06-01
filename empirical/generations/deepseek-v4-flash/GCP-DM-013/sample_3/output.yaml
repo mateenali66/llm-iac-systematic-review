@@ -1,0 +1,29 @@
+imports:
+  - path: templates/redis_instance.py
+    name: redis_instance.py
+
+resources:
+  - name: app-cache-redis
+    type: redis_instance.py
+    properties:
+      region: us-central1
+      tier: BASIC
+      memorySizeGb: 1
+      displayName: app-cache-redis
+      redisVersion: REDIS_7_0
+      connectMode: DIRECT_PEERING
+      authorizedNetwork: projects/your-project-id/global/networks/default
+      reservedIpRange: 10.0.0.0/29
+      labels:
+        environment: production
+        application: app-cache
+      maintenancePolicy:
+        weeklyMaintenanceWindow:
+          - day: SUNDAY
+            startTime:
+              hours: 2
+              minutes: 0
+          - day: WEDNESDAY
+            startTime:
+              hours: 2
+              minutes: 0

@@ -1,0 +1,153 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 215,
+	"files_parsed": 1,
+	"lines_parsed": 215,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:33:44.155049209Z",
+	"end": "2026-05-26T06:34:06.722328012Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "71f64174fce25f0f0b49255172359e079cdc883aa588bd42a892a3eb1d696061",
+					"line": 114,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4aa7950a9466bc44decc0cd1e1cbb1e8ab6f67f5bc39f7f89e93d97d0a75847d",
+					"line": 154,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "88fd05e0-ac0e-43d2-ba6d-fc0ba60ae1a6",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#iam_database_authentication_enabled",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "285",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "12b1c8aa",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2d0af1e72577e1fd963d01f15b6559c8459c3c3864bdeb56bdadafc18391d762",
+					"line": 150,
+					"resource_type": "aws_db_instance",
+					"resource_name": "${local.name_prefix}",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[main]",
+					"search_line": 150,
+					"search_value": "",
+					"expected_value": "'iam_database_authentication_enabled' should be set to true",
+					"actual_value": "'iam_database_authentication_enabled' is undefined or null",
+					"remediation": "iam_database_authentication_enabled = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "Secretsmanager Secret Without KMS",
+			"query_id": "a2f548f2-188c-4fff-b172-e9a6acb216bd",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret#kms_key_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS Secretmanager should use AWS KMS customer master key (CMK) to encrypt the secret values in the versions stored in the secret",
+			"description_id": "c9c95b59",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0d3e6d203361924c8c84003f364e23d461034a125e2143da87b3d07ba9342c64",
+					"line": 101,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "${local.name_prefix}-credentials",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{db_credentials}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret.kms_key_id should be defined and not null",
+					"actual_value": "aws_secretsmanager_secret.kms_key_id is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 58,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		}
+	]
+}

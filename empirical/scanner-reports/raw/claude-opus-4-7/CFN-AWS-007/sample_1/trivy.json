@@ -1,0 +1,161 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T03:51:43.532563305Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 25,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0136",
+          "AVDID": "AVD-AWS-0136",
+          "Title": "SNS topic not encrypted with CMK.",
+          "Description": "Topics should be encrypted with customer managed KMS keys and not default AWS managed keys, in order to allow granular key management.\n",
+          "Message": "Topic encryption does not use a customer managed key.",
+          "Namespace": "builtin.aws.sns.aws0136",
+          "Query": "data.builtin.aws.sns.aws0136.deny",
+          "Resolution": "Use a CMK for SNS Topic encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0136",
+          "References": [
+            "https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0136"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "AlarmTopic",
+            "Provider": "AWS",
+            "Service": "sns",
+            "StartLine": 54,
+            "EndLine": 54,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 49,
+                  "Content": "  AlarmTopic:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mAlarmTopic\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 50,
+                  "Content": "    Type: AWS::SNS::Topic",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: AWS::SNS::Topic",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 51,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 52,
+                  "Content": "      TopicName: !Sub '${FunctionName}-health-alarms'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mTopicName\u001b[0m: !Sub '${FunctionName}-health-alarms'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 53,
+                  "Content": "      DisplayName: !Sub 'Lambda ${FunctionName} Health Alarms'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDisplayName\u001b[0m: !Sub 'Lambda ${FunctionName} Health Alarms'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 54,
+                  "Content": "      KmsMasterKeyId: alias/aws/sns",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mKmsMasterKeyId\u001b[0m: alias/aws/sns",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 55,
+                  "Content": "      Subscription:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSubscription\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 56,
+                  "Content": "        - Endpoint: !Ref AlarmEmail",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mEndpoint\u001b[0m: !Ref AlarmEmail",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 57,
+                  "Content": "          Protocol: email",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mProtocol\u001b[0m: email",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "AlarmTopic",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 49,
+                  "EndLine": 57
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

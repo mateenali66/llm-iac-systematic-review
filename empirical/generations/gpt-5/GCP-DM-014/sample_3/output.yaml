@@ -1,0 +1,86 @@
+resources:
+- name: project-info
+  type: gcp-types/cloudresourcemanager-v1:projects.get
+  properties:
+    projectId: $(project)
+
+- name: gha-deployer-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    name: projects/$(project)
+    accountId: gha-deployer
+    serviceAccount:
+      displayName: GitHub Actions Deployer SA
+      description: Service account impersonated via Workload Identity Federation by GitHub Actions
+
+- name: cloud-run-runtime-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    name: projects/$(project)
+    accountId: cloud-run-runtime
+    serviceAccount:
+      displayName: Cloud Run Runtime SA
+      description: Runtime identity for Cloud Run services
+
+- name: wif-pool
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/$(ref.project-info.projectNumber)/locations/global
+    workloadIdentityPoolId: github-pool
+    workloadIdentityPool:
+      displayName: GitHub Actions Pool
+      description: Workload Identity Pool for GitHub Actions OIDC
+      disabled: false
+
+- name: wif-provider-github
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: $(ref.wif-pool.name)
+    workloadIdentityPoolProviderId: github
+    workloadIdentityPoolProvider:
+      displayName: GitHub OIDC Provider
+      description: OIDC provider for GitHub Actions
+      disabled: false
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+        allowedAudiences:
+        - sts.googleapis.com
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.repository: assertion.repository
+        attribute.ref: assertion.ref
+        attribute.actor: assertion.actor
+        attribute.workflow: assertion.workflow
+      attributeCondition: assertion.repository == 'your-org/your-repo' && assertion.ref == 'refs/heads/main' && assertion.aud == 'sts.googleapis.com'
+
+- name: wif-binding-sa-impersonation
+  type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+  properties:
+    resource: projects/$(project)/serviceAccounts/$(ref.gha-deployer-sa.email)
+    role: roles/iam.workloadIdentityUser
+    member: principalSet://iam.googleapis.com/$(ref.wif-pool.name)/attribute.repository/your-org/your-repo
+  metadata:
+    dependsOn:
+    - wif-provider-github
+    - gha-deployer-sa
+
+- name: project-bind-run-admin
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/run.admin
+    member: serviceAccount:$(ref.gha-deployer-sa.email)
+
+- name: runtime-sa-allow-actAs
+  type: gcp-types/iam-v1:projects.serviceAccounts.iamMemberBinding
+  properties:
+    resource: projects/$(project)/serviceAccounts/$(ref.cloud-run-runtime-sa.email)
+    role: roles/iam.serviceAccountUser
+    member: serviceAccount:$(ref.gha-deployer-sa.email)
+
+- name: project-bind-ar-reader-runtime
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/artifactregistry.reader
+    member: serviceAccount:$(ref.cloud-run-runtime-sa.email)

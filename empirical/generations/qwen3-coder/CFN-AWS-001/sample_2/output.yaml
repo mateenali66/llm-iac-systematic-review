@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 bucket for application user uploads with secure access controls'
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Description: Prefix for the S3 bucket name
+    Default: app-uploads
+    AllowedPattern: '[a-zA-Z0-9\-]*'
+    ConstraintDescription: Must contain only alphanumeric characters and hyphens
+
+Resources:
+  UserUploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${BucketNamePrefix}-${AWS::AccountId}-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      NotificationConfiguration:
+        CloudFunctionConfiguration:
+          Event: s3:ObjectCreated:*
+          Function: !GetAtt UploadProcessorFunction.Arn
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3000
+
+  UserUploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UserUploadsBucket
+      PolicyDocument:
+        Statement:
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !Sub '${UserUploadsBucket}/*'
+              - !Ref UserUploadsBucket
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+          - Sid: AllowAppAccess
+            Effect: Allow
+            Principal:
+              AWS: !GetAtt AppRole.Arn
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:DeleteObject'
+            Resource: !Sub '${UserUploadsBucket}/*'
+
+  AppRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3UploadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                  - 's3:DeleteObject'
+                Resource: !Sub '${UserUploadsBucket}/*'
+
+  UploadProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-upload-processor'
+      Runtime: python3.9
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          def handler(event, context):
+              print("Processing upload event")
+              return {'statusCode': 200}
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+Outputs:
+  BucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref UserUploadsBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+  BucketArn:
+    Description: ARN of the created S3 bucket
+    Value: !GetAtt UserUploadsBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketArn'
+  AppRoleArn:
+    Description: ARN of the application role with S3 access
+    Value: !GetAtt AppRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AppRoleArn'

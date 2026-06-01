@@ -1,0 +1,142 @@
+# FILE: Chart.yaml
+name: postgres
+version: 1.0.0
+description: A Helm chart for deploying a Postgres database
+type: application
+appVersion: 14.5
+dependencies:
+  - name: common
+    version: ^1.0.0
+    repository: https://charts.bitnami.com/bitnami
+
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: postgres
+  tag: 14.5
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5432
+persistence:
+  enabled: true
+  size: 1Gi
+postgresql:
+  postgresPassword: changeme
+  postgresUser: postgres
+  database: mydatabase
+  username: myuser
+  password: changeme
+initJob:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 14.5
+  command: ["psql", "-U", "postgres", "-c", "CREATE DATABASE mydatabase; CREATE ROLE myuser WITH PASSWORD 'changeme'; GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;"]
+
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "postgres.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "postgres.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        ports:
+        - name: postgres
+          containerPort: 5432
+          protocol: TCP
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.postgresql.postgresUser }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.postgresql.postgresPassword }}
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "postgres.fullname" . }}-pvc
+
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: 5432
+    targetPort: postgres
+  selector:
+    app: {{ include "postgres.name" . }}
+
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgres.fullname" . }}-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres.fullname" . }}-secret
+type: Opaque
+data:
+  postgres-password: {{ .Values.postgresql.postgresPassword | b64enc }}
+  postgres-username: {{ .Values.postgresql.postgresUser | b64enc }}
+  database: {{ .Values.postgresql.database | b64enc }}
+  username: {{ .Values.postgresql.username | b64enc }}
+  password: {{ .Values.postgresql.password | b64enc }}
+
+# FILE: templates/initjob.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.fullname" . }}-init
+spec:
+  template:
+    spec:
+      containers:
+      - name: init
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: {{ .Values.initJob.command }}
+      restartPolicy: OnFailure
+  backoffLimit: 4
+
+# FILE: templates/_helpers.tpl
+{{- define "postgres.name" -}}
+{{ .Chart.Name }}
+{{- end -}}
+
+{{- define "postgres.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}

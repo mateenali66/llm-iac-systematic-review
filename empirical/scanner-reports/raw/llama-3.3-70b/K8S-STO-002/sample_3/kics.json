@@ -1,0 +1,687 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 84,
+	"files_parsed": 2,
+	"lines_parsed": 83,
+	"lines_ignored": 1,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 2,
+		"LOW": 11,
+		"MEDIUM": 10,
+		"TRACE": 0
+	},
+	"total_counter": 24,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:11:59.738722259Z",
+	"end": "2026-05-26T06:12:02.080514926Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Privilege Escalation Allowed",
+			"query_id": "5572cc5e-1e4c-4113-92a6-7a8a3bd25e6d",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should not run with allowPrivilegeEscalation in order to prevent them from gaining more privileges than their parent process",
+			"description_id": "525fccf4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9f87468c1b4cf2fbdb984addcca327a8d8416e5e05a021c24c08020cbb3eb1b1",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.allowPrivilegeEscalation should be set and should be set to false",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.allowPrivilegeEscalation is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running As Root",
+			"query_id": "cf34805e-3872-4c08-bf92-6ff7bb0cfadb",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Containers should only run as non-root user. This limits the exploitability of security misconfigurations and restricts an attacker's possibilities in case of compromise",
+			"description_id": "9d5b1d16",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4ac8ccb5b91776c5b9ed69c8abbfa036fe998873b4688bc54a9de54931ebb113",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.runAsUser is higher than 0 and/or 'runAsNonRoot' is true",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.runAsUser is 0 and 'runAsNonRoot' is false"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "662bce7432d324826e81c675e60f3a059a7514d40cf8706895cf79d5eb14b54a",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.runAsUser should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.runAsUser is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Limits Not Defined",
+			"query_id": "b14d1bc4-a208-45db-92f0-e21f8e2588e9",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory limits should be defined for each container. This prevents potential resource exhaustion by ensuring that containers consume not more than the designated amount of memory",
+			"description_id": "e0ba95cc",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d1bc67b81ff1a87055ebd7daa16ea5fc4fcbda25281c5fb9d01fafc4121d1b5a",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.resources.limits.memory should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.resources.limits.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Requests Not Defined",
+			"query_id": "229588ef-8fde-40c8-8756-f4f2b5825ded",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory requests should be defined for each container. This allows the kubelet to reserve the requested amount of system resources and prevents over-provisioning on individual nodes",
+			"description_id": "3dcbd683",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3a99a0e369cbdc4bee5c2372814f090b8ea4d0ab50669ee9cedeb7e4fa7850ae",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.resources.requests.memory should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.resources.requests.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "NET_RAW Capabilities Not Being Dropped",
+			"query_id": "dbbc6705-d541-43b0-b166-dd4be8208b54",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should drop 'ALL' or at least 'NET_RAW' capabilities",
+			"description_id": "e9790956",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "369926aacbaceae714482ef13faffd95ab5cce2ea38802f75c76100569128270",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.capabilities.drop should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.capabilities.drop is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Readiness Probe Is Not Configured",
+			"query_id": "a659f3b5-9bf0-438a-bd9a-7d3a6427f1e3",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Check if Readiness Probe is not configured.",
+			"description_id": "28c0498a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2e979909c77d2d4371b1050d84ab5a9130adc2cd53603f26cc00cd8f93ad1697",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.readinessProbe should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.readinessProbe is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Seccomp Profile Is Not Configured",
+			"query_id": "f377b83e-bd07-4f48-a591-60c82b14a78b",
+			"query_url": "https://kubernetes.io/docs/tutorials/security/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should be configured with a secure Seccomp profile to restrict potentially dangerous syscalls",
+			"description_id": "d943c7e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c32b038f74e41f665ea4f5b0b1c0b0e8f499d4bb4654a6c7adcb9cbd22a881d1",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.seccompProfile.type should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.seccompProfile.type is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3e39b478ba139081b1bb0560abd836743d69df686c50381b23a432e24548396c",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1d1f59882146a2a39f012f51f672a94eab1dde45e25868224e529cfbf48f9ce9",
+					"line": 13,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{example-deployment}}",
+					"search_line": 13,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "postgresql-password",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Secret}}.metadata.name={{postgresql-password}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Limits Not Set",
+			"query_id": "4ac0e2b7-d2d2-4af7-8799-e8de6721ccda",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU limits should be set because if the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests",
+			"description_id": "9a2ef763",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9683206efac72a74c2a0362945d3a28cff17bfb0cd8eedf5179415edb7fc67a4",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name=example",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name=example has resources defined",
+					"actual_value": "spec.template.spec.containers.name=example doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Requests Not Set",
+			"query_id": "ca469dd4-c736-448f-8ac1-30a642705e0a",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU requests should be set to ensure the sum of the resource requests of the scheduled Containers is less than the capacity of the node",
+			"description_id": "ac7ad5df",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6357d01a6ab8f13730e7d48a3670247ce80b5d771177164d10b1f49b0d9ccf22",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name=example",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name=example should have resources defined",
+					"actual_value": "spec.template.spec.containers.name=example doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "69ab184373b5cf28c3a3fefc23ac3269fbf79cdf1ab8171649eb8742b84bfe55",
+					"line": 25,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Invalid Image Tag",
+			"query_id": "583053b7-e632-46f0-b989-f81ff8045385",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Supply-Chain",
+			"experimental": false,
+			"description": "Image tag must be defined and not be empty or equal to latest.",
+			"description_id": "30154626",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "83aca65fd24fe2b024553fb466dd001ca63c68347b2207c7ad8cf85981c6583d",
+					"line": 25,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image tag is provided and not latest",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.image tag is not provided or latest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "15c7f90ae4ea325a01cfbe626fd58d598e47ce3b37b3f8411c1a784769778750",
+					"line": 19,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{example}}",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{example}}"
+				}
+			]
+		},
+		{
+			"query_name": "No Drop Capabilities for Containers",
+			"query_id": "268ca686-7fb7-4ae9-b129-955a2a89064e",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Sees if Kubernetes Drop Capabilities exists to ensure containers security context",
+			"description_id": "9d3ca6db",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "20b275d04013dc4696cafb29fb159934a7172862355f1144db7cc9a29d5b69e2",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.containers.name=example",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.containers.name=example.securityContext should be set",
+					"actual_value": "metadata.name={{example-deployment}}.spec.containers.name=example.securityContext is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3077d669c0cb4c3779ed513b88bf5f38d4c87fb0ab1801dd427beaf5e70d7293",
+					"line": 13,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{example-deployment}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8e9fb9f87d0eed0850e0278d735cc3be1f9a90d8ddf2ac7f9cf9c3396216c100",
+					"line": 13,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{example-deployment}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without Security Context",
+			"query_id": "a97a340a-0063-418e-b3a1-3028941d0995",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "285",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "A security context defines privilege and access control settings for a Pod or Container",
+			"description_id": "68a1650b",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2acd7750972c1ffb5f08ad79f2c30935a1da6bd482cce79185c15b5b3ffd9eed",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name=example",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name=example has a security context",
+					"actual_value": "spec.template.spec.containers.name=example does not have a security context"
+				}
+			]
+		},
+		{
+			"query_name": "Root Container Not Mounted Read-only",
+			"query_id": "a9c2f49d-0671-4fc9-9ece-f4e261e128d0",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "668",
+			"cloud_provider": "COMMON",
+			"category": "Build Process",
+			"experimental": false,
+			"description": "Check if the root container filesystem is not being mounted as read-only.",
+			"description_id": "0d2df1e5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5bdb04b7df5c074698dac5f80d2b1c78dacc12efb57f7538c6c66432e0152563",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.readOnlyRootFilesystem should be set to true",
+					"actual_value": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}.securityContext.readOnlyRootFilesystem is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Secrets As Environment Variables",
+			"query_id": "3d658f8b-d988-41a0-a841-40043121de1e",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets-as-environment-variables",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "526",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Container should not use secrets as environment variables",
+			"description_id": "99365a7d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b2b40590be38c4614a6db8ffc9e0943d6784d74079df4a27dff1affb6567bea0",
+					"line": 29,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.env.name={{POSTGRESQL_PASSWORD}}.valueFrom.secretKeyRef",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.containers.name={{example}}.env.name={{POSTGRESQL_PASSWORD}}.valueFrom.secretKeyRef' should be undefined",
+					"actual_value": "'spec.template.spec.containers.name={{example}}.env.name={{POSTGRESQL_PASSWORD}}.valueFrom.secretKeyRef' is defined"
+				}
+			]
+		},
+		{
+			"query_name": "Liveness Probe Is Not Defined",
+			"query_id": "ade74944-a674-4e00-859e-c6eab5bde441",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#when-should-you-use-a-liveness-probe",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "In case of an unresponsive container, a Liveness Probe can help your application become more available since it restarts the container. However, it can lead to cascading failures. Define one if you really need it",
+			"description_id": "f724fa60",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4879129f9ead498a08a677c7515ec63e92ce40d43657bbe34d87f990cc0c5e8b",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "example-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{example-deployment}}.spec.template.spec.containers.name={{example}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{example-deployment}}.spec.containers.name={{example}}.livenessProbe should be defined",
+					"actual_value": "metadata.name={{example-deployment}}.spec.containers.name={{example}}.livenessProbe is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Kubernetes Native Secret Management",
+			"query_id": "b9c83569-459b-4110-8f79-6305aa33cb37",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "311",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Kubernetes External Secret Storage and Management System usage should be considered if you have more complex secret management needs, rather than using Kubernetes Secrets directly. Additionally, ensure that access to secrets is carefully limited",
+			"description_id": "3d7b569c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b04860bdd114f53005c4e3d678d1bad3fc5ba43247cbf46d7dd3ae9395e779c6",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "postgresql-password",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{postgresql-password}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "External secret storage should be used",
+					"actual_value": "External secret storage is not in use"
+				}
+			]
+		}
+	]
+}

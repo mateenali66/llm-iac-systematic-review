@@ -1,0 +1,168 @@
+- name: Deploy Java application as a systemd service
+  hosts: all
+  become: true
+  vars:
+    app_name: myapp
+    service_name: "{{ app_name }}"
+    app_user: "{{ app_name }}"
+    app_group: "{{ app_user }}"
+    app_base_dir: "/opt/{{ app_name }}"
+    data_dir: "/var/lib/{{ app_name }}"
+    log_dir: "/var/log/{{ app_name }}"
+    config_dir: "/etc/{{ app_name }}"
+    runtime_dir: "{{ app_name }}"
+    jar_name: "{{ app_name }}.jar"
+    jar_src: "files/{{ jar_name }}"
+    java_opts: "-Xms256m -Xmx512m -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+    app_opts: ""
+  pre_tasks:
+    - name: Determine nologin shell path
+      set_fact:
+        nologin_shell_path: "{{ '/usr/sbin/nologin' if ansible_os_family == 'Debian' else '/sbin/nologin' }}"
+
+    - name: Determine OpenJDK 21 package name
+      set_fact:
+        jdk_package: >-
+          {{ 'openjdk-21-jdk' if ansible_os_family == 'Debian'
+             else ('openjdk-21-jdk' if ansible_distribution == 'Ubuntu'
+                   else ('java-21-openjdk' if ansible_os_family in ['RedHat', 'Suse']
+                         else 'java-21-openjdk')) }}
+
+    - name: Update apt cache when using apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_pkg_mgr == 'apt'
+
+  tasks:
+    - name: Ensure OpenJDK 21 is installed
+      package:
+        name: "{{ jdk_package }}"
+        state: present
+
+    - name: Ensure application group exists
+      group:
+        name: "{{ app_group }}"
+        system: true
+
+    - name: Ensure application user exists
+      user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: "{{ nologin_shell_path }}"
+        create_home: false
+
+    - name: Create application base and config directories
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default(app_user) }}"
+        group: "{{ item.group | default(app_group) }}"
+        mode: "{{ item.mode | default('0750') }}"
+      loop:
+        - { path: "{{ app_base_dir }}" }
+        - { path: "{{ config_dir }}", owner: "root", group: "{{ app_group }}", mode: "0750" }
+
+    - name: Deploy application JAR
+      copy:
+        src: "{{ jar_src }}"
+        dest: "{{ app_base_dir }}/{{ jar_name }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: "0640"
+        backup: yes
+      notify: Restart {{ service_name }}
+
+    - name: Create environment file
+      copy:
+        dest: "{{ config_dir }}/{{ app_name }}.conf"
+        owner: "root"
+        group: "{{ app_group }}"
+        mode: "0640"
+        content: |
+          JAVA_OPTS="{{ java_opts }}"
+          APP_OPTS="{{ app_opts }}"
+      notify: Restart {{ service_name }}
+
+    - name: Create systemd unit file
+      copy:
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        content: |
+          [Unit]
+          Description={{ app_name }} Java Service
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_group }}
+          EnvironmentFile=-{{ config_dir }}/{{ app_name }}.conf
+          WorkingDirectory={{ app_base_dir }}
+          ExecStart=/usr/bin/java $JAVA_OPTS -jar {{ app_base_dir }}/{{ jar_name }} $APP_OPTS
+          ExecStop=/bin/kill -s SIGTERM $MAINPID
+          Restart=on-failure
+          RestartSec=5s
+
+          # Security hardening
+          NoNewPrivileges=true
+          PrivateTmp=true
+          PrivateDevices=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ProtectClock=true
+          ProtectKernelLogs=true
+          ProtectKernelModules=true
+          ProtectKernelTunables=true
+          LockPersonality=true
+          MemoryDenyWriteExecute=true
+          RestrictRealtime=true
+          RestrictSUIDSGID=true
+          RemoveIPC=true
+          SystemCallArchitectures=native
+          RestrictNamespaces=true
+          RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+          UMask=0077
+
+          # Permit writes to required paths
+          ReadWritePaths={{ app_base_dir }} {{ data_dir }} {{ log_dir }}
+
+          # Managed directories (created by systemd and owned by service user)
+          RuntimeDirectory={{ runtime_dir }}
+          StateDirectory={{ app_name }}
+          CacheDirectory={{ app_name }}
+          LogsDirectory={{ app_name }}
+
+          # Resource limits
+          LimitNOFILE=65536
+          TimeoutStopSec=30s
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Systemd daemon-reload
+        - Restart {{ service_name }}
+
+    - name: Ensure service is enabled and started
+      systemd:
+        name: "{{ service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: false
+
+  handlers:
+    - name: Systemd daemon-reload
+      systemd:
+        daemon_reload: true
+
+    - name: Restart {{ service_name }}
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+        enabled: true

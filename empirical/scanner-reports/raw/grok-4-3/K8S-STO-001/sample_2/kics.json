@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 70,
+	"files_parsed": 2,
+	"lines_parsed": 70,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:34:15.148844636Z",
+	"end": "2026-05-26T05:34:17.649500096Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "78a79fb0082e5867ef4daad2f1a43cd1b177411882121ac33f276cde1ee1745c",
+					"line": 4,
+					"resource_type": "PersistentVolumeClaim",
+					"resource_name": "db-data-pvc",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-data-pvc}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-data-pvc}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{db-data-pvc}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "dcdedf388a4d0987f6893ee09856cf2617cddeb0ebec542b2110a0e2ecafdcab",
+					"line": 4,
+					"resource_type": "PersistentVolumeClaim",
+					"resource_name": "db-data-pvc",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-data-pvc}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-data-pvc}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{db-data-pvc}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

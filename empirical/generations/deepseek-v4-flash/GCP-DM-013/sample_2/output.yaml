@@ -1,0 +1,25 @@
+imports:
+  - path: https://raw.githubusercontent.com/GoogleCloudPlatform/deploymentmanager-samples/master/community/cloud-foundation/templates/memorystore_redis/memorystore_redis.py
+    name: memorystore_redis.py
+
+resources:
+  - name: app-cache-redis
+    type: memorystore_redis.py
+    properties:
+      name: app-cache-redis
+      tier: BASIC
+      memorySizeGb: 1
+      region: us-central1
+      locationId: us-central1-a
+      alternativeLocationId: us-central1-b
+      redisVersion: REDIS_7_0
+      displayName: Application Cache Redis Instance
+      labels:
+        - key: environment
+          value: production
+        - key: application
+          value: app-cache
+      connectMode: DIRECT_PEERING
+      reservedIpRange: 10.0.0.0/29
+      authEnabled: true
+      transitEncryptionEnabled: false

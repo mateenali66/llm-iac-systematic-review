@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-008",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: storage-encryption-key-ring\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/$(project)/locations/global\n    keyRingId: storage-encryption-key-ring\n\n- name: storage-encryption-key\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - storage-encryption-key-ring\n  properties:\n    parent: $(ref.storage-encryption-key-ring.name)\n    cryptoKeyId: storage-encryption-key\n    purpose: ENCRYPT_DECRYPT\n    versionTemplate:\n      protectionLevel: SOFTWARE\n      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    # Rotate key every 90 days\n    rotationPeriod: 7776000s\n\noutputs:\n- name: keyName\n  value: $(ref.storage-encryption-key.name)\n- name: keyRingName\n  value: $(ref.storage-encryption-key-ring.name)",
+  "cleaned_response": "resources:\n- name: storage-encryption-key-ring\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/$(project)/locations/global\n    keyRingId: storage-encryption-key-ring\n\n- name: storage-encryption-key\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - storage-encryption-key-ring\n  properties:\n    parent: $(ref.storage-encryption-key-ring.name)\n    cryptoKeyId: storage-encryption-key\n    purpose: ENCRYPT_DECRYPT\n    versionTemplate:\n      protectionLevel: SOFTWARE\n      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    # Rotate key every 90 days\n    rotationPeriod: 7776000s\n\noutputs:\n- name: keyName\n  value: $(ref.storage-encryption-key.name)\n- name: keyRingName\n  value: $(ref.storage-encryption-key-ring.name)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: storage-encryption-key-ring\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/$(project)/locations/global\n    keyRingId: storage-encryption-key-ring\n\n- name: storage-encryption-key\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - storage-encryption-key-ring\n  properties:\n    parent: $(ref.storage-encryption-key-ring.name)\n    cryptoKeyId: storage-encryption-key\n    purpose: ENCRYPT_DECRYPT\n    versionTemplate:\n      protectionLevel: SOFTWARE\n      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    # Rotate key every 90 days\n    rotationPeriod: 7776000s\n\noutputs:\n- name: keyName\n  value: $(ref.storage-encryption-key.name)\n- name: keyRingName\n  value: $(ref.storage-encryption-key-ring.name)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779727321,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 123,
+      "output_tokens": 1420,
+      "raw_input_tokens": 123
+    }
+  },
+  "started_at": "2026-05-25T16:41:41.917117+00:00",
+  "elapsed_seconds": 19.205
+}

@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-007",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Configure static network interface via Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  any_errors_fatal: true\n  vars:\n    # Override these via inventory or --extra-vars\n    netplan_interface: eth0\n    netplan_address_cidr: 192.0.2.10/24\n    netplan_gateway4: 192.0.2.1\n    netplan_nameservers:\n      - 1.1.1.1\n      - 9.9.9.9\n    netplan_renderer: networkd\n  pre_tasks:\n    - name: Update APT cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n    - name: Install Netplan and required services\n      ansible.builtin.apt:\n        name:\n          - netplan.io\n          - systemd-networkd\n          - systemd-resolved\n        state: present\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        enabled: true\n        state: started\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        enabled: true\n        state: started\n\n    - name: Validate required variables\n      ansible.builtin.assert:\n        that:\n          - netplan_interface is defined\n          - netplan_address_cidr is defined\n          - netplan_gateway4 is defined\n          - netplan_nameservers is defined\n          - netplan_nameservers | length > 0\n        fail_msg: \"Required Netplan variables are missing.\"\n\n    - name: Assert target interface exists on host\n      ansible.builtin.assert:\n        that:\n          - netplan_interface in ansible_facts.interfaces\n        fail_msg: \"Interface {{ netplan_interface }} not found on this host.\"\n\n  tasks:\n    - name: Configure Netplan for static IPv4 on {{ netplan_interface }}\n      community.general.netplan:\n        state: present\n        config:\n          network:\n            version: 2\n            renderer: \"{{ netplan_renderer }}\"\n            ethernets:\n              \"{{ netplan_interface }}\":\n                dhcp4: false\n                dhcp6: false\n                addresses:\n                  - \"{{ netplan_address_cidr }}\"\n                gateway4: \"{{ netplan_gateway4 }}\"\n                nameservers:\n                  addresses: \"{{ netplan_nameservers }}\"\n      notify: Apply netplan\n\n  handlers:\n    - name: Apply netplan\n      listen: Apply netplan\n      ansible.builtin.command: netplan apply\n      changed_when: true\n\n    - name: Wait for SSH to return after netplan apply\n      listen: Apply netplan\n      ansible.builtin.wait_for_connection:\n        delay: 3\n        timeout: 60",
+  "cleaned_response": "- name: Configure static network interface via Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  any_errors_fatal: true\n  vars:\n    # Override these via inventory or --extra-vars\n    netplan_interface: eth0\n    netplan_address_cidr: 192.0.2.10/24\n    netplan_gateway4: 192.0.2.1\n    netplan_nameservers:\n      - 1.1.1.1\n      - 9.9.9.9\n    netplan_renderer: networkd\n  pre_tasks:\n    - name: Update APT cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n    - name: Install Netplan and required services\n      ansible.builtin.apt:\n        name:\n          - netplan.io\n          - systemd-networkd\n          - systemd-resolved\n        state: present\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        enabled: true\n        state: started\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        enabled: true\n        state: started\n\n    - name: Validate required variables\n      ansible.builtin.assert:\n        that:\n          - netplan_interface is defined\n          - netplan_address_cidr is defined\n          - netplan_gateway4 is defined\n          - netplan_nameservers is defined\n          - netplan_nameservers | length > 0\n        fail_msg: \"Required Netplan variables are missing.\"\n\n    - name: Assert target interface exists on host\n      ansible.builtin.assert:\n        that:\n          - netplan_interface in ansible_facts.interfaces\n        fail_msg: \"Interface {{ netplan_interface }} not found on this host.\"\n\n  tasks:\n    - name: Configure Netplan for static IPv4 on {{ netplan_interface }}\n      community.general.netplan:\n        state: present\n        config:\n          network:\n            version: 2\n            renderer: \"{{ netplan_renderer }}\"\n            ethernets:\n              \"{{ netplan_interface }}\":\n                dhcp4: false\n                dhcp6: false\n                addresses:\n                  - \"{{ netplan_address_cidr }}\"\n                gateway4: \"{{ netplan_gateway4 }}\"\n                nameservers:\n                  addresses: \"{{ netplan_nameservers }}\"\n      notify: Apply netplan\n\n  handlers:\n    - name: Apply netplan\n      listen: Apply netplan\n      ansible.builtin.command: netplan apply\n      changed_when: true\n\n    - name: Wait for SSH to return after netplan apply\n      listen: Apply netplan\n      ansible.builtin.wait_for_connection:\n        delay: 3\n        timeout: 60",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Configure static network interface via Netplan on Debian 12\n  hosts: all\n  become: true\n  gather_facts: true\n  any_errors_fatal: true\n  vars:\n    # Override these via inventory or --extra-vars\n    netplan_interface: eth0\n    netplan_address_cidr: 192.0.2.10/24\n    netplan_gateway4: 192.0.2.1\n    netplan_nameservers:\n      - 1.1.1.1\n      - 9.9.9.9\n    netplan_renderer: networkd\n  pre_tasks:\n    - name: Update APT cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n    - name: Install Netplan and required services\n      ansible.builtin.apt:\n        name:\n          - netplan.io\n          - systemd-networkd\n          - systemd-resolved\n        state: present\n\n    - name: Enable and start systemd-networkd\n      ansible.builtin.systemd:\n        name: systemd-networkd\n        enabled: true\n        state: started\n\n    - name: Enable and start systemd-resolved\n      ansible.builtin.systemd:\n        name: systemd-resolved\n        enabled: true\n        state: started\n\n    - name: Validate required variables\n      ansible.builtin.assert:\n        that:\n          - netplan_interface is defined\n          - netplan_address_cidr is defined\n          - netplan_gateway4 is defined\n          - netplan_nameservers is defined\n          - netplan_nameservers | length > 0\n        fail_msg: \"Required Netplan variables are missing.\"\n\n    - name: Assert target interface exists on host\n      ansible.builtin.assert:\n        that:\n          - netplan_interface in ansible_facts.interfaces\n        fail_msg: \"Interface {{ netplan_interface }} not found on this host.\"\n\n  tasks:\n    - name: Configure Netplan for static IPv4 on {{ netplan_interface }}\n      community.general.netplan:\n        state: present\n        config:\n          network:\n            version: 2\n            renderer: \"{{ netplan_renderer }}\"\n            ethernets:\n              \"{{ netplan_interface }}\":\n                dhcp4: false\n                dhcp6: false\n                addresses:\n                  - \"{{ netplan_address_cidr }}\"\n                gateway4: \"{{ netplan_gateway4 }}\"\n                nameservers:\n                  addresses: \"{{ netplan_nameservers }}\"\n      notify: Apply netplan\n\n  handlers:\n    - name: Apply netplan\n      listen: Apply netplan\n      ansible.builtin.command: netplan apply\n      changed_when: true\n\n    - name: Wait for SSH to return after netplan apply\n      listen: Apply netplan\n      ansible.builtin.wait_for_connection:\n        delay: 3\n        timeout: 60",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724880,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 144,
+      "output_tokens": 3444,
+      "raw_input_tokens": 144
+    }
+  },
+  "started_at": "2026-05-25T16:00:32.437346+00:00",
+  "elapsed_seconds": 48.251
+}

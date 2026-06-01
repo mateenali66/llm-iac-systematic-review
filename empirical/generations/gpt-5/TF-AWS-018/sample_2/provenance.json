@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-018",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to use for Route 53 operations (global service, but provider still requires a region).\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Environment tag for resources.\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"domain_name\" {\n  description = \"Root domain to provision the hosted zone for.\"\n  type        = string\n  default     = \"mycompany.com\"\n\n  validation {\n    condition     = can(regex(\"^[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\", var.domain_name))\n    error_message = \"domain_name must be a valid DNS name like example.com.\"\n  }\n}\n\nvariable \"app_alb_name\" {\n  description = \"Name of the existing Application Load Balancer to alias app.<domain> to.\"\n  type        = string\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name    = var.domain_name\n  comment = \"Public hosted zone for ${var.domain_name}\"\n\n  tags = {\n    Name        = var.domain_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\ndata \"aws_lb\" \"app\" {\n  name = var.app_alb_name\n}\n\nresource \"aws_route53_record\" \"app_alias_a\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\nresource \"aws_route53_record\" \"app_alias_aaaa\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"AAAA\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\noutput \"hosted_zone_id\" {\n  description = \"ID of the created Route 53 hosted zone.\"\n  value       = aws_route53_zone.primary.zone_id\n}\n\noutput \"name_servers\" {\n  description = \"Name servers for the created hosted zone.\"\n  value       = aws_route53_zone.primary.name_servers\n}\n\noutput \"app_record_fqdn\" {\n  description = \"FQDN for the app record.\"\n  value       = aws_route53_record.app_alias_a.fqdn\n}",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to use for Route 53 operations (global service, but provider still requires a region).\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Environment tag for resources.\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"domain_name\" {\n  description = \"Root domain to provision the hosted zone for.\"\n  type        = string\n  default     = \"mycompany.com\"\n\n  validation {\n    condition     = can(regex(\"^[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\", var.domain_name))\n    error_message = \"domain_name must be a valid DNS name like example.com.\"\n  }\n}\n\nvariable \"app_alb_name\" {\n  description = \"Name of the existing Application Load Balancer to alias app.<domain> to.\"\n  type        = string\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name    = var.domain_name\n  comment = \"Public hosted zone for ${var.domain_name}\"\n\n  tags = {\n    Name        = var.domain_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\ndata \"aws_lb\" \"app\" {\n  name = var.app_alb_name\n}\n\nresource \"aws_route53_record\" \"app_alias_a\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\nresource \"aws_route53_record\" \"app_alias_aaaa\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"AAAA\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\noutput \"hosted_zone_id\" {\n  description = \"ID of the created Route 53 hosted zone.\"\n  value       = aws_route53_zone.primary.zone_id\n}\n\noutput \"name_servers\" {\n  description = \"Name servers for the created hosted zone.\"\n  value       = aws_route53_zone.primary.name_servers\n}\n\noutput \"app_record_fqdn\" {\n  description = \"FQDN for the app record.\"\n  value       = aws_route53_record.app_alias_a.fqdn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \">= 5.0\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region to use for Route 53 operations (global service, but provider still requires a region).\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"environment\" {\n  description = \"Environment tag for resources.\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"domain_name\" {\n  description = \"Root domain to provision the hosted zone for.\"\n  type        = string\n  default     = \"mycompany.com\"\n\n  validation {\n    condition     = can(regex(\"^[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\", var.domain_name))\n    error_message = \"domain_name must be a valid DNS name like example.com.\"\n  }\n}\n\nvariable \"app_alb_name\" {\n  description = \"Name of the existing Application Load Balancer to alias app.<domain> to.\"\n  type        = string\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name    = var.domain_name\n  comment = \"Public hosted zone for ${var.domain_name}\"\n\n  tags = {\n    Name        = var.domain_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\ndata \"aws_lb\" \"app\" {\n  name = var.app_alb_name\n}\n\nresource \"aws_route53_record\" \"app_alias_a\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\nresource \"aws_route53_record\" \"app_alias_aaaa\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = \"app.${var.domain_name}\"\n  type    = \"AAAA\"\n\n  alias {\n    name                   = data.aws_lb.app.dns_name\n    zone_id                = data.aws_lb.app.zone_id\n    evaluate_target_health = true\n  }\n\n  allow_overwrite = true\n}\n\noutput \"hosted_zone_id\" {\n  description = \"ID of the created Route 53 hosted zone.\"\n  value       = aws_route53_zone.primary.zone_id\n}\n\noutput \"name_servers\" {\n  description = \"Name servers for the created hosted zone.\"\n  value       = aws_route53_zone.primary.name_servers\n}\n\noutput \"app_record_fqdn\" {\n  description = \"FQDN for the app record.\"\n  value       = aws_route53_record.app_alias_a.fqdn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779700548,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 140,
+      "output_tokens": 2559,
+      "raw_input_tokens": 140
+    }
+  },
+  "started_at": "2026-05-25T09:15:25.141630+00:00",
+  "elapsed_seconds": 23.451
+}

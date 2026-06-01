@@ -1,0 +1,586 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 131,
+	"files_parsed": 2,
+	"lines_parsed": 131,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 8,
+		"INFO": 2,
+		"LOW": 5,
+		"MEDIUM": 7,
+		"TRACE": 0
+	},
+	"total_counter": 22,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:33:20.674511208Z",
+	"end": "2026-05-26T05:33:23.493492126Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Non Kube System Pod With Host Mount",
+			"query_id": "aa8f7a35-9923-4cad-bd61-a19b7f6aac91",
+			"query_url": "https://kubernetes.io/docs/concepts/storage/volumes/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "668",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "A non kube-system workload should not have hostPath mounted",
+			"description_id": "e8553157",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "583f8d50a580f5b9998f61ea7b3c2a71028017328b95b62897694e76810adba1",
+					"line": 73,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{sys}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/sys' mounted",
+					"actual_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/sys' mounted"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9858a128eef31ca91c54be591d17cc78962f2c276002f0b3b1d11cf31fb92e6e",
+					"line": 76,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{rootfs}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/' mounted",
+					"actual_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/' mounted"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fa11cf56fab5aace576ec7a194ec776b8acf025956532a061eb89465eedb625d",
+					"line": 70,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{proc}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/proc' mounted",
+					"actual_value": "Resource name 'node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/proc' mounted"
+				}
+			]
+		},
+		{
+			"query_name": "Privilege Escalation Allowed",
+			"query_id": "5572cc5e-1e4c-4113-92a6-7a8a3bd25e6d",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should not run with allowPrivilegeEscalation in order to prevent them from gaining more privileges than their parent process",
+			"description_id": "525fccf4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b4ec57a266fa70fa6598710e8c58fb29187157660545cf58b245d30133c8b695",
+					"line": 57,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}",
+					"search_line": 57,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.allowPrivilegeEscalation should be set and should be set to false",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.allowPrivilegeEscalation is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shared Host PID Namespace",
+			"query_id": "302736f4-b16c-41b8-befe-c0baffa0bd9d",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "200",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Container should not share the host process ID namespace",
+			"description_id": "c34092eb",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6b17d19ba3868b25467bac77fa4ba78b1ac2f1cb7d8215a22b55a4378225bda8",
+					"line": 26,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.hostPID",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.hostPID' should be set to false or undefined",
+					"actual_value": "'spec.template.spec.hostPID' is true"
+				}
+			]
+		},
+		{
+			"query_name": "Workload Mounting With Sensitive OS Directory",
+			"query_id": "5308a7a8-06f8-45ac-bf10-791fe21de46e",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "200",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Workload is mounting a volume with sensitive OS Directory",
+			"description_id": "73339cde",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2d85dada61196a4a220c946f83c39a2e4996c3f5b80fdb47f9bd4937bb65b0df",
+					"line": 70,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{proc}}.hostPath.path",
+					"search_line": 70,
+					"search_value": "",
+					"expected_value": "Workload name 'node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/proc' with hostPath",
+					"actual_value": "Workload name 'node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/proc' with hostPath"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3696be639bfee627c9dc2148af3953fb2d40c3cb93314b3947f38c5799f5c8e6",
+					"line": 73,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{sys}}.hostPath.path",
+					"search_line": 73,
+					"search_value": "",
+					"expected_value": "Workload name 'node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/sys' with hostPath",
+					"actual_value": "Workload name 'node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/sys' with hostPath"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2adf963d540d7d54635266a8e7fddfd7235f14498e9fb851a8e6eff730f78014",
+					"line": 76,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.volumes.name={{rootfs}}.hostPath.path",
+					"search_line": 76,
+					"search_value": "",
+					"expected_value": "Workload name 'node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/' with hostPath",
+					"actual_value": "Workload name 'node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/' with hostPath"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running As Root",
+			"query_id": "cf34805e-3872-4c08-bf92-6ff7bb0cfadb",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Containers should only run as non-root user. This limits the exploitability of security misconfigurations and restricts an attacker's possibilities in case of compromise",
+			"description_id": "9d5b1d16",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6b4f021512597158aee607390a2e03050e71782601e9cecdd0cd153ce849002e",
+					"line": 57,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.runAsUser",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.runAsUser is higher than 0 and/or 'runAsNonRoot' is true",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.runAsUser is 0 and 'runAsNonRoot' is false"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f014c41ee95c99a0beefd0b0f6ce26173f73dac5c97866ca5e771dfd19b33e84",
+					"line": 57,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.runAsUser should be defined",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.runAsUser is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Containers With Added Capabilities",
+			"query_id": "19ebaa28-fc86-4a58-bcfa-015c9e22fe40",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should not have extra capabilities allowed",
+			"description_id": "719acefd",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "355e55e73b258a1ca778a91a9da6060b476afe8b65dad5a6cee1cc99e6cbf170",
+					"line": 63,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.capabilities.add",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}} has no capability added other than NET_BIND_SERVICE",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}} has a capability added other than NET_BIND_SERVICE"
+				}
+			]
+		},
+		{
+			"query_name": "Readiness Probe Is Not Configured",
+			"query_id": "a659f3b5-9bf0-438a-bd9a-7d3a6427f1e3",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Check if Readiness Probe is not configured.",
+			"description_id": "28c0498a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9a58848bc0424b8fab28936bea97e8e35bf656bff96f7ff166c4f1544110c23b",
+					"line": 28,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.readinessProbe should be defined",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.readinessProbe is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Seccomp Profile Is Not Configured",
+			"query_id": "f377b83e-bd07-4f48-a591-60c82b14a78b",
+			"query_url": "https://kubernetes.io/docs/tutorials/security/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should be configured with a secure Seccomp profile to restrict potentially dangerous syscalls",
+			"description_id": "d943c7e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "835ff296c7678fdeaae172496e3fc70daa179525f95ca77e39ac74f8af33fb84",
+					"line": 57,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.seccompProfile.type should be defined",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.securityContext.seccompProfile.type is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fecb710c131d18db68930fc837f3b064605ef6bad2ae4d4828008bc7d36373d1",
+					"line": 23,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shared Host Network Namespace",
+			"query_id": "6b6bdfb3-c3ae-44cb-88e4-7405c1ba2c8a",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "200",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Container should not share the host network namespace",
+			"description_id": "50e5de80",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a500b6db69a788ff0746caa5b66a63b3b486e91e2663851ece80b58eac87f262",
+					"line": 25,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.hostNetwork",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.hostNetwork' should be set to false or undefined",
+					"actual_value": "'spec.template.spec.hostNetwork' is true"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "741187da413ced11b39d7ab6cdbd62ca6f9fe0400d6b152237fb6b0662b443e3",
+					"line": 28,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c25c68d24424d34b873a4c3a053b0ee35906bdc7e5f27539ad6f1b274cab9ad1",
+					"line": 29,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "50e652c2d9247bcb3ca114e0d99381bd3c903965f3f09c1610dee07551f62bf3",
+					"line": 19,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.metadata",
+					"search_line": 19,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{node-exporter}}",
+					"actual_value": "metadata.name={{node-exporter}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{node-exporter}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b90e9837eaf805cb7c262ef74a5e21f4a0bd75ac45edd9ed43e6e6b1e226539b",
+					"line": 5,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{node-exporter}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "af52f6750b588f0bde52939084fbad878df65e36d7085f098d18e37cd48061bd",
+					"line": 5,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{node-exporter}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ed5e0a8aa8c636451b6979137d7682e70f0329d68690275cf85de76f3d343629",
+					"line": 5,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{monitoring}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: monitoring"
+				}
+			]
+		},
+		{
+			"query_name": "Liveness Probe Is Not Defined",
+			"query_id": "ade74944-a674-4e00-859e-c6eab5bde441",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#when-should-you-use-a-liveness-probe",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "In case of an unresponsive container, a Liveness Probe can help your application become more available since it restarts the container. However, it can lead to cascading failures. Define one if you really need it",
+			"description_id": "f724fa60",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9b62ed0d8dbc382b63310d273c0270f49fd55dabb5e60108c5ae3b24a1f2b113",
+					"line": 28,
+					"resource_type": "DaemonSet",
+					"resource_name": "node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{node-exporter}}.spec.template.spec.containers.name={{node-exporter}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{node-exporter}}.spec.containers.name={{node-exporter}}.livenessProbe should be defined",
+					"actual_value": "metadata.name={{node-exporter}}.spec.containers.name={{node-exporter}}.livenessProbe is undefined"
+				}
+			]
+		}
+	]
+}

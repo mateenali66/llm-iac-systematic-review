@@ -1,0 +1,139 @@
+# FILE: Chart.yaml
+name: spring-boot-app
+version: 1.0.0
+description: A Helm chart for deploying a Java Spring Boot application
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: spring-boot-app
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+ingress:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: spring-boot-app.local
+      paths:
+        - "/"
+  tls:
+    - hosts:
+        - spring-boot-app.local
+      secretName: spring-boot-app-tls
+config:
+  spring:
+    profile: dev
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spring-boot-app.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "spring-boot-app.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "spring-boot-app.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.config.spring.profile }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "spring-boot-app.fullname" . }}-config
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spring-boot-app.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "spring-boot-app.labels" . | nindent 4 }}
+
+---
+# FILE: templates/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "spring-boot-app.fullname" . }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | trim | nindent 4 }}
+spec:
+  tls:
+    {{- toYaml .Values.ingress.tls | trim | nindent 4 }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "spring-boot-app.fullname" . }}
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "spring-boot-app.fullname" . }}-config
+type: Opaque
+data:
+  application.properties: {{ .Values.config | toYaml | b64enc | quote }}
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "spring-boot-app.fullname" -}}
+{{- printf "%s-%s" .Chart.Name .Release.Name | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "spring-boot-app.labels" -}}
+app.kubernetes.io/name: {{ include "spring-boot-app.fullname" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

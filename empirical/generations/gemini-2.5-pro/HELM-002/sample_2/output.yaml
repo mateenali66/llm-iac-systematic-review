@@ -1,0 +1,40 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A Helm chart for a production-ready Redis cache StatefulSet
+type: application
+version: 0.1.0
+appVersion: "7.2.4"
+
+---
+# FILE: values.yaml
+# Default values for redis-cache.
+replicaCount: 1
+
+image:
+  repository: redis
+  pullPolicy: IfNotPresent
+  # Overrides the chart's appVersion.
+  tag: "7.2.4-alpine"
+
+service:
+  port: 6379
+
+auth:
+  enabled: true
+  # If enabled, a random password will be generated.
+  # To set a specific password, provide a value for `password`.
+  # To use an existing secret, set `existingSecret`.
+  password: ""
+  existingSecret: ""
+  # The key in the existing secret that holds the password
+  existingSecretPasswordKey: "redis-password"
+
+persistence:
+  enabled: true
+  # If undefined or null, uses the default StorageClass.
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  # The name

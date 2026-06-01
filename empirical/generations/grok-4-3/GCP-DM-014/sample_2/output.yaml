@@ -1,0 +1,48 @@
+resources:
+- name: github-actions-pool
+  type: iam.googleapis.com.WorkloadIdentityPool
+  properties:
+    parent: projects/{{ env["project_number"] }}
+    workloadIdentityPoolId: github-actions-pool
+    displayName: GitHub Actions Workload Identity Pool
+    disabled: false
+- name: github-actions-provider
+  type: iam.googleapis.com.WorkloadIdentityPoolProvider
+  properties:
+    parent: projects/{{ env["project_number"] }}/locations/global/workloadIdentityPools/github-actions-pool
+    workloadIdentityPoolProviderId: github-provider
+    displayName: GitHub OIDC Provider
+    disabled: false
+    attributeMapping:
+      google.subject: assertion.sub
+      attribute.repository: assertion.repository
+      attribute.repository_owner: assertion.repository_owner
+    oidc:
+      issuerUri: https://token.actions.githubusercontent.com
+    attributeCondition: "assertion.repository_owner == 'my-org'"
+- name: github-deploy-sa
+  type: iam.googleapis.com.ServiceAccount
+  properties:
+    accountId: github-deploy
+    displayName: GitHub Cloud Run Deployer
+    description: Service account impersonated by GitHub Actions for Cloud Run deployments
+- name: github-deploy-sa-iam-policy
+  type: gcp-types/iam-v1:virtual.projects.serviceAccounts.setIamPolicy
+  properties:
+    name: projects/{{ env["project"] }}/serviceAccounts/$(ref.github-deploy-sa.email)
+    policy:
+      bindings:
+      - role: roles/iam.workloadIdentityUser
+        members:
+        - principal://iam.googleapis.com/projects/{{ env["project_number"] }}/locations/global/workloadIdentityPools/github-actions-pool/subject/repo:my-org/my-repo:ref:refs/heads/main
+- name: github-deploy-sa-roles
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.setIamPolicy
+  properties:
+    resource: projects/{{ env["project"] }}
+    bindings:
+    - role: roles/run.admin
+      members:
+      - serviceAccount:$(ref.github-deploy-sa.email)
+    - role: roles/iam.serviceAccountUser
+      members:
+      - serviceAccount:$(ref.github-deploy-sa.email)

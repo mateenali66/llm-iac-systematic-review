@@ -1,0 +1,211 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multitier-app
+description: A production-grade Helm chart for a multi-tier application (frontend, backend, Postgres)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - multitier
+  - frontend
+  - backend
+  - postgres
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+
+commonLabels: {}
+commonAnnotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  capabilities:
+    drop:
+      - ALL
+
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  config:
+    LOG_LEVEL: "info"
+    BACKEND_URL: "http://{{ .Release.Name }}-backend:8080"
+  env: []
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  livenessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 15
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+backend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+  config:
+    LOG_LEVEL: "info"
+    APP_PORT: "8080"
+  env: []
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 20
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+postgres:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16.3-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5432
+  auth:
+    username: appuser
+    password: ""        # If empty, a random password is generated
+    database: appdb
+    postgresPassword: "" # If empty, a random password is generated
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  config:
+    PGDATA: "/var/lib/postgresql/data/pgdata"
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  livenessProbe:
+    exec:
+      command:
+        - sh
+        - -c
+        - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1
+    initialDelaySeconds: 30
+    periodSeconds: 20
+  readinessProbe:
+    exec:
+      command:
+        - sh
+        - -c
+        - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+networkPolicy:
+  enabled: false
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "multitier.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "multitier.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "multitier.

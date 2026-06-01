@@ -1,0 +1,92 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: flask-microservice
+description: A Helm chart for deploying a Python Flask microservice
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - flask
+  - python
+  - microservice
+home: https://github.com/example/flask-microservice
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+# This chart requires the Prometheus Operator for ServiceMonitor
+dependencies:
+  - name: prometheus-community/prometheus-operator
+    version: ">=45.0.0"
+    condition: serviceMonitor.enabled
+    repository: https://prometheus-community.github.io/helm-charts
+
+---
+# FILE: values.yaml
+# Default values for flask-microservice.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: my-flask-app
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with
+  # limited resources, such as Minikube. If you do want to specify resources

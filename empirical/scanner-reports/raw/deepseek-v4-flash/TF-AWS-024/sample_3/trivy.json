@@ -1,0 +1,100 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:50:24.59002096Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 39,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0095",
+          "AVDID": "AVD-AWS-0095",
+          "Title": "Unencrypted SNS topic.",
+          "Description": "Topics should be encrypted to protect their contents.\n",
+          "Message": "Topic does not have encryption enabled.",
+          "Namespace": "builtin.aws.sns.aws0095",
+          "Query": "data.builtin.aws.sns.aws0095.deny",
+          "Resolution": "Turn on SNS Topic encryption",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0095",
+          "References": [
+            "https://docs.aws.amazon.com/sns/latest/dg/sns-server-side-encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0095"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_sns_topic.critical_alerts",
+            "Provider": "AWS",
+            "Service": "sns",
+            "StartLine": 1,
+            "EndLine": 3,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 1,
+                  "Content": "resource \"aws_sns_topic\" \"critical_alerts\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_sns_topic\"\u001b[0m \u001b[38;5;37m\"critical_alerts\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 2,
+                  "Content": "  name = \"critical-alerts\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mname\u001b[0m = \u001b[38;5;37m\"critical-alerts\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 3,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

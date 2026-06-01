@@ -1,0 +1,198 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 221,
+	"files_parsed": 1,
+	"lines_parsed": 221,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:10:16.133989679Z",
+	"end": "2026-05-26T05:10:16.694672637Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "2106da870753196a55b767e17ee3b3e4695b4b43f6c0c25dbfe0a0a7fdf44570",
+					"line": 81,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.publicNetworkAccess",
+					"search_line": 81,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess is set to 'Enabled')"
+				}
+			]
+		},
+		{
+			"query_name": "Web App Not Using TLS Last Version",
+			"query_id": "b5c851d5-00f1-43dc-a8de-3218fd6f71be",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteconfig-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "327",
+			"cloud_provider": "AZURE",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Resources of type 'Microsoft.Web/sites' should define 'properties.siteConfig.minTlsVersion' with '1.2'",
+			"description_id": "1a442064",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "16a9342b5d56beea2f263d04798e5bdf647268eed4b6ea7ce8bb17b669de3648",
+					"line": 120,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('functionAppName')]",
+					"search_line": 120,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Not Forcing HTTPS",
+			"query_id": "488847ff-6031-487c-bf42-98fd6ac5c9a0",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should force the use of HTTPS",
+			"description_id": "3af52329",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "23a5f7ee96423abe464072acf21ae9f9b698b04135fc9741742ee49f3c0b4477",
+					"line": 126,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties",
+					"search_line": 126,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'httpsOnly' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'httpsOnly' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "6ca9209b0cf3f3bdb7b711bbde3ee639a328c39ee017f80e33d2b49463d78848",
+					"line": 126,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties",
+					"search_line": 126,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "044e97864add7856c09ac241efd230fba5b9de5e8e44742598811e96ff141ad1",
+					"line": 76,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[variables('storageAccountName')].properties",
+					"search_line": 76,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' should have the 'properties.networkAcls.defaultAction' defined",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' doesn't have 'properties.networkAcls.defaultAction' defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with 'Http20Enabled' Disabled",
+			"query_id": "70111098-7f85-48f0-b1b4-e4261cf5f61b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "757",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have 'Http20Enabled' enabled",
+			"description_id": "e0cdbc75",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "70e516febe6a21507d89fa533a4ed8272ba975d5919c9e03eface7bb21a84f06",
+					"line": 126,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties",
+					"search_line": 126,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'siteConfig' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'siteConfig' property defined"
+				}
+			]
+		}
+	]
+}

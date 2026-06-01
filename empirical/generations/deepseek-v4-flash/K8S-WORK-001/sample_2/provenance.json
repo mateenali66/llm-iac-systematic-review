@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "K8S-WORK-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes Deployment YAML manifest running 3 replicas of nginx:1.27 serving HTTP traffic on port 80 for a public-facing web frontend.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes Deployment YAML manifest running 3 replicas of nginx:1.27 serving HTTP traffic on port 80 for a public-facing web frontend.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-frontend\n  labels:\n    app: nginx-frontend\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx-frontend\n  template:\n    metadata:\n      labels:\n        app: nginx-frontend\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.27\n        ports:\n        - containerPort: 80\n          protocol: TCP\n        resources:\n          requests:\n            memory: \"64Mi\"\n            cpu: \"250m\"\n          limits:\n            memory: \"128Mi\"\n            cpu: \"500m\"\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 10\n          periodSeconds: 10\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 5\n          periodSeconds: 5\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: nginx-frontend-service\n  labels:\n    app: nginx-frontend\nspec:\n  type: LoadBalancer\n  selector:\n    app: nginx-frontend\n  ports:\n  - protocol: TCP\n    port: 80\n    targetPort: 80",
+  "cleaned_response": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-frontend\n  labels:\n    app: nginx-frontend\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx-frontend\n  template:\n    metadata:\n      labels:\n        app: nginx-frontend\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.27\n        ports:\n        - containerPort: 80\n          protocol: TCP\n        resources:\n          requests:\n            memory: \"64Mi\"\n            cpu: \"250m\"\n          limits:\n            memory: \"128Mi\"\n            cpu: \"500m\"\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 10\n          periodSeconds: 10\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 5\n          periodSeconds: 5\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: nginx-frontend-service\n  labels:\n    app: nginx-frontend\nspec:\n  type: LoadBalancer\n  selector:\n    app: nginx-frontend\n  ports:\n  - protocol: TCP\n    port: 80\n    targetPort: 80",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-frontend\n  labels:\n    app: nginx-frontend\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx-frontend\n  template:\n    metadata:\n      labels:\n        app: nginx-frontend\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.27\n        ports:\n        - containerPort: 80\n          protocol: TCP\n        resources:\n          requests:\n            memory: \"64Mi\"\n            cpu: \"250m\"\n          limits:\n            memory: \"128Mi\"\n            cpu: \"500m\"\n        livenessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 10\n          periodSeconds: 10\n        readinessProbe:\n          httpGet:\n            path: /\n            port: 80\n          initialDelaySeconds: 5\n          periodSeconds: 5\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: nginx-frontend-service\n  labels:\n    app: nginx-frontend\nspec:\n  type: LoadBalancer\n  selector:\n    app: nginx-frontend\n  ports:\n  - protocol: TCP\n    port: 80\n    targetPort: 80",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729066,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 70,
+      "output_tokens": 292,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 6
+    }
+  },
+  "started_at": "2026-05-25T17:11:04.063659+00:00",
+  "elapsed_seconds": 2.393
+}

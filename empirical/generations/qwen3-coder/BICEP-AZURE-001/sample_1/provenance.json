@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-001",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Linux virtual machine (Standard_B2s, Ubuntu 22.04) in the 'East US' region for a developer test workload.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Linux virtual machine (Standard_B2s, Ubuntu 22.04) in the 'East US' region for a developer test workload.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = 'eastus'\nparam vmName string = 'devtest-vm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234!'\n\nvar subnetName = 'default'\nvar vnetName = '${vmName}-vnet'\nvar nsgName = '${vmName}-nsg'\nvar nicName = '${vmName}-nic'\nvar pipName = '${vmName}-pip'\n\nresource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {\n  name: vnetName\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: subnetName\n        properties: {\n          addressPrefix: '10.0.0.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource nsg 'Microsoft.Network/networkSecurityGroups@2023-02-01' = {\n  name: nsgName\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'SSH'\n        properties: {\n          priority: 1000\n          protocol: 'Tcp'\n          access: 'Allow'\n          direction: 'Inbound'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource pip 'Microsoft.Network/publicIPAddresses@2023-02-01' = {\n  name: pipName\n  location: location\n  sku: {\n    name: 'Basic'\n  }\n  properties: {\n    publicIPAllocationMethod: 'Dynamic'\n  }\n}\n\nresource nic 'Microsoft.Network/networkInterfaces@2023-02-01' = {\n  name: nicName\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          privateIPAllocationMethod: 'Dynamic'\n          publicIPAddress: {\n            id: pip.id\n          }\n          subnet: {\n            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)\n          }\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: nsg.id\n    }\n  }\n}\n\nresource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: '0001-com-ubuntu-server-jammy'\n        sku: '22_04-lts-gen2'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n        diskSizeGB: 30\n      }\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: nic.id\n        }\n      ]\n    }\n  }\n}",
+  "cleaned_response": "param location string = 'eastus'\nparam vmName string = 'devtest-vm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234!'\n\nvar subnetName = 'default'\nvar vnetName = '${vmName}-vnet'\nvar nsgName = '${vmName}-nsg'\nvar nicName = '${vmName}-nic'\nvar pipName = '${vmName}-pip'\n\nresource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {\n  name: vnetName\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: subnetName\n        properties: {\n          addressPrefix: '10.0.0.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource nsg 'Microsoft.Network/networkSecurityGroups@2023-02-01' = {\n  name: nsgName\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'SSH'\n        properties: {\n          priority: 1000\n          protocol: 'Tcp'\n          access: 'Allow'\n          direction: 'Inbound'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource pip 'Microsoft.Network/publicIPAddresses@2023-02-01' = {\n  name: pipName\n  location: location\n  sku: {\n    name: 'Basic'\n  }\n  properties: {\n    publicIPAllocationMethod: 'Dynamic'\n  }\n}\n\nresource nic 'Microsoft.Network/networkInterfaces@2023-02-01' = {\n  name: nicName\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          privateIPAllocationMethod: 'Dynamic'\n          publicIPAddress: {\n            id: pip.id\n          }\n          subnet: {\n            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)\n          }\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: nsg.id\n    }\n  }\n}\n\nresource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: '0001-com-ubuntu-server-jammy'\n        sku: '22_04-lts-gen2'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n        diskSizeGB: 30\n      }\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: nic.id\n        }\n      ]\n    }\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = 'eastus'\nparam vmName string = 'devtest-vm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234!'\n\nvar subnetName = 'default'\nvar vnetName = '${vmName}-vnet'\nvar nsgName = '${vmName}-nsg'\nvar nicName = '${vmName}-nic'\nvar pipName = '${vmName}-pip'\n\nresource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {\n  name: vnetName\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: subnetName\n        properties: {\n          addressPrefix: '10.0.0.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource nsg 'Microsoft.Network/networkSecurityGroups@2023-02-01' = {\n  name: nsgName\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'SSH'\n        properties: {\n          priority: 1000\n          protocol: 'Tcp'\n          access: 'Allow'\n          direction: 'Inbound'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource pip 'Microsoft.Network/publicIPAddresses@2023-02-01' = {\n  name: pipName\n  location: location\n  sku: {\n    name: 'Basic'\n  }\n  properties: {\n    publicIPAllocationMethod: 'Dynamic'\n  }\n}\n\nresource nic 'Microsoft.Network/networkInterfaces@2023-02-01' = {\n  name: nicName\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          privateIPAllocationMethod: 'Dynamic'\n          publicIPAddress: {\n            id: pip.id\n          }\n          subnet: {\n            id: resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, subnetName)\n          }\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: nsg.id\n    }\n  }\n}\n\nresource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: '0001-com-ubuntu-server-jammy'\n        sku: '22_04-lts-gen2'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n        diskSizeGB: 30\n      }\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: nic.id\n        }\n      ]\n    }\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723831,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 147,
+      "output_tokens": 729,
+      "raw_input_tokens": 147
+    }
+  },
+  "started_at": "2026-05-25T15:43:38.373549+00:00",
+  "elapsed_seconds": 13.413
+}

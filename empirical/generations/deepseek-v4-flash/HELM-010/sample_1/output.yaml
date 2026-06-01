@@ -1,0 +1,270 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-tier-app
+description: A Helm chart for a multi-tier application with frontend, backend, and Postgres
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+# Global settings
+global:
+  environment: production
+
+# Frontend configuration
+frontend:
+  name: frontend
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: stable
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  config:
+    appName: "Multi-Tier App"
+    apiEndpoint: "/api"
+  env:
+    - name: BACKEND_URL
+      value: "http://backend:8080"
+
+# Backend configuration
+backend:
+  name: backend
+  replicaCount: 2
+  image:
+    repository: node
+    tag: 18-alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "400m"
+  config:
+    logLevel: "info"
+    maxConnections: 100
+  env:
+    - name: DB_HOST
+      value: "postgres"
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_NAME
+      value: "appdb"
+
+# Database configuration
+postgres:
+  name: postgres
+  replicaCount: 1
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5432
+    targetPort: 5432
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  config:
+    maxConnections: 100
+    sharedBuffers: "128MB"
+  env:
+    - name: POSTGRES_DB
+      value: "appdb"
+
+# Secrets configuration
+secrets:
+  postgres:
+    username: "postgres"
+    password: "changeme"
+    rootPassword: "rootchangeme"
+  backend:
+    apiKey: "backend-api-key-12345"
+    jwtSecret: "jwt-secret-key-67890"
+  frontend:
+    sessionSecret: "session-secret-key-abcde"
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+---
+# FILE: templates/_helpers.tpl
+{{- define "multi-tier-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "multi-tier-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "multi-tier-app.labels" -}}
+helm.sh/chart: {{ include "multi-tier-app.name" . }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "multi-tier-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "multi-tier-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "multi-tier-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "multi-tier-app.postgres.fullname" -}}
+{{ include "multi-tier-app.fullname" . }}-{{ .Values.postgres.name }}
+{{- end }}
+
+{{- define "multi-tier-app.backend.fullname" -}}
+{{ include "multi-tier-app.fullname" . }}-{{ .Values.backend.name }}
+{{- end }}
+
+{{- define "multi-tier-app.frontend.fullname" -}}
+{{ include "multi-tier-app.fullname" . }}-{{ .Values.frontend.name }}
+{{- end }}
+---
+# FILE: templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "multi-tier-app.postgres.fullname" . }}-credentials
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+type: Opaque
+data:
+  postgres-username: {{ .Values.secrets.postgres.username | b64enc | quote }}
+  postgres-password: {{ .Values.secrets.postgres.password | b64enc | quote }}
+  postgres-root-password: {{ .Values.secrets.postgres.rootPassword | b64enc | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "multi-tier-app.backend.fullname" . }}-credentials
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+type: Opaque
+data:
+  api-key: {{ .Values.secrets.backend.apiKey | b64enc | quote }}
+  jwt-secret: {{ .Values.secrets.backend.jwtSecret | b64enc | quote }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "multi-tier-app.frontend.fullname" . }}-credentials
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+type: Opaque
+data:
+  session-secret: {{ .Values.secrets.frontend.sessionSecret | b64enc | quote }}
+---
+# FILE: templates/configmap-frontend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-tier-app.frontend.fullname" . }}-config
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+data:
+  app-name: {{ .Values.frontend.config.appName | quote }}
+  api-endpoint: {{ .Values.frontend.config.apiEndpoint | quote }}
+  nginx.conf: |
+    server {
+        listen {{ .Values.frontend.service.targetPort }};
+        server_name localhost;
+        location / {
+            root /usr/share/nginx/html;
+            index index.html index.htm;
+        }
+        location {{ .Values.frontend.config.apiEndpoint }} {
+            proxy_pass http://{{ include "multi-tier-app.backend.fullname" . }}:{{ .Values.backend.service.port }};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+        }
+    }
+---
+# FILE: templates/configmap-backend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-tier-app.backend.fullname" . }}-config
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+data:
+  log-level: {{ .Values.backend.config.logLevel | quote }}
+  max-connections: {{ .Values.backend.config.maxConnections | quote }}
+  db-name: {{ .Values.backend.env[2].value | quote }}
+---
+# FILE: templates/configmap-postgres.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-tier-app.postgres.fullname" . }}-config
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+data:
+  postgresql.conf: |
+    max_connections = {{ .Values.postgres.config.maxConnections }}
+    shared_buffers = {{ .Values.postgres.config.sharedBuffers }}
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS items (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+---
+# FILE: templates/service-front

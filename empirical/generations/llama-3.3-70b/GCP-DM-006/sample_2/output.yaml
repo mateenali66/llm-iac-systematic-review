@@ -1,0 +1,39 @@
+resources:
+  - name: cloud-function-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloud-function-sa
+      displayName: Cloud Function Service Account
+
+  - name: cloud-function-service-account-key
+    type: iam.v1.serviceAccountKey
+    properties:
+      serviceAccountId: $(ref.cloud-function-service-account.name)
+
+  - name: cloud-function-service-account-iam-policy
+    type: iam.v1.policy
+    properties:
+      bindings:
+        - role: roles/storage.objectViewer
+          members:
+            - serviceAccount:$(ref.cloud-function-service-account.email)
+      resource: $(ref.cloud-storage-bucket.name)
+
+  - name: cloud-storage-bucket
+    type: storage.v1.bucket
+    properties:
+      location: US
+      storageClass: STANDARD
+
+  - name: cloud-function-service-account-iam-binding
+    type: iam.v1.policy
+    properties:
+      bindings:
+        - role: roles/iam.serviceAccountTokenCreator
+          members:
+            - serviceAccount:$(ref.cloud-function-service-account.email)
+      resource: $(ref.cloud-function-service-account.name)
+
+outputs:
+  - name: cloud-function-service-account-email
+    value: $(ref.cloud-function-service-account.email)

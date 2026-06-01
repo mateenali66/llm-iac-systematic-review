@@ -1,0 +1,924 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:16:01.256205088Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 100,
+        "Failures": 7
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV023",
+          "AVDID": "AVD-KSV-0023",
+          "Title": "hostPath volumes mounted",
+          "Description": "According to pod security standard 'HostPath Volumes', HostPath volumes must be forbidden.",
+          "Message": "DaemonSet 'node-exporter' should not set 'spec.template.volumes.hostPath'",
+          "Namespace": "builtin.kubernetes.KSV023",
+          "Query": "data.builtin.kubernetes.KSV023.deny",
+          "Resolution": "Do not set 'spec.volumes[*].hostPath'.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv023",
+          "References": [
+            "https://kubernetes.io/docs/concepts/security/pod-security-standards/#baseline",
+            "https://avd.aquasec.com/misconfig/ksv023"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 28,
+            "EndLine": 130,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 28,
+                  "Content": "  selector:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mselector\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "    matchLabels:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mmatchLabels\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "      app.kubernetes.io/name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mapp.kubernetes.io/name\u001b[0m: node-exporter",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "      app.kubernetes.io/part-of: observability",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mapp.kubernetes.io/part-of\u001b[0m: observability",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "  updateStrategy:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mupdateStrategy\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 33,
+                  "Content": "    type: RollingUpdate",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mtype\u001b[0m: RollingUpdate",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 34,
+                  "Content": "    rollingUpdate:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mrollingUpdate\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 35,
+                  "Content": "      maxUnavailable: 10%",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mmaxUnavailable\u001b[0m: \u001b[38;5;37m10\u001b[0m%",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 36,
+                  "Content": "  template:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mtemplate\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 37,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV032",
+          "AVDID": "AVD-KSV-0032",
+          "Title": "All container images must start with the *.azurecr.io domain",
+          "Description": "Containers should only use images from trusted registries.",
+          "Message": "container node-exporter of daemonset node-exporter in monitoring namespace should restrict container image to your specific registry domain. For Azure any domain ending in 'azurecr.io'",
+          "Namespace": "builtin.kubernetes.KSV032",
+          "Query": "data.builtin.kubernetes.KSV032.deny",
+          "Resolution": "Use images from trusted Azure registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv032",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv032"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 58,
+            "EndLine": 113,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 58,
+                  "Content": "        - name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: node-exporter",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "          image: prom/node-exporter:v1.7.0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: prom/node-exporter:v1.7.0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "          args:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33margs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "            - --path.rootfs=/rootfs",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.rootfs=/rootfs",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "            - --path.procfs=/host/proc",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.procfs=/host/proc",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "            - --path.sysfs=/host/sys",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.sysfs=/host/sys",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV033",
+          "AVDID": "AVD-KSV-0033",
+          "Title": "All container images must start with a GCR domain",
+          "Description": "Containers should only use images from trusted GCR registries.",
+          "Message": "container node-exporter of daemonset node-exporter in monitoring namespace should restrict container image to your specific registry domain. See the full GCR list here: https://cloud.google.com/container-registry/docs/overview#registries",
+          "Namespace": "builtin.kubernetes.KSV033",
+          "Query": "data.builtin.kubernetes.KSV033.deny",
+          "Resolution": "Use images from trusted GCR registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv033",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv033"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 58,
+            "EndLine": 113,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 58,
+                  "Content": "        - name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: node-exporter",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "          image: prom/node-exporter:v1.7.0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: prom/node-exporter:v1.7.0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "          args:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33margs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "            - --path.rootfs=/rootfs",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.rootfs=/rootfs",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "            - --path.procfs=/host/proc",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.procfs=/host/proc",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "            - --path.sysfs=/host/sys",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.sysfs=/host/sys",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV034",
+          "AVDID": "AVD-KSV-0034",
+          "Title": "Container images from public registries used",
+          "Description": "Container images must not start with an empty prefix or a defined public registry domain.",
+          "Message": "Container 'node-exporter' of DaemonSet 'node-exporter' should restrict container image to use private registries",
+          "Namespace": "builtin.kubernetes.KSV034",
+          "Query": "data.builtin.kubernetes.KSV034.deny",
+          "Resolution": "Use images from private registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv034",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv034"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 58,
+            "EndLine": 113,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 58,
+                  "Content": "        - name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: node-exporter",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "          image: prom/node-exporter:v1.7.0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: prom/node-exporter:v1.7.0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "          args:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33margs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "            - --path.rootfs=/rootfs",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.rootfs=/rootfs",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "            - --path.procfs=/host/proc",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.procfs=/host/proc",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "            - --path.sysfs=/host/sys",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.sysfs=/host/sys",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV035",
+          "AVDID": "AVD-KSV-0035",
+          "Title": "All container images must start with an ECR domain",
+          "Description": "Container images from non-ECR registries should be forbidden.",
+          "Message": "Container 'node-exporter' of DaemonSet 'node-exporter' should restrict images to own ECR repository. See the full ECR list here: https://docs.aws.amazon.com/general/latest/gr/ecr.html",
+          "Namespace": "builtin.kubernetes.KSV035",
+          "Query": "data.builtin.kubernetes.KSV035.deny",
+          "Resolution": "Container image should be used from Amazon container Registry",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv035",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv035"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 58,
+            "EndLine": 113,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 58,
+                  "Content": "        - name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: node-exporter",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "          image: prom/node-exporter:v1.7.0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: prom/node-exporter:v1.7.0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "          args:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33margs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "            - --path.rootfs=/rootfs",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.rootfs=/rootfs",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "            - --path.procfs=/host/proc",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.procfs=/host/proc",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "            - --path.sysfs=/host/sys",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.sysfs=/host/sys",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV121",
+          "AVDID": "AVD-KSV-0121",
+          "Title": "Kubernetes resource with disallowed volumes mounted",
+          "Description": "HostPath present many security risks and as a security practice it is better to avoid critical host paths mounts.",
+          "Message": "daemonset node-exporter in monitoring namespace shouldn't have volumes set to {\"/\", \"/proc\", \"/sys\"}",
+          "Namespace": "builtin.kubernetes.KSV121",
+          "Query": "data.builtin.kubernetes.KSV121.deny",
+          "Resolution": "Do not Set 'spec.volumes[*].hostPath.path' to any of the disallowed volumes.",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv121",
+          "References": [
+            "https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted",
+            "https://avd.aquasec.com/misconfig/ksv121"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 28,
+            "EndLine": 130,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 28,
+                  "Content": "  selector:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mselector\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 29,
+                  "Content": "    matchLabels:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mmatchLabels\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 30,
+                  "Content": "      app.kubernetes.io/name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mapp.kubernetes.io/name\u001b[0m: node-exporter",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "      app.kubernetes.io/part-of: observability",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mapp.kubernetes.io/part-of\u001b[0m: observability",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "  updateStrategy:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mupdateStrategy\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 33,
+                  "Content": "    type: RollingUpdate",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mtype\u001b[0m: RollingUpdate",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 34,
+                  "Content": "    rollingUpdate:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mrollingUpdate\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 35,
+                  "Content": "      maxUnavailable: 10%",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mmaxUnavailable\u001b[0m: \u001b[38;5;37m10\u001b[0m%",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 36,
+                  "Content": "  template:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mtemplate\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 37,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV0125",
+          "AVDID": "AVD-KSV-0125",
+          "Title": "Restrict container images to trusted registries",
+          "Description": "Ensure that all containers use images only from trusted registry domains.",
+          "Message": "Container node-exporter in daemonset node-exporter (namespace: monitoring) uses an image from an untrusted registry.",
+          "Namespace": "builtin.kubernetes.KSV0125",
+          "Query": "data.builtin.kubernetes.KSV0125.deny",
+          "Resolution": "Use images from trusted registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv0125",
+          "References": [
+            "https://cloud.google.com/container-registry/docs/overview#registries",
+            "https://docs.aws.amazon.com/general/latest/gr/ecr.html",
+            "https://avd.aquasec.com/misconfig/ksv0125"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 58,
+            "EndLine": 113,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 58,
+                  "Content": "        - name: node-exporter",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: node-exporter",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 59,
+                  "Content": "          image: prom/node-exporter:v1.7.0",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: prom/node-exporter:v1.7.0",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 60,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 61,
+                  "Content": "          args:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33margs\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 62,
+                  "Content": "            - --path.rootfs=/rootfs",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.rootfs=/rootfs",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 63,
+                  "Content": "            - --path.procfs=/host/proc",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.procfs=/host/proc",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 64,
+                  "Content": "            - --path.sysfs=/host/sys",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --path.sysfs=/host/sys",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 65,
+                  "Content": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+|var/lib/kubelet/pods/.+|var/lib/containerd/.+|snap/.+)($|/)",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 66,
+                  "Content": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 67,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

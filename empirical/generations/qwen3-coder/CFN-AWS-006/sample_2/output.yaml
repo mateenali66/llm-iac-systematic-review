@@ -1,0 +1,230 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Fargate cluster with two microservices behind internal NLB
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the ECS cluster
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet IDs for ECS tasks
+  Service1Image:
+    Type: String
+    Default: nginx:latest
+    Description: Docker image for service 1
+  Service2Image:
+    Type: String
+    Default: httpd:latest
+    Description: Docker image for service 2
+  Service1Port:
+    Type: Number
+    Default: 80
+    Description: Port for service 1
+  Service2Port:
+    Type: Number
+    Default: 80
+    Description: Port for service 2
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network Configuration
+        Parameters:
+          - VpcId
+          - SubnetIds
+      - Label:
+          default: Service Configuration
+        Parameters:
+          - Service1Image
+          - Service2Image
+          - Service1Port
+          - Service2Port
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub "${AWS::StackName}-cluster"
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  Service1TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AWS::StackName}-service1"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !Ref TaskExecutionRole
+      ContainerDefinitions:
+        - Name: service1
+          Image: !Ref Service1Image
+          PortMappings:
+            - ContainerPort: !Ref Service1Port
+              Protocol: tcp
+
+  Service2TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub "${AWS::StackName}-service2"
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: "256"
+      Memory: "512"
+      ExecutionRoleArn: !Ref TaskExecutionRole
+      ContainerDefinitions:
+        - Name: service2
+          Image: !Ref Service2Image
+          PortMappings:
+            - ContainerPort: !Ref Service2Port
+              Protocol: tcp
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for internal NLB
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.0.0.0/8
+          Description: Allow HTTP from VPC
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ECS services
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref Service1Port
+          ToPort: !Ref Service1Port
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          Description: Allow service 1 port from NLB
+        - IpProtocol: tcp
+          FromPort: !Ref Service2Port
+          ToPort: !Ref Service2Port
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          Description: Allow service 2 port from NLB
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${AWS::StackName}-nlb"
+      Type: network
+      Scheme: internal
+      Subnets: !Ref SubnetIds
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  Service1TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${AWS::StackName}-service1-tg"
+      Port: !Ref Service1Port
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckPort: !Ref Service1Port
+
+  Service2TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${AWS::StackName}-service2-tg"
+      Port: !Ref Service2Port
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /
+      HealthCheckPort: !Ref Service2Port
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref Service1TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: TCP
+
+  Service1:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${AWS::StackName}-service1"
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref Service1TaskDefinition
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref SubnetIds
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref Service1TargetGroup
+          ContainerName: service1
+          ContainerPort: !Ref Service1Port
+    DependsOn:
+      - LoadBalancerListener
+
+  Service2:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Sub "${AWS::StackName}-service2"
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref Service2TaskDefinition
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets: !Ref SubnetIds
+          SecurityGroups:
+            - !Ref ServiceSecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref Service2TargetGroup
+          ContainerName: service2
+          ContainerPort: !Ref Service2Port
+    DependsOn:
+      - LoadBalancerListener
+
+Outputs:
+  LoadBalancerDNS:
+    Description: Internal NLB DNS name
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancerDNS"
+
+  Service1Endpoint:
+    Description: Service 1 endpoint
+    Value: !Sub "http://${LoadBalancer.DNSName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-Service1Endpoint"
+
+  Service2Endpoint:
+    Description: Service 2 endpoint (requires custom routing)
+    Value: !Sub "http://${LoadBalancer.DNSName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-Service2Endpoint"

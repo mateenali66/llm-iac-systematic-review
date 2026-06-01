@@ -1,0 +1,30 @@
+resources:
+- name: kms-keyring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/{{ env["project"] }}/locations/{{ properties["region"] }}
+    keyRingId: {{ properties["keyRingName"] }}
+
+- name: kms-cryptokey
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.kms-keyring.name)
+    cryptoKeyId: {{ properties["cryptoKeyName"] }}
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 2592000s
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+      protectionLevel: SOFTWARE
+
+- name: kms-cryptokey-iam
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys.setIamPolicy
+  properties:
+    resource: $(ref.kms-cryptokey.name)
+    policy:
+      bindings:
+      - role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+        members:
+        - serviceAccount: service-{{ env["project_number"] }}@gs-project-accounts.iam.gserviceaccount.com
+  metadata:
+    dependsOn:
+    - kms-cryptokey

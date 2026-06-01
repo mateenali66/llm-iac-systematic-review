@@ -1,0 +1,55 @@
+- name: Install and configure Nginx with firewall on Ubuntu
+  hosts: all
+  become: true
+  gather_facts: true
+  collections:
+    - community.general
+
+  pre_tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+  tasks:
+    - name: Install Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+
+    - name: Ensure Nginx service is enabled and running
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Ensure UFW is installed
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Set default incoming policy to deny
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Set default outgoing policy to allow
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow SSH to prevent lockout
+      community.general.ufw:
+        rule: allow
+        port: "{{ ansible_port | default(22) }}"
+        proto: tcp
+
+    - name: Allow HTTP traffic on port 80
+      community.general.ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Enable UFW
+      community.general.ufw:
+        state: enabled

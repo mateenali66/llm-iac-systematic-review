@@ -1,0 +1,310 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 105,
+	"files_parsed": 2,
+	"lines_parsed": 105,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 3,
+		"INFO": 1,
+		"LOW": 3,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 10,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:06:12.913511292Z",
+	"end": "2026-05-26T06:06:18.584712962Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CMK Unencrypted Storage",
+			"query_id": "ffee2785-c347-451e-89f3-11aeb08e5c84",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Ensure that storage is encrypted.",
+			"description_id": "ba38e42e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d7f594450368f04db361e3332647fa0d924d5c13e2ef9edbe28c4e0cecf93371",
+					"line": 14,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "DatabaseCluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DatabaseCluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DatabaseCluster.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.DatabaseCluster.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Encryption Disabled",
+			"query_id": "65844ba3-03a1-40a8-b3dd-919f122e8c95",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-storageencrypted",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS DBCluster should have storage encrypted set to true",
+			"description_id": "654ec248",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4d893619eef0b422334eb034e0eed881964b1ddad42a7620666d7534d4ac3b96",
+					"line": 14,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "DatabaseCluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DatabaseCluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DatabaseCluster.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.DatabaseCluster.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4a1e6b34-1008-4e61-a5f2-1f7c276f8d14",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Security Group Ingress CIDR should not be open to the world",
+			"description_id": "08256d31",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2b08a56ef55a454ffdd63ea9014b55543b06da7b58f212ab0ef8c43c9ee8ee49",
+					"line": 39,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DatabaseSecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 39,
+					"search_value": "",
+					"expected_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0].CidrIp should not be open to the world (0.0.0.0/0)",
+					"actual_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0].CidrIp is open to the world (0.0.0.0/0)"
+				}
+			]
+		},
+		{
+			"query_name": "HTTP Port Open To Internet",
+			"query_id": "ddfc4eaa-af23-409f-b96c-bf5c45dc4daa",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The HTTP port is open to the internet in a Security Group",
+			"description_id": "a39efd21",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0024b74c8a2bc0446d0b339fcfd9be2e4d81617b4d62e00de3fb71f27a4dcd64",
+					"line": 38,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DatabaseSecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 38,
+					"search_value": "",
+					"expected_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0] should not open the HTTP port (80)",
+					"actual_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0] opens the HTTP port (80)"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 41,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8c36ffedbbd5da322ad02f1c513c393fae5b57d1c75a822f5c5967d4b4dfcce6",
+					"line": 41,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 41,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 4,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Low RDS Backup Retention Period",
+			"query_id": "e649a218-d099-4550-86a4-1231e1fcb60d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "AWS RDS backup retention policy should be at least 7 days",
+			"description_id": "55094eb2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ce59bf0d6f390e300f64f2c13be4b94f03f6d37dee6cfaa0c239f1083386ea7b",
+					"line": 14,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "DatabaseCluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DatabaseCluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBCluster 'DatabaseCluster' resource should have backup retention period of at least 7 days",
+					"actual_value": "The RDS DBCluster 'DatabaseCluster' resource doesn't define a backup retention period"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Attached Subnet",
+			"query_id": "3b3b4411-ad1f-40e7-b257-a78a6bb9673a",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "VPCs without attached subnets may indicate that they are not being used",
+			"description_id": "23dfbed0",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f513a3206f9ac2937876efd527a06facd1807bfda326a06c6d3932b349464393",
+					"line": 41,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be attached to resources",
+					"actual_value": "'Resources.VPC' is not attached to resources"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "947ff7b939d21587c37a64ebe0a5315561d054dd646f10863b69e3e0a09ef3ea",
+					"line": 35,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DatabaseSecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.DatabaseSecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

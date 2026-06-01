@@ -1,0 +1,10 @@
+- hosts: all
+  become: true
+  vars:
+    target_user: "{{ ansible_user | default('root') }}"
+
+  tasks:
+    - name: Install prerequisites and setup Docker repository for Debian/Ubuntu
+      when: ansible_os_family == "Debian"
+      block:
+        - name: Install prerequisite packages

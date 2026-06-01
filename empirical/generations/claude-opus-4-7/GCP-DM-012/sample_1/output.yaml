@@ -1,0 +1,106 @@
+resources:
+- name: cloud-armor-security-policy
+  type: gcp-types/compute-beta:securityPolicies
+  properties:
+    description: "Production Cloud Armor policy: geo-blocking and per-IP rate limiting"
+    type: CLOUD_ARMOR
+    adaptiveProtectionConfig:
+      layer7DdosDefenseConfig:
+        enable: true
+        ruleVisibility: STANDARD
+    advancedOptionsConfig:
+      jsonParsing: STANDARD
+      logLevel: VERBOSE
+    rules:
+    - description: "Block traffic from sanctioned/high-risk countries"
+      priority: 1000
+      action: deny(403)
+      match:
+        expr:
+          expression: "origin.region_code == 'KP' || origin.region_code == 'IR' || origin.region_code == 'SY' || origin.region_code == 'CU' || origin.region_code == 'RU' || origin.region_code == 'BY'"
+      preview: false
+    - description: "Block known malicious user agents"
+      priority: 1500
+      action: deny(403)
+      match:
+        expr:
+          expression: "has(request.headers['user-agent']) && (request.headers['user-agent'].contains('sqlmap') || request.headers['user-agent'].contains('nikto') || request.headers['user-agent'].contains('masscan'))"
+      preview: false
+    - description: "OWASP CRS - SQL injection protection"
+      priority: 2000
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredWaf('sqli-v33-stable', {'sensitivity': 1})"
+      preview: false
+    - description: "OWASP CRS - XSS protection"
+      priority: 2100
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredWaf('xss-v33-stable', {'sensitivity': 1})"
+      preview: false
+    - description: "OWASP CRS - Local file inclusion protection"
+      priority: 2200
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredWaf('lfi-v33-stable', {'sensitivity': 1})"
+      preview: false
+    - description: "OWASP CRS - Remote code execution protection"
+      priority: 2300
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredWaf('rce-v33-stable', {'sensitivity': 1})"
+      preview: false
+    - description: "Throttle: per-IP rate limiting (100 req/min)"
+      priority: 3000
+      action: throttle
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      rateLimitOptions:
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 60
+      preview: false
+    - description: "Ban abusive IPs exceeding 1000 requests in 10 minutes for 10 minutes"
+      priority: 3500
+      action: rate_based_ban
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      rateLimitOptions:
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+        rateLimitThreshold:
+          count: 1000
+          intervalSec: 600
+        banDurationSec: 600
+      preview: false
+    - description: "Default rule - allow all other traffic"
+      priority: 2147483647
+      action: allow
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      preview: false
+
+outputs:
+- name: securityPolicyName
+  value: $(ref.cloud-armor-security-policy.name)
+- name: securityPolicySelfLink
+  value: $(ref.cloud-armor-security-policy.selfLink)
+- name: securityPolicyId
+  value: $(ref.cloud-armor-security-policy.id)

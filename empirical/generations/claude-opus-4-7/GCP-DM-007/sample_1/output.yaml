@@ -1,0 +1,144 @@
+imports:
+- path: gke-cluster.jinja
+- path: node-pool.jinja
+
+resources:
+- name: prod-gke-cluster
+  type: gke-cluster.jinja
+  properties:
+    clusterName: prod-gke-cluster
+    location: us-central1
+    network: projects/$(ref.project.projectId)/global/networks/default
+    subnetwork: projects/$(ref.project.projectId)/regions/us-central1/subnetworks/default
+    podIpv4CidrBlock: 10.16.0.0/14
+    servicesIpv4CidrBlock: 10.20.0.0/20
+    masterIpv4CidrBlock: 172.16.0.0/28
+    masterAuthorizedNetworkCidr: 10.0.0.0/8
+    releaseChannel: REGULAR
+    minMasterVersion: "1.28"
+
+- name: prod-node-pool
+  type: node-pool.jinja
+  properties:
+    clusterName: $(ref.prod-gke-cluster.name)
+    location: us-central1
+    nodePoolName: prod-node-pool
+    machineType: e2-standard-4
+    diskSizeGb: 100
+    diskType: pd-ssd
+    imageType: COS_CONTAINERD
+    initialNodeCount: 1
+    minNodeCount: 3
+    maxNodeCount: 10
+    serviceAccount: gke-node-sa@$(ref.project.projectId).iam.gserviceaccount.com
+
+outputs:
+- name: clusterEndpoint
+  value: $(ref.prod-gke-cluster.endpoint)
+- name: clusterName
+  value: $(ref.prod-gke-cluster.name)
+
+---
+# gke-cluster.jinja
+resources:
+- name: {{ properties["clusterName"] }}
+  type: gcp-types/container-v1:projects.locations.clusters
+  properties:
+    parent: projects/{{ env["project"] }}/locations/{{ properties["location"] }}
+    cluster:
+      name: {{ properties["clusterName"] }}
+      description: Production GKE Standard cluster
+      location: {{ properties["location"] }}
+      initialClusterVersion: {{ properties["minMasterVersion"] }}
+      releaseChannel:
+        channel: {{ properties["releaseChannel"] }}
+      network: {{ properties["network"] }}
+      subnetwork: {{ properties["subnetwork"] }}
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterIpv4CidrBlock: {{ properties["podIpv4CidrBlock"] }}
+        servicesIpv4CidrBlock: {{ properties["servicesIpv4CidrBlock"] }}
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: {{ properties["masterIpv4CidrBlock"] }}
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: internal-network
+          cidrBlock: {{ properties["masterAuthorizedNetworkCidr"] }}
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        networkPolicyConfig:
+          disabled: false
+        gcePersistentDiskCsiDriverConfig:
+          enabled: true
+      workloadIdentityConfig:
+        workloadPool: {{ env["project"] }}.svc.id.goog
+      shieldedNodes:
+        enabled: true
+      binaryAuthorization:
+        evaluationMode: PROJECT_SINGLETON_POLICY_ENFORCE
+      databaseEncryption:
+        state: ENCRYPTED
+      verticalPodAutoscaling:
+        enabled: true
+      maintenancePolicy:
+        window:
+          recurringWindow:
+            window:
+              startTime: "2024-01-01T03:00:00Z"
+              endTime: "2024-01-01T07:00:00Z"
+            recurrence: "FREQ=WEEKLY;BYDAY=SA,SU"
+      nodePools:
+      - name: default-pool
+        initialNodeCount: 1
+        management:
+          autoUpgrade: true
+          autoRepair: true
+
+outputs:
+- name: name
+  value: {{ properties["clusterName"] }}
+- name: endpoint
+  value: $(ref.{{ properties["clusterName"] }}.endpoint)
+
+---
+# node-pool.jinja
+resources:
+- name: {{ properties["nodePoolName"] }}
+  type: gcp-types/container-v1:projects.locations.clusters.nodePools
+  properties:
+    parent: projects/{{ env["project"] }}/locations/{{ properties["location"] }}/clusters/{{ properties["clusterName"] }}
+    nodePool:
+      name: {{ properties["nodePoolName"] }}
+      initialNodeCount: {{ properties["initialNodeCount"] }}
+      locations:
+      - {{ properties["location"] }}-a
+      - {{ properties["location"] }}-b
+      - {{ properties["location"] }}-c
+      autoscaling:
+        enabled: true
+        minNodeCount: {{ properties["minNodeCount"] }}
+        maxNodeCount: {{ properties["maxNodeCount"] }}
+      management:
+        autoUpgrade: true
+        autoRepair: true
+      upgradeSettings:
+        maxSurge: 1
+        maxUnavailable: 0
+        strategy: SURGE
+      config:
+        machineType: {{ properties["machineType"] }}
+        diskSizeGb: {{ properties["diskSizeGb"] }}
+        diskType: {{ properties["diskType"] }}
+        imageType: {{ properties["imageType"] }}
+        servi

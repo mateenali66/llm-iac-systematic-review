@@ -1,0 +1,84 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 163,
+	"files_parsed": 2,
+	"lines_parsed": 160,
+	"lines_ignored": 3,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:32:17.311161179Z",
+	"end": "2026-05-26T05:32:19.412935347Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "05e8cfa949f7e66deb2630a09a8c8658542bf554731bb9b5b6bccd20ded2af0a",
+					"line": 36,
+					"resource_type": "Service",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Service}}.metadata.name={{{}}}",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Service Does Not Target Pod",
+			"query_id": "3ca03a61-3249-4c16-8427-6f8e47dda729",
+			"query_url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Service should Target a Pod",
+			"description_id": "e7c26645",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8cd8f59e17301eddaafb4e11e7c1bbf78fe1a3dcd0ccedeb1295aacf20088a3f",
+					"line": 35,
+					"resource_type": "Service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{{}}}.spec.selector",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{{}}}.spec.selector label refers to a Pod label",
+					"actual_value": "metadata.name={{{}}}.spec.selector label does not match with any Pod label"
+				}
+			]
+		}
+	]
+}

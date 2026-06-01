@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-009",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-export-bigquery-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_export_dataset\n        projectId: ${PROJECT_ID}\n      location: US\n      description: \"Dataset for long-term log analysis from Cloud Logging sink\"\n      defaultTableExpirationMs: 7776000000  # 90 days in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-export-bigquery\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_export_dataset\"\n      filter: |\n        severity >= WARNING\n        OR resource.type = \"k8s_container\"\n        OR resource.type = \"gce_instance\"\n      includeChildren: true\n      description: \"Sink to export logs to BigQuery for long-term analysis\"\n      disabled: false\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: log-export-sink-writer-permission\n    action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy\n    properties:\n      resource: ${PROJECT_ID}\n      policy:\n        bindings:\n          - role: roles/bigquery.dataEditor\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n          - role: roles/bigquery.jobUser\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n    metadata:\n      dependsOn:\n        - log-export-sink\n        - log-export-bigquery-dataset",
+  "cleaned_response": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-export-bigquery-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_export_dataset\n        projectId: ${PROJECT_ID}\n      location: US\n      description: \"Dataset for long-term log analysis from Cloud Logging sink\"\n      defaultTableExpirationMs: 7776000000  # 90 days in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-export-bigquery\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_export_dataset\"\n      filter: |\n        severity >= WARNING\n        OR resource.type = \"k8s_container\"\n        OR resource.type = \"gce_instance\"\n      includeChildren: true\n      description: \"Sink to export logs to BigQuery for long-term analysis\"\n      disabled: false\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: log-export-sink-writer-permission\n    action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy\n    properties:\n      resource: ${PROJECT_ID}\n      policy:\n        bindings:\n          - role: roles/bigquery.dataEditor\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n          - role: roles/bigquery.jobUser\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n    metadata:\n      dependsOn:\n        - log-export-sink\n        - log-export-bigquery-dataset",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/logging_sink_bigquery.py\n    name: logging_sink_bigquery.py\n\nresources:\n  - name: log-export-bigquery-dataset\n    type: bigquery.v2.dataset\n    properties:\n      datasetReference:\n        datasetId: log_export_dataset\n        projectId: ${PROJECT_ID}\n      location: US\n      description: \"Dataset for long-term log analysis from Cloud Logging sink\"\n      defaultTableExpirationMs: 7776000000  # 90 days in milliseconds\n      labels:\n        environment: production\n        purpose: log-analysis\n\n  - name: log-export-sink\n    type: logging.v2.sink\n    properties:\n      sink: project-log-export-bigquery\n      destination: \"bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_export_dataset\"\n      filter: |\n        severity >= WARNING\n        OR resource.type = \"k8s_container\"\n        OR resource.type = \"gce_instance\"\n      includeChildren: true\n      description: \"Sink to export logs to BigQuery for long-term analysis\"\n      disabled: false\n      uniqueWriterIdentity: true\n      outputVersionFormat: V2\n      bigqueryOptions:\n        usePartitionedTables: true\n        usesTimestampColumnPartitioning: true\n\n  - name: log-export-sink-writer-permission\n    action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy\n    properties:\n      resource: ${PROJECT_ID}\n      policy:\n        bindings:\n          - role: roles/bigquery.dataEditor\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n          - role: roles/bigquery.jobUser\n            members:\n              - $(ref.log-export-sink.writerIdentity)\n    metadata:\n      dependsOn:\n        - log-export-sink\n        - log-export-bigquery-dataset",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728487,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 71,
+      "output_tokens": 421,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 7
+    }
+  },
+  "started_at": "2026-05-25T17:01:22.340500+00:00",
+  "elapsed_seconds": 4.818
+}

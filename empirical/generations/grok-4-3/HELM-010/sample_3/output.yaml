@@ -1,0 +1,301 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multitier-app
+description: Production-grade multi-tier application Helm chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+imagePullSecrets: []
+frontend:
+  image:
+    repository: nginx
+    tag: "1.25-alpine"
+    pullPolicy: IfNotPresent
+  containerPort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+backend:
+  image:
+    repository: your-backend-image
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  containerPort: 8080
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+postgres:
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  containerPort: 5432
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+  storageSize: 10Gi
+  storageClassName: ""
+secrets:
+  dbUser: postgres
+  dbPassword: change-me-in-production
+  dbName: appdb
+service:
+  frontend:
+    type: ClusterIP
+    port: 80
+  backend:
+    type: ClusterIP
+    port: 8080
+  postgres:
+    type: ClusterIP
+    port: 5432
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+---
+# FILE: templates/_helpers.tpl
+{{- define "multitier-app.labels" -}}
+helm.sh/chart: {{ include "multitier-app.chart" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+{{- define "multitier-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+{{- define "multitier-app.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+---
+# FILE: templates/configmap-frontend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frontend-config
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: frontend
+data:
+  nginx.conf: |
+    server {
+      listen 80;
+      location / { root /usr/share/nginx/html; }
+    }
+---
+# FILE: templates/configmap-backend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-backend-config
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: backend
+data:
+  app.properties: |
+    server.port=8080
+    spring.datasource.url=jdbc:postgresql://{{ .Release.Name }}-postgres:5432/{{ .Values.secrets.dbName }}
+---
+# FILE: templates/configmap-postgres.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-config
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: postgres
+data:
+  postgresql.conf: |
+    listen_addresses = '*'
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-db-secret
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  username: {{ .Values.secrets.dbUser }}
+  password: {{ .Values.secrets.dbPassword }}
+  dbname: {{ .Values.secrets.dbName }}
+---
+# FILE: templates/deployment-frontend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multitier-app.selectorLabels" . | nindent 6 }}
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "multitier-app.selectorLabels" . | nindent 8 }}
+        tier: frontend
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.frontend.containerPort }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 101
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-frontend-config
+---
+# FILE: templates/deployment-backend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multitier-app.selectorLabels" . | nindent 6 }}
+      tier: backend
+  template:
+    metadata:
+      labels:
+        {{- include "multitier-app.selectorLabels" . | nindent 8 }}
+        tier: backend
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.containerPort }}
+          env:
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: password
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-backend-config
+---
+# FILE: templates/statefulset-postgres.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    {{- include "multitier-app.labels" . | nindent 4 }}
+    tier: postgres
+spec:
+  serviceName: {{ .Release.Name }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "multitier-app.selectorLabels" . | nindent 6 }}
+      tier: postgres
+  template:
+    metadata:
+      labels:
+        {{- include "multitier-app.selectorLabels" . | nindent 8 }}
+        tier: postgres
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.postgres.containerPort }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: password
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-db-secret
+                  key: dbname
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: config
+              mountPath: /etc/postgresql
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 999
+      volumes:
+        - name: config
+          configMap:
+            name: {{

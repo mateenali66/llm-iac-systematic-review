@@ -1,0 +1,45 @@
+resources:
+  - name: multi-region-bucket
+    type: storage.v1.bucket
+    properties:
+      location: multi-region
+      storageClass: STANDARD
+      uniformBucketLevelAccess:
+        enabled: true
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 365
+              isLive: true
+      locationPolicy:
+        locationRestriction: MULTI_REGION
+      versioning:
+        enabled: false
+      retentionPolicy:
+        retentionPeriod: null
+      iamConfiguration:
+        uniformBucketLevelAccess:
+          enabled: true
+        publicAccessPrevention: invariant
+      labels:
+        env: prod
+        team: storage-admins
+      bucketPolicyOnly:
+        enabled: true
+      defaultEventBasedHold: false
+      defaultObjectAcl:
+        role: READER
+        entity: allUsers
+      defaultObjectAcl:
+        role: OWNER
+        entity: projectOwners-$(ref.project.id)
+      update:
+        lifecycle:
+          rule:
+            - action:
+                type: Delete
+              condition:
+                age: 365
+                isLive: true

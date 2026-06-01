@@ -1,0 +1,95 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+
+  vars:
+    collector_port: 4317
+    export_endpoint: https://your-otlp-export-endpoint.com
+
+  tasks:
+  - name: Install OpenTelemetry Collector
+    apt:
+      name: opentelemetry-collector
+      state: present
+
+  - name: Configure OpenTelemetry Collector
+    template:
+      src: templates/collector.yaml.j2
+      dest: /etc/otel/collector.yaml
+      mode: '0644'
+    notify: restart collector
+
+  - name: Create systemd service file
+    template:
+      src: templates/collector.service.j2
+      dest: /etc/systemd/system/otel-collector.service
+      mode: '0644'
+    notify: reload systemd
+
+  - name: Enable and start OpenTelemetry Collector service
+    systemd:
+      name: otel-collector
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart collector
+    systemd:
+      name: otel-collector
+      state: restarted
+
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes
+
+  - name: Create templates directory if it doesn't exist
+    file:
+      path: templates
+      state: directory
+      mode: '0755'
+
+  - name: Create collector.yaml template
+    template:
+      src: templates/collector.yaml.j2
+      dest: templates/collector.yaml
+      mode: '0644'
+    vars:
+      collector_port: "{{ collector_port }}"
+      export_endpoint: "{{ export_endpoint }}"
+
+  - name: Create collector.service template
+    template:
+      src: templates/collector.service.j2
+      dest: templates/collector.service
+      mode: '0644'
+
+---
+templates/collector.yaml.j2:
+receivers:
+  otlp:
+    protocol: http
+    host: 0.0.0.0
+    port: {{ collector_port }}
+exporters:
+  otlp:
+    endpoint: {{ export_endpoint }}
+    insecure: false
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [otlp]
+
+templates/collector.service.j2:
+[Unit]
+Description=OpenTelemetry Collector
+After=network.target
+
+[Service]
+User=otel
+ExecStart=/usr/bin/otelcol --config=/etc/otel/collector.yaml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

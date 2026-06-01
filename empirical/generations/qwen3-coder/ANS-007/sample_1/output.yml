@@ -1,0 +1,36 @@
+---
+- name: Configure static network interface on Debian 12
+  hosts: all
+  become: true
+  vars:
+    interface_name: eth0
+    static_ip: 192.168.1.100/24
+    gateway: 192.168.1.1
+    dns_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+  tasks:
+    - name: Install netplan.io package
+      ansible.builtin.apt:
+        name: netplan.io
+        state: present
+        update_cache: true
+
+    - name: Configure static network interface with netplan
+      ansible.builtin.template:
+        src: netplan-config.j2
+        dest: /etc/netplan/01-netcfg.yaml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Apply netplan configuration
+      ansible.builtin.command: netplan apply
+      changed_when: false
+
+    - name: Verify network connectivity
+      ansible.builtin.wait_for:
+        host: "{{ gateway }}"
+        port: 53
+        timeout: 10
+      ignore_errors: true

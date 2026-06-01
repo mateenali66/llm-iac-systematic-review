@@ -1,0 +1,99 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 105,
+	"files_parsed": 1,
+	"lines_parsed": 105,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:35:06.037745716Z",
+	"end": "2026-05-26T04:35:06.799619591Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Key Vault Not Recoverable",
+			"query_id": "7c25f361-7c66-44bf-9b69-022acd5eb4bd",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/2019-09-01/vaults?tabs=json#vaultproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "530",
+			"cloud_provider": "AZURE",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Key Vault should have 'enableSoftDelete' and 'enablePurgeProtection' set to true",
+			"description_id": "8e3ca202",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "87e5bfd2b4e70536776c43e882151a73fd446f909774e38b61f094a1a17091ed",
+					"line": 21,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('keyVaultName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('keyVaultName')]}}.properties",
+					"search_line": 21,
+					"search_value": "enablePurgeProtection",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enablePurgeProtection' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enablePurgeProtection' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Secret Without Expiration Date",
+			"query_id": "cff9c3f7-e8f0-455f-9fb4-5f72326da96e",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/vaults/secrets?tabs=json#SecretAttributes",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "1390",
+			"cloud_provider": "AZURE",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "All Secrets must have an expiration date defined",
+			"description_id": "bb5f96a2",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ef72046a5d6c21b54b41c3624f47159d4ff5862ce2922a8128280e0220c710d9",
+					"line": 59,
+					"resource_type": "secrets",
+					"resource_name": "ApiKeys--Primary",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.resources.name={{ApiKeys--Primary}}.properties.attributes",
+					"search_line": 59,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Security/securityContacts' should have 'attributes.exp' property id defined",
+					"actual_value": "resource with type 'Microsoft.Security/securityContacts' doesn't have 'attributes.exp' property defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "84f210f3f1cde10c956d01bdabfbc305e31a80eaf0de45d39338a42ffedb616a",
+					"line": 48,
+					"resource_type": "secrets",
+					"resource_name": "ConnectionStrings--DefaultConnection",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.resources.name={{ConnectionStrings--DefaultConnection}}.properties.attributes",
+					"search_line": 48,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Security/securityContacts' should have 'attributes.exp' property id defined",
+					"actual_value": "resource with type 'Microsoft.Security/securityContacts' doesn't have 'attributes.exp' property defined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "BICEP-AZURE-002",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning a Storage Account for hosting application static assets.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning a Storage Account for hosting application static assets.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'staticassets${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n    defaultToOAuthAuthentication: true\n    encryption: {\n      services: {\n        blob: {\n          keyType: 'Account'\n          enabled: true\n        }\n        file: {\n          keyType: 'Account'\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\noutput storageAccountName string = storageAccountName\noutput storageAccountId string = storageAccountResource.id",
+  "cleaned_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'staticassets${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n    defaultToOAuthAuthentication: true\n    encryption: {\n      services: {\n        blob: {\n          keyType: 'Account'\n          enabled: true\n        }\n        file: {\n          keyType: 'Account'\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\noutput storageAccountName string = storageAccountName\noutput storageAccountId string = storageAccountResource.id",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam storageAccountName string = 'staticassets${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n    defaultToOAuthAuthentication: true\n    encryption: {\n      services: {\n        blob: {\n          keyType: 'Account'\n          enabled: true\n        }\n        file: {\n          keyType: 'Account'\n          enabled: true\n        }\n      }\n    }\n  }\n}\n\noutput storageAccountName string = storageAccountName\noutput storageAccountId string = storageAccountResource.id",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723552,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 147,
+      "output_tokens": 207,
+      "raw_input_tokens": 147
+    }
+  },
+  "started_at": "2026-05-25T15:39:11.690101+00:00",
+  "elapsed_seconds": 1.059
+}

@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Dashboard summarizing the health of a Lambda-based API (invocations, errors, throttles, and average duration).
+Parameters:
+  DashboardName:
+    Type: String
+    Default: lambda-api-health
+    Description: Name of the CloudWatch Dashboard.
+    AllowedPattern: '^[A-Za-z0-9\-_]{1,255}$'
+  LambdaFunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor.
+Resources:
+  LambdaApiHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody:
+        Fn::Sub: |
+          {
+            "widgets": [
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 0,
+                "width": 6,
+                "height": 4,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum" } ]
+                  ],
+                  "view": "singleValue",
+                  "region": "${AWS::Region}",
+                  "title": "Invocations (Sum)",
+                  "period": 300,
+                  "sparkline": true,
+                  "setPeriodToTimeRange": true
+                }
+              },
+              {
+                "type": "metric",
+                "x": 6,
+                "y": 0,
+                "width": 6,
+                "height": 4,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Errors", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum" } ]
+                  ],
+                  "view": "singleValue",
+                  "region": "${AWS::Region}",
+                  "title": "Errors (Sum)",
+                  "period": 300,
+                  "sparkline": true,
+                  "setPeriodToTimeRange": true
+                }
+              },
+              {
+                "type": "metric",
+                "x": 12,
+                "y": 0,
+                "width": 6,
+                "height": 4,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Throttles", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum" } ]
+                  ],
+                  "view": "singleValue",
+                  "region": "${AWS::Region}",
+                  "title": "Throttles (Sum)",
+                  "period": 300,
+                  "sparkline": true,
+                  "setPeriodToTimeRange": true
+                }
+              },
+              {
+                "type": "metric",
+                "x": 18,
+                "y": 0,
+                "width": 6,
+                "height": 4,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Duration", "FunctionName", "${LambdaFunctionName}", { "stat": "Average" } ]
+                  ],
+                  "view": "singleValue",
+                  "region": "${AWS::Region}",
+                  "title": "Duration (Average, ms)",
+                  "period": 300,
+                  "sparkline": true,
+                  "setPeriodToTimeRange": true
+                }
+              },
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 4,
+                "width": 12,
+                "height": 8,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum", "id": "m1", "color": "#1f77b4" } ],
+                    [ ".", "Errors", ".", ".", { "stat": "Sum", "id": "m2", "color": "#d62728" } ],
+                    [ ".", "Throttles", ".", ".", { "stat": "Sum", "id": "m3", "color": "#ff7f0e" } ]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "Invocations, Errors, Throttles",
+                  "period": 300,
+                  "legend": {
+                    "position": "bottom"
+                  },
+                  "yAxis": {
+                    "left": {
+                      "label": "Count",
+                      "showUnits": false
+                    }
+                  }
+                }
+              },
+              {
+                "type": "metric",
+                "x": 12,
+                "y": 4,
+                "width": 12,
+                "height": 8,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Duration", "FunctionName", "${LambdaFunctionName}", { "stat": "Average", "id": "m1", "color": "#2ca02c" } ]
+                  ],
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "region": "${AWS::Region}",
+                  "title": "Average Duration (ms)",
+                  "period": 300,
+                  "legend": {
+                    "position": "bottom"
+                  },
+                  "yAxis": {
+                    "left": {
+                      "label": "Milliseconds",
+                      "showUnits": false
+                    }
+                  }
+                }
+              }
+            ]
+          }
+Outputs:
+  DashboardName:
+    Description: Name of the created CloudWatch Dashboard
+    Value: !Ref DashboardName
+  DashboardUrl:
+    Description: Console URL to the CloudWatch Dashboard
+    Value:
+      Fn::Sub: https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${DashboardName}

@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "ANS-002",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Ansible playbook that idempotently configures the firewall on a Linux host: allows SSH (port 22), HTTPS (port 443), and explicitly denies all other inbound traffic.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Create an Ansible playbook that idempotently configures the firewall on a Linux host: allows SSH (port 22), HTTPS (port 443), and explicitly denies all other inbound traffic.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Configure Linux firewall\n  hosts: all\n  become: yes\n\n  tasks:\n  - name: Ensure firewalld is installed and enabled\n    apt:\n      name: firewalld\n      state: present\n    notify: enable firewalld\n\n  - name: Enable firewalld service\n    service:\n      name: firewalld\n      state: started\n      enabled: yes\n\n  - name: Allow SSH traffic\n    firewalld:\n      service: ssh\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Allow HTTPS traffic\n    firewalld:\n      service: https\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Deny all other inbound traffic\n    firewalld:\n      zone: public\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"CentOS\" or ansible_distribution == \"RedHat\" or ansible_distribution == \"Fedora\"\n\n  - name: Set default zone to drop\n    firewalld:\n      zone: public\n      set_default: yes\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"Ubuntu\" or ansible_distribution == \"Debian\"\n\n  handlers:\n  - name: enable firewalld\n    service:\n      name: firewalld\n      state: started\n      enabled: yes",
+  "cleaned_response": "---\n- name: Configure Linux firewall\n  hosts: all\n  become: yes\n\n  tasks:\n  - name: Ensure firewalld is installed and enabled\n    apt:\n      name: firewalld\n      state: present\n    notify: enable firewalld\n\n  - name: Enable firewalld service\n    service:\n      name: firewalld\n      state: started\n      enabled: yes\n\n  - name: Allow SSH traffic\n    firewalld:\n      service: ssh\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Allow HTTPS traffic\n    firewalld:\n      service: https\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Deny all other inbound traffic\n    firewalld:\n      zone: public\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"CentOS\" or ansible_distribution == \"RedHat\" or ansible_distribution == \"Fedora\"\n\n  - name: Set default zone to drop\n    firewalld:\n      zone: public\n      set_default: yes\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"Ubuntu\" or ansible_distribution == \"Debian\"\n\n  handlers:\n  - name: enable firewalld\n    service:\n      name: firewalld\n      state: started\n      enabled: yes",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Configure Linux firewall\n  hosts: all\n  become: yes\n\n  tasks:\n  - name: Ensure firewalld is installed and enabled\n    apt:\n      name: firewalld\n      state: present\n    notify: enable firewalld\n\n  - name: Enable firewalld service\n    service:\n      name: firewalld\n      state: started\n      enabled: yes\n\n  - name: Allow SSH traffic\n    firewalld:\n      service: ssh\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Allow HTTPS traffic\n    firewalld:\n      service: https\n      state: enabled\n      permanent: yes\n      immediate: yes\n\n  - name: Deny all other inbound traffic\n    firewalld:\n      zone: public\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"CentOS\" or ansible_distribution == \"RedHat\" or ansible_distribution == \"Fedora\"\n\n  - name: Set default zone to drop\n    firewalld:\n      zone: public\n      set_default: yes\n      state: enabled\n      permanent: yes\n      immediate: yes\n    when: ansible_distribution == \"Ubuntu\" or ansible_distribution == \"Debian\"\n\n  handlers:\n  - name: enable firewalld\n    service:\n      name: firewalld\n      state: started\n      enabled: yes",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723508,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 175,
+      "output_tokens": 305,
+      "raw_input_tokens": 175
+    }
+  },
+  "started_at": "2026-05-25T15:38:27.336331+00:00",
+  "elapsed_seconds": 1.34
+}

@@ -1,0 +1,31 @@
+resources:
+- name: redis-cache
+  type: gcp-types/redis-v1beta1:projects.locations.instances
+  properties:
+    parent: projects/{{ env["project"] }}/locations/{{ properties["region"] }}
+    instanceId: {{ properties["name"] }}
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: {{ properties["region"] }}
+    redisVersion: REDIS_6_X
+    authorizedNetwork: {{ properties["network"] }}
+    connectMode: DIRECT_PEERING
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+        day: SUNDAY
+        startTime:
+          hours: 2
+          minutes: 0
+    redisConfigs:
+      maxmemory-policy: allkeys-lru
+    labels:
+      environment: {{ properties["environment"] }}
+      application: {{ properties["application"] }}
+
+outputs:
+- name: redisHost
+  value: $(ref.{{ properties["name"] }}.host)
+- name: redisPort
+  value: $(ref.{{ properties["name"] }}.port)
+- name: redisConnectionString
+  value: $(ref.{{ properties["name"] }}.host):$(ref.{{ properties["name"] }}.port)

@@ -1,0 +1,382 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:19:37.799484096Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 39,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 3
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0010",
+          "AVDID": "AVD-AWS-0010",
+          "Title": "Cloudfront distribution should have Access Logging configured",
+          "Description": "You should configure CloudFront Access Logging to create log files that contain detailed information about every user request that CloudFront receives\n",
+          "Message": "Distribution does not have logging enabled",
+          "Namespace": "builtin.aws.cloudfront.aws0010",
+          "Query": "data.builtin.aws.cloudfront.aws0010.deny",
+          "Resolution": "Enable logging for CloudFront distributions",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0010",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0010"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudfront_distribution.example",
+            "Provider": "AWS",
+            "Service": "cloudfront",
+            "StartLine": 83,
+            "EndLine": 133,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 83,
+                  "Content": "resource \"aws_cloudfront_distribution\" \"example\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudfront_distribution\"\u001b[0m \u001b[38;5;37m\"example\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 84,
+                  "Content": "  enabled = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245menabled\u001b[0m = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 85,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 86,
+                  "Content": "  default_root_object = \"index.html\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdefault_root_object\u001b[0m = \u001b[38;5;33m\"index\u001b[0m.html\u001b[38;5;37m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 87,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 88,
+                  "Content": "  aliases = [\"example.com\", \"www.example.com\"]",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  aliases = [\"\u001b[0mexample.com\u001b[38;5;37m\", \"\u001b[0mwww.example.com\u001b[38;5;37m\"]",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 89,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 90,
+                  "Content": "  default_cache_behavior {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  default_cache_behavior {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 91,
+                  "Content": "    allowed_methods  = [\"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\"]",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    allowed_methods  = [\"\u001b[0mDELETE\u001b[38;5;37m\", \"\u001b[0mGET\u001b[38;5;37m\", \"\u001b[0mHEAD\u001b[38;5;37m\", \"\u001b[0mOPTIONS\u001b[38;5;37m\", \"\u001b[0mPATCH\u001b[38;5;37m\", \"\u001b[0mPOST\u001b[38;5;37m\", \"\u001b[0mPUT\u001b[38;5;37m\"]",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 92,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0012",
+          "AVDID": "AVD-AWS-0012",
+          "Title": "CloudFront distribution allows unencrypted (HTTP) communications.",
+          "Description": "Plain HTTP is unencrypted and human-readable. This means that if a malicious actor was to eavesdrop on your connection, they would be able to see all of your data flowing back and forth.\nYou should use HTTPS, which is HTTP over an encrypted (TLS) connection, meaning eavesdroppers cannot read your traffic.\n",
+          "Message": "Distribution allows unencrypted communications.",
+          "Namespace": "builtin.aws.cloudfront.aws0012",
+          "Query": "data.builtin.aws.cloudfront.aws0012.deny",
+          "Resolution": "Only allow HTTPS for CloudFront distribution communication",
+          "Severity": "CRITICAL",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0012",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-https-cloudfront-to-s3-origin.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0012"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudfront_distribution.example",
+            "Provider": "AWS",
+            "Service": "cloudfront",
+            "StartLine": 103,
+            "EndLine": 103,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 83,
+                  "Content": "resource \"aws_cloudfront_distribution\" \"example\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudfront_distribution\"\u001b[0m \u001b[38;5;37m\"example\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 84,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 103,
+                  "Content": "    viewer_protocol_policy = \"allow-all\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    viewer_protocol_policy = \"\u001b[0mallow\u001b[38;5;245m-\u001b[0mall\u001b[38;5;37m\"",
+                  "FirstCause": true,
+                  "LastCause": true
+                },
+                {
+                  "Number": 132,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 133,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "default_cache_behavior",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 90,
+                  "EndLine": 107
+                }
+              },
+              {
+                "Resource": "aws_cloudfront_distribution.example",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 83,
+                  "EndLine": 133
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0013",
+          "AVDID": "AVD-AWS-0013",
+          "Title": "CloudFront distribution uses outdated SSL/TLS protocols.",
+          "Description": "You should not use outdated/insecure TLS versions for encryption. You should be using TLS v1.2+.\nNote: that setting *minimum_protocol_version = \"TLSv1.2_2021\"* is only possible when *cloudfront_default_certificate* is false (eg. you are not using the cloudfront.net domain name).\nIf *cloudfront_default_certificate* is true then the Cloudfront API will only allow setting *minimum_protocol_version = \"TLSv1\"*, and setting it to any other value will result in a perpetual diff in your *terraform plan*'s.\nThe only option when using the cloudfront.net domain name is to ignore this rule.\n",
+          "Message": "Distribution allows unencrypted communications.",
+          "Namespace": "builtin.aws.cloudfront.aws0013",
+          "Query": "data.builtin.aws.cloudfront.aws0013.deny",
+          "Resolution": "Use the most modern TLS/SSL policies available",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0013",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/secure-connections-supported-viewer-protocols-ciphers.html",
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesGeneral",
+            "https://avd.aquasec.com/misconfig/avd-aws-0013"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudfront_distribution.example",
+            "Provider": "AWS",
+            "Service": "cloudfront",
+            "StartLine": 127,
+            "EndLine": 130,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 83,
+                  "Content": "resource \"aws_cloudfront_distribution\" \"example\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudfront_distribution\"\u001b[0m \u001b[38;5;37m\"example\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 84,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 127,
+                  "Content": "  viewer_certificate {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  viewer_certificate {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 128,
+                  "Content": "    acm_certificate_arn = \"arn:aws:acm:us-west-2:123456789012:certificate/12345678-1234-1234-1234-123456789012\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    acm_certificate_arn = \"\u001b[0marn\u001b[38;5;245m:\u001b[0maws\u001b[38;5;245m:\u001b[0macm\u001b[38;5;245m:\u001b[0mus\u001b[38;5;245m-\u001b[0mwest\u001b[38;5;37m-2\u001b[0m\u001b[38;5;245m:\u001b[0m\u001b[38;5;37m123456789012\u001b[0m\u001b[38;5;245m:\u001b[0mcertificate\u001b[38;5;245m/\u001b[0m\u001b[38;5;37m12345678-1234-1234-1234-123456789012\u001b[0m\u001b[38;5;37m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 129,
+                  "Content": "    ssl_support_method  = \"sni-only\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    ssl_support_method  = \"\u001b[0msni\u001b[38;5;245m-\u001b[0monly\u001b[38;5;37m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 130,
+                  "Content": "  }",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  }",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 132,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 133,
+                  "Content": "}",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "}\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_cloudfront_distribution.example",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 83,
+                  "EndLine": 133
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

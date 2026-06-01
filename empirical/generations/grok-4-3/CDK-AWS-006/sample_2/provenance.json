@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-006",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "```python\nfrom aws_cdk import (\n    Stack,\n    aws_iam as iam,\n)\nfrom constructs import Construct\nfrom typing import List\n\n\nclass CrossAccountLambdaInvokerStack(Stack):\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        partner_account_id: str,\n        lambda_function_arns: List[str],\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        statements = [\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=lambda_function_arns,\n            )\n        ]\n\n        role = iam.Role(\n            self,\n            \"PartnerCrossAccountInvokerRole\",\n            role_name=\"PartnerCrossAccountLambdaInvoker\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role assumable by partner account to invoke specified Lambda functions\",\n            inline_policies={\n                \"LambdaInvokePolicy\": iam.PolicyDocument(statements=statements)\n            },\n            max_session_duration=3600,\n        )\n\n        # Enforce least-privilege and prevent role from being assumed by other principals\n        role.assume_role_policy.add_statements(\n            iam.PolicyStatement(\n                effect=iam.Effect.DENY,\n                actions=[\"sts:AssumeRole\"],\n                principals=[iam.AnyPrincipal()],\n                conditions={\"StringNotEquals\": {\"aws:PrincipalAccount\": partner_account_id}},\n            )\n        )\n```",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n)\nfrom constructs import Construct\nfrom typing import List\n\n\nclass CrossAccountLambdaInvokerStack(Stack):\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        partner_account_id: str,\n        lambda_function_arns: List[str],\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        statements = [\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=lambda_function_arns,\n            )\n        ]\n\n        role = iam.Role(\n            self,\n            \"PartnerCrossAccountInvokerRole\",\n            role_name=\"PartnerCrossAccountLambdaInvoker\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role assumable by partner account to invoke specified Lambda functions\",\n            inline_policies={\n                \"LambdaInvokePolicy\": iam.PolicyDocument(statements=statements)\n            },\n            max_session_duration=3600,\n        )\n\n        # Enforce least-privilege and prevent role from being assumed by other principals\n        role.assume_role_policy.add_statements(\n            iam.PolicyStatement(\n                effect=iam.Effect.DENY,\n                actions=[\"sts:AssumeRole\"],\n                principals=[iam.AnyPrincipal()],\n                conditions={\"StringNotEquals\": {\"aws:PrincipalAccount\": partner_account_id}},\n            )\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```python\nfrom aws_cdk import (\n    Stack,\n    aws_iam as iam,\n)\nfrom constructs import Construct\nfrom typing import List\n\n\nclass CrossAccountLambdaInvokerStack(Stack):\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        partner_account_id: str,\n        lambda_function_arns: List[str],\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        statements = [\n            iam.PolicyStatement(\n                actions=[\"lambda:InvokeFunction\"],\n                resources=lambda_function_arns,\n            )\n        ]\n\n        role = iam.Role(\n            self,\n            \"PartnerCrossAccountInvokerRole\",\n            role_name=\"PartnerCrossAccountLambdaInvoker\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            description=\"Role assumable by partner account to invoke specified Lambda functions\",\n            inline_policies={\n                \"LambdaInvokePolicy\": iam.PolicyDocument(statements=statements)\n            },\n            max_session_duration=3600,\n        )\n\n        # Enforce least-privilege and prevent role from being assumed by other principals\n        role.assume_role_policy.add_statements(\n            iam.PolicyStatement(\n                effect=iam.Effect.DENY,\n                actions=[\"sts:AssumeRole\"],\n                principals=[iam.AnyPrincipal()],\n                conditions={\"StringNotEquals\": {\"aws:PrincipalAccount\": partner_account_id}},\n            )\n        )\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724327,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 88,
+      "output_tokens": 286,
+      "reasoning_tokens": 504,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 58
+    }
+  },
+  "started_at": "2026-05-25T15:52:02.195256+00:00",
+  "elapsed_seconds": 5.679
+}

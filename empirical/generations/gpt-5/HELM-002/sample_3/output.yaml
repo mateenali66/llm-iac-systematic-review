@@ -1,0 +1,295 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A Helm chart for deploying a Redis cache with StatefulSet, headless Service, PVC, and Secret for password
+type: application
+version: 0.1.0
+appVersion: "7.2.4"
+
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: redis
+  tag: 7.2.4-alpine
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  port: 6379
+  annotations: {}
+  labels: {}
+
+podAnnotations: {}
+podLabels: {}
+
+auth:
+  enabled: true
+  existingSecret: ""
+  password: ""
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+securityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  enabled: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: ""
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "redis-cache.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "redis-cache.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := include "redis-cache.name" . -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "redis-cache.labels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "redis-cache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "redis-cache.headlessName" -}}
+{{- printf "%s-headless" (include "redis-cache.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "redis-cache.secretName" -}}
+{{- if and .Values.auth.enabled .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecret -}}
+{{- else -}}
+{{- printf "%s-auth" (include "redis-cache.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+---
+# FILE: templates/secret.yaml
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecret) -}}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis-cache.secretName" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  redis-password: {{ default (randAlphaNum 24) .Values.auth.password | quote }}
+{{- end }}
+
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis-cache.headlessName" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  clusterIP: None
+  ports:
+    - name: redis
+      port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "redis-cache.selectorLabels" . | nindent 4 }}
+
+---
+# FILE: templates/pvc.yaml
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis-cache.fullname" . }}-data
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+  {{- with .Values.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+{{- end }}
+
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "redis-cache.headlessName" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "redis-cache.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis-cache.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.securityContext.enabled }}
+      securityContext:
+        runAsNonRoot: {{ .Values.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.securityContext.runAsUser }}
+        runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
+        seccompProfile:
+          type: {{ .Values.securityContext.seccompProfile.type }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.containerSecurityContext.readOnlyRootFilesystem }}
+            capabilities:
+              {{- toYaml .Values.containerSecurityContext.capabilities | nindent 14 }}
+          {{- end }}
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis-cache.secretName" . }}
+                  key: redis-password
+          command:
+            - sh
+            - -c
+            - |
+              exec redis-server --appendonly yes --requirepass "$REDIS_PASSWORD"
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep PONG'
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep PONG'
+            initialDelaySeconds: 15
+            timeoutSeconds: 5
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ if .Values.persistence.existingClaim }}{{ .Values.persistence.existingClaim }}{{ else }}{{ include "redis-cache.fullname" . }}-data{{ end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- else }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "redis-cache.selectorLabels" . | nindent 20 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates: []
+  updateStrategy:
+    type: RollingUpdate

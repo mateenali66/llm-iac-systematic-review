@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "GCP-DM-015",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Monitoring alert policy that pages the on-call team when a Cloud Run service's 95th-percentile latency exceeds 500 ms for 5 minutes.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Monitoring alert policy that pages the on-call team when a Cloud Run service's 95th-percentile latency exceeds 500 ms for 5 minutes.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n  - name: high-latency-alert\n    type: cloudmonitoring.v3.AlertPolicy\n    properties:\n      displayName: High Latency Alert\n      combiner: OR\n      conditions:\n        - conditionThreshold:\n            thresholdValue: 500\n            filter: 'metric.type=\"run.googleapis.com/service/latency\" AND resource.type=\"cloud_run_revision\"'\n            comparison: COMPARISON_GT\n            aggregations:\n              - alignmentPeriod: 300s\n                perSeriesAligner: ALIGN_PERCENTILE_95\n            duration: 300s\n          displayName: 95th Percentile Latency Exceeds 500ms\n      documentation:\n        content: '95th percentile latency of Cloud Run service exceeds 500ms for 5 minutes'\n        mime_type: text/markdown\n      notificationChannels:\n        - projects/{{ project }}/notificationChannels/{{ notification_channel }}",
+  "cleaned_response": "resources:\n  - name: high-latency-alert\n    type: cloudmonitoring.v3.AlertPolicy\n    properties:\n      displayName: High Latency Alert\n      combiner: OR\n      conditions:\n        - conditionThreshold:\n            thresholdValue: 500\n            filter: 'metric.type=\"run.googleapis.com/service/latency\" AND resource.type=\"cloud_run_revision\"'\n            comparison: COMPARISON_GT\n            aggregations:\n              - alignmentPeriod: 300s\n                perSeriesAligner: ALIGN_PERCENTILE_95\n            duration: 300s\n          displayName: 95th Percentile Latency Exceeds 500ms\n      documentation:\n        content: '95th percentile latency of Cloud Run service exceeds 500ms for 5 minutes'\n        mime_type: text/markdown\n      notificationChannels:\n        - projects/{{ project }}/notificationChannels/{{ notification_channel }}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n  - name: high-latency-alert\n    type: cloudmonitoring.v3.AlertPolicy\n    properties:\n      displayName: High Latency Alert\n      combiner: OR\n      conditions:\n        - conditionThreshold:\n            thresholdValue: 500\n            filter: 'metric.type=\"run.googleapis.com/service/latency\" AND resource.type=\"cloud_run_revision\"'\n            comparison: COMPARISON_GT\n            aggregations:\n              - alignmentPeriod: 300s\n                perSeriesAligner: ALIGN_PERCENTILE_95\n            duration: 300s\n          displayName: 95th Percentile Latency Exceeds 500ms\n      documentation:\n        content: '95th percentile latency of Cloud Run service exceeds 500ms for 5 minutes'\n        mime_type: text/markdown\n      notificationChannels:\n        - projects/{{ project }}/notificationChannels/{{ notification_channel }}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723819,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 179,
+      "output_tokens": 183,
+      "raw_input_tokens": 179
+    }
+  },
+  "started_at": "2026-05-25T15:43:37.816896+00:00",
+  "elapsed_seconds": 1.236
+}

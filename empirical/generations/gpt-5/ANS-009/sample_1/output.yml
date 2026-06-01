@@ -1,0 +1,326 @@
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    # Installation method: "binary" (default). You can extend to "package" if you manage a repo.
+    otel_install_method: "binary"
+
+    # OpenTelemetry Collector distribution and version
+    otel_distribution: "contrib"          # "contrib" or "core"
+    otel_version: "0.101.0"               # Override for desired pinned version
+
+    # Export target configuration
+    otlp_endpoint: "otlp.example.com:4317"  # Remote OTLP gRPC endpoint
+    otlp_headers: {}                        # e.g. {"authorization": "Bearer YOUR_TOKEN"}
+    otlp_tls_insecure: false                # true to skip TLS verification (not recommended)
+    otlp_ca_file: ""                        # path to custom CA cert on host if needed, else empty
+    otlp_compression: "gzip"                # "none" or "gzip"
+
+    # Service hardening and runtime
+    otel_user: "otelcol"
+    otel_group: "otelcol"
+    otel_open_port: 4317
+
+  pre_tasks:
+    - name: Map architecture for OpenTelemetry release assets
+      set_fact:
+        otel_arch_map:
+          x86_64: amd64
+          amd64: amd64
+          aarch64: arm64
+          arm64: arm64
+
+    - name: Assert supported architecture
+      assert:
+        that:
+          - ansible_architecture in otel_arch_map
+        fail_msg: "Unsupported architecture {{ ansible_architecture }}. Supported: x86_64/amd64, aarch64/arm64."
+        success_msg: "Architecture {{ ansible_architecture }} supported."
+
+    - name: Set common path facts based on distribution
+      set_fact:
+        otel_name: "otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_arch: "{{ otel_arch_map[ansible_architecture] }}"
+        otel_conf_dir: "/etc/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_data_dir: "/var/lib/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_runtime_dir: "/run/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_bin_path: "/usr/local/bin/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_env_file: "/etc/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}.env"
+        otel_service_name: "otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}"
+        otel_tarball_name: "otelcol-{{ otel_distribution }}_{{ otel_version }}_linux_{{ otel_arch }}.tar.gz"
+        otel_release_base: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}"
+        otel_checksums_file: "otelcol-{{ otel_distribution }}_{{ otel_version }}_checksums.txt"
+        otel_version_file: "/etc/otelcol{{ '-contrib' if otel_distribution == 'contrib' else '' }}/.version"
+
+  tasks:
+    - name: Create group for otelcol
+      group:
+        name: "{{ otel_group }}"
+        system: true
+
+    - name: Create user for otelcol
+      user:
+        name: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create configuration directory
+      file:
+        path: "{{ otel_conf_dir }}"
+        state: directory
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0750"
+
+    - name: Create data directory
+      file:
+        path: "{{ otel_data_dir }}"
+        state: directory
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0750"
+
+    - name: Ensure runtime directory exists (systemd RuntimeDirectory alternative for SELinux/strict systems)
+      file:
+        path: "{{ otel_runtime_dir }}"
+        state: directory
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0750"
+
+    - name: Read current installed collector version (if any)
+      slurp:
+        src: "{{ otel_version_file }}"
+      register: otel_installed_version_file
+      ignore_errors: true
+
+    - name: Set current installed version fact
+      set_fact:
+        otel_installed_version: "{{ (otel_installed_version_file['content'] | b64decode).strip() if otel_installed_version_file is defined and otel_installed_version_file['content'] is defined else '' }}"
+
+    - name: Determine if installation/update is needed
+      set_fact:
+        otel_install_needed: "{{ (otel_install_method == 'binary') and (otel_installed_version != otel_version) }}"
+
+    - name: Download checksums file
+      get_url:
+        url: "{{ otel_release_base }}/{{ otel_checksums_file }}"
+        dest: "/tmp/{{ otel_checksums_file }}"
+        mode: "0644"
+      when: otel_install_needed
+
+    - name: Extract expected SHA256 from checksums file
+      command: "awk '/{{ otel_tarball_name | regex_escape }}/ {print $1}' /tmp/{{ otel_checksums_file }}"
+      register: otel_expected_sha256
+      changed_when: false
+      failed_when: otel_expected_sha256.stdout == ""
+      when: otel_install_needed
+
+    - name: Download OpenTelemetry Collector tarball
+      get_url:
+        url: "{{ otel_release_base }}/{{ otel_tarball_name }}"
+        dest: "/tmp/{{ otel_tarball_name }}"
+        mode: "0644"
+      when: otel_install_needed
+
+    - name: Compute SHA256 of downloaded tarball
+      command: "sha256sum /tmp/{{ otel_tarball_name }}"
+      register: otel_actual_sha256
+      changed_when: false
+      when: otel_install_needed
+
+    - name: Verify tarball checksum
+      assert:
+        that:
+          - (otel_actual_sha256.stdout.split()[0]) == (otel_expected_sha256.stdout.strip())
+        fail_msg: "Checksum verification failed for {{ otel_tarball_name }}"
+        success_msg: "Checksum verification passed for {{ otel_tarball_name }}"
+      when: otel_install_needed
+
+    - name: Create temporary extraction directory
+      tempfile:
+        state: directory
+        suffix: otelcol
+      register: otel_tmp_dir
+      when: otel_install_needed
+
+    - name: Unpack OpenTelemetry Collector tarball
+      unarchive:
+        src: "/tmp/{{ otel_tarball_name }}"
+        dest: "{{ otel_tmp_dir.path }}"
+        remote_src: true
+        extra_opts:
+          - --no-same-owner
+      when: otel_install_needed
+
+    - name: Install OpenTelemetry Collector binary
+      copy:
+        src: "{{ otel_tmp_dir.path }}/{{ otel_name }}"
+        dest: "{{ otel_bin_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      when: otel_install_needed
+
+    - name: Cleanup temporary artifacts
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "/tmp/{{ otel_tarball_name }}"
+        - "/tmp/{{ otel_checksums_file }}"
+        - "{{ otel_tmp_dir.path | default('') }}"
+      when: otel_install_needed
+
+    - name: Record installed version
+      copy:
+        dest: "{{ otel_version_file }}"
+        content: "{{ otel_version }}\n"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0640"
+      when: otel_install_needed
+
+    - name: Write OpenTelemetry Collector environment file
+      copy:
+        dest: "{{ otel_env_file }}"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0640"
+        content: |
+          # Environment for {{ otel_service_name }}
+          # Reserved for future use (e.g., proxy settings, endpoint via env override)
+          # Example:
+          # HTTP_PROXY=http://proxy.internal:3128
+          # HTTPS_PROXY=http://proxy.internal:3128
+
+    - name: Render OpenTelemetry Collector configuration
+      copy:
+        dest: "{{ otel_conf_dir }}/config.yaml"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0640"
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: "0.0.0.0:{{ otel_open_port }}"
+
+          exporters:
+            otlp:
+              endpoint: "{{ otlp_endpoint }}"
+              tls:
+                insecure: {{ otlp_tls_insecure | bool }}
+              {% if otlp_ca_file | length > 0 %}
+                ca_file: "{{ otlp_ca_file }}"
+              {% endif %}
+              compression: "{{ otlp_compression }}"
+              sending_queue:
+                enabled: true
+                num_consumers: 4
+                queue_size: 10000
+              retry_on_failure:
+                enabled: true
+                initial_interval: 1s
+                max_interval: 30s
+                max_elapsed_time: 300s
+              {% if otlp_headers | length > 0 %}
+              headers:
+              {% for k, v in otlp_headers.items() %}
+                {{ k }}: "{{ v }}"
+              {% endfor %}
+              {% endif %}
+
+          processors:
+            memory_limiter:
+              check_interval: 2s
+              limit_percentage: 75
+              spike_limit_percentage: 15
+            batch:
+              send_batch_max_size: 8192
+              send_batch_size: 2048
+              timeout: 2s
+
+          extensions:
+            health_check:
+              endpoint: "127.0.0.1:13133"
+            pprof:
+              endpoint: "127.0.0.1:1777"
+            zpages:
+              endpoint: "127.0.0.1:55679"
+
+          service:
+            extensions: [health_check, pprof, zpages]
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+              metrics:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+              logs:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+
+    - name: Create systemd unit file for OpenTelemetry Collector
+      copy:
+        dest: "/etc/systemd/system/{{ otel_service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=OpenTelemetry Collector ({{ otel_distribution }})
+          Documentation=https://opentelemetry.io/docs/collector/
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ otel_user }}
+          Group={{ otel_group }}
+          EnvironmentFile=-{{ otel_env_file }}
+          ExecStart={{ otel_bin_path }} --config={{ otel_conf_dir }}/config.yaml
+          ExecReload=/bin/kill -HUP $MAINPID
+          Restart=on-failure
+          RestartSec=5s
+          # Security hardening
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ProtectControlGroups=true
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          RestrictRealtime=true
+          RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+          LockPersonality=true
+          MemoryDenyWriteExecute=true
+          AmbientCapabilities=
+          CapabilityBoundingSet=
+          LimitNOFILE=65536
+          RuntimeDirectory={{ otel_service_name }}
+          RuntimeDirectoryMode=0750
+          ReadWritePaths={{ otel_conf_dir }} {{ otel_data_dir }}
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start OpenTelemetry Collector
+      systemd:
+        name: "{{ otel_service_name }}"
+        enabled: true
+        state: started

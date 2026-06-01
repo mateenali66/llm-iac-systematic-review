@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "K8S-NET-002",
+  "language": "k8s_yaml",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a Kubernetes Service manifest exposing a 'web-frontend' Deployment via a LoadBalancer for external HTTP/HTTPS traffic.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Generate a Kubernetes Service manifest exposing a 'web-frontend' Deployment via a LoadBalancer for external HTTP/HTTPS traffic.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: Service\nmetadata:\n  name: web-frontend\nspec:\n  selector:\n    app: web-frontend\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n  - name: https\n    port: 443\n    targetPort: 443\n  type: LoadBalancer\n  loadBalancerIP: \n  externalTrafficPolicy: Local",
+  "cleaned_response": "apiVersion: v1\nkind: Service\nmetadata:\n  name: web-frontend\nspec:\n  selector:\n    app: web-frontend\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n  - name: https\n    port: 443\n    targetPort: 443\n  type: LoadBalancer\n  loadBalancerIP: \n  externalTrafficPolicy: Local",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: Service\nmetadata:\n  name: web-frontend\nspec:\n  selector:\n    app: web-frontend\n  ports:\n  - name: http\n    port: 80\n    targetPort: 80\n  - name: https\n    port: 443\n    targetPort: 443\n  type: LoadBalancer\n  loadBalancerIP: \n  externalTrafficPolicy: Local",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723889,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 157,
+      "output_tokens": 91,
+      "raw_input_tokens": 157
+    }
+  },
+  "started_at": "2026-05-25T15:44:48.657460+00:00",
+  "elapsed_seconds": 0.436
+}

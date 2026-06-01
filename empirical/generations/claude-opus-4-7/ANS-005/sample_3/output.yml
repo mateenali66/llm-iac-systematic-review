@@ -1,0 +1,163 @@
+---
+- name: Install and configure Docker
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    docker_user: "{{ docker_user | default(ansible_user_id) }}"
+    docker_edition: "ce"
+    docker_packages:
+      - "docker-{{ docker_edition }}"
+      - "docker-{{ docker_edition }}-cli"
+      - "containerd.io"
+      - "docker-buildx-plugin"
+      - "docker-compose-plugin"
+
+  pre_tasks:
+    - name: Verify supported OS family
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family in ['Debian', 'RedHat']
+        fail_msg: "Unsupported OS family: {{ ansible_os_family }}"
+
+    - name: Verify docker_user is defined
+      ansible.builtin.assert:
+        that:
+          - docker_user is defined
+          - docker_user | length > 0
+        fail_msg: "Variable 'docker_user' must be set."
+
+  tasks:
+    # -------- Debian / Ubuntu --------
+    - name: Install prerequisite packages (Debian)
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+    - name: Ensure apt keyrings directory exists (Debian)
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: ansible_os_family == 'Debian'
+
+    - name: Add Docker GPG apt key (Debian)
+      ansible.builtin.get_url:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: false
+      when: ansible_os_family == 'Debian'
+
+    - name: Add Docker apt repository (Debian)
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ ansible_architecture | replace('x86_64','amd64') | replace('aarch64','arm64') }}
+          signed-by=/etc/apt/keyrings/docker.asc]
+          https://download.docker.com/linux/{{ ansible_distribution | lower }}
+          {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Docker packages (Debian)
+      ansible.builtin.apt:
+        name: "{{ docker_packages }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    # -------- RHEL / CentOS / Rocky / Alma --------
+    - name: Install prerequisite packages (RedHat)
+      ansible.builtin.yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Add Docker yum repository (RedHat)
+      ansible.builtin.yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: "https://download.docker.com/linux/centos/{{ ansible_distribution_major_version }}/$basearch/stable"
+        gpgcheck: true
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: true
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Docker packages (RedHat)
+      ansible.builtin.yum:
+        name: "{{ docker_packages }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    # -------- Common config --------
+    - name: Ensure docker group exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add user '{{ docker_user }}' to docker group
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+
+    - name: Ensure /etc/docker directory exists
+      ansible.builtin.file:
+        path: /etc/docker
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy secure Docker daemon configuration
+      ansible.builtin.copy:
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          {
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "10m",
+              "max-file": "3"
+            },
+            "live-restore": true,
+            "userland-proxy": false,
+            "no-new-privileges": true,
+            "icc": false
+          }
+      notify: Restart docker
+
+    - name: Ensure Docker service is enabled and started
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Ensure containerd service is enabled and started
+      ansible.builtin.systemd:
+        name: containerd
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted

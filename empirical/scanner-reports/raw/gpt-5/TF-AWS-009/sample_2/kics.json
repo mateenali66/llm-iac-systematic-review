@@ -1,0 +1,209 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 350,
+	"files_parsed": 1,
+	"lines_parsed": 350,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 6,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 9,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:19:42.372888718Z",
+	"end": "2026-05-26T05:19:56.851204336Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "KMS Key With Vulnerable Policy",
+			"query_id": "7ebc9038-0bde-479a-acc4-6ed7b6758899",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Checks if the policy is vulnerable and needs updating.",
+			"description_id": "32b2985e",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "06047564b728463bba3dce647b99270104b51c6dde1a84878bfcf451e59766b6",
+					"line": 147,
+					"resource_type": "aws_kms_key",
+					"resource_name": "rds",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[rds]",
+					"search_line": 147,
+					"search_value": "",
+					"expected_value": "aws_kms_key[rds].policy should be defined and not null",
+					"actual_value": "aws_kms_key[rds].policy is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "88fd05e0-ac0e-43d2-ba6d-fc0ba60ae1a6",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#iam_database_authentication_enabled",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "285",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "12b1c8aa",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "580b08cdf7b0d93f2b273122bee0d9529bb30de4755c2112d009dd97e4ee84cb",
+					"line": 322,
+					"resource_type": "aws_db_instance",
+					"resource_name": "this",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_db_instance[this].iam_database_authentication_enabled",
+					"search_line": 322,
+					"search_value": "",
+					"expected_value": "'iam_database_authentication_enabled' should be set to true",
+					"actual_value": "'iam_database_authentication_enabled' is set to false",
+					"remediation": "{\"after\":\"true\",\"before\":\"false\"}",
+					"remediation_type": "replacement"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 147,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5bcc2b5eaba8bfac2ff19ec188c4970a0a04e4817fbe55fd031f9d3c503a5bdb",
+					"line": 324,
+					"resource_type": "aws_db_instance",
+					"resource_name": "this",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[{{this}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_instance[{{this}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_instance[{{this}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b993c3920b5e1350e77efa18c94a7adc414162c9e65169f01a3adbeff2e6add0",
+					"line": 163,
+					"resource_type": "aws_db_parameter_group",
+					"resource_name": "${var.name}-pg15",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_parameter_group[{{this}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_parameter_group[{{this}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_parameter_group[{{this}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "12b47371f4cf0eee5adca041d89e0e6d91d7e3e025965dd4d4018e8044b6ec19",
+					"line": 219,
+					"resource_type": "aws_db_subnet_group",
+					"resource_name": "${var.name}-subnets",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_subnet_group[{{this}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_subnet_group[{{this}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_db_subnet_group[{{this}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "32986f13e83ebc63478bd50b2d7403e44a35a9eb5c73704a1266ab968559f7f8",
+					"line": 273,
+					"resource_type": "aws_iam_role",
+					"resource_name": "${var.name}-rds-monitoring",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{rds_enhanced_monitoring}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{rds_enhanced_monitoring}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{rds_enhanced_monitoring}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d2f20bdd2106b3577f3733d7bc40e5d1fa30a936bbed9c3b93534e01b1645ba2",
+					"line": 151,
+					"resource_type": "aws_kms_key",
+					"resource_name": "rds",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{rds}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{rds}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_kms_key[{{rds}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6dc63fa6e778d22652cef0e4f3b16856fe0b112654f0fa25e33f6a9bebf649d8",
+					"line": 226,
+					"resource_type": "aws_security_group",
+					"resource_name": "${var.name}-rds",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{rds}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{rds}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{rds}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

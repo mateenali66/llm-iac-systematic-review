@@ -1,0 +1,22 @@
+resources:
+  - name: high-latency-alert
+    type: cloudmonitoring.v3.AlertPolicy
+    properties:
+      displayName: High Latency Alert
+      conditions:
+        - conditionThreshold:
+            thresholdValue: 500
+            filter: metric.type="run.googleapis.com/service/latency"
+            comparison: >
+            aggregation:
+              percentile: 95
+              alignmentPeriod: 300s
+              perSeriesAligner: ALIGN_MEAN
+          duration: 300s
+      documentation:
+        content: Cloud Run service latency is too high
+      enabled: true
+      notificationChannels:
+        - projects/${project}/notificationChannels/${project}-oncall
+      alertStrategy:
+        autoClose: true

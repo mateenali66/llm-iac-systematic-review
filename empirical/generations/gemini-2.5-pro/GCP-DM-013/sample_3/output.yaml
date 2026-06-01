@@ -1,0 +1,12 @@
+resources:
+- name: redis-cache-instance
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    name: app-redis-cache
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: us-central1
+    connectMode: DIRECT_PEERING
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    authorizedNetwork: projects/$(project)/global/networks/default
+    redisVersion: REDIS_6_X

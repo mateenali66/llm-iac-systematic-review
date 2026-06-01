@@ -1,0 +1,64 @@
+resources:
+- name: github-actions-workload-identity-pool
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/{{ env['project'] }}/locations/global
+    workloadIdentityPoolId: github-actions-pool
+    displayName: GitHub Actions Workload Identity Pool
+    description: Workload Identity Pool for GitHub Actions
+    state: ACTIVE
+
+- name: github-actions-workload-identity-provider
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: $(ref.github-actions-workload-identity-pool.name)
+    workloadIdentityProviderId: github-actions-provider
+    displayName: GitHub Actions Workload Identity Provider
+    description: Workload Identity Provider for GitHub Actions
+    state: ACTIVE
+    oidc:
+      issuerUri: https://token.actions.githubusercontent.com
+      allowedAudiences:
+      - projects/{{ env['project'] }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+    attributeMapping:
+      google.subject: assertion.sub
+      attribute.actor: assertion.actor
+      attribute.repository: assertion.repository
+      attribute.repository_owner: assertion.repository_owner
+      attribute.workflow: assertion.workflow
+      attribute.run_id: assertion.run_id
+      attribute.run_attempt: assertion.run_attempt
+
+- name: github-actions-service-account
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    accountId: github-actions-sa
+    displayName: GitHub Actions Service Account
+    description: Service account for GitHub Actions deployments
+
+- name: github-actions-service-account-binding
+  type: gcp-types/iam-v1:projects.serviceAccounts.iam
+  properties:
+    resource: projects/{{ env['project'] }}/serviceAccounts/$(ref.github-actions-service-account.email)
+    policy:
+      bindings:
+      - role: roles/iam.workloadIdentityUser
+        members:
+        - principalSet://iam.googleapis.com/$(ref.github-actions-workload-identity-pool.name)/attribute.repository/{{ properties['githubRepository'] }}
+      - role: roles/run.admin
+        members:
+        - serviceAccount:$(ref.github-actions-service-account.email)
+      - role: roles/iam.serviceAccountUser
+        members:
+        - serviceAccount:$(ref.github-actions-service-account.email)
+      - role: roles/storage.objectViewer
+        members:
+        - serviceAccount:$(ref.github-actions-service-account.email)
+
+outputs:
+- name: workload_identity_pool_name
+  value: $(ref.github-actions-workload-identity-pool.name)
+- name: workload_identity_provider_name
+  value: $(ref.github-actions-workload-identity-provider.name)
+- name: service_account_email
+  value: $(ref.github-actions-service-account.email)

@@ -1,0 +1,72 @@
+---
+- name: Configure deploy user and secure SSH
+  hosts: all
+  become: true
+  vars:
+    deploy_user: deploy
+  tasks:
+    - name: Create deploy user
+      user:
+        name: "{{ deploy_user }}"
+        state: present
+        shell: /bin/bash
+        create_home: true
+        home: "/home/{{ deploy_user }}"
+
+    - name: Ensure sudo group exists
+      group:
+        name: sudo
+        state: present
+
+    - name: Add deploy user to sudo group
+      user:
+        name: "{{ deploy_user }}"
+        groups: sudo
+        append: true
+
+    - name: Configure passwordless sudo for sudo group
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^%sudo'
+        line: '%sudo ALL=(ALL:ALL) NOPASSWD:ALL'
+        validate: 'visudo -cf %s'
+
+    - name: Ensure .ssh directory exists
+      file:
+        path: "/home/{{ deploy_user }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0700'
+
+    - name: Install SSH public key
+      authorized_key:
+        user: "{{ deploy_user }}"
+        state: present
+        key: "{{ vault_deploy_ssh_public_key }}"
+
+    - name: Secure SSH configuration
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: true
+      notify: Restart ssh
+      loop:
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
+        - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+
+    - name: Ensure SSH service is running and enabled
+      service:
+        name: ssh
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart ssh
+      service:
+        name: ssh
+        state: restarted

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "ANS-007",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Configure static network interface on Debian 12\n  hosts: all\n  become: true\n  vars:\n    network_interface: eth0\n    static_ip: 192.168.1.100/24\n    gateway: 192.168.1.1\n    dns_servers:\n      - 8.8.8.8\n      - 8.8.4.4\n  tasks:\n    - name: Install netplan.io package\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static network interface with netplan\n      ansible.builtin.template:\n        src: netplan-config.j2\n        dest: /etc/netplan/01-netcfg.yaml\n        owner: root\n        group: root\n        mode: '0644'\n\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      changed_when: false\n\n    - name: Verify network connectivity\n      ansible.builtin.wait_for:\n        host: \"{{ gateway }}\"\n        port: 53\n        timeout: 10\n      ignore_errors: true",
+  "cleaned_response": "---\n- name: Configure static network interface on Debian 12\n  hosts: all\n  become: true\n  vars:\n    network_interface: eth0\n    static_ip: 192.168.1.100/24\n    gateway: 192.168.1.1\n    dns_servers:\n      - 8.8.8.8\n      - 8.8.4.4\n  tasks:\n    - name: Install netplan.io package\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static network interface with netplan\n      ansible.builtin.template:\n        src: netplan-config.j2\n        dest: /etc/netplan/01-netcfg.yaml\n        owner: root\n        group: root\n        mode: '0644'\n\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      changed_when: false\n\n    - name: Verify network connectivity\n      ansible.builtin.wait_for:\n        host: \"{{ gateway }}\"\n        port: 53\n        timeout: 10\n      ignore_errors: true",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Configure static network interface on Debian 12\n  hosts: all\n  become: true\n  vars:\n    network_interface: eth0\n    static_ip: 192.168.1.100/24\n    gateway: 192.168.1.1\n    dns_servers:\n      - 8.8.8.8\n      - 8.8.4.4\n  tasks:\n    - name: Install netplan.io package\n      ansible.builtin.apt:\n        name: netplan.io\n        state: present\n        update_cache: true\n\n    - name: Configure static network interface with netplan\n      ansible.builtin.template:\n        src: netplan-config.j2\n        dest: /etc/netplan/01-netcfg.yaml\n        owner: root\n        group: root\n        mode: '0644'\n\n    - name: Apply netplan configuration\n      ansible.builtin.command: netplan apply\n      changed_when: false\n\n    - name: Verify network connectivity\n      ansible.builtin.wait_for:\n        host: \"{{ gateway }}\"\n        port: 53\n        timeout: 10\n      ignore_errors: true",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723706,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 149,
+      "output_tokens": 261,
+      "raw_input_tokens": 149
+    }
+  },
+  "started_at": "2026-05-25T15:41:42.072332+00:00",
+  "elapsed_seconds": 4.689
+}

@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-RBAC-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes Role and RoleBinding manifest granting a ServiceAccount 'monitoring-reader' read-only access to Pods, Services, and Endpoints in the 'monitoring' namespace.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes Role and RoleBinding manifest granting a ServiceAccount 'monitoring-reader' read-only access to Pods, Services, and Endpoints in the 'monitoring' namespace.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"services\", \"endpoints\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nsubjects:\n- kind: ServiceAccount\n  name: monitoring-reader\n  namespace: monitoring\nroleRef:\n  kind: Role\n  name: monitoring-reader\n  apiGroup: rbac.authorization.k8s.io",
+  "cleaned_response": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"services\", \"endpoints\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nsubjects:\n- kind: ServiceAccount\n  name: monitoring-reader\n  namespace: monitoring\nroleRef:\n  kind: Role\n  name: monitoring-reader\n  apiGroup: rbac.authorization.k8s.io",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"services\", \"endpoints\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: monitoring-reader\n  namespace: monitoring\nsubjects:\n- kind: ServiceAccount\n  name: monitoring-reader\n  namespace: monitoring\nroleRef:\n  kind: Role\n  name: monitoring-reader\n  apiGroup: rbac.authorization.k8s.io",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726040,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 43,
+      "output_tokens": 140,
+      "reasoning_tokens": 365,
+      "cache_read_input_tokens": 256,
+      "raw_input_tokens": 3
+    }
+  },
+  "started_at": "2026-05-25T16:20:34.892306+00:00",
+  "elapsed_seconds": 5.444
+}

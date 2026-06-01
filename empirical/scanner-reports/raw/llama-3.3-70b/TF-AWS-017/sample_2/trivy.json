@@ -1,0 +1,110 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:17:56.646004674Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 57,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0065",
+          "AVDID": "AVD-AWS-0065",
+          "Title": "A KMS key is not configured to auto-rotate.",
+          "Description": "You should configure your KMS keys to auto rotate to maintain security and defend against compromise.\n",
+          "Message": "Key does not have rotation enabled.",
+          "Namespace": "builtin.aws.kms.aws0065",
+          "Query": "data.builtin.aws.kms.aws0065.deny",
+          "Resolution": "Configure KMS key to auto rotate",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0065",
+          "References": [
+            "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0065"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_kms_key.ebs",
+            "Provider": "AWS",
+            "Service": "kms",
+            "StartLine": 13,
+            "EndLine": 16,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 13,
+                  "Content": "resource \"aws_kms_key\" \"ebs\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_kms_key\"\u001b[0m \u001b[38;5;37m\"ebs\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "  description             = \"EBS volume encryption key\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdescription\u001b[0m             = \u001b[38;5;37m\"EBS volume encryption key\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "  deletion_window_in_days = 10",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mdeletion_window_in_days\u001b[0m = \u001b[38;5;37m10",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

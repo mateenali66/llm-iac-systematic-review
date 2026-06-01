@@ -1,0 +1,161 @@
+- name: Harden CentOS 9 server
+  hosts: all
+  become: yes
+  vars:
+    ssh_port: 22
+    ssh_permit_root_login: "no"
+    ssh_password_authentication: "no"
+    ssh_pubkey_authentication: "yes"
+    ssh_allow_users: []
+    fail2ban_bantime: 3600
+    fail2ban_findtime: 600
+    fail2ban_maxretry: 5
+    auditd_max_log_file: 8
+    auditd_max_log_file_action: rotate
+    auditd_space_left_action: email
+    auditd_action_mail_acct: root
+    auditd_admin_space_left_action: halt
+    password_min_length: 14
+    password_min_digit: 1
+    password_min_upper: 1
+    password_min_lower: 1
+    password_min_other: 1
+    password_remember: 5
+    password_min_age: 1
+    password_max_age: 90
+    password_warn_age: 7
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Install required packages
+      ansible.builtin.dnf:
+        name:
+          - fail2ban
+          - audit
+          - audit-libs
+          - libpwquality
+          - openssh-server
+        state: present
+
+    - name: Configure SSH to disable root login and enforce key-based auth
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^{{ item.param }}"
+        line: "{{ item.param }} {{ item.value }}"
+        state: present
+        backup: yes
+      loop:
+        - { param: "PermitRootLogin", value: "{{ ssh_permit_root_login }}" }
+        - { param: "PasswordAuthentication", value: "{{ ssh_password_authentication }}" }
+        - { param: "PubkeyAuthentication", value: "{{ ssh_pubkey_authentication }}" }
+        - { param: "Port", value: "{{ ssh_port }}" }
+      notify: restart sshd
+
+    - name: Set SSH AllowUsers if defined
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "AllowUsers {{ ssh_allow_users | join(' ') }}"
+        state: present
+        backup: yes
+      when: ssh_allow_users | length > 0
+      notify: restart sshd
+
+    - name: Configure password complexity via pwquality
+      ansible.builtin.lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: "^{{ item.param }}"
+        line: "{{ item.param }} = {{ item.value }}"
+        state: present
+        backup: yes
+      loop:
+        - { param: "minlen", value: "{{ password_min_length }}" }
+        - { param: "dcredit", value: "-{{ password_min_digit }}" }
+        - { param: "ucredit", value: "-{{ password_min_upper }}" }
+        - { param: "lcredit", value: "-{{ password_min_lower }}" }
+        - { param: "ocredit", value: "-{{ password_min_other }}" }
+
+    - name: Configure password aging policies in /etc/login.defs
+      ansible.builtin.lineinfile:
+        path: /etc/login.defs
+        regexp: "^{{ item.param }}"
+        line: "{{ item.param }} {{ item.value }}"
+        state: present
+        backup: yes
+      loop:
+        - { param: "PASS_MIN_DAYS", value: "{{ password_min_age }}" }
+        - { param: "PASS_MAX_DAYS", value: "{{ password_max_age }}" }
+        - { param: "PASS_WARN_AGE", value: "{{ password_warn_age }}" }
+
+    - name: Configure password history in /etc/pam.d/system-auth
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/system-auth
+        regexp: '^password\s+sufficient\s+pam_unix\.so'
+        line: "password    sufficient    pam_unix.so sha512 shadow nullok try_first_pass use_authtok remember={{ password_remember }}"
+        state: present
+        backup: yes
+
+    - name: Configure fail2ban jail.local
+      ansible.builtin.template:
+        src: jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart fail2ban
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Configure auditd rules
+      ansible.builtin.template:
+        src: audit.rules.j2
+        dest: /etc/audit/rules.d/audit.rules
+        owner: root
+        group: root
+        mode: '0640'
+      notify: restart auditd
+
+    - name: Configure auditd.conf
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: "^{{ item.param }}"
+        line: "{{ item.param }} = {{ item.value }}"
+        state: present
+        backup: yes
+      loop:
+        - { param: "max_log_file", value: "{{ auditd_max_log_file }}" }
+        - { param: "max_log_file_action", value: "{{ auditd_max_log_file_action }}" }
+        - { param: "space_left_action", value: "{{ auditd_space_left_action }}" }
+        - { param: "action_mail_acct", value: "{{ auditd_action_mail_acct }}" }
+        - { param: "admin_space_left_action", value: "{{ auditd_admin_space_left_action }}" }
+      notify: restart auditd
+
+    - name: Enable and start auditd
+      ansible.builtin.systemd:
+        name: auditd
+        enabled: yes
+        state: started
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+    - name: restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: restart auditd
+      ansible.builtin.systemd:
+        name: auditd
+        state: restarted

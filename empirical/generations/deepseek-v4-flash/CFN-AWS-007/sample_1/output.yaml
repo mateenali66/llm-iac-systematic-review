@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch Dashboard for Lambda-based API health monitoring'
+
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor
+    Default: my-api-lambda-function
+
+  DashboardName:
+    Type: String
+    Description: Name of the CloudWatch Dashboard
+    Default: LambdaAPIHealthDashboard
+
+Resources:
+  LambdaAPIDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody:
+        Fn::Sub:
+          - |
+            {
+              "widgets": [
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Invocations", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Invocations (Sum, 5 min)"
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 12,
+                  "y": 0,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Errors", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Errors (Sum, 5 min)"
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 0,
+                  "y": 6,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Throttles", "FunctionName", "${LambdaFunctionName}", { "stat": "Sum", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Sum",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Throttles (Sum, 5 min)"
+                  }
+                },
+                {
+                  "type": "metric",
+                  "x": 12,
+                  "y": 6,
+                  "width": 12,
+                  "height": 6,
+                  "properties": {
+                    "metrics": [
+                      [ "AWS/Lambda", "Duration", "FunctionName", "${LambdaFunctionName}", { "stat": "Average", "period": 300 } ]
+                    ],
+                    "period": 300,
+                    "stat": "Average",
+                    "region": "${AWS::Region}",
+                    "title": "Lambda Average Duration (ms, 5 min)"
+                  }
+                }
+              ]
+            }
+          - LambdaFunctionName: !Ref LambdaFunctionName

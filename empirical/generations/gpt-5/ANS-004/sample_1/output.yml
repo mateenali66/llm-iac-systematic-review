@@ -1,0 +1,155 @@
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    node_exporter_version: "1.7.0"
+    node_exporter_port: 9100
+    node_exporter_user: "node_exporter"
+    node_exporter_install_dir: "/usr/local/bin"
+    node_exporter_temp_dir: "/tmp"
+    node_exporter_os: "linux"
+    node_exporter_arch_map:
+      x86_64: "amd64"
+      aarch64: "arm64"
+      armv7l: "armv7"
+      armv6l: "armv6"
+      ppc64le: "ppc64le"
+      s390x: "s390x"
+    node_exporter_arch: "{{ node_exporter_arch_map[ansible_architecture] | default(ansible_architecture) }}"
+    node_exporter_dist_name: "node_exporter-{{ node_exporter_version }}.{{ node_exporter_os }}-{{ node_exporter_arch }}"
+    node_exporter_tarball: "{{ node_exporter_dist_name }}.tar.gz"
+    node_exporter_download_base: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}"
+    node_exporter_url: "{{ node_exporter_download_base }}/{{ node_exporter_tarball }}"
+    node_exporter_checksum_url: "{{ node_exporter_download_base }}/sha256sums.txt"
+    node_exporter_env_file: "{{ '/etc/default/node_exporter' if ansible_os_family in ['Debian', 'Suse'] else '/etc/sysconfig/node_exporter' }}"
+    node_exporter_extra_opts: ""
+    node_exporter_nologin_shell: "{{ '/sbin/nologin' if ansible_os_family == 'RedHat' else '/usr/sbin/nologin' }}"
+
+  tasks:
+    - name: Ensure node_exporter group exists
+      ansible.builtin.group:
+        name: "{{ node_exporter_user }}"
+        system: true
+
+    - name: Ensure node_exporter user exists
+      ansible.builtin.user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_user }}"
+        system: true
+        shell: "{{ node_exporter_nologin_shell }}"
+        create_home: false
+
+    - name: Create install directory
+      ansible.builtin.file:
+        path: "{{ node_exporter_install_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Fetch node_exporter checksums
+      ansible.builtin.uri:
+        url: "{{ node_exporter_checksum_url }}"
+        return_content: true
+        status_code: 200
+      register: node_exporter_checksums
+
+    - name: Set node_exporter checksum fact
+      ansible.builtin.set_fact:
+        node_exporter_checksum: "{{ (node_exporter_checksums.content).splitlines() | select('search', node_exporter_tarball ~ '$') | list | first | regex_search('^([a-fA-F0-9]{64})') }}"
+
+    - name: Download node_exporter tarball (verified)
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_url }}"
+        dest: "{{ node_exporter_temp_dir }}/{{ node_exporter_tarball }}"
+        mode: "0644"
+        checksum: "sha256:{{ node_exporter_checksum }}"
+
+    - name: Unarchive node_exporter
+      ansible.builtin.unarchive:
+        src: "{{ node_exporter_temp_dir }}/{{ node_exporter_tarball }}"
+        dest: "{{ node_exporter_temp_dir }}"
+        remote_src: true
+        creates: "{{ node_exporter_temp_dir }}/{{ node_exporter_dist_name }}/node_exporter"
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "{{ node_exporter_temp_dir }}/{{ node_exporter_dist_name }}/node_exporter"
+        dest: "{{ node_exporter_install_dir }}/node_exporter"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      notify: Restart node_exporter
+
+    - name: Create environment file for node_exporter
+      ansible.builtin.copy:
+        dest: "{{ node_exporter_env_file }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          NODE_EXPORTER_OPTS="--web.listen-address=:{{ node_exporter_port }} {{ node_exporter_extra_opts | default('') | trim }}"
+      notify: Restart node_exporter
+
+    - name: Install systemd unit for node_exporter
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          Documentation=https://prometheus.io/docs/guides/node-exporter/
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User={{ node_exporter_user }}
+          Group={{ node_exporter_user }}
+          Type=simple
+          EnvironmentFile=-{{ node_exporter_env_file }}
+          ExecStart={{ node_exporter_install_dir }}/node_exporter $NODE_EXPORTER_OPTS
+          Restart=on-failure
+          RestartSec=5s
+          NoNewPrivileges=yes
+          ProtectSystem=full
+          ProtectHome=yes
+          PrivateTmp=yes
+          PrivateDevices=yes
+          ProtectControlGroups=yes
+          ProtectKernelModules=yes
+          ProtectKernelTunables=yes
+          ProtectClock=yes
+          LockPersonality=yes
+          RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+          RestrictNamespaces=yes
+          RestrictRealtime=yes
+          RestrictSUIDSGID=yes
+          MemoryDenyWriteExecute=yes
+          RemoveIPC=yes
+          AmbientCapabilities=
+          CapabilityBoundingSet=
+          LimitNOFILE=8192
+
+          [Install]
+          WantedBy=multi-user.target
+      register: node_exporter_unit
+
+    - name: Reload systemd if unit changed
+      ansible.builtin.systemd:
+        daemon_reload: true
+      when: node_exporter_unit.changed
+
+    - name: Enable and start node_exporter
+      ansible.builtin.systemd:
+        name: node_exporter
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart node_exporter
+      ansible.builtin.systemd:
+        name: node_exporter
+        state: restarted

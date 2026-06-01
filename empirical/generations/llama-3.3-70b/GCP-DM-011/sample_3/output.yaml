@@ -1,0 +1,139 @@
+resources:
+  - name: instance-template
+    type: compute.v1.instanceTemplate
+    properties:
+      properties:
+        machineType: n1-standard-1
+        disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          initializeParams:
+            diskSizeGb: 30
+            sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20220719
+        networkInterfaces:
+        - accessConfigs:
+          - name: External NAT
+            type: ONE_TO_ONE_NAT
+          network: $(ref.network.selfLink)
+        metadata:
+          startup-script: |
+            #! /bin/bash
+            apt update
+            apt install -y nginx
+            systemctl start nginx
+        tags:
+          items:
+          - http-server
+          - https-server
+  - name: instance-group-manager
+    type: compute.v1.instanceGroupManager
+    properties:
+      zone: us-central1-a
+      instanceTemplate: $(ref.instance-template.selfLink)
+      targetSize: 1
+      autoHealingPolicies:
+      - initialDelaySec: 300
+      updatePolicy:
+        type: PROACTIVE
+        minimalAction: RESTART
+        maxSurge:
+          fixed: 1
+        maxUnavailable:
+          percent: 50
+  - name: autoscaler
+    type: compute.v1.autoscaler
+    properties:
+      zone: us-central1-a
+      target: $(ref.instance-group-manager.selfLink)
+      autoscalingPolicy:
+        minReplicas: 1
+        maxReplicas: 5
+        coolDownPeriodSec: 60
+        cpuUtilization:
+          utilizationTarget: 0.6
+  - name: network
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: true
+  - name: firewall
+    type: compute.v1.firewall
+    properties:
+      network: $(ref.network.selfLink)
+      sourceRanges:
+      - 0.0.0.0/0
+      allowed:
+      - IPProtocol: TCP
+        ports:
+        - 80
+        - 443
+  - name: health-check
+    type: compute.v1.healthCheck
+    properties:
+      checkIntervalSec: 5
+      timeoutSec: 5
+      unhealthyThreshold: 2
+      healthyThreshold: 2
+      httpHealthCheck:
+        port: 80
+        requestPath: /
+  - name: backend-service
+    type: compute.v1.backendService
+    properties:
+      healthChecks:
+      - $(ref.health-check.selfLink)
+      protocol: HTTPS
+      portName: https
+      loadBalancingScheme: EXTERNAL
+      sessionAffinity: NONE
+      backend:
+      - group: $(ref.instance-group-manager.selfLink)
+        balancingMode: RATE
+        maxRatePerInstance: 100
+      enableCDN: false
+  - name: url-map
+    type: compute.v1.urlMap
+    properties:
+      defaultService: $(ref.backend-service.selfLink)
+      hostRules:
+      - service: $(ref.backend-service.selfLink)
+        host: '*'
+      pathMatchers:
+      - name: path-matcher
+        defaultService: $(ref.backend-service.selfLink)
+        pathRules:
+        - service: $(ref.backend-service.selfLink)
+          paths:
+          - '/*'
+  - name: target-https-proxy
+    type: compute.v1.targetHttpsProxy
+    properties:
+      urlMap: $(ref.url-map.selfLink)
+      sslCertificates:
+      - $(ref.ssl-certificate.selfLink)
+  - name: ssl-certificate
+    type: compute.v1.sslCertificate
+    properties:
+      privateKey: |
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEAnXj8rX9q8x3Yt5fzjxUvQH5QxGjX7qUQ+U9X5QxGjX7qUQ
+        +U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5Q
+        xGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7q
+        UQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X
+        5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX
+        7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ
+        +U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5
+        QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX
+        7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ
+        +U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5
+        QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGj
+        X7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qU
+        Q+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9
+        X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxG
+        jX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7q
+        UQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U
+        9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5Qx
+        GjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7q
+        UQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U
+        9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5QxGjX7qUQ+U9X5Q
+        xGjX7qUQ+U

@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Fargate cluster running two microservices behind an internal Network Load Balancer
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    Description: Environment name prefix for resources
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where resources will be deployed
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets for ECS tasks and internal NLB (minimum 2 in different AZs)
+  ServiceOneImage:
+    Type: String
+    Default: public.ecr.aws/nginx/nginx:stable
+    Description: Container image URI for service one
+  ServiceTwoImage:
+    Type: String
+    Default: public.ecr.aws/nginx/nginx:stable
+    Description: Container image URI for service two
+  ServiceOnePort:
+    Type: Number
+    Default: 8080
+  ServiceTwoPort:
+    Type: Number
+    Default: 8081
+  ServiceOneDesiredCount:
+    Type: Number
+    Default: 2
+    MinValue: 1
+  ServiceTwoDesiredCount:
+    Type: Number
+    Default: 2
+    MinValue: 1
+  TaskCpu:
+    Type: String
+    Default: '512'
+    AllowedValues: ['256', '512', '1024', '2048', '4096']
+  TaskMemory:
+    Type: String
+    Default: '1024'
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    AllowedValues: [1, 3, 7, 14, 30, 60, 90, 180, 365]
+
+Resources:
+
+  # ----- ECS Cluster -----
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${EnvironmentName}-cluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+          Base: 1
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # ----- IAM Roles -----
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-ecs-task-execution-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  ServiceOneTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-service-one-task-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  ServiceTwoTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-service-two-task-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # ----- CloudWatch Log Groups -----
+  ServiceOneLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${EnvironmentName}/service-one
+      RetentionInDays: !Ref LogRetentionDays
+
+  ServiceTwoLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${EnvironmentName}/service-two
+      RetentionInDays: !Ref LogRetentionDays
+
+  # ----- Security Groups -----
+  NlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for internal NLB
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceOnePort
+          ToPort: !Ref ServiceOnePort
+          CidrIp: 10.0.0.0/8
+          Description: Allow service one traffic from internal network
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceTwoPort
+          ToPort: !Ref ServiceTwoPort
+          CidrIp: 10.0.0.0/8
+          Description: Allow service two traffic from internal network
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nlb-sg
+
+  ServiceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for ECS services
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-service-sg
+
+  ServiceOneIng

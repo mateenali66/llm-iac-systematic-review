@@ -1,0 +1,19 @@
+resources:
+- name: storage-key-ring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/{{ env["project"] }}/locations/us-central1
+    keyRingId: storage-cmek-keyring
+- name: storage-cmek-key
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.storage-key-ring.name)
+    cryptoKeyId: storage-cmek-key
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 7776000s
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+      protectionLevel: SOFTWARE
+    labels:
+      purpose: gcs-object-encryption
+      environment: production

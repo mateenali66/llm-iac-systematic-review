@@ -1,0 +1,16 @@
+resources:
+- name: cloud-function-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cloud-function-storage-reader
+    displayName: Cloud Function Storage Reader SA
+- name: grant-bucket-read
+  type: gcp-types/storage-v1:storage.buckets.setIamPolicy
+  properties:
+    bucket: my-specific-bucket
+    bindings:
+    - role: roles/storage.objectViewer
+      members:
+      - serviceAccount:$(ref.cloud-function-sa.email)
+    etag: ACAB
+    policy: {}

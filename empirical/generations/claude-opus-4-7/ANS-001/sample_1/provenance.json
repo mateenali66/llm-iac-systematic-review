@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-001",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook that installs nginx on a target Ubuntu host, ensures the service is started and enabled at boot, and opens port 80 in the firewall.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook that installs nginx on a target Ubuntu host, ensures the service is started and enabled at boot, and opens port 80 in the firewall.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Install and configure nginx on Ubuntu\n  hosts: all\n  become: true\n  gather_facts: true\n\n  vars:\n    nginx_packages:\n      - nginx\n    ufw_allowed_ports:\n      - { port: 80, proto: tcp, rule: allow, comment: \"Allow HTTP traffic\" }\n      - { port: 22, proto: tcp, rule: allow, comment: \"Allow SSH traffic\" }\n\n  pre_tasks:\n    - name: Verify target host is Ubuntu\n      ansible.builtin.assert:\n        that:\n          - ansible_distribution == \"Ubuntu\"\n        fail_msg: \"This playbook only supports Ubuntu hosts. Detected: {{ ansible_distribution }}\"\n        success_msg: \"Ubuntu host detected: {{ ansible_distribution }} {{ ansible_distribution_version }}\"\n\n    - name: Update apt package cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n  tasks:\n    - name: Install nginx and required packages\n      ansible.builtin.apt:\n        name: \"{{ nginx_packages }}\"\n        state: present\n      notify: Restart nginx\n\n    - name: Install ufw firewall\n      ansible.builtin.apt:\n        name: ufw\n        state: present\n\n    - name: Configure UFW default incoming policy\n      community.general.ufw:\n        direction: incoming\n        policy: deny\n        state: enabled\n\n    - name: Configure UFW default outgoing policy\n      community.general.ufw:\n        direction: outgoing\n        policy: allow\n        state: enabled\n\n    - name: Allow configured ports through UFW\n      community.general.ufw:\n        rule: \"{{ item.rule }}\"\n        port: \"{{ item.port }}\"\n        proto: \"{{ item.proto }}\"\n        comment: \"{{ item.comment | default(omit) }}\"\n      loop: \"{{ ufw_allowed_ports }}\"\n\n    - name: Enable UFW\n      community.general.ufw:\n        state: enabled\n        logging: \"on\"\n\n    - name: Ensure nginx service is started and enabled at boot\n      ansible.builtin.service:\n        name: nginx\n        state: started\n        enabled: true\n\n    - name: Verify nginx is responding on port 80\n      ansible.builtin.uri:\n        url: http://localhost\n        status_code: 200\n        return_content: false\n      register: nginx_health\n      retries: 3\n      delay: 2\n      until: nginx_health.status == 200\n\n  handlers:\n    - name: Restart nginx\n      ansible.builtin.service:\n        name: nginx\n        state: restarted",
+  "cleaned_response": "---\n- name: Install and configure nginx on Ubuntu\n  hosts: all\n  become: true\n  gather_facts: true\n\n  vars:\n    nginx_packages:\n      - nginx\n    ufw_allowed_ports:\n      - { port: 80, proto: tcp, rule: allow, comment: \"Allow HTTP traffic\" }\n      - { port: 22, proto: tcp, rule: allow, comment: \"Allow SSH traffic\" }\n\n  pre_tasks:\n    - name: Verify target host is Ubuntu\n      ansible.builtin.assert:\n        that:\n          - ansible_distribution == \"Ubuntu\"\n        fail_msg: \"This playbook only supports Ubuntu hosts. Detected: {{ ansible_distribution }}\"\n        success_msg: \"Ubuntu host detected: {{ ansible_distribution }} {{ ansible_distribution_version }}\"\n\n    - name: Update apt package cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n  tasks:\n    - name: Install nginx and required packages\n      ansible.builtin.apt:\n        name: \"{{ nginx_packages }}\"\n        state: present\n      notify: Restart nginx\n\n    - name: Install ufw firewall\n      ansible.builtin.apt:\n        name: ufw\n        state: present\n\n    - name: Configure UFW default incoming policy\n      community.general.ufw:\n        direction: incoming\n        policy: deny\n        state: enabled\n\n    - name: Configure UFW default outgoing policy\n      community.general.ufw:\n        direction: outgoing\n        policy: allow\n        state: enabled\n\n    - name: Allow configured ports through UFW\n      community.general.ufw:\n        rule: \"{{ item.rule }}\"\n        port: \"{{ item.port }}\"\n        proto: \"{{ item.proto }}\"\n        comment: \"{{ item.comment | default(omit) }}\"\n      loop: \"{{ ufw_allowed_ports }}\"\n\n    - name: Enable UFW\n      community.general.ufw:\n        state: enabled\n        logging: \"on\"\n\n    - name: Ensure nginx service is started and enabled at boot\n      ansible.builtin.service:\n        name: nginx\n        state: started\n        enabled: true\n\n    - name: Verify nginx is responding on port 80\n      ansible.builtin.uri:\n        url: http://localhost\n        status_code: 200\n        return_content: false\n      register: nginx_health\n      retries: 3\n      delay: 2\n      until: nginx_health.status == 200\n\n  handlers:\n    - name: Restart nginx\n      ansible.builtin.service:\n        name: nginx\n        state: restarted",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Install and configure nginx on Ubuntu\n  hosts: all\n  become: true\n  gather_facts: true\n\n  vars:\n    nginx_packages:\n      - nginx\n    ufw_allowed_ports:\n      - { port: 80, proto: tcp, rule: allow, comment: \"Allow HTTP traffic\" }\n      - { port: 22, proto: tcp, rule: allow, comment: \"Allow SSH traffic\" }\n\n  pre_tasks:\n    - name: Verify target host is Ubuntu\n      ansible.builtin.assert:\n        that:\n          - ansible_distribution == \"Ubuntu\"\n        fail_msg: \"This playbook only supports Ubuntu hosts. Detected: {{ ansible_distribution }}\"\n        success_msg: \"Ubuntu host detected: {{ ansible_distribution }} {{ ansible_distribution_version }}\"\n\n    - name: Update apt package cache\n      ansible.builtin.apt:\n        update_cache: true\n        cache_valid_time: 3600\n\n  tasks:\n    - name: Install nginx and required packages\n      ansible.builtin.apt:\n        name: \"{{ nginx_packages }}\"\n        state: present\n      notify: Restart nginx\n\n    - name: Install ufw firewall\n      ansible.builtin.apt:\n        name: ufw\n        state: present\n\n    - name: Configure UFW default incoming policy\n      community.general.ufw:\n        direction: incoming\n        policy: deny\n        state: enabled\n\n    - name: Configure UFW default outgoing policy\n      community.general.ufw:\n        direction: outgoing\n        policy: allow\n        state: enabled\n\n    - name: Allow configured ports through UFW\n      community.general.ufw:\n        rule: \"{{ item.rule }}\"\n        port: \"{{ item.port }}\"\n        proto: \"{{ item.proto }}\"\n        comment: \"{{ item.comment | default(omit) }}\"\n      loop: \"{{ ufw_allowed_ports }}\"\n\n    - name: Enable UFW\n      community.general.ufw:\n        state: enabled\n        logging: \"on\"\n\n    - name: Ensure nginx service is started and enabled at boot\n      ansible.builtin.service:\n        name: nginx\n        state: started\n        enabled: true\n\n    - name: Verify nginx is responding on port 80\n      ansible.builtin.uri:\n        url: http://localhost\n        status_code: 200\n        return_content: false\n      register: nginx_health\n      retries: 3\n      delay: 2\n      until: nginx_health.status == 200\n\n  handlers:\n    - name: Restart nginx\n      ansible.builtin.service:\n        name: nginx\n        state: restarted",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779695642,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 255,
+      "output_tokens": 894,
+      "raw_input_tokens": 255
+    }
+  },
+  "started_at": "2026-05-25T07:53:50.296486+00:00",
+  "elapsed_seconds": 11.849
+}

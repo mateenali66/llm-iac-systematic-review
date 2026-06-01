@@ -1,0 +1,71 @@
+resources:
+  - name: saas-postgres-instance
+    type: sql.v1beta4.instance
+    properties:
+      region: us-central1
+      databaseVersion: POSTGRES_15
+      settings:
+        tier: db-custom-2-7680
+        availabilityType: REGIONAL
+        diskAutoresize: true
+        diskSize: 50GB
+        diskType: PD_SSD
+        backupConfiguration:
+          enabled: true
+          binaryLogEnabled: true
+          pointInTimeRecoveryEnabled: true
+          location: us
+          startTime: 00:00
+          transactionLogRetentionDays: 7
+        ipConfiguration:
+          ipv4Enabled: true
+          requireSsl: true
+        maintenanceWindow:
+          day: 7
+          hour: 0
+          updateTrack: stable
+        dataDiskSizeGb: 50GB
+        dataDiskType: PD_SSD
+      instanceType: CLOUD_SQL_INSTANCE
+      backupRuns:
+        - kind: sql#backupRun
+          status: SUCCESSFUL
+      etag: ''
+      failureTimeline:
+        - kind: sql#operationError
+          error: {}
+      kind: sql#instance
+      project: $(ref.project.id)
+      selfLink: ''
+      serverCaCert:
+        cert: ''
+        commonName: ''
+        createTime: ''
+        expirationTime: ''
+        sha1Fingerprint: ''
+      serviceAccountEmailAddress: ''
+  - name: saas-postgres-database
+    type: sql.v1beta4.database
+    properties:
+      instance: $(ref.saas-postgres-instance.name)
+      name: saasdb
+      project: $(ref.project.id)
+  - name: saas-postgres-user
+    type: sql.v1beta4.user
+    properties:
+      instance: $(ref.saas-postgres-instance.name)
+      name: saasuser
+      password: $(var.saas-postgres-password)
+      project: $(ref.project.id)
+      type: CLOUD_SQL_USER
+inputs:
+  - name: project
+    type: object
+    properties:
+      id:
+        type: string
+        description: The ID of the project
+  - name: saas-postgres-password
+    type: string
+    description: The password for the PostgreSQL user
+    sensitive: true

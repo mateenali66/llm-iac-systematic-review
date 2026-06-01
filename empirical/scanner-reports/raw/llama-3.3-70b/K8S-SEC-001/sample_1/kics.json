@@ -1,0 +1,506 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 78,
+	"files_parsed": 2,
+	"lines_parsed": 78,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 1,
+		"LOW": 7,
+		"MEDIUM": 8,
+		"TRACE": 0
+	},
+	"total_counter": 17,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:11:25.818832965Z",
+	"end": "2026-05-26T06:11:27.701703466Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Privilege Escalation Allowed",
+			"query_id": "5572cc5e-1e4c-4113-92a6-7a8a3bd25e6d",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should not run with allowPrivilegeEscalation in order to prevent them from gaining more privileges than their parent process",
+			"description_id": "525fccf4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7f91647c4383b7105d18ebe5d8acf4a1f0765bebd73d8269b7b003cde6931027",
+					"line": 9,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}",
+					"search_line": 9,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.allowPrivilegeEscalation should be set and should be set to false",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.allowPrivilegeEscalation is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5b2c9c7784d259d5e2034be5a935b67f3e495a084e8c28fbc7d30faed0d1a703",
+					"line": 10,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.runAsUser=1001",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.runAsUser is set to a low UID"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Limits Not Defined",
+			"query_id": "b14d1bc4-a208-45db-92f0-e21f8e2588e9",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory limits should be defined for each container. This prevents potential resource exhaustion by ensuring that containers consume not more than the designated amount of memory",
+			"description_id": "e0ba95cc",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "52f69c2221dcd9605baa1bbeddf47593a256e70b140c2cc178bad4b417dcd47b",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.resources.limits.memory should be defined",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.resources.limits.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Requests Not Defined",
+			"query_id": "229588ef-8fde-40c8-8756-f4f2b5825ded",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory requests should be defined for each container. This allows the kubelet to reserve the requested amount of system resources and prevents over-provisioning on individual nodes",
+			"description_id": "3dcbd683",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bc1dc499eacfbb267b8704852bff22383998a93c6456813c5893cc2e4880bc04",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.resources.requests.memory should be defined",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.resources.requests.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Readiness Probe Is Not Configured",
+			"query_id": "a659f3b5-9bf0-438a-bd9a-7d3a6427f1e3",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#define-readiness-probes",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Check if Readiness Probe is not configured.",
+			"description_id": "28c0498a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8641b8c7606a217c13938e0773c7de7c24362fd657add319edd2239a03d4e36c",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.readinessProbe should be defined",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.readinessProbe is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Seccomp Profile Is Not Configured",
+			"query_id": "f377b83e-bd07-4f48-a591-60c82b14a78b",
+			"query_url": "https://kubernetes.io/docs/tutorials/security/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should be configured with a secure Seccomp profile to restrict potentially dangerous syscalls",
+			"description_id": "d943c7e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9bc4e5d84764c69b2333b7eedf791dca8add93994a1dbba1e52784d290ab2772",
+					"line": 9,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.seccompProfile.type should be defined",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.securityContext.seccompProfile.type is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Name Undefined Or Empty",
+			"query_id": "591ade62-d6b0-4580-b1ae-209f80ba1cd9",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "A Kubernetes Pod should have a Service Account defined so to restrict Kubernetes API access, which means the attribute 'serviceAccountName' should be defined and not empty.",
+			"description_id": "2940f843",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0400b5dae1240cc7234a44a95a6984fdac13ba74cff726f78c3c9a1eea7530e7",
+					"line": 5,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=nginx.spec.serviceAccountName should be defined",
+					"actual_value": "metadata.name=nginx.spec.serviceAccountName is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "97e882990bdee6989720023c16e286d4b6f9a5409e6088ceb52812aedb25bc6e",
+					"line": 5,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{nginx}}.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Pod}}.metadata.name={{nginx}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Limits Not Set",
+			"query_id": "4ac0e2b7-d2d2-4af7-8799-e8de6721ccda",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU limits should be set because if the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests",
+			"description_id": "9a2ef763",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "67d82366371265958bc7651c2be3555b8a58fd1d27b8e8b4a84a301cfb187d1d",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name=nginx",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.containers.name=nginx has resources defined",
+					"actual_value": "spec.containers.name=nginx doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Requests Not Set",
+			"query_id": "ca469dd4-c736-448f-8ac1-30a642705e0a",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU requests should be set to ensure the sum of the resource requests of the scheduled Containers is less than the capacity of the node",
+			"description_id": "ac7ad5df",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "88b58663ba30262c2001ce34d28f732f4422e93f22466f2b9a4d3d2e9a451917",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name=nginx",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.containers.name=nginx should have resources defined",
+					"actual_value": "spec.containers.name=nginx doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "98f62e2232dc2d426e3a61f87711f2255c077e54835bcb5797c4e8ebd84fed4f",
+					"line": 8,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Invalid Image Tag",
+			"query_id": "583053b7-e632-46f0-b989-f81ff8045385",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Supply-Chain",
+			"experimental": false,
+			"description": "Image tag must be defined and not be empty or equal to latest.",
+			"description_id": "30154626",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b8d41b5aae8a2c389ff78da05c970bde9114e42a5b799719ba9edcb8fb2814c7",
+					"line": 8,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image tag is provided and not latest",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.image tag is not provided or latest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "14cddf8783651d29cdfdac75d2980c7536a15869432bff45e895bb4f7a5af1c1",
+					"line": 4,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.annotations should specify an AppArmor profile for container {{nginx}}",
+					"actual_value": "metadata.name={{nginx}}.annotations does not specify an AppArmor profile for container {{nginx}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3e5db9f608f1ac1e308a723a87661a18d46e1ff14cdc4d9de6b2a3cd53a328d7",
+					"line": 4,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{nginx}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "23c4f72aba87e32d230550f750f36cbe6054dafc9422e6ab8c5c6dcb23fa8a27",
+					"line": 4,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{nginx}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Liveness Probe Is Not Defined",
+			"query_id": "ade74944-a674-4e00-859e-c6eab5bde441",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#when-should-you-use-a-liveness-probe",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "In case of an unresponsive container, a Liveness Probe can help your application become more available since it restarts the container. However, it can lead to cascading failures. Define one if you really need it",
+			"description_id": "f724fa60",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2cae463df613fb902c74a308b20beb9b58b3a96762e518a4384ceb1d2e6b27e3",
+					"line": 7,
+					"resource_type": "Pod",
+					"resource_name": "nginx",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx}}.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.livenessProbe should be defined",
+					"actual_value": "metadata.name={{nginx}}.spec.containers.name={{nginx}}.livenessProbe is undefined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-007",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "data \"aws_iam_policy_document\" \"ec2_assume_role_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"s3_read_role\" {\n  name               = \"app-config-s3-read-ec2-role\"\n  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json\n  path               = \"/\"\n\n  tags = {\n    Name        = \"app-config-s3-read-ec2-role\"\n    ManagedBy   = \"Terraform\"\n    Description = \"Allows EC2 instances to read objects from the app-config-bucket S3 bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"s3_read_policy_document\" {\n  statement {\n    sid    = \"ListBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:ListBucket\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket\",\n    ]\n  }\n\n  statement {\n    sid    = \"GetObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket/*\",\n    ]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read_policy\" {\n  name        = \"app-config-s3-read-policy\"\n  description = \"Policy to allow reading objects from the app-config-bucket S3 bucket\"\n  policy      = data.aws_iam_policy_document.s3_read_policy_document.json\n}\n\nresource \"aws_iam_role_policy",
+  "cleaned_response": "data \"aws_iam_policy_document\" \"ec2_assume_role_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"s3_read_role\" {\n  name               = \"app-config-s3-read-ec2-role\"\n  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json\n  path               = \"/\"\n\n  tags = {\n    Name        = \"app-config-s3-read-ec2-role\"\n    ManagedBy   = \"Terraform\"\n    Description = \"Allows EC2 instances to read objects from the app-config-bucket S3 bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"s3_read_policy_document\" {\n  statement {\n    sid    = \"ListBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:ListBucket\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket\",\n    ]\n  }\n\n  statement {\n    sid    = \"GetObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket/*\",\n    ]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read_policy\" {\n  name        = \"app-config-s3-read-policy\"\n  description = \"Policy to allow reading objects from the app-config-bucket S3 bucket\"\n  policy      = data.aws_iam_policy_document.s3_read_policy_document.json\n}\n\nresource \"aws_iam_role_policy",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "data \"aws_iam_policy_document\" \"ec2_assume_role_policy\" {\n  statement {\n    actions = [\"sts:AssumeRole\"]\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"s3_read_role\" {\n  name               = \"app-config-s3-read-ec2-role\"\n  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json\n  path               = \"/\"\n\n  tags = {\n    Name        = \"app-config-s3-read-ec2-role\"\n    ManagedBy   = \"Terraform\"\n    Description = \"Allows EC2 instances to read objects from the app-config-bucket S3 bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"s3_read_policy_document\" {\n  statement {\n    sid    = \"ListBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:ListBucket\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket\",\n    ]\n  }\n\n  statement {\n    sid    = \"GetObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n    ]\n    resources = [\n      \"arn:aws:s3:::app-config-bucket/*\",\n    ]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read_policy\" {\n  name        = \"app-config-s3-read-policy\"\n  description = \"Policy to allow reading objects from the app-config-bucket S3 bucket\"\n  policy      = data.aws_iam_policy_document.s3_read_policy_document.json\n}\n\nresource \"aws_iam_role_policy",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779730257,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 131,
+      "output_tokens": 2044,
+      "raw_input_tokens": 131
+    }
+  },
+  "started_at": "2026-05-25T17:30:37.110835+00:00",
+  "elapsed_seconds": 20.895
+}

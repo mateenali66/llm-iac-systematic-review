@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-006",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS security group allowing inbound HTTPS (port 443) from the internet and SSH (port 22) for administrators, attached to a web server EC2 instance.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS security group allowing inbound HTTPS (port 443) from the internet and SSH (port 22) for administrators, attached to a web server EC2 instance.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Security group for web server\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"HTTPS from internet\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description = \"SSH from administrators\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"web-server-sg\"\n  }\n}\n\nresource \"aws_instance\" \"web_server\" {\n  ami           = var.web_server_ami\n  instance_type = var.web_server_instance_type\n  key_name      = var.key_pair_name\n  subnet_id     = var.subnet_id\n\n  vpc_security_group_ids = [aws_security_group.web_server_sg.id]\n\n  tags = {\n    Name = \"web-server\"\n  }\n}",
+  "cleaned_response": "resource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Security group for web server\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"HTTPS from internet\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description = \"SSH from administrators\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"web-server-sg\"\n  }\n}\n\nresource \"aws_instance\" \"web_server\" {\n  ami           = var.web_server_ami\n  instance_type = var.web_server_instance_type\n  key_name      = var.key_pair_name\n  subnet_id     = var.subnet_id\n\n  vpc_security_group_ids = [aws_security_group.web_server_sg.id]\n\n  tags = {\n    Name = \"web-server\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Security group for web server\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"HTTPS from internet\"\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    description = \"SSH from administrators\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_cidr_blocks\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"web-server-sg\"\n  }\n}\n\nresource \"aws_instance\" \"web_server\" {\n  ami           = var.web_server_ami\n  instance_type = var.web_server_instance_type\n  key_name      = var.key_pair_name\n  subnet_id     = var.subnet_id\n\n  vpc_security_group_ids = [aws_security_group.web_server_sg.id]\n\n  tags = {\n    Name = \"web-server\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726458,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 155,
+      "output_tokens": 289,
+      "raw_input_tokens": 155
+    }
+  },
+  "started_at": "2026-05-25T16:27:29.505664+00:00",
+  "elapsed_seconds": 8.927
+}

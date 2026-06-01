@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-WORK-004",
+  "language": "k8s_yaml",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes CronJob manifest that runs a nightly database backup script (image: myorg/db-backup:2.1) at 02:00 UTC every day.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes CronJob manifest that runs a nightly database backup script (image: myorg/db-backup:2.1) at 02:00 UTC every day.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: db-backup-nightly\n  labels:\n    app.kubernetes.io/name: db-backup\n    app.kubernetes.io/part-of: backups\n    app.kubernetes.io/component: cronjob\nspec:\n  schedule: \"0 2 * * *\"\n  timeZone: \"Etc/UTC\"\n  concurrencyPolicy: Forbid\n  suspend: false\n  successfulJobsHistoryLimit: 3\n  failedJobsHistoryLimit: 3\n  startingDeadlineSeconds: 600\n  jobTemplate:\n    spec:\n      ttlSecondsAfterFinished: 86400\n      backoffLimit: 3\n      activeDeadlineSeconds: 7200\n      template:\n        metadata:\n          labels:\n            app.kubernetes.io/name: db-backup\n            app.kubernetes.io/part-of: backups\n            app.kubernetes.io/component: job\n        spec:\n          automountServiceAccountToken: false\n          restartPolicy: OnFailure\n          securityContext:\n            runAsUser: 1000\n            runAsGroup: 1000\n            fsGroup: 1000\n            runAsNonRoot: true\n            seccompProfile:\n              type: RuntimeDefault\n          containers:\n            - name: db-backup\n              image: myorg/db-backup:2.1\n              imagePullPolicy: IfNotPresent\n              env:\n                - name: TZ\n                  value: \"UTC\"\n              resources:\n                requests:\n                  cpu: \"100m\"\n                  memory: \"128Mi\"\n                limits:\n                  cpu: \"500m\"\n                  memory: \"512Mi\"\n              securityContext:\n                allowPrivilegeEscalation: false\n                readOnlyRootFilesystem: true\n                capabilities:\n                  drop:\n                    - \"ALL\"\n              volumeMounts:\n                - name: tmp\n                  mountPath: /tmp\n          volumes:\n            - name: tmp\n              emptyDir: {}",
+  "cleaned_response": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: db-backup-nightly\n  labels:\n    app.kubernetes.io/name: db-backup\n    app.kubernetes.io/part-of: backups\n    app.kubernetes.io/component: cronjob\nspec:\n  schedule: \"0 2 * * *\"\n  timeZone: \"Etc/UTC\"\n  concurrencyPolicy: Forbid\n  suspend: false\n  successfulJobsHistoryLimit: 3\n  failedJobsHistoryLimit: 3\n  startingDeadlineSeconds: 600\n  jobTemplate:\n    spec:\n      ttlSecondsAfterFinished: 86400\n      backoffLimit: 3\n      activeDeadlineSeconds: 7200\n      template:\n        metadata:\n          labels:\n            app.kubernetes.io/name: db-backup\n            app.kubernetes.io/part-of: backups\n            app.kubernetes.io/component: job\n        spec:\n          automountServiceAccountToken: false\n          restartPolicy: OnFailure\n          securityContext:\n            runAsUser: 1000\n            runAsGroup: 1000\n            fsGroup: 1000\n            runAsNonRoot: true\n            seccompProfile:\n              type: RuntimeDefault\n          containers:\n            - name: db-backup\n              image: myorg/db-backup:2.1\n              imagePullPolicy: IfNotPresent\n              env:\n                - name: TZ\n                  value: \"UTC\"\n              resources:\n                requests:\n                  cpu: \"100m\"\n                  memory: \"128Mi\"\n                limits:\n                  cpu: \"500m\"\n                  memory: \"512Mi\"\n              securityContext:\n                allowPrivilegeEscalation: false\n                readOnlyRootFilesystem: true\n                capabilities:\n                  drop:\n                    - \"ALL\"\n              volumeMounts:\n                - name: tmp\n                  mountPath: /tmp\n          volumes:\n            - name: tmp\n              emptyDir: {}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: db-backup-nightly\n  labels:\n    app.kubernetes.io/name: db-backup\n    app.kubernetes.io/part-of: backups\n    app.kubernetes.io/component: cronjob\nspec:\n  schedule: \"0 2 * * *\"\n  timeZone: \"Etc/UTC\"\n  concurrencyPolicy: Forbid\n  suspend: false\n  successfulJobsHistoryLimit: 3\n  failedJobsHistoryLimit: 3\n  startingDeadlineSeconds: 600\n  jobTemplate:\n    spec:\n      ttlSecondsAfterFinished: 86400\n      backoffLimit: 3\n      activeDeadlineSeconds: 7200\n      template:\n        metadata:\n          labels:\n            app.kubernetes.io/name: db-backup\n            app.kubernetes.io/part-of: backups\n            app.kubernetes.io/component: job\n        spec:\n          automountServiceAccountToken: false\n          restartPolicy: OnFailure\n          securityContext:\n            runAsUser: 1000\n            runAsGroup: 1000\n            fsGroup: 1000\n            runAsNonRoot: true\n            seccompProfile:\n              type: RuntimeDefault\n          containers:\n            - name: db-backup\n              image: myorg/db-backup:2.1\n              imagePullPolicy: IfNotPresent\n              env:\n                - name: TZ\n                  value: \"UTC\"\n              resources:\n                requests:\n                  cpu: \"100m\"\n                  memory: \"128Mi\"\n                limits:\n                  cpu: \"500m\"\n                  memory: \"512Mi\"\n              securityContext:\n                allowPrivilegeEscalation: false\n                readOnlyRootFilesystem: true\n                capabilities:\n                  drop:\n                    - \"ALL\"\n              volumeMounts:\n                - name: tmp\n                  mountPath: /tmp\n          volumes:\n            - name: tmp\n              emptyDir: {}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779722641,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 139,
+      "output_tokens": 2247,
+      "raw_input_tokens": 139
+    }
+  },
+  "started_at": "2026-05-25T15:23:34.349944+00:00",
+  "elapsed_seconds": 26.883
+}

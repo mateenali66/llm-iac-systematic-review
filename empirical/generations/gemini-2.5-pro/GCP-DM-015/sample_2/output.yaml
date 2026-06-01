@@ -1,0 +1,11 @@
+resources:
+- name: cloudrun-high-p95-latency-policy
+  type: gcp-types/monitoring-v3:projects.alertPolicies
+  properties:
+    displayName: "Cloud Run - High P95 Request Latency"
+    combiner: AND
+    conditions:
+    - displayName: "95th percentile latency > 500ms for 5 minutes"
+      conditionThreshold:
+        filter: 'metric.type="run.googleapis.com/request_latencies" AND resource.type="cloud_run_revision"'
+        aggregations:

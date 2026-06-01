@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-010",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack with an S3 bucket configured for log delivery from CloudFront, with KMS encryption and a 1-year lifecycle to Glacier.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack with an S3 bucket configured for log delivery from CloudFront, with KMS encryption and a 1-year lifecycle to Glacier.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    Duration,\n    RemovalPolicy,\n    aws_s3 as s3,\n)\nfrom constructs import Construct\n\n\nclass CloudFrontLogBucketStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        s3.Bucket(\n            self,\n            \"CloudFrontAccessLogs\",\n            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,\n            encryption=s3.BucketEncryption.KMS_MANAGED,\n            bucket_key_enabled=True,\n            enforce_ssl=True,\n            object_ownership=s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,\n            access_control=s3.BucketAccessControl.LOG_DELIVERY_WRITE,\n            versioned=False,\n            lifecycle_rules=[\n                s3.LifecycleRule(\n                    transitions=[\n                        s3.Transition(\n                            storage_class=s3.StorageClass.GLACIER,\n                            transition_after=Duration.days(365),\n                        )\n                    ]\n                )\n            ],\n            removal_policy=RemovalPolicy.RETAIN,\n        )",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    Duration,\n    RemovalPolicy,\n    aws_s3 as s3,\n)\nfrom constructs import Construct\n\n\nclass CloudFrontLogBucketStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        s3.Bucket(\n            self,\n            \"CloudFrontAccessLogs\",\n            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,\n            encryption=s3.BucketEncryption.KMS_MANAGED,\n            bucket_key_enabled=True,\n            enforce_ssl=True,\n            object_ownership=s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,\n            access_control=s3.BucketAccessControl.LOG_DELIVERY_WRITE,\n            versioned=False,\n            lifecycle_rules=[\n                s3.LifecycleRule(\n                    transitions=[\n                        s3.Transition(\n                            storage_class=s3.StorageClass.GLACIER,\n                            transition_after=Duration.days(365),\n                        )\n                    ]\n                )\n            ],\n            removal_policy=RemovalPolicy.RETAIN,\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    Duration,\n    RemovalPolicy,\n    aws_s3 as s3,\n)\nfrom constructs import Construct\n\n\nclass CloudFrontLogBucketStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        s3.Bucket(\n            self,\n            \"CloudFrontAccessLogs\",\n            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,\n            encryption=s3.BucketEncryption.KMS_MANAGED,\n            bucket_key_enabled=True,\n            enforce_ssl=True,\n            object_ownership=s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,\n            access_control=s3.BucketAccessControl.LOG_DELIVERY_WRITE,\n            versioned=False,\n            lifecycle_rules=[\n                s3.LifecycleRule(\n                    transitions=[\n                        s3.Transition(\n                            storage_class=s3.StorageClass.GLACIER,\n                            transition_after=Duration.days(365),\n                        )\n                    ]\n                )\n            ],\n            removal_policy=RemovalPolicy.RETAIN,\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779707707,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 135,
+      "output_tokens": 4126,
+      "raw_input_tokens": 135
+    }
+  },
+  "started_at": "2026-05-25T11:14:24.507940+00:00",
+  "elapsed_seconds": 42.99
+}

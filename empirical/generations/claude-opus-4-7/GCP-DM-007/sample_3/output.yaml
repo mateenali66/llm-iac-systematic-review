@@ -1,0 +1,115 @@
+imports:
+  - path: gke-cluster.jinja
+
+resources:
+  - name: prod-gke-cluster
+    type: gke-cluster.jinja
+    properties:
+      clusterName: prod-gke-cluster
+      region: us-central1
+      network: default
+      subnetwork: default
+      releaseChannel: REGULAR
+      kubernetesVersion: latest
+      enablePrivateNodes: true
+      enablePrivateEndpoint: false
+      masterIpv4CidrBlock: 172.16.0.0/28
+      masterAuthorizedNetworks:
+        - displayName: corporate-network
+          cidrBlock: 10.0.0.0/8
+      podIpv4CidrBlock: 10.100.0.0/16
+      servicesIpv4CidrBlock: 10.200.0.0/20
+      enableShieldedNodes: true
+      enableWorkloadIdentity: true
+      enableNetworkPolicy: true
+      enableIntraNodeVisibility: true
+      enableBinaryAuthorization: true
+      maintenanceWindow:
+        recurringWindow:
+          recurrence: FREQ=WEEKLY;BYDAY=SA,SU
+          startTime: "2024-01-01T08:00:00Z"
+          endTime: "2024-01-01T16:00:00Z"
+      resourceLabels:
+        environment: production
+        managed-by: deployment-manager
+        workload: general
+      nodePools:
+        - name: prod-node-pool
+          initialNodeCount: 3
+          autoscaling:
+            enabled: true
+            minNodeCount: 3
+            maxNodeCount: 10
+          management:
+            autoUpgrade: true
+            autoRepair: true
+          upgradeSettings:
+            maxSurge: 1
+            maxUnavailable: 0
+          nodeConfig:
+            machineType: e2-standard-4
+            diskSizeGb: 100
+            diskType: pd-ssd
+            imageType: COS_CONTAINERD
+            serviceAccount: gke-node-sa@$(ref.project.projectId).iam.gserviceaccount.com
+            oauthScopes:
+              - https://www.googleapis.com/auth/cloud-platform
+            shieldedInstanceConfig:
+              enableSecureBoot: true
+              enableIntegrityMonitoring: true
+            workloadMetadataConfig:
+              mode: GKE_METADATA
+            metadata:
+              disable-legacy-endpoints: "true"
+            labels:
+              environment: production
+              workload: general
+            tags:
+              - gke-node
+              - prod-cluster
+          locations:
+            - us-central1-a
+            - us-central1-b
+            - us-central1-c
+
+  - name: gke-node-sa
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: gke-node-sa
+      displayName: GKE Node Service Account
+
+  - name: gke-node-sa-logging-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project.projectId)
+      role: roles/logging.logWriter
+      member: serviceAccount:$(ref.gke-node-sa.email)
+
+  - name: gke-node-sa-monitoring-metric-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project.projectId)
+      role: roles/monitoring.metricWriter
+      member: serviceAccount:$(ref.gke-node-sa.email)
+
+  - name: gke-node-sa-monitoring-viewer-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project.projectId)
+      role: roles/monitoring.viewer
+      member: serviceAccount:$(ref.gke-node-sa.email)
+
+  - name: gke-node-sa-gcr-binding
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: $(ref.project.projectId)
+      role: roles/storage.objectViewer
+      member: serviceAccount:$(ref.gke-node-sa.email)
+
+outputs:
+  - name: clusterName
+    value: $(ref.prod-gke-cluster.name)
+  - name: clusterEndpoint
+    value: $(ref.prod-gke-cluster.endpoint)
+  - name: nodeServiceAccount
+    value: $(ref.gke-node-sa.email)

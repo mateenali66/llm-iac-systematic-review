@@ -1,0 +1,44 @@
+- name: Harden server and configure deploy user
+  hosts: all
+  become: true
+  vars:
+    deploy_user_name: deploy
+
+  tasks:
+    - name: Create the '{{ deploy_user_name }}' user with a home directory
+      ansible.builtin.user:
+        name: "{{ deploy_user_name }}"
+        shell: /bin/bash
+        create_home: true
+        state: present
+
+    - name: Grant passwordless sudo to '{{ deploy_user_name }}' user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/90-{{ deploy_user_name }}"
+        content: "{{ deploy_user_name }} ALL=(ALL) NOPASSWD: ALL"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Set up authorized key for the '{{ deploy_user_name }}' user from vault
+      ansible.builtin.authorized_key:
+        user: "{{ deploy_user_name }}"
+        key: "{{ deploy_user_ssh_public_key }}"
+        state: present
+        mode: '0600'
+
+    - name: Disable password authentication over SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?\s*PasswordAuthentication\s+'
+        line: 'PasswordAuthentication no'
+        state: present
+        validate: /usr/sbin/sshd -t -f %s
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted

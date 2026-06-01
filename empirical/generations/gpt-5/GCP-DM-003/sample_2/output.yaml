@@ -1,0 +1,77 @@
+resources:
+- name: python-api-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    name: projects/$(projectId)
+    accountId: python-api-runtime
+    serviceAccount:
+      displayName: Python API Runtime Service Account
+
+- name: python-api-logging-writer-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(projectId)
+    role: roles/logging.logWriter
+    member: serviceAccount:$(ref.python-api-sa.email)
+
+- name: python-api-metric-writer-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(projectId)
+    role: roles/monitoring.metricWriter
+    member: serviceAccount:$(ref.python-api-sa.email)
+
+- name: python-api-trace-agent-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(projectId)
+    role: roles/cloudtrace.agent
+    member: serviceAccount:$(ref.python-api-sa.email)
+
+- name: python-api-service
+  type: gcp-types/run-v1:projects.locations.services
+  properties:
+    parent: projects/$(projectId)/locations/us-central1
+    serviceId: python-api
+    metadata:
+      name: python-api
+      labels:
+        app: python-api
+        environment: prod
+    spec:
+      template:
+        metadata:
+          annotations:
+            autoscaling.knative.dev/minScale: "1"
+            autoscaling.knative.dev/maxScale: "100"
+            run.googleapis.com/ingress: all
+            run.googleapis.com/execution-environment: gen2
+            run.googleapis.com/client-name: deployment-manager
+        spec:
+          containerConcurrency: 80
+          timeoutSeconds: 60
+          serviceAccountName: $(ref.python-api-sa.email)
+          containers:
+          - image: us-docker.pkg.dev/$(projectId)/python-api/python-api:latest
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: PORT
+              value: "8080"
+            resources:
+              limits:
+                cpu: "1"
+                memory: 512Mi
+      traffic:
+      - latestRevision: true
+        percent: 100
+
+outputs:
+- name: serviceUrl
+  value: $(ref.python-api-service.status.url)
+- name: serviceAccountEmail
+  value: $(ref.python-api-sa.email)
+- name: serviceName
+  value: python-api

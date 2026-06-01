@@ -1,0 +1,55 @@
+---
+- name: Configure deploy user and secure SSH
+  hosts: all
+  become: yes
+  vars:
+    deploy_user: deploy
+  tasks:
+    - name: Create deploy user
+      user:
+        name: "{{ deploy_user }}"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+        home: "/home/{{ deploy_user }}"
+
+    - name: Ensure deploy user has passwordless sudo
+      lineinfile:
+        path: /etc/sudoers
+        line: "{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL"
+        validate: 'visudo -cf %s'
+
+    - name: Create .ssh directory for deploy user
+      file:
+        path: "/home/{{ deploy_user }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0700'
+
+    - name: Install SSH public key for deploy user
+      copy:
+        content: "{{ deploy_ssh_public_key }}"
+        dest: "/home/{{ deploy_user }}/.ssh/authorized_keys"
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0600'
+
+    - name: Disable password authentication in SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        backup: yes
+
+    - name: Disable root login via SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+        backup: yes
+
+    - name: Restart SSH service
+      service:
+        name: sshd
+        state: restarted

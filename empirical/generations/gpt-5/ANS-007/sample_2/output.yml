@@ -1,0 +1,86 @@
+- name: Configure static network interface via Netplan on Debian 12
+  hosts: all
+  become: true
+  gather_facts: true
+  any_errors_fatal: true
+  vars:
+    # Override these via inventory or --extra-vars
+    netplan_interface: eth0
+    netplan_address_cidr: 192.0.2.10/24
+    netplan_gateway4: 192.0.2.1
+    netplan_nameservers:
+      - 1.1.1.1
+      - 9.9.9.9
+    netplan_renderer: networkd
+  pre_tasks:
+    - name: Update APT cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install Netplan and required services
+      ansible.builtin.apt:
+        name:
+          - netplan.io
+          - systemd-networkd
+          - systemd-resolved
+        state: present
+
+    - name: Enable and start systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        enabled: true
+        state: started
+
+    - name: Enable and start systemd-resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        enabled: true
+        state: started
+
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - netplan_interface is defined
+          - netplan_address_cidr is defined
+          - netplan_gateway4 is defined
+          - netplan_nameservers is defined
+          - netplan_nameservers | length > 0
+        fail_msg: "Required Netplan variables are missing."
+
+    - name: Assert target interface exists on host
+      ansible.builtin.assert:
+        that:
+          - netplan_interface in ansible_facts.interfaces
+        fail_msg: "Interface {{ netplan_interface }} not found on this host."
+
+  tasks:
+    - name: Configure Netplan for static IPv4 on {{ netplan_interface }}
+      community.general.netplan:
+        state: present
+        config:
+          network:
+            version: 2
+            renderer: "{{ netplan_renderer }}"
+            ethernets:
+              "{{ netplan_interface }}":
+                dhcp4: false
+                dhcp6: false
+                addresses:
+                  - "{{ netplan_address_cidr }}"
+                gateway4: "{{ netplan_gateway4 }}"
+                nameservers:
+                  addresses: "{{ netplan_nameservers }}"
+      notify: Apply netplan
+
+  handlers:
+    - name: Apply netplan
+      listen: Apply netplan
+      ansible.builtin.command: netplan apply
+      changed_when: true
+
+    - name: Wait for SSH to return after netplan apply
+      listen: Apply netplan
+      ansible.builtin.wait_for_connection:
+        delay: 3
+        timeout: 60

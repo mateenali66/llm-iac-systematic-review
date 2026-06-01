@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-012",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: cloud-armor-policy\n  type: gcp-types/compute-v1:securityPolicies\n  properties:\n    name: cloud-armor-policy\n    description: \"Cloud Armor policy blocking specific countries and rate limiting\"\n    rules:\n    - priority: 1000\n      match:\n        expr:\n          expression: \"origin.region_code == 'CN' || origin.region_code == 'RU' || origin.region_code == 'KP'\"\n      action: \"deny-403\"\n      description: \"Block traffic from China, Russia, and North Korea\"\n    - priority: 2000\n      match:\n        expr:\n          expression: \"true\"\n      action: \"throttle\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 100\n          intervalSec: 60\n        conformAction: \"allow\"\n        exceedAction: \"deny-429\"\n        enforceOnKey: \"IP\"\n      description: \"Rate limit all other traffic to 100 requests per minute per IP\"\n    adaptiveProtectionConfig:\n      layer7DdosDefenseConfig:\n        enable: true\n        ruleVisibility: \"STANDARD\"",
+  "cleaned_response": "resources:\n- name: cloud-armor-policy\n  type: gcp-types/compute-v1:securityPolicies\n  properties:\n    name: cloud-armor-policy\n    description: \"Cloud Armor policy blocking specific countries and rate limiting\"\n    rules:\n    - priority: 1000\n      match:\n        expr:\n          expression: \"origin.region_code == 'CN' || origin.region_code == 'RU' || origin.region_code == 'KP'\"\n      action: \"deny-403\"\n      description: \"Block traffic from China, Russia, and North Korea\"\n    - priority: 2000\n      match:\n        expr:\n          expression: \"true\"\n      action: \"throttle\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 100\n          intervalSec: 60\n        conformAction: \"allow\"\n        exceedAction: \"deny-429\"\n        enforceOnKey: \"IP\"\n      description: \"Rate limit all other traffic to 100 requests per minute per IP\"\n    adaptiveProtectionConfig:\n      layer7DdosDefenseConfig:\n        enable: true\n        ruleVisibility: \"STANDARD\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: cloud-armor-policy\n  type: gcp-types/compute-v1:securityPolicies\n  properties:\n    name: cloud-armor-policy\n    description: \"Cloud Armor policy blocking specific countries and rate limiting\"\n    rules:\n    - priority: 1000\n      match:\n        expr:\n          expression: \"origin.region_code == 'CN' || origin.region_code == 'RU' || origin.region_code == 'KP'\"\n      action: \"deny-403\"\n      description: \"Block traffic from China, Russia, and North Korea\"\n    - priority: 2000\n      match:\n        expr:\n          expression: \"true\"\n      action: \"throttle\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 100\n          intervalSec: 60\n        conformAction: \"allow\"\n        exceedAction: \"deny-429\"\n        enforceOnKey: \"IP\"\n      description: \"Rate limit all other traffic to 100 requests per minute per IP\"\n    adaptiveProtectionConfig:\n      layer7DdosDefenseConfig:\n        enable: true\n        ruleVisibility: \"STANDARD\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725230,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 144,
+      "output_tokens": 248,
+      "raw_input_tokens": 144
+    }
+  },
+  "started_at": "2026-05-25T16:07:06.916208+00:00",
+  "elapsed_seconds": 4.076
+}

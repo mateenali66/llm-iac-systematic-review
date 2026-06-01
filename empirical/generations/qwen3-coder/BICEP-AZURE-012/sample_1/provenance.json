@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-012",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an Azure Function App on the Consumption Plan for an event-driven serverless workload.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an Azure Function App on the Consumption Plan for an event-driven serverless workload.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "targetScope = 'resourceGroup'\n\nparam appName string\nparam location string = resourceGroup().location\nparam storageAccountName string\nparam appInsightsName string\n\nvar functionAppName = '${appName}-function'\nvar hostingPlanName = '${appName}-plan'\nvar storageAccountNameVar = storageAccountName\nvar appInsightsNameVar = appInsightsName\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {\n  name: storageAccountNameVar\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n  }\n}\n\nresource appInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsNameVar\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n  }\n}\n\nresource serverFarm 'Microsoft.Web/serverfarms@2021-03-01' = {\n  name: hostingPlanName\n  location: location\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n  }\n  properties: {\n    reserved: false\n  }\n}\n\nresource functionApp 'Microsoft.Web/sites@2021-03-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp'\n  properties: {\n    serverFarmId: serverFarm.id\n    httpsOnly: true\n    siteConfig: {\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet'\n        }\n        {\n          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'\n          value: appInsights.properties.InstrumentationKey\n        }\n      ]\n    }\n  }\n}",
+  "cleaned_response": "targetScope = 'resourceGroup'\n\nparam appName string\nparam location string = resourceGroup().location\nparam storageAccountName string\nparam appInsightsName string\n\nvar functionAppName = '${appName}-function'\nvar hostingPlanName = '${appName}-plan'\nvar storageAccountNameVar = storageAccountName\nvar appInsightsNameVar = appInsightsName\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {\n  name: storageAccountNameVar\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n  }\n}\n\nresource appInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsNameVar\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n  }\n}\n\nresource serverFarm 'Microsoft.Web/serverfarms@2021-03-01' = {\n  name: hostingPlanName\n  location: location\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n  }\n  properties: {\n    reserved: false\n  }\n}\n\nresource functionApp 'Microsoft.Web/sites@2021-03-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp'\n  properties: {\n    serverFarmId: serverFarm.id\n    httpsOnly: true\n    siteConfig: {\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet'\n        }\n        {\n          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'\n          value: appInsights.properties.InstrumentationKey\n        }\n      ]\n    }\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "targetScope = 'resourceGroup'\n\nparam appName string\nparam location string = resourceGroup().location\nparam storageAccountName string\nparam appInsightsName string\n\nvar functionAppName = '${appName}-function'\nvar hostingPlanName = '${appName}-plan'\nvar storageAccountNameVar = storageAccountName\nvar appInsightsNameVar = appInsightsName\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2021-09-01' = {\n  name: storageAccountNameVar\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n  }\n}\n\nresource appInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsNameVar\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n  }\n}\n\nresource serverFarm 'Microsoft.Web/serverfarms@2021-03-01' = {\n  name: hostingPlanName\n  location: location\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n  }\n  properties: {\n    reserved: false\n  }\n}\n\nresource functionApp 'Microsoft.Web/sites@2021-03-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp'\n  properties: {\n    serverFarmId: serverFarm.id\n    httpsOnly: true\n    siteConfig: {\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2021-09-01').keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet'\n        }\n        {\n          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'\n          value: appInsights.properties.InstrumentationKey\n        }\n      ]\n    }\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724182,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 132,
+      "output_tokens": 583,
+      "raw_input_tokens": 132
+    }
+  },
+  "started_at": "2026-05-25T15:49:34.672367+00:00",
+  "elapsed_seconds": 7.519
+}

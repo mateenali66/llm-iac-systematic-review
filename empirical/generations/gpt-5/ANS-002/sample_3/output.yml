@@ -1,0 +1,85 @@
+- name: Configure firewall to allow only SSH and HTTPS
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Install and configure firewalld on RedHat/SUSE families
+      block:
+        - name: Ensure firewalld is installed
+          ansible.builtin.package:
+            name: firewalld
+            state: present
+
+        - name: Ensure firewalld is enabled and running
+          ansible.builtin.service:
+            name: firewalld
+            state: started
+            enabled: true
+
+        - name: Set default zone to public
+          ansible.posix.firewalld:
+            default_zone: public
+            permanent: true
+            immediate: true
+
+        - name: Allow SSH service (22/tcp) in public zone
+          ansible.posix.firewalld:
+            service: ssh
+            zone: public
+            state: enabled
+            permanent: true
+            immediate: true
+
+        - name: Allow HTTPS service (443/tcp) in public zone
+          ansible.posix.firewalld:
+            service: https
+            zone: public
+            state: enabled
+            permanent: true
+            immediate: true
+
+        - name: Ensure dhcpv6-client is disabled in public zone
+          ansible.posix.firewalld:
+            service: dhcpv6-client
+            zone: public
+            state: disabled
+            permanent: true
+            immediate: true
+      when: ansible_facts.os_family in ['RedHat', 'Suse']
+
+    - name: Install and configure UFW on Debian family
+      block:
+        - name: Ensure UFW is installed
+          ansible.builtin.apt:
+            name: ufw
+            state: present
+            update_cache: true
+
+        - name: Set default incoming policy to deny
+          community.general.ufw:
+            direction: incoming
+            policy: deny
+
+        - name: Set default outgoing policy to allow
+          community.general.ufw:
+            direction: outgoing
+            policy: allow
+
+        - name: Allow SSH (22/tcp)
+          community.general.ufw:
+            rule: allow
+            port: "22"
+            proto: tcp
+
+        - name: Allow HTTPS (443/tcp)
+          community.general.ufw:
+            rule: allow
+            port: "443"
+            proto: tcp
+
+        - name: Enable UFW with IPv6 support
+          community.general.ufw:
+            state: enabled
+            ipv6: true
+      when: ansible_facts.os_family == 'Debian'

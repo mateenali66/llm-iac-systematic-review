@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 35,
+	"files_parsed": 1,
+	"lines_parsed": 35,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:22:20.040334879Z",
+	"end": "2026-05-26T06:22:20.674648379Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "5ff7ff17d03fb62cb6ba509351e0ee8b78e92743ea8cb8eac5b4356a2b65b861",
+					"line": 22,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('webAppName')]}}.properties",
+					"search_line": 22,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Azure Active Directory Disabled",
+			"query_id": "e9c133e5-c2dd-4b7b-8fff-40f2de367b56",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/2019-08-01/sites?tabs=json#ManagedServiceIdentity",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "WebApp should have Azure Active Directory enabled with 'identity.type' set to 'SystemAssigned' or 'userAssignedIdentities' set to 'true'",
+			"description_id": "f50ec4cb",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "7bc42be79a6d74e5d2a607837a5b9a43a392ab1966a397eabce38d12510fcc2a",
+					"line": 20,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('webAppName')]}}",
+					"search_line": 20,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'identity' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'identity' property defined"
+				}
+			]
+		}
+	]
+}

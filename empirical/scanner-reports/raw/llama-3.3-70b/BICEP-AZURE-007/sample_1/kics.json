@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 74,
+	"files_parsed": 1,
+	"lines_parsed": 74,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:03:52.008184963Z",
+	"end": "2026-05-26T06:03:52.628560339Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "AKS Cluster RBAC Disabled",
+			"query_id": "9307a2ed-35c2-413d-94de-a1a0682c2158",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=json",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Microsoft.ContainerService/managedClusters should have enableRBAC set to true",
+			"description_id": "b07ac0d6",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "e2504d3c20ed2b49aa240cbb102e7f31c2c85620d0dbd6993ccef0a567dac221",
+					"line": 16,
+					"resource_type": "Microsoft.ContainerService/managedClusters",
+					"resource_name": "[parameters('aksClusterName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('aksClusterName')]}}.properties",
+					"search_line": 16,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.ContainerService/managedClusters' should have the 'enableRBAC' property defined",
+					"actual_value": "resource with type 'Microsoft.ContainerService/managedClusters' doesn't have 'enableRBAC' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "AKS Logging To Azure Monitoring Is Disabled",
+			"query_id": "9b09dee1-f09b-4013-91d2-158fa4695f4b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=json#managedclusteraddonprofile",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "778",
+			"cloud_provider": "AZURE",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Azure Kubernetes Service should have logging to Azure Monitoring enabled.",
+			"description_id": "9b09c3e1",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "7573defa9320df59828d5f21674fdc2e02fb2adff91ad9b01a2aa185338f5cfb",
+					"line": 14,
+					"resource_type": "Microsoft.ContainerService/managedClusters",
+					"resource_name": "[parameters('aksClusterName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('aksClusterName')]",
+					"search_line": 14,
+					"search_value": "",
+					"expected_value": "'addonProfiles.omsagent.enabled' should be defined and false",
+					"actual_value": "'addonProfiles.omsagent.enabled' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "AKS With Authorized IP Ranges Disabled",
+			"query_id": "2583fab1-953b-4fae-bd02-4a136a6c21f9",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=json#managedclusterapiserveraccessprofile-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Azure Kubernetes Service must have an authorized IP range for API Services enabled",
+			"description_id": "258efab1",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "c13663822bcf9442382fd3b3699d2b09a7928230d2ba151f2144d788cf395952",
+					"line": 14,
+					"resource_type": "Microsoft.ContainerService/managedClusters",
+					"resource_name": "[parameters('aksClusterName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('aksClusterName')]",
+					"search_line": 14,
+					"search_value": "",
+					"expected_value": "'apiServerAccessProfile.authorizedIPRanges' should be defined as an array",
+					"actual_value": "'apiServerAccessProfile.authorizedIPRanges' is undefined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,668 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T04:25:23.997055168Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 102,
+        "Failures": 5
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV020",
+          "AVDID": "AVD-KSV-0020",
+          "Title": "Runs with UID \u003c= 10000",
+          "Description": "Force the container to run with user ID \u003e 10000 to avoid conflicts with the host’s user table.",
+          "Message": "Container 'nginx' of Deployment 'nginx' should set 'securityContext.runAsUser' \u003e 10000",
+          "Namespace": "builtin.kubernetes.KSV020",
+          "Query": "data.builtin.kubernetes.KSV020.deny",
+          "Resolution": "Set 'containers[].securityContext.runAsUser' to an integer \u003e 10000.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv020",
+          "References": [
+            "https://kubesec.io/basics/containers-securitycontext-runasuser/",
+            "https://avd.aquasec.com/misconfig/ksv020"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 109,
+            "EndLine": 164,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "        - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "          image: nginx:1.27",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: nginx:1.27",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "          ports:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mports\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "            - name: http",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - \u001b[38;5;33mname\u001b[0m: http",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "              containerPort: 8080",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "              \u001b[38;5;33mcontainerPort\u001b[0m: \u001b[38;5;37m8080",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "              protocol: TCP",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m              \u001b[38;5;33mprotocol\u001b[0m: TCP",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 116,
+                  "Content": "          resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 117,
+                  "Content": "            requests:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            \u001b[38;5;33mrequests\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 118,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV021",
+          "AVDID": "AVD-KSV-0021",
+          "Title": "Runs with GID \u003c= 10000",
+          "Description": "Force the container to run with group ID \u003e 10000 to avoid conflicts with the host’s user table.",
+          "Message": "Container 'nginx' of Deployment 'nginx' should set 'securityContext.runAsGroup' \u003e 10000",
+          "Namespace": "builtin.kubernetes.KSV021",
+          "Query": "data.builtin.kubernetes.KSV021.deny",
+          "Resolution": "Set 'containers[].securityContext.runAsGroup' to an integer \u003e 10000.",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv021",
+          "References": [
+            "https://kubesec.io/basics/containers-securitycontext-runasuser/",
+            "https://avd.aquasec.com/misconfig/ksv021"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 109,
+            "EndLine": 164,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "        - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "          image: nginx:1.27",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: nginx:1.27",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "          ports:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mports\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "            - name: http",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - \u001b[38;5;33mname\u001b[0m: http",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "              containerPort: 8080",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "              \u001b[38;5;33mcontainerPort\u001b[0m: \u001b[38;5;37m8080",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "              protocol: TCP",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m              \u001b[38;5;33mprotocol\u001b[0m: TCP",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 116,
+                  "Content": "          resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 117,
+                  "Content": "            requests:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            \u001b[38;5;33mrequests\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 118,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV032",
+          "AVDID": "AVD-KSV-0032",
+          "Title": "All container images must start with the *.azurecr.io domain",
+          "Description": "Containers should only use images from trusted registries.",
+          "Message": "container nginx of deployment nginx in web-frontend namespace should restrict container image to your specific registry domain. For Azure any domain ending in 'azurecr.io'",
+          "Namespace": "builtin.kubernetes.KSV032",
+          "Query": "data.builtin.kubernetes.KSV032.deny",
+          "Resolution": "Use images from trusted Azure registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv032",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv032"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 109,
+            "EndLine": 164,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "        - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "          image: nginx:1.27",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: nginx:1.27",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "          ports:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mports\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "            - name: http",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - \u001b[38;5;33mname\u001b[0m: http",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "              containerPort: 8080",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "              \u001b[38;5;33mcontainerPort\u001b[0m: \u001b[38;5;37m8080",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "              protocol: TCP",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m              \u001b[38;5;33mprotocol\u001b[0m: TCP",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 116,
+                  "Content": "          resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 117,
+                  "Content": "            requests:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            \u001b[38;5;33mrequests\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 118,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV033",
+          "AVDID": "AVD-KSV-0033",
+          "Title": "All container images must start with a GCR domain",
+          "Description": "Containers should only use images from trusted GCR registries.",
+          "Message": "container nginx of deployment nginx in web-frontend namespace should restrict container image to your specific registry domain. See the full GCR list here: https://cloud.google.com/container-registry/docs/overview#registries",
+          "Namespace": "builtin.kubernetes.KSV033",
+          "Query": "data.builtin.kubernetes.KSV033.deny",
+          "Resolution": "Use images from trusted GCR registries.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv033",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv033"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 109,
+            "EndLine": 164,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "        - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "          image: nginx:1.27",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: nginx:1.27",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "          ports:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mports\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "            - name: http",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - \u001b[38;5;33mname\u001b[0m: http",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "              containerPort: 8080",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "              \u001b[38;5;33mcontainerPort\u001b[0m: \u001b[38;5;37m8080",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "              protocol: TCP",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m              \u001b[38;5;33mprotocol\u001b[0m: TCP",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 116,
+                  "Content": "          resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 117,
+                  "Content": "            requests:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            \u001b[38;5;33mrequests\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 118,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV035",
+          "AVDID": "AVD-KSV-0035",
+          "Title": "All container images must start with an ECR domain",
+          "Description": "Container images from non-ECR registries should be forbidden.",
+          "Message": "Container 'nginx' of Deployment 'nginx' should restrict images to own ECR repository. See the full ECR list here: https://docs.aws.amazon.com/general/latest/gr/ecr.html",
+          "Namespace": "builtin.kubernetes.KSV035",
+          "Query": "data.builtin.kubernetes.KSV035.deny",
+          "Resolution": "Container image should be used from Amazon container Registry",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv035",
+          "References": [
+            "https://avd.aquasec.com/misconfig/ksv035"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 109,
+            "EndLine": 164,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 109,
+                  "Content": "        - name: nginx",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mname\u001b[0m: nginx",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 110,
+                  "Content": "          image: nginx:1.27",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimage\u001b[0m: nginx:1.27",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 111,
+                  "Content": "          imagePullPolicy: IfNotPresent",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mimagePullPolicy\u001b[0m: IfNotPresent",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 112,
+                  "Content": "          ports:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mports\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 113,
+                  "Content": "            - name: http",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            - \u001b[38;5;33mname\u001b[0m: http",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 114,
+                  "Content": "              containerPort: 8080",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "              \u001b[38;5;33mcontainerPort\u001b[0m: \u001b[38;5;37m8080",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 115,
+                  "Content": "              protocol: TCP",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m              \u001b[38;5;33mprotocol\u001b[0m: TCP",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 116,
+                  "Content": "          resources:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mresources\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 117,
+                  "Content": "            requests:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "            \u001b[38;5;33mrequests\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 118,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

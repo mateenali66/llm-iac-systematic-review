@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-021",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Elastic Beanstalk environment for a Node.js 18 application running on a t3.small instance.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "variable \"app_name\" {\n  description = \"The name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"The name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\nvariable \"region\" {\n  description = \"The AWS region to deploy resources in.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC to deploy the environment into.\"\n  type        = string\n}\n\nvariable \"public_subnets\" {\n  description = \"A list of public subnet IDs for the load balancer.\"\n  type        = list(string)\n}\n\nvariable \"private_subnets\" {\n  description = \"A list of private subnet IDs for the EC2 instances.\"\n  type        = list(string)\n}\n\nvariable \"instance_type\" {\n  description = \"The EC2 instance type for the environment.\"\n  type        = string\n  default     = \"t3.small\"\n}\n\nvariable \"key_name\" {\n  description = \"The name of the EC2 key pair for SSH access.\"\n  type        = string\n}\n\nvariable \"ssl_certificate_arn\" {\n  description = \"The ARN of the ACM SSL certificate for HTTPS.\"\n  type        = string\n  default     = \"\"\n}\n\nprovider \"aws\" {\n  region = var.region\n}\n\nlocals {\n  tags = {\n    Application = var.app_name\n    Environment = var.env_name\n    ManagedBy   = \"Terraform\"\n  }\n  https_enabled = var.ssl_certificate_arn != \"\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 v.* running Node.js 18$\"\n}\n\nresource \"aws_iam_role\" \"beanstalk_ec2_role\" {\n  name = \"${var.app_name}-eb-ec2-role\"\n  path = \"/\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action    = \"sts:AssumeRole\"\n        Effect    = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n  tags = local.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"beanstalk_ec2_policy\" {\n  role       = aws_iam_role.beanstalk_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws",
+  "cleaned_response": "variable \"app_name\" {\n  description = \"The name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"The name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\nvariable \"region\" {\n  description = \"The AWS region to deploy resources in.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC to deploy the environment into.\"\n  type        = string\n}\n\nvariable \"public_subnets\" {\n  description = \"A list of public subnet IDs for the load balancer.\"\n  type        = list(string)\n}\n\nvariable \"private_subnets\" {\n  description = \"A list of private subnet IDs for the EC2 instances.\"\n  type        = list(string)\n}\n\nvariable \"instance_type\" {\n  description = \"The EC2 instance type for the environment.\"\n  type        = string\n  default     = \"t3.small\"\n}\n\nvariable \"key_name\" {\n  description = \"The name of the EC2 key pair for SSH access.\"\n  type        = string\n}\n\nvariable \"ssl_certificate_arn\" {\n  description = \"The ARN of the ACM SSL certificate for HTTPS.\"\n  type        = string\n  default     = \"\"\n}\n\nprovider \"aws\" {\n  region = var.region\n}\n\nlocals {\n  tags = {\n    Application = var.app_name\n    Environment = var.env_name\n    ManagedBy   = \"Terraform\"\n  }\n  https_enabled = var.ssl_certificate_arn != \"\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 v.* running Node.js 18$\"\n}\n\nresource \"aws_iam_role\" \"beanstalk_ec2_role\" {\n  name = \"${var.app_name}-eb-ec2-role\"\n  path = \"/\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action    = \"sts:AssumeRole\"\n        Effect    = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n  tags = local.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"beanstalk_ec2_policy\" {\n  role       = aws_iam_role.beanstalk_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "variable \"app_name\" {\n  description = \"The name of the Elastic Beanstalk application.\"\n  type        = string\n  default     = \"nodejs-app\"\n}\n\nvariable \"env_name\" {\n  description = \"The name of the Elastic Beanstalk environment.\"\n  type        = string\n  default     = \"nodejs-app-prod\"\n}\n\nvariable \"region\" {\n  description = \"The AWS region to deploy resources in.\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC to deploy the environment into.\"\n  type        = string\n}\n\nvariable \"public_subnets\" {\n  description = \"A list of public subnet IDs for the load balancer.\"\n  type        = list(string)\n}\n\nvariable \"private_subnets\" {\n  description = \"A list of private subnet IDs for the EC2 instances.\"\n  type        = list(string)\n}\n\nvariable \"instance_type\" {\n  description = \"The EC2 instance type for the environment.\"\n  type        = string\n  default     = \"t3.small\"\n}\n\nvariable \"key_name\" {\n  description = \"The name of the EC2 key pair for SSH access.\"\n  type        = string\n}\n\nvariable \"ssl_certificate_arn\" {\n  description = \"The ARN of the ACM SSL certificate for HTTPS.\"\n  type        = string\n  default     = \"\"\n}\n\nprovider \"aws\" {\n  region = var.region\n}\n\nlocals {\n  tags = {\n    Application = var.app_name\n    Environment = var.env_name\n    ManagedBy   = \"Terraform\"\n  }\n  https_enabled = var.ssl_certificate_arn != \"\"\n}\n\ndata \"aws_elastic_beanstalk_solution_stack\" \"nodejs\" {\n  most_recent = true\n  name_regex  = \"^64bit Amazon Linux 2 v.* running Node.js 18$\"\n}\n\nresource \"aws_iam_role\" \"beanstalk_ec2_role\" {\n  name = \"${var.app_name}-eb-ec2-role\"\n  path = \"/\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action    = \"sts:AssumeRole\"\n        Effect    = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      },\n    ]\n  })\n  tags = local.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"beanstalk_ec2_policy\" {\n  role       = aws_iam_role.beanstalk_ec2_role.name\n  policy_arn = \"arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier\"\n}\n\nresource \"aws",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779731020,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 129,
+      "output_tokens": 2044,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T17:43:20.602166+00:00",
+  "elapsed_seconds": 19.887
+}

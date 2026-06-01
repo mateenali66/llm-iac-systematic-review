@@ -1,0 +1,51 @@
+resources:
+  - name: dev-vm
+    type: compute.v1.instance
+    properties:
+      zone: us-central1-a
+      machineType: e2-medium
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          diskSizeGb: 30
+          sourceImage: https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-2204-lts
+      networkInterfaces:
+      - accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+        network: https://www.googleapis.com/compute/v1/projects/$(project)/global/networks/default
+      metadata:
+        startup-script: |
+          #! /bin/bash
+          apt update
+          apt install -y git
+      tags:
+        items:
+        - http-server
+        - https-server
+      canIpForward: false
+      deletionProtection: false
+      description: Development VM instance
+      labels:
+        environment: dev
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+      serviceAccounts:
+      - email: default
+        scopes:
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring.write
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/service.management.readonly
+      shieldedInstanceConfig:
+        enableSecureBoot: false
+        enableVtpm: true
+        enableIntegrityMonitoring: true
+      confidentialInstanceConfig:
+        enableConfidentialCompute: false

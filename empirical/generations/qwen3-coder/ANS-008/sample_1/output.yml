@@ -1,0 +1,127 @@
+---
+- name: Install and configure PostgreSQL 15 server
+  hosts: postgresql_servers
+  become: yes
+  vars:
+    postgresql_version: 15
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_config_file: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    postgresql_hba_file: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+    postgresql_service_name: "postgresql@{{ postgresql_version }}-main"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_shared_buffers: "256MB"
+    postgresql_effective_cache_size: "1GB"
+    postgresql_maintenance_work_mem: "64MB"
+    postgresql_checkpoint_completion_target: "0.9"
+    postgresql_wal_buffers: "16MB"
+    postgresql_default_statistics_target: "100"
+    postgresql_random_page_cost: "1.1"
+    postgresql_effective_io_concurrency: "200"
+    postgresql_work_mem: "4MB"
+    postgresql_min_wal_size: "1GB"
+    postgresql_max_wal_size: "4GB"
+    postgresql_max_connections: "100"
+    postgresql_listen_addresses: "*"
+    postgresql_port: 5432
+    databases:
+      - name: myapp_db
+        owner: myapp_user
+    users:
+      - name: myapp_user
+        password: "{{ vault_myapp_user_password }}"
+  tasks:
+    - name: Add PostgreSQL official APT repository key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Add PostgreSQL official APT repository
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL packages
+      apt:
+        name:
+          - "postgresql-{{ postgresql_version }}"
+          - "postgresql-client-{{ postgresql_version }}"
+          - "postgresql-contrib-{{ postgresql_version }}"
+        state: present
+
+    - name: Stop PostgreSQL service
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: stopped
+
+    - name: Configure postgresql.conf
+      template:
+        src: postgresql.conf.j2
+        dest: "{{ postgresql_config_file }}"
+        owner: postgres
+        group: postgres
+        mode: '0644'
+      notify: restart postgresql
+
+    - name: Configure pg_hba.conf
+      template:
+        src: pg_hba.conf.j2
+        dest: "{{ postgresql_hba_file }}"
+        owner: postgres
+        group: postgres
+        mode: '0640'
+      notify: restart postgresql
+
+    - name: Start and enable PostgreSQL service
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: started
+        enabled: yes
+
+    - name: Ensure PostgreSQL is listening on correct port
+      wait_for:
+        host: localhost
+        port: "{{ postgresql_port }}"
+        state: started
+        timeout: 30
+
+    - name: Create databases
+      postgresql_db:
+        name: "{{ item.name }}"
+        owner: "{{ item.owner }}"
+        state: present
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      loop: "{{ databases }}"
+      become_user: postgres
+
+    - name: Create users
+      postgresql_user:
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        state: present
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      loop: "{{ users }}"
+      become_user: postgres
+
+    - name: Grant privileges to users
+      postgresql_privs:
+        database: "{{ item.name }}"
+        roles: "{{ item.owner }}"
+        type: database
+        privs: ALL
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      loop: "{{ databases }}"
+      become_user: postgres
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: restarted

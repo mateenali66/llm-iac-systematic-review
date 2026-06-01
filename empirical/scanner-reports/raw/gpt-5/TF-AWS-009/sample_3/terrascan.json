@@ -1,0 +1,65 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "notEncryptedSecrets",
+        "description": "Ensure SecretsManager Secrets are Encrypted using KMS key",
+        "rule_id": "AC_AWS_0500",
+        "severity": "MEDIUM",
+        "category": "Data Protection",
+        "resource_name": "db_master",
+        "resource_type": "aws_secretsmanager_secret",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 265
+      },
+      {
+        "rule_name": "port5432AlbNetworkPortSecurityPublicScope",
+        "description": "Ensure Postgres SQL (TCP,5432) is not accessible by a public CIDR block range",
+        "rule_id": "AC_AWS_0304",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "from_cidrs",
+        "resource_type": "aws_security_group_rule",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 245
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 05:20:23.310106084 +0000 UTC",
+      "policies_validated": 150,
+      "violated_policies": 2,
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    }
+  }
+}

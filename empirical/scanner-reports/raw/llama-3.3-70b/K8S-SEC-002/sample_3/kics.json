@@ -1,0 +1,233 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 190,
+	"files_parsed": 2,
+	"lines_parsed": 190,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 2,
+		"LOW": 0,
+		"MEDIUM": 7,
+		"TRACE": 0
+	},
+	"total_counter": 11,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:11:38.254169846Z",
+	"end": "2026-05-26T06:11:40.72409143Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "PSP With Unrestricted Access to Host Path",
+			"query_id": "de4421f1-4e35-43b4-9783-737dd4e4a47e",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "250",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "PodSecurityPolicy should set 'readOnly' to true in every host path allowed",
+			"description_id": "fc4b7215",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9a795aca5a0da4b53811144275550913c2df4be4598eeed4c89561ebf1aa266c",
+					"line": 31,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted:default",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{restricted:default}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.allowedHostPaths' should be defined and not null",
+					"actual_value": "'spec.allowedHostPaths' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4c7e5d79a8e5fa5eb311e3058884d6326f292e6b05a396b02013a5c46d9a8fd6",
+					"line": 5,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{restricted}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.allowedHostPaths' should be defined and not null",
+					"actual_value": "'spec.allowedHostPaths' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Root Containers Admitted",
+			"query_id": "e3aa0612-4351-4a0d-983f-aefea25cf203",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "732",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Containers must not be allowed to run with root privileges, which means the attributes 'privileged','allowPrivilegeEscalation' and 'readOnlyRootFilesystem' must be set to false, 'runAsUser.rule' must be set to 'MustRunAsNonRoot', and adding the root group must be forbidden",
+			"description_id": "2fe54446",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d2c2839ce29a74bf6bd3f0ad9dafc75463218ba0583b01d77a89d2fdcff3ad79",
+					"line": 50,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted:default",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted:default}}.spec.fsGroup.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted:default}}.spec.fsGroup limits its ranges",
+					"actual_value": "metadata.name={{restricted:default}}.spec.fsGroup does not limit its ranges"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e3696edf71efb624b2791ba619945fe64d896874d1f643c5391d8efa1ae9b5e7",
+					"line": 24,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted}}.spec.fsGroup.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted}}.spec.fsGroup limits its ranges",
+					"actual_value": "metadata.name={{restricted}}.spec.fsGroup does not limit its ranges"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "160750ed530b18b8d769f1ccfa306e8359b9353a95d4c8e42b9df001aaceee97",
+					"line": 18,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted}}.spec.runAsUser.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted}}.spec.runAsUser.rule is equal to 'MustRunAsNonRoot'",
+					"actual_value": "metadata.name={{restricted}}.spec.runAsUser.rule is not equal to 'MustRunAsNonRoot'"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "cbc2fec73847847b00ee3fd28ddd7f0c020c5a9533ba0ad6adaa2631d078d6f2",
+					"line": 22,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted}}.spec.supplementalGroups.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted}}.spec.supplementalGroups limits its ranges",
+					"actual_value": "metadata.name={{restricted}}.spec.supplementalGroups does not limit its ranges"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e7afe7ec89a0668872b4ea7e322b810f8cd075836a774028065b7d967ca5cc3e",
+					"line": 44,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted:default",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted:default}}.spec.runAsUser.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted:default}}.spec.runAsUser.rule is equal to 'MustRunAsNonRoot'",
+					"actual_value": "metadata.name={{restricted:default}}.spec.runAsUser.rule is not equal to 'MustRunAsNonRoot'"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "99564373aa1508fe64e6c0120b7f1a5748aa8199ae599fcd595ed3ba8b191311",
+					"line": 48,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted:default",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{restricted:default}}.spec.supplementalGroups.rule",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted:default}}.spec.supplementalGroups limits its ranges",
+					"actual_value": "metadata.name={{restricted:default}}.spec.supplementalGroups does not limit its ranges"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5da2fca685c87d702dad28352938b54dbb882b1b163848f1bd55de1d346a272c",
+					"line": 56,
+					"resource_type": "RoleBinding",
+					"resource_name": "psp:restricted",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{RoleBinding}}.metadata.name={{psp:restricted}}",
+					"search_line": 56,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Not Limited Capabilities For Pod Security Policy",
+			"query_id": "caa93370-791f-4fc6-814b-ba6ce0cb4032",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "770",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Limit capabilities for a Pod Security Policy",
+			"description_id": "eaf6d4ba",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b85dd8b0af9a6b0ab4ae6fa68ea0d8e0311298edd08d7f75081ea1e504780fb9",
+					"line": 5,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{restricted}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted}}.spec.requiredDropCapabilities should be defined",
+					"actual_value": "metadata.name={{restricted}}.spec.requiredDropCapabilities is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "551ca374d0ad4e64a7e087a6bdd08427d17d07f8358aded3c15ebd09d5482f15",
+					"line": 31,
+					"resource_type": "PodSecurityPolicy",
+					"resource_name": "restricted:default",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{restricted:default}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{restricted:default}}.spec.requiredDropCapabilities should be defined",
+					"actual_value": "metadata.name={{restricted:default}}.spec.requiredDropCapabilities is undefined"
+				}
+			]
+		}
+	]
+}

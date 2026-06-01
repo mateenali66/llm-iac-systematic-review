@@ -1,0 +1,12 @@
+- hosts: all
+  become: yes
+  vars:
+    fail2ban_bantime: 1h
+    fail2ban_findtime: 10m
+    fail2ban_maxretry: 5
+
+  tasks:
+    - name: Ensure required packages are installed for subsequent steps
+      dnf:
+        name:
+          - policycore

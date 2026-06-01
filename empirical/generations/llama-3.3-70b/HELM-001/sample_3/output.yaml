@@ -1,0 +1,84 @@
+# FILE: Chart.yaml
+name: web-application
+version: 1.0.0
+description: A Helm chart for deploying a generic web application
+type: application
+
+---
+# FILE: values.yaml
+image:
+  repository: nginx
+  tag: latest
+replicas: 1
+host: example.com
+
+---
+# FILE: templates/ConfigMap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-application-config
+data:
+  HOST: {{ .Values.host }}
+
+---
+# FILE: templates/Deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-application
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: web-application
+  template:
+    metadata:
+      labels:
+        app: web-application
+    spec:
+      containers:
+      - name: web-application
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: web-application-config
+              key: HOST
+
+---
+# FILE: templates/Ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-application
+spec:
+  rules:
+  - host: {{ .Values.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-application
+            port:
+              number: 80
+
+---
+# FILE: templates/Service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-application
+spec:
+  selector:
+    app: web-application
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP

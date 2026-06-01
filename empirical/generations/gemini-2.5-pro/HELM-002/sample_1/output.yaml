@@ -1,0 +1,99 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis
+description: A Helm chart for deploying a Redis stateful cache.
+type: application
+version: 0.1.0
+appVersion: "7.0"
+
+---
+# FILE: values.yaml
+# Default values for redis.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: redis
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart's appVersion.
+  tag: "7.0-alpine"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created.
+  create: true
+  # Annotations to add to the service account.
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 999
+  runAsUser: 999
+  runAsNonRoot: true
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 999
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 6379
+
+# Headless service for the StatefulSet
+headlessService:
+  port: 6379
+
+auth:
+  enabled: true
+  # If enabled, a secret will be created with a random password.
+  # To use an existing secret, set 'existingSecret.name'
+  # To specify a password, set 'password'.
+  password: ""
+  existingSecret:
+    name: ""
+    key: "redis-password"
+
+persistence:
+  enabled: true
+  # If defined, storageClassName: <storageClassName>
+  # If set to "-", storageClassName: "", which disables dynamic provisioning
+  # If undefined (the default) or set to null, no storageClassName spec is
+  #   set, choosing the default provisioner.
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with
+  # different resource availability (e.g. smaller clusters).
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+---
+# FILE: templates/_helpers

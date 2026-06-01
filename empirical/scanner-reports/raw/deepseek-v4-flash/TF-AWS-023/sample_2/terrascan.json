@@ -1,0 +1,78 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "cloudfrontNoGeoRestriction",
+        "description": "Ensure that geo restriction is enabled for your Amazon CloudFront CDN distribution to whitelist or blacklist a country in order to allow or restrict users in specific locations from accessing web application content.",
+        "rule_id": "AC_AWS_0026",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "main",
+        "resource_type": "aws_cloudfront_distribution",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 67
+      },
+      {
+        "rule_name": "cloudfrontNoLogging",
+        "description": "Ensure that your AWS Cloudfront distributions have the Logging feature enabled in order to track all viewer requests for the content delivered through the Content Delivery Network (CDN).",
+        "rule_id": "AC_AWS_0025",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "main",
+        "resource_type": "aws_cloudfront_distribution",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 67
+      },
+      {
+        "rule_name": "noWafEnabled",
+        "description": "Ensure that cloud-front has web application firewall enabled",
+        "rule_id": "AC_AWS_0032",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "main",
+        "resource_type": "aws_cloudfront_distribution",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 67
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 04:49:48.01534668 +0000 UTC",
+      "policies_validated": 5,
+      "violated_policies": 3,
+      "low": 1,
+      "medium": 2,
+      "high": 0
+    }
+  }
+}

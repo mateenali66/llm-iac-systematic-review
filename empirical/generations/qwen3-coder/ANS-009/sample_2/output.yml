@@ -1,0 +1,174 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: otel_collectors
+  become: true
+  vars:
+    otel_version: "0.92.0"
+    otel_remote_endpoint: "https://your-otel-backend.example.com:443"
+    otel_remote_headers: 
+      Authorization: "Bearer your-token-here"
+    otel_config_dir: "/etc/otelcol"
+    otel_binary_path: "/usr/local/bin/otelcol"
+    otel_user: "otelcol"
+    otel_group: "otelcol"
+    
+  tasks:
+    - name: Create OpenTelemetry system group
+      group:
+        name: "{{ otel_group }}"
+        system: true
+        state: present
+
+    - name: Create OpenTelemetry system user
+      user:
+        name: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        system: true
+        shell: "/usr/sbin/nologin"
+        home: "{{ otel_config_dir }}"
+        create_home: false
+        state: present
+
+    - name: Create OpenTelemetry config directory
+      file:
+        path: "{{ otel_config_dir }}"
+        state: directory
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0755"
+
+    - name: Install required packages
+      package:
+        name:
+          - curl
+          - systemd
+        state: present
+
+    - name: Download OpenTelemetry Collector binary
+      get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}/otelcol_{{ otel_version }}_linux_amd64.tar.gz"
+        dest: "/tmp/otelcol_{{ otel_version }}_linux_amd64.tar.gz"
+        mode: "0644"
+        checksum: "sha256:https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_version }}/otelcol_{{ otel_version }}_linux_amd64.tar.gz.sha256"
+
+    - name: Extract OpenTelemetry Collector binary
+      unarchive:
+        src: "/tmp/otelcol_{{ otel_version }}_linux_amd64.tar.gz"
+        dest: "/tmp"
+        remote_src: true
+
+    - name: Install OpenTelemetry Collector binary
+      copy:
+        src: "/tmp/otelcol"
+        dest: "{{ otel_binary_path }}"
+        mode: "0755"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+
+    - name: Create OpenTelemetry Collector configuration
+      template:
+        src: otel-collector-config.yaml.j2
+        dest: "{{ otel_config_dir }}/config.yaml"
+        owner: "{{ otel_user }}"
+        group: "{{ otel_group }}"
+        mode: "0644"
+      notify: restart otelcol
+
+    - name: Create systemd service file
+      template:
+        src: otelcol.service.j2
+        dest: "/etc/systemd/system/otelcol.service"
+        mode: "0644"
+      notify: restart otelcol
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable and start OpenTelemetry Collector service
+      systemd:
+        name: otelcol
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: restart otelcol
+      systemd:
+        name: otelcol
+        state: restarted
+---
+# templates/otel-collector-config.yaml.j2
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  otlp:
+    endpoint: "{{ otel_remote_endpoint }}"
+    headers:
+      {% for key, value in otel_remote_headers.items() %}
+      "{{ key }}": "{{ value }}"
+      {% endfor %}
+    tls:
+      insecure: false
+
+processors:
+  batch:
+
+extensions:
+  health_check:
+  pprof:
+    endpoint: :1777
+  zpages:
+    endpoint: :55679
+
+service:
+  extensions: [health_check, pprof, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+---
+# templates/otelcol.service.j2
+[Unit]
+Description=OpenTelemetry Collector
+Documentation=https://opentelemetry.io/docs/collector/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ otel_user }}
+Group={{ otel_group }}
+ExecStart={{ otel_binary_path }} --config={{ otel_config_dir }}/config.yaml
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=otelcol
+LimitNOFILE=65536
+LimitNPROC=infinity
+CapabilityBoundingSet=
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths={{ otel_config_dir }}
+
+[Install]
+WantedBy=multi-user.target

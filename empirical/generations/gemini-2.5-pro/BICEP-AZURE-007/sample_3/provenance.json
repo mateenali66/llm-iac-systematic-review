@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-007",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning an Azure Kubernetes Service (AKS) cluster with two node pools (system and user) for a production microservices workload.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning an Azure Kubernetes Service (AKS) cluster with two node pools (system and user) for a production microservices workload.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "@description('The location for the Azure Kubernetes Service (AKS) cluster and related resources.')\nparam location string = resourceGroup().location\n\n@description('A prefix for all resource names to ensure uniqueness.')\nparam namePrefix string = 'prod'\n\n@description('The Azure Active Directory group object ID for Kubernetes administrators.')\n@secure()\nparam adminGroupObjectID string\n\n@description('The resource ID of the subnet where the AKS nodes will be deployed. This subnet must be within a VNet.')\nparam nodeSubnetId string\n\n@description('The version of Kubernetes to use for the cluster.')\nparam kubernetesVersion string = '1.28.5'\n\n@description('The VM size for the system node pool.')\nparam systemNodePoolVmSize string = 'Standard_DS2_v2'\n\n@description('The number of nodes in the system node pool.')\n@minValue(3)\n@maxValue(5)\nparam systemNodePoolNodeCount int = 3\n\n@description('The VM size for the user",
+  "cleaned_response": "@description('The location for the Azure Kubernetes Service (AKS) cluster and related resources.')\nparam location string = resourceGroup().location\n\n@description('A prefix for all resource names to ensure uniqueness.')\nparam namePrefix string = 'prod'\n\n@description('The Azure Active Directory group object ID for Kubernetes administrators.')\n@secure()\nparam adminGroupObjectID string\n\n@description('The resource ID of the subnet where the AKS nodes will be deployed. This subnet must be within a VNet.')\nparam nodeSubnetId string\n\n@description('The version of Kubernetes to use for the cluster.')\nparam kubernetesVersion string = '1.28.5'\n\n@description('The VM size for the system node pool.')\nparam systemNodePoolVmSize string = 'Standard_DS2_v2'\n\n@description('The number of nodes in the system node pool.')\n@minValue(3)\n@maxValue(5)\nparam systemNodePoolNodeCount int = 3\n\n@description('The VM size for the user",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "@description('The location for the Azure Kubernetes Service (AKS) cluster and related resources.')\nparam location string = resourceGroup().location\n\n@description('A prefix for all resource names to ensure uniqueness.')\nparam namePrefix string = 'prod'\n\n@description('The Azure Active Directory group object ID for Kubernetes administrators.')\n@secure()\nparam adminGroupObjectID string\n\n@description('The resource ID of the subnet where the AKS nodes will be deployed. This subnet must be within a VNet.')\nparam nodeSubnetId string\n\n@description('The version of Kubernetes to use for the cluster.')\nparam kubernetesVersion string = '1.28.5'\n\n@description('The VM size for the system node pool.')\nparam systemNodePoolVmSize string = 'Standard_DS2_v2'\n\n@description('The number of nodes in the system node pool.')\n@minValue(3)\n@maxValue(5)\nparam systemNodePoolNodeCount int = 3\n\n@description('The VM size for the user",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779724753,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 127,
+      "output_tokens": 2044,
+      "raw_input_tokens": 127
+    }
+  },
+  "started_at": "2026-05-25T15:58:46.730925+00:00",
+  "elapsed_seconds": 26.811
+}

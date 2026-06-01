@@ -1,0 +1,269 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-tier-app
+description: A Helm chart for a multi-tier application with frontend, backend, and PostgreSQL
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+frontend:
+  name: frontend
+  image:
+    repository: nginx
+    tag: alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  config:
+    APP_ENV: production
+    APP_DEBUG: "false"
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+backend:
+  name: backend
+  image:
+    repository: node
+    tag: 18-alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+  config:
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_NAME: appdb
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+postgresql:
+  name: postgres
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 5432
+  storage:
+    size: 10Gi
+    storageClass: standard
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+secrets:
+  postgres:
+    POSTGRES_USER: appuser
+    POSTGRES_PASSWORD: changeme
+    POSTGRES_DB: appdb
+  backend:
+    DB_USER: appuser
+    DB_PASSWORD: changeme
+    JWT_SECRET: my-jwt-secret-key
+
+serviceAccount:
+  create: true
+  name: ""
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+---
+# FILE: templates/_helpers.tpl
+{{- define "multi-tier-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "multi-tier-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "multi-tier-app.labels" -}}
+helm.sh/chart: {{ include "multi-tier-app.name" . }}-{{ .Chart.Version | replace "+" "_" }}
+{{ include "multi-tier-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "multi-tier-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "multi-tier-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "multi-tier-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "multi-tier-app.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+---
+# FILE: templates/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-tier-app.fullname" . }}-frontend
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-tier-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        {{- include "multi-tier-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: frontend
+    spec:
+      serviceAccountName: {{ include "multi-tier-app.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.frontend.name }}
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.frontend.service.port }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "multi-tier-app.fullname" . }}-frontend-config
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+---
+# FILE: templates/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-tier-app.fullname" . }}-backend
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "multi-tier-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        {{- include "multi-tier-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+    spec:
+      serviceAccountName: {{ include "multi-tier-app.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.backend.name }}
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.service.port }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "multi-tier-app.fullname" . }}-backend-config
+            - secretRef:
+                name: {{ include "multi-tier-app.fullname" . }}-backend-secret
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+---
+# FILE: templates/postgres-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "multi-tier-app.fullname" . }}-postgres
+  labels:
+    {{- include "multi-tier-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: postgres
+spec:
+  serviceName: {{ include "multi-tier-app.fullname" . }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "multi-tier-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: postgres
+  template:
+    metadata:
+      labels:
+        {{- include "multi-tier-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: postgres
+    spec:
+      serviceAccountName: {{ include "multi-tier-app.serviceAccountName" . }}
+      containers:
+        - name: {{ .Values.postgresql.name }}
+          image: "{{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresql.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.postgresql.service.port }}
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: {{ include "multi-tier-app.fullname" . }}-postgres-secret
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.postgresql.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: {{ .Values.postgresql.storage.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.storage.size }}
+---
+# FILE: templates/frontend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-tier-app.fullname"

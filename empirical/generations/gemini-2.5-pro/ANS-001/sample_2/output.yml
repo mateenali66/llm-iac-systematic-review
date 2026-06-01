@@ -1,0 +1,31 @@
+---
+- name: Install and configure nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install nginx package
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+      notify:
+        - Restart nginx
+
+    - name: Allow HTTP traffic on port 80
+      community.general.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+        comment: Allow HTTP traffic
+
+    - name: Ensure nginx service is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

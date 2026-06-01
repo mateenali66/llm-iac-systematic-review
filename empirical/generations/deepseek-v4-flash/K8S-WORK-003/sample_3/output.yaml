@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+spec:
+  ports:
+  - port: 6379
+    name: redis
+  clusterIP: None
+  selector:
+    app: redis-cluster
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+spec:
+  serviceName: redis-cluster
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - redis-server
+        args:
+        - --appendonly
+        - "yes"
+        - --cluster-enabled
+        - "yes"
+        - --cluster-config-file
+        - /data/nodes.conf
+        - --cluster-node-timeout
+        - "5000"
+        - --save
+        - "900 1"
+        - --save
+        - "300 10"
+        - --save
+        - "60 10000"
+        ports:
+        - containerPort: 6379
+          name: redis
+        - containerPort: 16379
+          name: cluster-bus
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: standard

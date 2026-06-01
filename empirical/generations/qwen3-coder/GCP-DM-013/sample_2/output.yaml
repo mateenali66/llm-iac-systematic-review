@@ -1,0 +1,27 @@
+resources:
+- name: redis-cache-instance
+  type: gcp-types/redis-v1beta1:projects.locations.instances
+  properties:
+    parent: projects/{{ env["project"] }}/locations/us-central1
+    instanceId: app-cache-instance
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: us-central1-a
+    redisVersion: REDIS_6_X
+    authorizedNetwork: projects/{{ env["project"] }}/global/networks/default
+    connectMode: DIRECT_PEERING
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+        - day: MONDAY
+          startTime:
+            hours: 2
+            minutes: 0
+            seconds: 0
+            nanos: 0
+    persistenceConfig:
+      persistenceMode: DISABLED
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    labels:
+      environment: production
+      service: application-cache
+      managed-by: deployment-manager

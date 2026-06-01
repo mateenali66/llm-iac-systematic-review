@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "K8S-STO-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes PersistentVolumeClaim manifest requesting 50 GiB of fast SSD-backed storage for a database StatefulSet.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes PersistentVolumeClaim manifest requesting 50 GiB of fast SSD-backed storage for a database StatefulSet.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: db-storage\nspec:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 50Gi\n  storageClassName: fast-ssd\n  volumeMode: Filesystem",
+  "cleaned_response": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: db-storage\nspec:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 50Gi\n  storageClassName: fast-ssd\n  volumeMode: Filesystem",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: db-storage\nspec:\n  accessModes:\n    - ReadWriteOnce\n  resources:\n    requests:\n      storage: 50Gi\n  storageClassName: fast-ssd\n  volumeMode: Filesystem",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723914,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 157,
+      "output_tokens": 61,
+      "raw_input_tokens": 157
+    }
+  },
+  "started_at": "2026-05-25T15:45:14.190644+00:00",
+  "elapsed_seconds": 0.383
+}

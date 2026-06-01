@@ -1,0 +1,103 @@
+---
+- name: Install and configure PostgreSQL 15 server
+  hosts: postgresql_servers
+  become: yes
+  vars:
+    postgresql_version: 15
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_config_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+    postgresql_service_name: "postgresql@{{ postgresql_version }}-main"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_database_name: "myapp_db"
+    postgresql_user_name: "myapp_user"
+    postgresql_user_password: "secure_password_here"
+    
+  tasks:
+    - name: Add PostgreSQL official APT repository key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+      
+    - name: Add PostgreSQL official APT repository
+      apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg
+        
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: Install PostgreSQL server and client packages
+      apt:
+        name:
+          - "postgresql-{{ postgresql_version }}"
+          - "postgresql-client-{{ postgresql_version }}"
+          - "postgresql-contrib-{{ postgresql_version }}"
+        state: present
+        
+    - name: Configure pg_hba.conf
+      template:
+        src: pg_hba.conf.j2
+        dest: "{{ postgresql_config_dir }}/pg_hba.conf"
+        owner: postgres
+        group: postgres
+        mode: '0600'
+      notify: restart postgresql
+      
+    - name: Configure postgresql.conf for production
+      template:
+        src: postgresql.conf.j2
+        dest: "{{ postgresql_config_dir }}/postgresql.conf"
+        owner: postgres
+        group: postgres
+        mode: '0600'
+      notify: restart postgresql
+      
+    - name: Ensure PostgreSQL service is started and enabled
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: started
+        enabled: yes
+        
+    - name: Ensure .pgpass file exists for postgres user
+      lineinfile:
+        path: "/var/lib/postgresql/.pgpass"
+        line: "localhost:5432:*:postgres:{{ postgresql_user_password }}"
+        create: yes
+        owner: postgres
+        group: postgres
+        mode: '0600'
+        
+    - name: Create application database
+      postgresql_db:
+        name: "{{ postgresql_database_name }}"
+        state: present
+        login_unix_socket: "{{ postgresql_config_dir }}"
+      become_user: postgres
+      
+    - name: Create application database user
+      postgresql_user:
+        name: "{{ postgresql_user_name }}"
+        password: "{{ postgresql_user_password }}"
+        state: present
+        login_unix_socket: "{{ postgresql_config_dir }}"
+      become_user: postgres
+      
+    - name: Grant privileges on database to user
+      postgresql_privs:
+        database: "{{ postgresql_database_name }}"
+        roles: "{{ postgresql_user_name }}"
+        type: database
+        privs: ALL
+        login_unix_socket: "{{ postgresql_config_dir }}"
+      become_user: postgres
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: restarted

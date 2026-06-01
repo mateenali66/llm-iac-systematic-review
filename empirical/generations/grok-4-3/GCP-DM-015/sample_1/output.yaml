@@ -1,0 +1,22 @@
+resources:
+- name: cloudrun-latency-alert
+  type: gcp-types/monitoring-v3:alertPolicies
+  properties:
+    displayName: Cloud Run p95 latency > 500ms
+    combiner: OR
+    conditions:
+    - displayName: p95 latency exceeds 500ms for 5 minutes
+      conditionThreshold:
+        filter: resource.type="cloud_run_revision" AND metric.type="run.googleapis.com/request_latencies"
+        aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_PERCENTILE_95
+          crossSeriesReducer: REDUCE_NONE
+        comparison: COMPARISON_GT
+        duration: 300s
+        thresholdValue: 0.5
+    notificationChannels:
+    - projects/{{ env.PROJECT }}/notificationChannels/oncall-pager
+    enabled: true
+    alertStrategy:
+      autoClose: 86400s

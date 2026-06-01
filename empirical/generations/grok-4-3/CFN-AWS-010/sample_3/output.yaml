@@ -1,0 +1,62 @@
+Resources:
+  OrderProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-queue
+      VisibilityTimeout: 30
+      MessageRetentionPeriod: 345600
+  OrderProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: OrderProcessorPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource: !GetAtt OrderProcessorQueue.Arn
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order-processor
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt OrderProcessorRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              for record in event.get('Records', []):
+                  body = record.get('body')
+                  print(f"Processing message: {body}")
+              return {'statusCode': 200, 'body': json.dumps('Processed')}
+      Timeout: 30
+      MemorySize: 256
+      TracingConfig:
+        Mode: Active
+  OrderProcessorEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderProcessorQueue.Arn
+      FunctionName: !Ref OrderProcessorFunction
+      BatchSize: 10
+      Enabled: true
+      MaximumBatchingWindowInSeconds: 5

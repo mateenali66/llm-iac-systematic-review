@@ -1,0 +1,25 @@
+resources:
+- name: static-website-bucket
+  type: storage.v1.bucket
+  properties:
+    name: {{ properties["bucketName"] }}
+    location: US
+    storageClass: STANDARD
+    uniformBucketLevelAccess: true
+    versioning:
+      enabled: true
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    labels:
+      environment: production
+      purpose: static-website
+- name: public-read-binding
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    role: roles/storage.objectViewer
+    member: allUsers

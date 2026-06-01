@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-009",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CDK Python stack provisioning an AWS WAF web ACL with managed rule sets attached to an Application Load Balancer.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Write a CDK Python stack provisioning an AWS WAF web ACL with managed rule sets attached to an Application Load Balancer.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_wafv2 as wafv2,\n    aws_elasticloadbalancingv2 as elbv2,\n)\n\nclass WafAclStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        # Create an Application Load Balancer\n        vpc = cdk.aws_ec2.Vpc(self, \"VPC\")\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"ALB\", vpc=vpc, internet_facing=True\n        )\n\n        # Create a Web ACL\n        web_acl = wafv2.CfnWebACL(\n            self, \"WebACL\",\n            default_action=wafv2.CfnWebACL.DefaultActionProperty(\n                allow={}\n            ),\n            scope=\"REGIONAL\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"WebACL\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Create managed rule sets\n        aws_managed_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"AWSManagedRules\",\n            priority=1,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesCommonRuleSet\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"AWSManagedRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        ip_reputation_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"IPReputationRules\",\n            priority=2,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesAmazonIpReputationList\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"IPReputationRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Add managed rule sets to the Web ACL\n        web_acl.add_property_override(\n            \"Rules\", [aws_managed_rules, ip_reputation_rules]\n        )\n\n        # Associate the Web ACL with the Application Load Balancer\n        wafv2.CfnWebACLAssociation(\n            self, \"WebACLAssociation\",\n            resource_arn=alb.load_balancer_arn,\n            web_acl_arn=web_acl.attr_arn,\n        )",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_wafv2 as wafv2,\n    aws_elasticloadbalancingv2 as elbv2,\n)\n\nclass WafAclStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        # Create an Application Load Balancer\n        vpc = cdk.aws_ec2.Vpc(self, \"VPC\")\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"ALB\", vpc=vpc, internet_facing=True\n        )\n\n        # Create a Web ACL\n        web_acl = wafv2.CfnWebACL(\n            self, \"WebACL\",\n            default_action=wafv2.CfnWebACL.DefaultActionProperty(\n                allow={}\n            ),\n            scope=\"REGIONAL\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"WebACL\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Create managed rule sets\n        aws_managed_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"AWSManagedRules\",\n            priority=1,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesCommonRuleSet\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"AWSManagedRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        ip_reputation_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"IPReputationRules\",\n            priority=2,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesAmazonIpReputationList\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"IPReputationRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Add managed rule sets to the Web ACL\n        web_acl.add_property_override(\n            \"Rules\", [aws_managed_rules, ip_reputation_rules]\n        )\n\n        # Associate the Web ACL with the Application Load Balancer\n        wafv2.CfnWebACLAssociation(\n            self, \"WebACLAssociation\",\n            resource_arn=alb.load_balancer_arn,\n            web_acl_arn=web_acl.attr_arn,\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_wafv2 as wafv2,\n    aws_elasticloadbalancingv2 as elbv2,\n)\n\nclass WafAclStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        # Create an Application Load Balancer\n        vpc = cdk.aws_ec2.Vpc(self, \"VPC\")\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"ALB\", vpc=vpc, internet_facing=True\n        )\n\n        # Create a Web ACL\n        web_acl = wafv2.CfnWebACL(\n            self, \"WebACL\",\n            default_action=wafv2.CfnWebACL.DefaultActionProperty(\n                allow={}\n            ),\n            scope=\"REGIONAL\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"WebACL\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Create managed rule sets\n        aws_managed_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"AWSManagedRules\",\n            priority=1,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesCommonRuleSet\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"AWSManagedRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        ip_reputation_rules = wafv2.CfnWebACL.RuleProperty(\n            name=\"IPReputationRules\",\n            priority=2,\n            override_action=wafv2.CfnWebACL.OverrideActionProperty(\n                none={}\n            ),\n            rule_id=\"AWSManagedRulesAmazonIpReputationList\",\n            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(\n                cloud_watch_metrics_enabled=True,\n                metric_name=\"IPReputationRules\",\n                sampled_requests_enabled=True,\n            ),\n        )\n\n        # Add managed rule sets to the Web ACL\n        web_acl.add_property_override(\n            \"Rules\", [aws_managed_rules, ip_reputation_rules]\n        )\n\n        # Associate the Web ACL with the Application Load Balancer\n        wafv2.CfnWebACLAssociation(\n            self, \"WebACLAssociation\",\n            resource_arn=alb.load_balancer_arn,\n            web_acl_arn=web_acl.attr_arn,\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723668,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 157,
+      "output_tokens": 538,
+      "raw_input_tokens": 157
+    }
+  },
+  "started_at": "2026-05-25T15:41:06.074033+00:00",
+  "elapsed_seconds": 2.127
+}

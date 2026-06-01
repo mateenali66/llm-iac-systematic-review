@@ -1,0 +1,310 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 97,
+	"files_parsed": 2,
+	"lines_parsed": 97,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 6,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 10,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:36:15.555049967Z",
+	"end": "2026-05-26T05:36:17.076439176Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "12f6c09a8014cc1a6d9337daf82bea6fffd5c294f7d117bd12474b3942c02116",
+					"line": 25,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.securityContext.runAsUser=1000",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.securityContext.runAsUser is set to a low UID"
+				}
+			]
+		},
+		{
+			"query_name": "Seccomp Profile Is Not Configured",
+			"query_id": "f377b83e-bd07-4f48-a591-60c82b14a78b",
+			"query_url": "https://kubernetes.io/docs/tutorials/security/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should be configured with a secure Seccomp profile to restrict potentially dangerous syscalls",
+			"description_id": "d943c7e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "48a418a53f7f4f5a51c3a536a65d58ed482627028a13e37d1decaa304597b683",
+					"line": 38,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.securityContext",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.securityContext.seccompProfile.type should be defined",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.securityContext.seccompProfile.type is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a25aef7139f1ec9108b956c44b17f147ad8c0f92c96de3da7b67cd246d1b28b5",
+					"line": 21,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{CronJob}}.metadata.name={{db-backup}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CronJob Deadline Not Configured",
+			"query_id": "192fe40b-b1c3-448a-aba2-6cc19a300fe3",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Cronjobs must have a configured deadline, which means the attribute 'startingDeadlineSeconds' must be defined",
+			"description_id": "285952e5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1ea5cc0a5f5f4162b6892962cceec332295f6bb359c765a95bb4e346a1115062",
+					"line": 7,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.startingDeadlineSeconds should be defined",
+					"actual_value": "spec.startingDeadlineSeconds is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "659e6e318136d692c25239db1728ef2795cb7045080fb9f21d8501c5df7c97df",
+					"line": 30,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "29af1664b76b9cd3dffc948287c615862fe0030fcb7587d2fc1fccdeba5e3cdb",
+					"line": 29,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.spec.containers.name={{backup}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bb3449f9e38f4ab01930b53d73037794769479e167fa070ad72b1cf01b821c5f",
+					"line": 18,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.metadata.annotations should specify an AppArmor profile for container {{backup}}",
+					"actual_value": "metadata.name={{db-backup}}.spec.jobTemplate.spec.template.metadata.annotations does not specify an AppArmor profile for container {{backup}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2855e1e5fa2bdfffa22cffc4b2d7e25cd141c5353d269d6ba26178231c87adea",
+					"line": 4,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{db-backup}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "189c6576d81ea1ee1a4779891711f653dddf1eeef0a5f6ce0925cadab28c01f5",
+					"line": 4,
+					"resource_type": "CronJob",
+					"resource_name": "db-backup",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{db-backup}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{db-backup}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{db-backup}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

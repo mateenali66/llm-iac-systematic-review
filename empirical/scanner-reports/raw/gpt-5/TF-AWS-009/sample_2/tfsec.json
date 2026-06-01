@@ -1,0 +1,49 @@
+{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0104",
+			"long_id": "aws-ec2-no-public-egress-sgr",
+			"rule_description": "An egress security group rule allows traffic to /0.",
+			"rule_provider": "aws",
+			"rule_service": "ec2",
+			"impact": "Your port is egressing data to the internet",
+			"resolution": "Set a more restrictive cidr range",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/ec2/no-public-egress-sgr/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group"
+			],
+			"description": "Security group rule allows egress to multiple public internet addresses.",
+			"severity": "CRITICAL",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_security_group_rule.egress_all",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 235,
+				"end_line": 235
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0176",
+			"long_id": "aws-rds-enable-iam-auth",
+			"rule_description": "RDS IAM Database Authentication Disabled",
+			"rule_provider": "aws",
+			"rule_service": "rds",
+			"impact": "",
+			"resolution": "Modify the PostgreSQL and MySQL type RDS instances to enable IAM database authentication.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/rds/enable-iam-auth/"
+			],
+			"description": "Instance does not have IAM Authentication enabled",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_db_instance.this.iam_database_authentication_enabled",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 322,
+				"end_line": 322
+			}
+		}
+	]
+}

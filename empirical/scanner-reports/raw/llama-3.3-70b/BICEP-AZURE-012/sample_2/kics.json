@@ -1,0 +1,291 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 64,
+	"files_parsed": 1,
+	"lines_parsed": 64,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 5,
+		"MEDIUM": 6,
+		"TRACE": 0
+	},
+	"total_counter": 12,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:04:36.298611053Z",
+	"end": "2026-05-26T06:04:37.062637012Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "f2d348473205c359c85868d9e04c4630d546f6aec9f66bf3c8679dd4b946e93b",
+					"line": 14,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[parameters('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('storageAccountName')].properties.publicNetworkAccess",
+					"search_line": 14,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess is not set (default is 'Enabled')"
+				}
+			]
+		},
+		{
+			"query_name": "Web App Not Using TLS Last Version",
+			"query_id": "b5c851d5-00f1-43dc-a8de-3218fd6f71be",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteconfig-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "327",
+			"cloud_provider": "AZURE",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Resources of type 'Microsoft.Web/sites' should define 'properties.siteConfig.minTlsVersion' with '1.2'",
+			"description_id": "1a442064",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "7b422e7d3c7c823055aa6f4aeb9cd113abe47df04817fbb7d0e584360b3bce35",
+					"line": 23,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('functionAppName')]",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "c17e465a15aee5af5d76c714efc98fafce1b08738357d40e4ea3e8ef9feb699b",
+					"line": 48,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('functionAppName')]",
+					"search_line": 48,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Not Forcing HTTPS",
+			"query_id": "488847ff-6031-487c-bf42-98fd6ac5c9a0",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should force the use of HTTPS",
+			"description_id": "3af52329",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "153a64fa90558775e45878cd76da8f3e2a77c96f4a892b330b21cfad26a24c7f",
+					"line": 25,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties",
+					"search_line": 25,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'httpsOnly' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'httpsOnly' property defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "ec3a8aec9cb8613015e76959b2dea20b8ac8a499f3b168c9207dbda7fe67a585",
+					"line": 50,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties",
+					"search_line": 50,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'httpsOnly' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'httpsOnly' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "83ce84736ef532bd69f90037f1e65cc69ecbbb12b9a04f5440c0c615138d3bd3",
+					"line": 25,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties",
+					"search_line": 25,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "56dca08caeac65cb03bb9dcb3cadc065aa4837bed07bb106e4cd70604d953a71",
+					"line": 50,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties",
+					"search_line": 50,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "6b9a8d23b73168a56e38773f332ea966a75282bcf07e127462ce11262b1d386d",
+					"line": 14,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[parameters('storageAccountName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('storageAccountName')].properties",
+					"search_line": 14,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' should have the 'properties.networkAcls.defaultAction' defined",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' doesn't have 'properties.networkAcls.defaultAction' defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website Azure Active Directory Disabled",
+			"query_id": "e9c133e5-c2dd-4b7b-8fff-40f2de367b56",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/2019-08-01/sites?tabs=json#ManagedServiceIdentity",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "WebApp should have Azure Active Directory enabled with 'identity.type' set to 'SystemAssigned' or 'userAssignedIdentities' set to 'true'",
+			"description_id": "f50ec4cb",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "401665ef342cd72ee2e38efc1f6453233a6a87f948eebbc17f22d711bb0f2f57",
+					"line": 23,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'identity' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'identity' property defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "f39ffa8a2ef97da58d6f36ef82a673dfa9d95aaafd32ddf27c661148cae2dd5f",
+					"line": 48,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}",
+					"search_line": 48,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'identity' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'identity' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with 'Http20Enabled' Disabled",
+			"query_id": "70111098-7f85-48f0-b1b4-e4261cf5f61b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "757",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have 'Http20Enabled' enabled",
+			"description_id": "e0cdbc75",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "6cc142e419e3028326ef529b864fdf60fc929daac60f139f6c71de03239cd03d",
+					"line": 25,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties.siteConfig",
+					"search_line": 25,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'http20Enabled' property defined in siteConfig",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'http20Enabled' property defined in siteConfig"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "7a4e7706bb1857418976067af65280d9c563a840ace655b50f801f4f577efe64",
+					"line": 50,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('functionAppName')]}}.properties",
+					"search_line": 50,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'siteConfig' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'siteConfig' property defined"
+				}
+			]
+		}
+	]
+}

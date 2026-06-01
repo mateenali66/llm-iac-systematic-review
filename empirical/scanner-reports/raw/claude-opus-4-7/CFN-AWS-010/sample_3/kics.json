@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 211,
+	"files_parsed": 2,
+	"lines_parsed": 211,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 3,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T03:52:05.236706384Z",
+	"end": "2026-05-26T03:52:10.150265387Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 24,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Function Without Dead Letter Queue",
+			"query_id": "c2eae442-d3ba-4cb1-84ca-1db4f80eae3d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-deadletterconfig",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "390",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "AWS Lambda Function should be configured for a Dead Letter Queue(DLQ)",
+			"description_id": "d5d9d047",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e074db2bc855677f80b5c0bae7af656f15ae313488c8bb116a312c14ea0d5024",
+					"line": 106,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "FunctionName",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.OrderProcessorFunction.Properties",
+					"search_line": 106,
+					"search_value": "",
+					"expected_value": "'Resources.OrderProcessorFunction.Properties.DeadLetterConfig' should be defined and not null",
+					"actual_value": "'Resources.OrderProcessorFunction.Properties.DeadLetterConfig' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Function Without Tags",
+			"query_id": "8df8e857-bd59-44fa-9f4c-d77594b95b46",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "AWS Lambda Functions must have associated tags.",
+			"description_id": "664675e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3d6bad18a11200f09821712c10fdfd6054ebcac17fbf184d325cbb35ac36d7dd",
+					"line": 106,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "FunctionName",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.OrderProcessorFunction.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.OrderProcessorFunction.Properties.Tags' should be defined",
+					"actual_value": "'Resources.OrderProcessorFunction.Properties.Tags' is undefined"
+				}
+			]
+		}
+	]
+}

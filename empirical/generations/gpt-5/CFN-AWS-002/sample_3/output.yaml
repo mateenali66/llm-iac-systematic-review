@@ -1,0 +1,528 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: EC2 Auto Scaling Group behind an Application Load Balancer with secure networking for a public web application.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: prod
+    Description: Environment name for tagging and resource naming.
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC.
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.0.0/24
+    Description: CIDR block for the public subnet in AZ1.
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: CIDR block for the public subnet in AZ2.
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.0.10.0/24
+    Description: CIDR block for the private subnet in AZ1.
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.0.11.0/24
+    Description: CIDR block for the private subnet in AZ2.
+  AllowedIngressCidr:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: CIDR allowed to access the load balancer (HTTP/HTTPS).
+  ACMCertificateArn:
+    Type: String
+    Description: ACM Certificate ARN for HTTPS on the Application Load Balancer (must be in the same region).
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedPattern: '^[a-zA-Z0-9.]+$'
+    Description: EC2 instance type for application instances.
+  DesiredCapacity:
+    Type: Number
+    Default: 2
+    MinValue: 1
+    Description: Desired number of instances in the Auto Scaling Group.
+  MinSize:
+    Type: Number
+    Default: 2
+    MinValue: 1
+    Description: Minimum number of instances in the Auto Scaling Group.
+  MaxSize:
+    Type: Number
+    Default: 4
+    MinValue: 1
+    Description: Maximum number of instances in the Auto Scaling Group.
+  HealthCheckPath:
+    Type: String
+    Default: /health
+    Description: Health check path for target group.
+
+Mappings: {}
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-igw
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnetAz1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicSubnetAz2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PrivateSubnetAz1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PrivateSubnetAz2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-rt
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetAz1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetAz1
+
+  PublicSubnetAz2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnetAz2
+
+  NatEipAz1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-eip-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatEipAz2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-eip-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatGatewayAz1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipAz1.AllocationId
+      SubnetId: !Ref PublicSubnetAz1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-natgw-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatGatewayAz2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipAz2.AllocationId
+      SubnetId: !Ref PublicSubnetAz2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-natgw-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PrivateRouteTableAz1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rt-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PrivateRouteTableAz2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-private-rt-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PrivateRouteAz1Default:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableAz1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayAz1
+
+  PrivateRouteAz2Default:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableAz2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayAz2
+
+  PrivateSubnetAz1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableAz1
+      SubnetId: !Ref PrivateSubnetAz1
+
+  PrivateSubnetAz2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTableAz2
+      SubnetId: !Ref PrivateSubnetAz2
+
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Application Load Balancer
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref AllowedIngressCidr
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref AllowedIngressCidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-alb-sg
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for application instances
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-sg
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Path: /
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-ec2-role
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  Ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref Ec2InstanceRole
+      InstanceProfileName: !Sub ${EnvironmentName}-ec2-instance-profile
+
+  AmiIdParam:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub ${EnvironmentName}-app-lt
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt Ec2InstanceProfile.Arn
+        ImageId: !Ref AmiIdParam
+        InstanceType: !Ref InstanceType
+        MetadataOptions:
+          HttpEndpoint: enabled
+          HttpTokens: required
+          HttpPutResponseHopLimit: 2
+        SecurityGroupIds:
+          - !Ref InstanceSecurityGroup
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              Encrypted: true
+              DeleteOnTermination: true
+              VolumeSize: 10
+              VolumeType: gp3
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Sub ${EnvironmentName}-app
+              - Key: Environment
+                Value: !Ref EnvironmentName
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: !Sub ${EnvironmentName}-app-volume
+              - Key: Environment
+                Value: !Ref EnvironmentName
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            dnf update -y
+            dnf install -y nginx
+            systemctl enable nginx
+            cat >/usr/share/nginx/html/index.html << 'EOF'
+            <!doctype html>
+            <html>
+              <head>
+                <meta charset="utf-8">
+                <title>${EnvironmentName} Web App</title>
+              </head>
+              <body>
+                <h1>${EnvironmentName} - EC2 Auto Scaling behind ALB</h1>
+                <p>Instance ID: $(curl -s http://169.254.169.254/latest/meta-data/instance-id)</p>
+              </body>
+            </html>
+            EOF
+            mkdir -p /usr/share/nginx/html
+            echo "ok" > /usr/share/nginx/html/health
+            # Harden nginx server tokens
+            if ! grep -q "server_tokens off;" /etc/nginx/nginx.conf; then
+              sed -i '/http {/a \    server_tokens off;' /etc/nginx/nginx.conf
+            fi
+            systemctl restart nginx
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}-tg
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      VpcId: !Ref VPC
+      HealthCheckEnabled: true
+      HealthCheckPath: !Ref HealthCheckPath
+      HealthCheckPort: traffic-port
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200-399
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '60'
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-tg
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}-alb
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - !Ref PublicSubnetAz1
+        - !Ref PublicSubnetAz2
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      IpAddressType: ipv4
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-alb
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref ACMCertificateArn
+      SslPolicy: ELBSecurityPolicy-TLS13-1-2-2021-06
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: '443'
+            Host: '#{host}'
+            Path: '/#{path}'
+            Query: '#{query}'
+            StatusCode: HTTP_301
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub ${EnvironmentName}-app-asg
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetAz1
+        - !Ref PrivateSubnetAz2
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      TargetGroupARNs:
+        - !Ref TargetGroup
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app
+          PropagateAtLaunch: true
+        - Key: Environment
+          Value: !Ref EnvironmentName
+          PropagateAtLaunch: true
+
+  CpuTargetTrackingScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50
+        DisableScaleIn: false
+
+Outputs:
+  VPCId:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${EnvironmentName}-vpc-id
+  PublicSubnets:
+    Description: Public subnet IDs
+    Value: !Join [",", [!Ref PublicSubnetAz1, !Ref PublicSubnetAz2]]
+  PrivateSubnets:
+    Description: Private subnet IDs
+    Value: !Join [",", [!Ref PrivateSubnetAz1, !Ref PrivateSubnetAz2]]
+  LoadBalancerDNSName:
+    Description: DNS name of the Application Load Balancer
+    Value: !GetAtt LoadBalancer.DNSName
+    Export:
+      Name: !Sub ${EnvironmentName}-alb-dns
+  AutoScalingGroupName:
+    Description: Name of the Auto Scaling Group
+    Value: !Ref AutoScalingGroup
+  TargetGroupArn:
+    Description: Target Group ARN
+    Value: !Ref TargetGroup

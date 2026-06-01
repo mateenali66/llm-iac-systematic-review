@@ -1,0 +1,198 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A production-ready Helm chart for deploying Redis as a cache
+type: application
+version: 0.1.0
+appVersion: "7.2.4"
+keywords:
+  - redis
+  - cache
+  - key-value
+  - database
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+home: https://redis.io
+sources:
+  - https://github.com/redis/redis
+---
+# FILE: values.yaml
+replicaCount: 1
+
+image:
+  repository: redis
+  tag: "7.2.4-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+auth:
+  enabled: true
+  # If password is empty, a random 32-char password will be generated on install.
+  password: ""
+  # Use an existing secret instead of creating one. Must contain key 'redis-password'.
+  existingSecret: ""
+
+service:
+  port: 6379
+  annotations: {}
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+redis:
+  maxmemory: "256mb"
+  maxmemoryPolicy: "allkeys-lru"
+  # Additional redis.conf directives (raw strings, one per line)
+  extraConfig: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  fsGroup: 999
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+networkPolicy:
+  enabled: false
+  ingressNamespaceSelector: {}
+  ingressPodSelector: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+updateStrategy:
+  type: RollingUpdate
+
+terminationGracePeriodSeconds: 30
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "redis-cache.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "redis-cache.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Chart name and version label.
+*/}}
+{{- define "redis-cache.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels.
+*/}}
+{{- define "redis-cache.labels" -}}
+helm.sh/chart: {{ include "redis-cache.chart" . }}
+{{ include "redis-cache.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: cache
+{{- end -}}
+
+{{/*
+Selector labels.
+*/}}
+{{- define "redis-cache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Service account name.
+*/}}
+{{- define "redis-cache.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "redis-cache.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Headless service name.
+*/}}
+{{- define "redis-cache.headlessServiceName" -}}
+{{- printf "%s-headless" (include "redis-cache.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Secret name.
+*/}}
+{{- define "redis-cache.secretName" -}}
+{{- if .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecret -}}
+{{- else -}}
+{{- include "redis-cache.fullname" . -}}
+{{- end -}}
+{

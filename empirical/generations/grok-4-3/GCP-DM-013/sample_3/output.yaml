@@ -1,0 +1,22 @@
+resources:
+- name: redis-cache
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    parent: projects/{{ env["project"] }}/locations/us-central1-a
+    instanceId: app-cache-redis
+    tier: BASIC
+    memorySizeGb: 1
+    redisVersion: REDIS_6_X
+    authEnabled: true
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    authorizedNetwork: projects/{{ env["project"] }}/global/networks/default
+    displayName: app-cache-redis
+    labels:
+      environment: production
+      purpose: caching
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+      - day: SUNDAY
+        startTime:
+          hours: 4
+          minutes: 0

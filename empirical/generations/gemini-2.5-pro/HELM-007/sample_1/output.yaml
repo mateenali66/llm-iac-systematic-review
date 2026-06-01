@@ -1,0 +1,39 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: my-stateful-app
+description: A Helm chart for a stateful application with database migrations
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Default values for my-stateful-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 3
+
+image:
+  repository: my-app-image
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart's appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1001

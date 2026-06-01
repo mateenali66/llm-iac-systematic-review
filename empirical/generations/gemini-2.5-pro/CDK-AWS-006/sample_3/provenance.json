@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-006",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    CfnParameter,\n    CfnOutput,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaRoleStack(Stack):\n    \"\"\"\n    Defines an IAM role for cross-account access, allowing a partner AWS account\n    to invoke specific Lambda functions.\n    \"\"\"\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(self, \"PartnerAccountId\",\n            type=\"String\",\n            description=\"The AWS Account ID of the partner that will assume this role.\",\n            min_length=12,\n            max_length=12,\n            allowed_pattern=r\"^\\d{12}$\",\n            constraint_description=\"Partner Account ID must be a 12-digit number.\"\n        )\n\n        target_lambda_arns_param = CfnParameter(self, \"TargetLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-separated list of Lambda function ARNs that the partner can invoke.\"\n        )\n\n        cross_account_role = iam.Role(self, \"PartnerLambdaInvokeRole\",\n            role_name=\"PartnerLambdaInvokeRole\",\n            description=\"Role for partner account to invoke specific Lambda functions\",\n            assumed_by=iam.AccountPrincipal(partner_account_id.value_as_string),\n            max_session_duration=cdk.Duration.hours(1)\n        )\n\n        invoke_lambda_policy = iam.Policy(self, \"LambdaInvokePolicy\",\n            policy_name=\"PartnerLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\"lambda:InvokeFunction\"],\n                    resources=target_lambda_arns_param.value_as_list\n                )\n            ]\n        )\n\n        cross_account_role.attach_inline_policy(invoke_lambda_policy)\n\n        CfnOutput(self, \"CrossAccountRoleArnOutput\",\n            value=cross_account_role.role_arn,\n            description=\"The ARN of the IAM role for the partner to assume.\",\n            export_name=f\"{self.stack_name}-CrossAccountRoleArn\"\n        )",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    CfnParameter,\n    CfnOutput,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaRoleStack(Stack):\n    \"\"\"\n    Defines an IAM role for cross-account access, allowing a partner AWS account\n    to invoke specific Lambda functions.\n    \"\"\"\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(self, \"PartnerAccountId\",\n            type=\"String\",\n            description=\"The AWS Account ID of the partner that will assume this role.\",\n            min_length=12,\n            max_length=12,\n            allowed_pattern=r\"^\\d{12}$\",\n            constraint_description=\"Partner Account ID must be a 12-digit number.\"\n        )\n\n        target_lambda_arns_param = CfnParameter(self, \"TargetLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-separated list of Lambda function ARNs that the partner can invoke.\"\n        )\n\n        cross_account_role = iam.Role(self, \"PartnerLambdaInvokeRole\",\n            role_name=\"PartnerLambdaInvokeRole\",\n            description=\"Role for partner account to invoke specific Lambda functions\",\n            assumed_by=iam.AccountPrincipal(partner_account_id.value_as_string),\n            max_session_duration=cdk.Duration.hours(1)\n        )\n\n        invoke_lambda_policy = iam.Policy(self, \"LambdaInvokePolicy\",\n            policy_name=\"PartnerLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\"lambda:InvokeFunction\"],\n                    resources=target_lambda_arns_param.value_as_list\n                )\n            ]\n        )\n\n        cross_account_role.attach_inline_policy(invoke_lambda_policy)\n\n        CfnOutput(self, \"CrossAccountRoleArnOutput\",\n            value=cross_account_role.role_arn,\n            description=\"The ARN of the IAM role for the partner to assume.\",\n            export_name=f\"{self.stack_name}-CrossAccountRoleArn\"\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    CfnParameter,\n    CfnOutput,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaRoleStack(Stack):\n    \"\"\"\n    Defines an IAM role for cross-account access, allowing a partner AWS account\n    to invoke specific Lambda functions.\n    \"\"\"\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        partner_account_id = CfnParameter(self, \"PartnerAccountId\",\n            type=\"String\",\n            description=\"The AWS Account ID of the partner that will assume this role.\",\n            min_length=12,\n            max_length=12,\n            allowed_pattern=r\"^\\d{12}$\",\n            constraint_description=\"Partner Account ID must be a 12-digit number.\"\n        )\n\n        target_lambda_arns_param = CfnParameter(self, \"TargetLambdaArns\",\n            type=\"CommaDelimitedList\",\n            description=\"Comma-separated list of Lambda function ARNs that the partner can invoke.\"\n        )\n\n        cross_account_role = iam.Role(self, \"PartnerLambdaInvokeRole\",\n            role_name=\"PartnerLambdaInvokeRole\",\n            description=\"Role for partner account to invoke specific Lambda functions\",\n            assumed_by=iam.AccountPrincipal(partner_account_id.value_as_string),\n            max_session_duration=cdk.Duration.hours(1)\n        )\n\n        invoke_lambda_policy = iam.Policy(self, \"LambdaInvokePolicy\",\n            policy_name=\"PartnerLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\"lambda:InvokeFunction\"],\n                    resources=target_lambda_arns_param.value_as_list\n                )\n            ]\n        )\n\n        cross_account_role.attach_inline_policy(invoke_lambda_policy)\n\n        CfnOutput(self, \"CrossAccountRoleArnOutput\",\n            value=cross_account_role.role_arn,\n            description=\"The ARN of the IAM role for the partner to assume.\",\n            export_name=f\"{self.stack_name}-CrossAccountRoleArn\"\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779725827,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 122,
+      "output_tokens": 1685,
+      "raw_input_tokens": 122
+    }
+  },
+  "started_at": "2026-05-25T16:16:52.521033+00:00",
+  "elapsed_seconds": 15.126
+}

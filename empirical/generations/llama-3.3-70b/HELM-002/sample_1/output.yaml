@@ -1,0 +1,110 @@
+# FILE: Chart.yaml
+name: redis-cache
+version: 1.0.0
+description: A Helm chart for deploying a Redis cache
+type: application
+appVersion: 6.2.6
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: redis
+  tag: 6.2.6
+  pullPolicy: IfNotPresent
+service:
+  port: 6379
+persistentVolumeClaim:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+secret:
+  password: changeme
+
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "redis-cache.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis-cache.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: redis
+          containerPort: {{ .Values.service.port }}
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "redis-cache.fullname" . }}
+              key: password
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "redis-cache.fullname" . }}-pvc
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+spec:
+  clusterIP: None
+  ports:
+  - name: redis
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+  selector:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+
+---
+# FILE: templates/persistentvolumeclaim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis-cache.fullname" . }}-pvc
+spec:
+  accessModes:
+    {{- toYaml .Values.persistentVolumeClaim.accessModes | trim | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolumeClaim.resources.requests.storage }}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+type: Opaque
+data:
+  password: {{ .Values.secret.password | b64enc }}
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "redis-cache.fullname" -}}
+{{- printf "%s-%s" .Chart.Name .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "redis-cache.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

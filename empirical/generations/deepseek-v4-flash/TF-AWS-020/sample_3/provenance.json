@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "TF-AWS-020",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Organizations service control policy (SCP) that denies the creation of IAM users (only roles allowed) across all member accounts in an organizational unit.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"DenyIAMUserCreation\"\n  description = \"Denies creation of IAM users across all accounts in the OU. Only roles are allowed.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid      = \"DenyIAMUserCreation\"\n        Effect   = \"Deny\"\n        Action   = \"iam:CreateUser\"\n        Resource = \"*\"\n      },\n      {\n        Sid      = \"DenyIAMUserModification\"\n        Effect   = \"Deny\"\n        Action   = [\n          \"iam:UpdateUser\",\n          \"iam:DeleteUser\",\n          \"iam:CreateLoginProfile\",\n          \"iam:UpdateLoginProfile\",\n          \"iam:DeleteLoginProfile\",\n          \"iam:ChangePassword\",\n          \"iam:CreateAccessKey\",\n          \"iam:UpdateAccessKey\",\n          \"iam:DeleteAccessKey\",\n          \"iam:CreateServiceSpecificCredential\",\n          \"iam:UpdateServiceSpecificCredential\",\n          \"iam:DeleteServiceSpecificCredential\",\n          \"iam:UploadSigningCertificate\",\n          \"iam:UpdateSigningCertificate\",\n          \"iam:DeleteSigningCertificate\",\n          \"iam:UploadSSHPublicKey\",\n          \"iam:UpdateSSHPublicKey\",\n          \"iam:DeleteSSHPublicKey\",\n          \"iam:AttachUserPolicy\",\n          \"iam:DetachUserPolicy\",\n          \"iam:PutUserPolicy\",\n          \"iam:DeleteUserPolicy\",\n          \"iam:AddUserToGroup\",\n          \"iam:RemoveUserFromGroup\",\n          \"iam:CreateVirtualMFADevice\",\n          \"iam:EnableMFADevice\",\n          \"iam:ResyncMFADevice\",\n          \"iam:DeactivateMFADevice\",\n          \"iam:DeleteVirtualMFADevice\"\n        ]\n        Resource = \"arn:aws:iam::*:user/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_organizations_policy_attachment\" \"attach_to_ou\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.organizational_unit_id\n}\n\nvariable \"organizational_unit_id\" {\n  description = \"The ID of the organizational unit to attach the SCP to.\"\n  type        = string\n}",
+  "cleaned_response": "resource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"DenyIAMUserCreation\"\n  description = \"Denies creation of IAM users across all accounts in the OU. Only roles are allowed.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid      = \"DenyIAMUserCreation\"\n        Effect   = \"Deny\"\n        Action   = \"iam:CreateUser\"\n        Resource = \"*\"\n      },\n      {\n        Sid      = \"DenyIAMUserModification\"\n        Effect   = \"Deny\"\n        Action   = [\n          \"iam:UpdateUser\",\n          \"iam:DeleteUser\",\n          \"iam:CreateLoginProfile\",\n          \"iam:UpdateLoginProfile\",\n          \"iam:DeleteLoginProfile\",\n          \"iam:ChangePassword\",\n          \"iam:CreateAccessKey\",\n          \"iam:UpdateAccessKey\",\n          \"iam:DeleteAccessKey\",\n          \"iam:CreateServiceSpecificCredential\",\n          \"iam:UpdateServiceSpecificCredential\",\n          \"iam:DeleteServiceSpecificCredential\",\n          \"iam:UploadSigningCertificate\",\n          \"iam:UpdateSigningCertificate\",\n          \"iam:DeleteSigningCertificate\",\n          \"iam:UploadSSHPublicKey\",\n          \"iam:UpdateSSHPublicKey\",\n          \"iam:DeleteSSHPublicKey\",\n          \"iam:AttachUserPolicy\",\n          \"iam:DetachUserPolicy\",\n          \"iam:PutUserPolicy\",\n          \"iam:DeleteUserPolicy\",\n          \"iam:AddUserToGroup\",\n          \"iam:RemoveUserFromGroup\",\n          \"iam:CreateVirtualMFADevice\",\n          \"iam:EnableMFADevice\",\n          \"iam:ResyncMFADevice\",\n          \"iam:DeactivateMFADevice\",\n          \"iam:DeleteVirtualMFADevice\"\n        ]\n        Resource = \"arn:aws:iam::*:user/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_organizations_policy_attachment\" \"attach_to_ou\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.organizational_unit_id\n}\n\nvariable \"organizational_unit_id\" {\n  description = \"The ID of the organizational unit to attach the SCP to.\"\n  type        = string\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_organizations_policy\" \"deny_iam_user_creation\" {\n  name        = \"DenyIAMUserCreation\"\n  description = \"Denies creation of IAM users across all accounts in the OU. Only roles are allowed.\"\n  type        = \"SERVICE_CONTROL_POLICY\"\n  content = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid      = \"DenyIAMUserCreation\"\n        Effect   = \"Deny\"\n        Action   = \"iam:CreateUser\"\n        Resource = \"*\"\n      },\n      {\n        Sid      = \"DenyIAMUserModification\"\n        Effect   = \"Deny\"\n        Action   = [\n          \"iam:UpdateUser\",\n          \"iam:DeleteUser\",\n          \"iam:CreateLoginProfile\",\n          \"iam:UpdateLoginProfile\",\n          \"iam:DeleteLoginProfile\",\n          \"iam:ChangePassword\",\n          \"iam:CreateAccessKey\",\n          \"iam:UpdateAccessKey\",\n          \"iam:DeleteAccessKey\",\n          \"iam:CreateServiceSpecificCredential\",\n          \"iam:UpdateServiceSpecificCredential\",\n          \"iam:DeleteServiceSpecificCredential\",\n          \"iam:UploadSigningCertificate\",\n          \"iam:UpdateSigningCertificate\",\n          \"iam:DeleteSigningCertificate\",\n          \"iam:UploadSSHPublicKey\",\n          \"iam:UpdateSSHPublicKey\",\n          \"iam:DeleteSSHPublicKey\",\n          \"iam:AttachUserPolicy\",\n          \"iam:DetachUserPolicy\",\n          \"iam:PutUserPolicy\",\n          \"iam:DeleteUserPolicy\",\n          \"iam:AddUserToGroup\",\n          \"iam:RemoveUserFromGroup\",\n          \"iam:CreateVirtualMFADevice\",\n          \"iam:EnableMFADevice\",\n          \"iam:ResyncMFADevice\",\n          \"iam:DeactivateMFADevice\",\n          \"iam:DeleteVirtualMFADevice\"\n        ]\n        Resource = \"arn:aws:iam::*:user/*\"\n      }\n    ]\n  })\n}\n\nresource \"aws_organizations_policy_attachment\" \"attach_to_ou\" {\n  policy_id = aws_organizations_policy.deny_iam_user_creation.id\n  target_id = var.organizational_unit_id\n}\n\nvariable \"organizational_unit_id\" {\n  description = \"The ID of the organizational unit to attach the SCP to.\"\n  type        = string\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729357,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 75,
+      "output_tokens": 521,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 11
+    }
+  },
+  "started_at": "2026-05-25T17:15:53.496077+00:00",
+  "elapsed_seconds": 4.212
+}

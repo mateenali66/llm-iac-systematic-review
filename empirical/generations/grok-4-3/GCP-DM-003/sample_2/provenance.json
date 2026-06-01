@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-003",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: python-api-cloudrun\n  type: gcp-types/run.googleapis.com:namespaces.services\n  properties:\n    parent: namespaces/{{ env[\"project_number\"] }}\n    apiVersion: serving.knative.dev/v1\n    kind: Service\n    metadata:\n      name: python-api\n      annotations:\n        run.googleapis.com/ingress: all\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: \"1\"\n            autoscaling.knative.dev/maxScale: \"100\"\n            run.googleapis.com/cpu-throttling: \"false\"\n        spec:\n          containerConcurrency: 80\n          serviceAccountName: {{ env[\"project_number\"] }}-compute@developer.gserviceaccount.com\n          containers:\n          - image: us-docker.pkg.dev/{{ env[\"project\"] }}/cloud-run-source-deploy/python-api:3.12-latest\n            ports:\n            - containerPort: 8080\n            resources:\n              limits:\n                cpu: \"2\"\n                memory: 1Gi\n            env:\n            - name: PORT\n              value: \"8080\"\n            - name: PYTHON_VERSION\n              value: \"3.12\"",
+  "cleaned_response": "resources:\n- name: python-api-cloudrun\n  type: gcp-types/run.googleapis.com:namespaces.services\n  properties:\n    parent: namespaces/{{ env[\"project_number\"] }}\n    apiVersion: serving.knative.dev/v1\n    kind: Service\n    metadata:\n      name: python-api\n      annotations:\n        run.googleapis.com/ingress: all\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: \"1\"\n            autoscaling.knative.dev/maxScale: \"100\"\n            run.googleapis.com/cpu-throttling: \"false\"\n        spec:\n          containerConcurrency: 80\n          serviceAccountName: {{ env[\"project_number\"] }}-compute@developer.gserviceaccount.com\n          containers:\n          - image: us-docker.pkg.dev/{{ env[\"project\"] }}/cloud-run-source-deploy/python-api:3.12-latest\n            ports:\n            - containerPort: 8080\n            resources:\n              limits:\n                cpu: \"2\"\n                memory: 1Gi\n            env:\n            - name: PORT\n              value: \"8080\"\n            - name: PYTHON_VERSION\n              value: \"3.12\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: python-api-cloudrun\n  type: gcp-types/run.googleapis.com:namespaces.services\n  properties:\n    parent: namespaces/{{ env[\"project_number\"] }}\n    apiVersion: serving.knative.dev/v1\n    kind: Service\n    metadata:\n      name: python-api\n      annotations:\n        run.googleapis.com/ingress: all\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: \"1\"\n            autoscaling.knative.dev/maxScale: \"100\"\n            run.googleapis.com/cpu-throttling: \"false\"\n        spec:\n          containerConcurrency: 80\n          serviceAccountName: {{ env[\"project_number\"] }}-compute@developer.gserviceaccount.com\n          containers:\n          - image: us-docker.pkg.dev/{{ env[\"project\"] }}/cloud-run-source-deploy/python-api:3.12-latest\n            ports:\n            - containerPort: 8080\n            resources:\n              limits:\n                cpu: \"2\"\n                memory: 1Gi\n            env:\n            - name: PORT\n              value: \"8080\"\n            - name: PYTHON_VERSION\n              value: \"3.12\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724903,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 143,
+      "output_tokens": 243,
+      "reasoning_tokens": 699,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 123
+    }
+  },
+  "started_at": "2026-05-25T16:01:33.999021+00:00",
+  "elapsed_seconds": 9.622
+}

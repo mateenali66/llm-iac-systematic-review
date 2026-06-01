@@ -1,0 +1,195 @@
+imports:
+- path: instance_template.jinja
+- path: mig.jinja
+
+resources:
+
+- name: app-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+
+- name: app-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.app-network.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+
+- name: allow-health-checks
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.app-network.selfLink)
+    direction: INGRESS
+    sourceRanges:
+      - 130.211.0.0/22
+      - 35.191.0.0/16
+    allowed:
+      - IPProtocol: tcp
+        ports: ["80", "443"]
+    targetTags: ["http-server"]
+
+- name: allow-lb-to-backends
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.app-network.selfLink)
+    direction: INGRESS
+    sourceRanges:
+      - 130.211.0.0/22
+      - 35.191.0.0/16
+    allowed:
+      - IPProtocol: tcp
+        ports: ["80"]
+    targetTags: ["http-server"]
+
+- name: app-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: app-mig-sa
+    displayName: Service account for MIG instances
+
+- name: app-instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-medium
+      tags:
+        items:
+          - http-server
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: projects/debian-cloud/global/images/family/debian-12
+            diskSizeGb: 20
+            diskType: pd-balanced
+      networkInterfaces:
+        - network: $(ref.app-network.selfLink)
+          subnetwork: $(ref.app-subnet.selfLink)
+      serviceAccounts:
+        - email: $(ref.app-service-account.email)
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform
+      shieldedInstanceConfig:
+        enableSecureBoot: true
+        enableVtpm: true
+        enableIntegrityMonitoring: true
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              set -euo pipefail
+              apt-get update
+              apt-get install -y nginx
+              systemctl enable --now nginx
+          - key: block-project-ssh-keys
+            value: "true"
+
+- name: app-health-check
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+
+- name: app-mig
+  type: compute.v1.regionInstanceGroupManager
+  properties:
+    region: us-central1
+    baseInstanceName: app-instance
+    instanceTemplate: $(ref.app-instance-template.selfLink)
+    targetSize: 1
+    namedPorts:
+      - name: http
+        port: 80
+    autoHealingPolicies:
+      - healthCheck: $(ref.app-health-check.selfLink)
+        initialDelaySec: 180
+    updatePolicy:
+      type: PROACTIVE
+      minimalAction: REPLACE
+      maxSurge:
+        fixed: 1
+      maxUnavailable:
+        fixed: 0
+
+- name: app-autoscaler
+  type: compute.v1.regionAutoscaler
+  properties:
+    region: us-central1
+    target: $(ref.app-mig.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      coolDownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.6
+
+- name: app-backend-service
+  type: compute.v1.backendService
+  properties:
+    protocol: HTTP
+    portName: http
+    timeoutSec: 30
+    loadBalancingScheme: EXTERNAL_MANAGED
+    healthChecks:
+      - $(ref.app-health-check.selfLink)
+    connectionDraining:
+      drainingTimeoutSec: 60
+    logConfig:
+      enable: true
+      sampleRate: 1.0
+    backends:
+      - group: $(ref.app-mig.instanceGroup)
+        balancingMode: UTILIZATION
+        maxUtilization: 0.8
+        capacityScaler: 1.0
+
+- name: app-url-map
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.app-backend-service.selfLink)
+
+- name: app-ssl-cert
+  type: compute.v1.sslCertificate
+  properties:
+    type: MANAGED
+    managed:
+      domains:
+        - example.com
+
+- name: app-ssl-policy
+  type: compute.v1.sslPolicy
+  properties:
+    profile: MODERN
+    minTlsVersion: TLS_1_2
+
+- name: app-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    urlMap: $(ref.app-url-map.selfLink)
+    sslCertificates:
+      - $(ref.app-ssl-cert.selfLink)
+    sslPolicy: $(ref.app-ssl-policy.selfLink)
+
+- name: app-http-redirect-map
+  type: compute.v1.urlMap
+  properties:
+    defaultUrlRedirect:
+      httpsRedirect: true
+      redirectResponseCode: MOVED_PERMANENTLY_DEFAULT
+      stripQuery: false
+
+- name: app-http-proxy
+  type: compute.v1.targetHttpProxy
+  properties:
+    urlMap: $(ref.app-http-

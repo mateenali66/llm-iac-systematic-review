@@ -1,0 +1,222 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 80,
+	"files_parsed": 1,
+	"lines_parsed": 80,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 7,
+		"LOW": 2,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 9,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:42:41.357646173Z",
+	"end": "2026-05-26T05:43:12.563389466Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 23,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Sensitive Port Is Exposed To Wide Private Network",
+			"query_id": "92fe237e-074c-4262-81a4-2077acb928c1",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for a wide private network in either TCP or UDP protocol",
+			"description_id": "127a32be",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "f997a9fd67901f1b4acebd9a3f06b765ecc314cb5dd8d0aa0c8441d9b545ff3a",
+					"line": 28,
+					"resource_type": "aws_security_group",
+					"resource_name": "elasticache-redis-\u003cunknown-sufix\u003e",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[elasticache_redis].ingress",
+					"search_line": 28,
+					"search_value": "",
+					"expected_value": "Redis (TCP:6379) should not be allowed",
+					"actual_value": "Redis (TCP:6379) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a2cd4832d0f138c3302d66eac97c606f6df958ac11ef5ddb394d2f673760b5a3",
+					"line": 48,
+					"resource_type": "aws_elasticache_subnet_group",
+					"resource_name": "redis-subnet-group",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elasticache_subnet_group[{{redis}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elasticache_subnet_group[{{redis}}].tags should be defined and not null",
+					"actual_value": "aws_elasticache_subnet_group[{{redis}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1f6ac04eefc6351abff7a4ed6f980d274e0c04b3ec9a0b6e3bb87223da8f8ca2",
+					"line": 43,
+					"resource_type": "aws_security_group",
+					"resource_name": "elasticache-redis-\u003cunknown-sufix\u003e",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{elasticache_redis}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{elasticache_redis}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{elasticache_redis}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "68eb4bf3-f9bf-463d-b5cf-e029bb446d2e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#description",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for all rules in AWS Security Group to have a description",
+			"description_id": "cee242dd",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "55d1623912f02d2f9406c2accb2b8d58df9c1a0c30ca9323eb3b44c6729ca5a3",
+					"line": 36,
+					"resource_type": "aws_security_group",
+					"resource_name": "elasticache-redis-\u003cunknown-sufix\u003e",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{elasticache_redis}}].egress",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{elasticache_redis}}].egress description should be defined and not null",
+					"actual_value": "aws_security_group[{{elasticache_redis}}].egress description is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Variable Without Description",
+			"query_id": "2a153952-2544-4687-bcc9-cc8fea814a9b",
+			"query_url": "https://www.terraform.io/docs/language/values/variables.html#input-variable-documentation",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "All variables should contain a valid description.",
+			"description_id": "b44986be",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "87d3aaabfeccb6ce13600fe437450efaa485d7c9a31b51f734896138f984a10b",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "variable.{{aws_region}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'description' should be defined and not null",
+					"actual_value": "'description' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "dfe8b2479e930d9fad7fe43607bb38d7928aea45f53611de9492241425c2dd37",
+					"line": 14,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "variable.{{private_subnet_ids}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'description' should be defined and not null",
+					"actual_value": "'description' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ce383b23748c96dbdb9a7c55e503fe3bda71ef402b7023b95d0d0e6632965a63",
+					"line": 18,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "variable.{{allowed_cidr_blocks}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'description' should be defined and not null",
+					"actual_value": "'description' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "dfbf62ea8f07584ed7ae08155ead4d7fffcde0261a02ddae4904bdb4407db473",
+					"line": 10,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "variable.{{vpc_id}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'description' should be defined and not null",
+					"actual_value": "'description' is undefined or null"
+				}
+			]
+		}
+	]
+}

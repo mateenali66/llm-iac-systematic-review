@@ -1,0 +1,139 @@
+---
+- name: Install and configure PostgreSQL 15 for production
+  hosts: postgres_servers
+  become: true
+  vars:
+    postgresql_version: "15"
+    postgresql_data_dir: "/var/lib/pgsql/{{ postgresql_version }}/data"
+    postgresql_conf_dir: "/var/lib/pgsql/{{ postgresql_version }}/data"
+    postgresql_service: "postgresql-{{ postgresql_version }}"
+    postgresql_port: 5432
+    postgresql_listen_addresses: "*"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "192.168.0.0/16"
+    postgresql_databases:
+      - name: appdb
+        owner: appuser
+        encoding: UTF8
+        lc_collate: en_US.UTF-8
+        lc_ctype: en_US.UTF-8
+    postgresql_users:
+      - name: appuser
+        password: "{{ vault_appuser_password }}"
+        db: appdb
+        priv: "ALL"
+    postgresql_tuning:
+      shared_buffers: "2GB"
+      effective_cache_size: "6GB"
+      maintenance_work_mem: "512MB"
+      work_mem: "32MB"
+      wal_buffers: "16MB"
+      checkpoint_completion_target: "0.9"
+      max_wal_size: "4GB"
+      min_wal_size: "1GB"
+      max_connections: "200"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      default_statistics_target: "100"
+      log_destination: "stderr"
+      logging_collector: "on"
+      log_directory: "log"
+      log_filename: "postgresql-%a.log"
+      log_rotation_age: "1d"
+      log_rotation_size: "0"
+      log_truncate_on_rotation: "on"
+      log_min_duration_statement: "1000"
+      log_line_prefix: "'%m [%p] %q%u@%d '"
+      log_checkpoints: "on"
+      log_connections: "on"
+      log_disconnections: "on"
+      log_lock_waits: "on"
+      log_temp_files: "0"
+      ssl: "on"
+      password_encryption: "scram-sha-256"
+
+  pre_tasks:
+    - name: Ensure required variables are defined
+      assert:
+        that:
+          - vault_appuser_password is defined
+          - vault_appuser_password | length >= 12
+        fail_msg: "vault_appuser_password must be defined and at least 12 characters"
+
+  tasks:
+    - name: Install PostgreSQL repository (RHEL/CentOS)
+      ansible.builtin.dnf:
+        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      when: ansible_os_family == "RedHat"
+
+    - name: Disable built-in PostgreSQL module (RHEL 8+)
+      ansible.builtin.command: dnf -qy module disable postgresql
+      args:
+        creates: /etc/dnf/modules.d/postgresql.module
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution_major_version | int >= 8
+
+    - name: Install PostgreSQL packages (RHEL/CentOS)
+      ansible.builtin.dnf:
+        name:
+          - "postgresql{{ postgresql_version }}-server"
+          - "postgresql{{ postgresql_version }}"
+          - "postgresql{{ postgresql_version }}-contrib"
+          - python3-psycopg2
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install PostgreSQL packages (Debian/Ubuntu)
+      block:
+        - name: Install prerequisites
+          ansible.builtin.apt:
+            name:
+              - curl
+              - ca-certificates
+              - gnupg
+              - lsb-release
+            state: present
+            update_cache: true
+
+        - name: Add PostgreSQL GPG key
+          ansible.builtin.get_url:
+            url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+            dest: /usr/share/keyrings/postgresql.asc
+            mode: '0644'
+
+        - name: Add PostgreSQL apt repository
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+            state: present
+            filename: pgdg
+
+        - name: Install PostgreSQL packages
+          ansible.builtin.apt:
+            name:
+              - "postgresql-{{ postgresql_version }}"
+              - "postgresql-client-{{ postgresql_version }}"
+              - "postgresql-contrib-{{ postgresql_version }}"
+              - python3-psycopg2
+            state: present
+            update_cache: true
+      when: ansible_os_family == "Debian"
+
+    - name: Set Debian/Ubuntu data dir
+      ansible.builtin.set_fact:
+        postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+        postgresql_conf_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+        postgresql_service: "postgresql"
+      when: ansible_os_family == "Debian"
+
+    - name: Check if PostgreSQL is initialized (RHEL)
+      ansible.builtin.stat:
+        path: "{{ postgresql_data_dir }}/PG_VERSION"
+      register: pg_initialized
+      when: ansible_os_family == "RedHat"
+
+    - name: Initialize PostgreSQL database (RHEL)
+      ansible.builtin.command: "/usr/pgsql-{{ postgresql_version }}/bin/postgresql-

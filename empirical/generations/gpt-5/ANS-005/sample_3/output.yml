@@ -1,0 +1,145 @@
+- name: Install and configure Docker Engine
+  hosts: all
+  become: true
+  vars:
+    # Set this to the existing system user you want to add to the docker group
+    docker_user: ""
+
+    apt_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armhf
+      ppc64le: ppc64el
+      s390x: s390x
+
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+  tasks:
+    - name: Assert docker_user is provided
+      ansible.builtin.assert:
+        that:
+          - docker_user is defined
+          - docker_user | length > 0
+        fail_msg: "You must define 'docker_user' (the existing system user to add to the docker group)."
+
+    - name: Check that the specified user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ docker_user }}"
+      register: docker_user_getent
+
+    - name: Assert the specified user exists
+      ansible.builtin.assert:
+        that:
+          - docker_user_getent.ansible_facts.getent_passwd is defined
+          - docker_user in docker_user_getent.ansible_facts.getent_passwd
+        fail_msg: "User '{{ docker_user }}' does not exist on the target system."
+
+    - name: Install Docker on Debian/Ubuntu
+      when: ansible_os_family == "Debian"
+      block:
+        - name: Ensure APT prerequisites are present
+          ansible.builtin.apt:
+            name:
+              - ca-certificates
+              - curl
+              - gnupg
+            state: present
+            update_cache: true
+
+        - name: Ensure apt keyrings directory exists
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: "0755"
+
+        - name: Download Docker APT GPG key (ASCII armored)
+          ansible.builtin.get_url:
+            url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+            dest: /usr/share/keyrings/docker-archive-keyring.asc
+            mode: "0644"
+            force: true
+
+        - name: Convert Docker GPG key to binary format
+          ansible.builtin.command: "gpg --dearmor -o /etc/apt/keyrings/docker.gpg /usr/share/keyrings/docker-archive-keyring.asc"
+          args:
+            creates: /etc/apt/keyrings/docker.gpg
+
+        - name: Ensure permissions on Docker GPG key
+          ansible.builtin.file:
+            path: /etc/apt/keyrings/docker.gpg
+            mode: "0644"
+            state: file
+
+        - name: Determine APT architecture mapping
+          ansible.builtin.set_fact:
+            apt_arch: "{{ apt_arch_map.get(ansible_architecture, ansible_architecture) }}"
+
+        - name: Add Docker APT repository
+          ansible.builtin.apt_repository:
+            repo: "deb [arch={{ apt_arch }} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_lsb.codename | default(ansible_distribution_release | lower) }} stable"
+            filename: docker
+            state: present
+
+        - name: Update APT cache
+          ansible.builtin.apt:
+            update_cache: true
+
+        - name: Install Docker Engine packages (Debian/Ubuntu)
+          ansible.builtin.apt:
+            name: "{{ docker_packages }}"
+            state: present
+
+    - name: Install Docker on RHEL/CentOS/Rocky/Alma/Fedora
+      when: ansible_os_family == "RedHat"
+      block:
+        - name: Ensure DNF/YUM utilities are present
+          ansible.builtin.package:
+            name:
+              - yum-utils
+            state: present
+
+        - name: Set Docker repo variables for RedHat family
+          ansible.builtin.set_fact:
+            docker_repo_os: "{{ 'fedora' if (ansible_distribution | lower) == 'fedora' else 'centos' }}"
+            docker_repo_baseurl: "https://download.docker.com/linux/{{ 'fedora' if (ansible_distribution | lower) == 'fedora' else 'centos' }}/$releasever/$basearch/stable"
+            docker_repo_gpgkey: "https://download.docker.com/linux/{{ 'fedora' if (ansible_distribution | lower) == 'fedora' else 'centos' }}/gpg"
+
+        - name: Configure Docker YUM/DNF repository
+          ansible.builtin.yum_repository:
+            name: docker-ce-stable
+            description: "Docker CE Stable - $basearch"
+            baseurl: "{{ docker_repo_baseurl }}"
+            enabled: true
+            gpgcheck: true
+            gpgkey: "{{ docker_repo_gpgkey }}"
+
+        - name: Install Docker Engine packages (RHEL/CentOS/Rocky/Alma/Fedora)
+          ansible.builtin.package:
+            name: "{{ docker_packages }}"
+            state: present
+            update_cache: true
+
+    - name: Ensure docker group exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+        system: true
+
+    - name: Add specified user to docker group
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: true
+        state: present
+
+    - name: Ensure Docker daemon is enabled and running
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started

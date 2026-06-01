@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-003",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam appName string\nparam appServicePlanName string = '${appName}-plan'\nparam planSkuName string = 'P1v3'\nparam planCapacity int = 1\nparam nodeRuntime string = 'NODE|20-lts'\nparam healthCheckPath string = '/healthz'\nparam tags object = {}\n\nvar skuTierMap = {\n  F1: 'Free'\n  D1: 'Shared'\n  B1: 'Basic'\n  B2: 'Basic'\n  B3: 'Basic'\n  S1: 'Standard'\n  S2: 'Standard'\n  S3: 'Standard'\n  P1v2: 'PremiumV2'\n  P2v2: 'PremiumV2'\n  P3v2: 'PremiumV2'\n  P1v3: 'PremiumV3'\n  P2v3: 'PremiumV3'\n  P3v3: 'PremiumV3'\n  EP1: 'ElasticPremium'\n  EP2: 'ElasticPremium'\n  EP3: 'ElasticPremium'\n}\n\nresource plan 'Microsoft.Web/serverfarms@2023-01-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: planSkuName\n    tier: skuTierMap[planSkuName]\n    size: planSkuName\n    capacity: planCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n  }\n}\n\nresource app 'Microsoft.Web/sites@2023-01-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: nodeRuntime\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      alwaysOn: true\n      http20Enabled: true\n      ftpsState: 'Disabled'\n      healthCheckPath: healthCheckPath\n      use32BitWorkerProcess: false\n      appSettings: [\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '0'\n        }\n      ]\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppId string = app.id\noutput webAppDefaultHostName string = app.properties.defaultHostName",
+  "cleaned_response": "param location string = resourceGroup().location\nparam appName string\nparam appServicePlanName string = '${appName}-plan'\nparam planSkuName string = 'P1v3'\nparam planCapacity int = 1\nparam nodeRuntime string = 'NODE|20-lts'\nparam healthCheckPath string = '/healthz'\nparam tags object = {}\n\nvar skuTierMap = {\n  F1: 'Free'\n  D1: 'Shared'\n  B1: 'Basic'\n  B2: 'Basic'\n  B3: 'Basic'\n  S1: 'Standard'\n  S2: 'Standard'\n  S3: 'Standard'\n  P1v2: 'PremiumV2'\n  P2v2: 'PremiumV2'\n  P3v2: 'PremiumV2'\n  P1v3: 'PremiumV3'\n  P2v3: 'PremiumV3'\n  P3v3: 'PremiumV3'\n  EP1: 'ElasticPremium'\n  EP2: 'ElasticPremium'\n  EP3: 'ElasticPremium'\n}\n\nresource plan 'Microsoft.Web/serverfarms@2023-01-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: planSkuName\n    tier: skuTierMap[planSkuName]\n    size: planSkuName\n    capacity: planCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n  }\n}\n\nresource app 'Microsoft.Web/sites@2023-01-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: nodeRuntime\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      alwaysOn: true\n      http20Enabled: true\n      ftpsState: 'Disabled'\n      healthCheckPath: healthCheckPath\n      use32BitWorkerProcess: false\n      appSettings: [\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '0'\n        }\n      ]\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppId string = app.id\noutput webAppDefaultHostName string = app.properties.defaultHostName",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam appName string\nparam appServicePlanName string = '${appName}-plan'\nparam planSkuName string = 'P1v3'\nparam planCapacity int = 1\nparam nodeRuntime string = 'NODE|20-lts'\nparam healthCheckPath string = '/healthz'\nparam tags object = {}\n\nvar skuTierMap = {\n  F1: 'Free'\n  D1: 'Shared'\n  B1: 'Basic'\n  B2: 'Basic'\n  B3: 'Basic'\n  S1: 'Standard'\n  S2: 'Standard'\n  S3: 'Standard'\n  P1v2: 'PremiumV2'\n  P2v2: 'PremiumV2'\n  P3v2: 'PremiumV2'\n  P1v3: 'PremiumV3'\n  P2v3: 'PremiumV3'\n  P3v3: 'PremiumV3'\n  EP1: 'ElasticPremium'\n  EP2: 'ElasticPremium'\n  EP3: 'ElasticPremium'\n}\n\nresource plan 'Microsoft.Web/serverfarms@2023-01-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: planSkuName\n    tier: skuTierMap[planSkuName]\n    size: planSkuName\n    capacity: planCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n  }\n}\n\nresource app 'Microsoft.Web/sites@2023-01-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: nodeRuntime\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      alwaysOn: true\n      http20Enabled: true\n      ftpsState: 'Disabled'\n      healthCheckPath: healthCheckPath\n      use32BitWorkerProcess: false\n      appSettings: [\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '0'\n        }\n      ]\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppId string = app.id\noutput webAppDefaultHostName string = app.properties.defaultHostName",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779708106,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 125,
+      "output_tokens": 3250,
+      "raw_input_tokens": 125
+    }
+  },
+  "started_at": "2026-05-25T11:21:10.350732+00:00",
+  "elapsed_seconds": 36.452
+}

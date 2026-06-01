@@ -1,0 +1,29 @@
+---
+- name: Install and configure Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure UFW is enabled and allows SSH
+      community.general.ufw:
+        state: enabled
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow HTTP traffic on port 80
+      community.general.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+        comment: 'Allow HTTP traffic for Nginx'
+
+    - name: Ensure nginx service is started and enabled on boot
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: yes

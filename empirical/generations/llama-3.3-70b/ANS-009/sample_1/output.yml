@@ -1,0 +1,64 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+
+  vars:
+    collector_version: "0.34.0"
+    collector_service_name: "opentelemetry-collector"
+    collector_config_file: "/etc/otel/collector.yaml"
+    otlp_port: 4317
+    export_endpoint: "https://your-export-endpoint.com"
+
+  tasks:
+  - name: Install dependencies
+    apt:
+      name:
+        - apt-transport-https
+        - curl
+      state: present
+
+  - name: Add OpenTelemetry Collector repository
+    apt_repository:
+      repo: 'https://packagecloud.io/open-telemetry/opentelemetry-collector/ubuntu/'
+      state: present
+
+  - name: Install OpenTelemetry Collector
+    apt:
+      name: opentelemetry-collector
+      state: present
+
+  - name: Create collector configuration file
+    template:
+      src: templates/collector.yaml.j2
+      dest: "{{ collector_config_file }}"
+      mode: '0644'
+    notify: restart collector
+
+  - name: Enable and start collector service
+    systemd:
+      name: "{{ collector_service_name }}"
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart collector
+    systemd:
+      name: "{{ collector_service_name }}"
+      state: restarted
+
+  templates/collector.yaml.j2:
+    receivers:
+      otlp:
+        protocol: http
+        host: 0.0.0.0
+        port: "{{ otlp_port }}"
+    exporters:
+      otlp:
+        endpoint: "{{ export_endpoint }}"
+        insecure: false
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlp]

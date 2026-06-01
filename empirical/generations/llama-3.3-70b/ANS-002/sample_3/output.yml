@@ -1,0 +1,41 @@
+---
+- name: Configure Linux firewall
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Ensure firewall is enabled and started
+    service:
+      name: firewalld
+      enabled: yes
+      state: started
+
+  - name: Allow SSH traffic
+    firewalld:
+      service: ssh
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Allow HTTPS traffic
+    firewalld:
+      service: https
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Deny all other inbound traffic
+    firewalld:
+      zone: public
+      state: enabled
+      permanent: yes
+      target: DROP
+      immediate: yes
+
+  - name: Ensure default zone is set to public
+    firewalld:
+      zone: public
+      state: enabled
+      permanent: yes
+      immediate: yes
+      default: yes

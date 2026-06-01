@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES-256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      VersioningConfiguration:
+        Status: Enabled
+      BucketPolicy:
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Sid: DenyInsecureTransport
+              Effect: Deny
+              Principal: '*'
+              Action: s3:*
+              Resource:
+                - !Sub '${UploadBucket.Arn}'
+                - !Sub '${UploadBucket.Arn}/*'
+              Condition:
+                Bool:
+                  aws:SecureTransport: false
+  UploadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnforceTLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !GetAtt UploadBucket.Arn
+              - !Sub '${UploadBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false

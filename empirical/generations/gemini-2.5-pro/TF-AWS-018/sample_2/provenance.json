@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-018",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"domain_name\" {\n  description = \"The domain name for which to create the Route 53 hosted zone.\"\n  type        = string\n  default     = \"mycompany.com\"\n}\n\nvariable \"app_record_name\" {\n  description = \"The subdomain for the application A record (e.g., 'app' for 'app.mycompany.com').\"\n  type        = string\n  default     = \"app\"\n}\n\nvariable \"alb_name\" {\n  description = \"The name of the existing Application Load Balancer to point the A record to.\"\n  type        = string\n}\n\ndata \"aws_lb\" \"application\" {\n  name = var.alb_name\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name = var.domain_name\n\n  tags = {\n    Name        = var.domain_name\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\nresource \"aws_route53_record\" \"app_alias\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = var.app_record_name\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.application.dns_name\n    zone_id                = data.aws_lb.application.zone_id\n    evaluate_target_health = true\n  }\n}",
+  "cleaned_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"domain_name\" {\n  description = \"The domain name for which to create the Route 53 hosted zone.\"\n  type        = string\n  default     = \"mycompany.com\"\n}\n\nvariable \"app_record_name\" {\n  description = \"The subdomain for the application A record (e.g., 'app' for 'app.mycompany.com').\"\n  type        = string\n  default     = \"app\"\n}\n\nvariable \"alb_name\" {\n  description = \"The name of the existing Application Load Balancer to point the A record to.\"\n  type        = string\n}\n\ndata \"aws_lb\" \"application\" {\n  name = var.alb_name\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name = var.domain_name\n\n  tags = {\n    Name        = var.domain_name\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\nresource \"aws_route53_record\" \"app_alias\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = var.app_record_name\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.application.dns_name\n    zone_id                = data.aws_lb.application.zone_id\n    evaluate_target_health = true\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"domain_name\" {\n  description = \"The domain name for which to create the Route 53 hosted zone.\"\n  type        = string\n  default     = \"mycompany.com\"\n}\n\nvariable \"app_record_name\" {\n  description = \"The subdomain for the application A record (e.g., 'app' for 'app.mycompany.com').\"\n  type        = string\n  default     = \"app\"\n}\n\nvariable \"alb_name\" {\n  description = \"The name of the existing Application Load Balancer to point the A record to.\"\n  type        = string\n}\n\ndata \"aws_lb\" \"application\" {\n  name = var.alb_name\n}\n\nresource \"aws_route53_zone\" \"primary\" {\n  name = var.domain_name\n\n  tags = {\n    Name        = var.domain_name\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\nresource \"aws_route53_record\" \"app_alias\" {\n  zone_id = aws_route53_zone.primary.zone_id\n  name    = var.app_record_name\n  type    = \"A\"\n\n  alias {\n    name                   = data.aws_lb.application.dns_name\n    zone_id                = data.aws_lb.application.zone_id\n    evaluate_target_health = true\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779730884,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 139,
+      "output_tokens": 1667,
+      "raw_input_tokens": 139
+    }
+  },
+  "started_at": "2026-05-25T17:41:09.303026+00:00",
+  "elapsed_seconds": 15.667
+}

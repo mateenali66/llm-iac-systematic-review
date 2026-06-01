@@ -1,0 +1,168 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T05:43:20.714382261Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 41,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0010",
+          "AVDID": "AVD-AWS-0010",
+          "Title": "Cloudfront distribution should have Access Logging configured",
+          "Description": "You should configure CloudFront Access Logging to create log files that contain detailed information about every user request that CloudFront receives\n",
+          "Message": "Distribution does not have logging enabled",
+          "Namespace": "builtin.aws.cloudfront.aws0010",
+          "Query": "data.builtin.aws.cloudfront.aws0010.deny",
+          "Resolution": "Enable logging for CloudFront distributions",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0010",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/AccessLogs.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0010"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_cloudfront_distribution.main",
+            "Provider": "AWS",
+            "Service": "cloudfront",
+            "StartLine": 66,
+            "EndLine": 115,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 66,
+                  "Content": "resource \"aws_cloudfront_distribution\" \"main\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_cloudfront_distribution\"\u001b[0m \u001b[38;5;37m\"main\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 67,
+                  "Content": "  enabled             = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245menabled\u001b[0m             = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 68,
+                  "Content": "  is_ipv6_enabled     = true",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mis_ipv6_enabled\u001b[0m     = \u001b[38;5;166mtrue",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 69,
+                  "Content": "  comment             = \"Production distribution with WAFv2\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mcomment\u001b[0m             = \u001b[38;5;37m\"Production distribution with WAFv2\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 70,
+                  "Content": "  default_root_object = \"index.html\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mdefault_root_object\u001b[0m = \u001b[38;5;33m\"index\u001b[0m.html\u001b[38;5;37m\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 71,
+                  "Content": "  web_acl_id          = aws_wafv2_web_acl.main.arn",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  web_acl_id          = aws_wafv2_web_acl.main.arn",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 72,
+                  "Content": "",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 73,
+                  "Content": "  origin {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  origin {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 74,
+                  "Content": "    domain_name = \"example-bucket.s3.amazonaws.com\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    domain_name = \"\u001b[0mexample\u001b[38;5;245m-\u001b[0mbucket.s3.amazonaws.com\u001b[38;5;37m\"",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 75,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

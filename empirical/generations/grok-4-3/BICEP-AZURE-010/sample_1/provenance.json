@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-010",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN profile.')\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN endpoint.')\nparam cdnEndpointName string = 'cdn${uniqueString(resourceGroup().id)}'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    allowBlobPublicAccess: true\n    allowSharedKeyAccess: false\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' existing = {\n  parent: storageAccount\n  name: 'default'\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2023-05-01' = {\n  name: cdnProfileName\n  location: location\n  sku: {\n    name: 'Standard_Microsoft'\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2023-05-01' = {\n  parent: cdnProfile\n  name: cdnEndpointName\n  location: location\n  properties: {\n    originHostHeader: storageAccount.properties.primaryEndpoints.blob\n    isHttpAllowed: false\n    isHttpsAllowed: true\n    queryStringCachingBehavior: 'BypassCaching'\n    origins: [\n      {\n        name: 'origin'\n        properties: {\n          hostName: storageAccount.properties.primaryEndpoints.blob\n          httpsPort: 443\n          originHostHeader: storageAccount.properties.primaryEndpoints.blob\n        }\n      }\n    ]\n  }\n}\n```",
+  "cleaned_response": "@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN profile.')\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN endpoint.')\nparam cdnEndpointName string = 'cdn${uniqueString(resourceGroup().id)}'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    allowBlobPublicAccess: true\n    allowSharedKeyAccess: false\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' existing = {\n  parent: storageAccount\n  name: 'default'\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2023-05-01' = {\n  name: cdnProfileName\n  location: location\n  sku: {\n    name: 'Standard_Microsoft'\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2023-05-01' = {\n  parent: cdnProfile\n  name: cdnEndpointName\n  location: location\n  properties: {\n    originHostHeader: storageAccount.properties.primaryEndpoints.blob\n    isHttpAllowed: false\n    isHttpsAllowed: true\n    queryStringCachingBehavior: 'BypassCaching'\n    origins: [\n      {\n        name: 'origin'\n        properties: {\n          hostName: storageAccount.properties.primaryEndpoints.blob\n          httpsPort: 443\n          originHostHeader: storageAccount.properties.primaryEndpoints.blob\n        }\n      }\n    ]\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN profile.')\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\n\n@description('Name of the CDN endpoint.')\nparam cdnEndpointName string = 'cdn${uniqueString(resourceGroup().id)}'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    allowBlobPublicAccess: true\n    allowSharedKeyAccess: false\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Deny'\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' existing = {\n  parent: storageAccount\n  name: 'default'\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2023-05-01' = {\n  name: cdnProfileName\n  location: location\n  sku: {\n    name: 'Standard_Microsoft'\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2023-05-01' = {\n  parent: cdnProfile\n  name: cdnEndpointName\n  location: location\n  properties: {\n    originHostHeader: storageAccount.properties.primaryEndpoints.blob\n    isHttpAllowed: false\n    isHttpsAllowed: true\n    queryStringCachingBehavior: 'BypassCaching'\n    origins: [\n      {\n        name: 'origin'\n        properties: {\n          hostName: storageAccount.properties.primaryEndpoints.blob\n          httpsPort: 443\n          originHostHeader: storageAccount.properties.primaryEndpoints.blob\n        }\n      }\n    ]\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723972,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 92,
+      "output_tokens": 541,
+      "reasoning_tokens": 540,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 62
+    }
+  },
+  "started_at": "2026-05-25T15:46:04.998964+00:00",
+  "elapsed_seconds": 7.612
+}

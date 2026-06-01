@@ -1,0 +1,112 @@
+resources:
+- name: saas-postgres-instance
+  type: gcp-types/sqladmin-v1beta4:instances
+  properties:
+    region: us-central1
+    databaseVersion: POSTGRES_15
+    rootPassword: $(ref.db-root-password.value)
+    settings:
+      tier: db-custom-2-7680
+      edition: ENTERPRISE
+      availabilityType: REGIONAL
+      diskType: PD_SSD
+      diskSize: 100
+      diskAutoresize: true
+      diskAutoresizeLimit: 500
+      pricingPlan: PER_USE
+      activationPolicy: ALWAYS
+      deletionProtectionEnabled: true
+      storageAutoResize: true
+      backupConfiguration:
+        enabled: true
+        startTime: "02:00"
+        location: us
+        pointInTimeRecoveryEnabled: true
+        transactionLogRetentionDays: 7
+        backupRetentionSettings:
+          retentionUnit: COUNT
+          retainedBackups: 30
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: projects/$(ref.project-id)/global/networks/default
+        requireSsl: true
+        sslMode: ENCRYPTED_ONLY
+        enablePrivatePathForGoogleCloudServices: true
+      maintenanceWindow:
+        day: 7
+        hour: 4
+        updateTrack: stable
+      databaseFlags:
+      - name: log_connections
+        value: "on"
+      - name: log_disconnections
+        value: "on"
+      - name: log_checkpoints
+        value: "on"
+      - name: log_lock_waits
+        value: "on"
+      - name: log_temp_files
+        value: "0"
+      - name: log_min_duration_statement
+        value: "1000"
+      - name: cloudsql.iam_authentication
+        value: "on"
+      insightsConfig:
+        queryInsightsEnabled: true
+        queryStringLength: 1024
+        recordApplicationTags: true
+        recordClientAddress: true
+        queryPlansPerMinute: 5
+      passwordValidationPolicy:
+        minLength: 16
+        complexity: COMPLEXITY_DEFAULT
+        reuseInterval: 5
+        disallowUsernameSubstring: true
+        passwordChangeInterval: 30s
+        enablePasswordPolicy: true
+      userLabels:
+        environment: production
+        application: saas
+        managed-by: deployment-manager
+
+- name: db-root-password
+  type: gcp-types/secretmanager-v1:projects.secrets
+  properties:
+    parent: projects/$(ref.project-id)
+    secretId: saas-postgres-root-password
+    replication:
+      automatic: true
+
+- name: saas-app-database
+  type: gcp-types/sqladmin-v1beta4:databases
+  properties:
+    name: saas_app
+    instance: $(ref.saas-postgres-instance.name)
+    charset: UTF8
+    collation: en_US.UTF8
+
+- name: saas-app-user
+  type: gcp-types/sqladmin-v1beta4:users
+  properties:
+    name: saas_app_user
+    instance: $(ref.saas-postgres-instance.name)
+    password: $(ref.db-app-password.value)
+    type: BUILT_IN
+
+- name: db-app-password
+  type: gcp-types/secretmanager-v1:projects.secrets
+  properties:
+    parent: projects/$(ref.project-id)
+    secretId: saas-postgres-app-password
+    replication:
+      automatic: true
+
+outputs:
+- name: instanceName
+  value: $(ref.saas-postgres-instance.name)
+- name: connectionName
+  value: $(ref.saas-postgres-instance.connectionName)
+- name: privateIpAddress
+  value: $(ref.saas-postgres-instance.ipAddresses[0].ipAddress)
+- name: databaseName
+  value: $(ref.saas-app-database.name)

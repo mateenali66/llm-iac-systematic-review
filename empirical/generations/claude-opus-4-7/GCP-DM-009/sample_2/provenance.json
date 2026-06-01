@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-009",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n- path: logging_sink.jinja\n\nresources:\n- name: log-analytics-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: log_analytics_longterm\n      projectId: $(ref.project.projectId)\n    location: US\n    description: \"Long-term log analytics dataset populated by Cloud Logging sink\"\n    defaultTableExpirationMs: 31536000000\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: log-analytics\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n\n- name: project-logging-sink\n  type: gcp-types/logging-v2:projects.sinks\n  properties:\n    sink: bq-longterm-analytics-sink\n    parent: projects/[PROJECT_ID]\n    uniqueWriterIdentity: true\n    destination: bigquery.googleapis.com/projects/[PROJECT_ID]/datasets/log_analytics_longterm\n    description: \"Exports all project logs to BigQuery for long-term analytics and compliance\"\n    filter: |\n      severity >= DEFAULT\n      AND NOT protoPayload.serviceName=\"logging.googleapis.com\"\n    bigqueryOptions:\n      usePartitionedTables: true\n    exclusions:\n    - name: exclude-debug-logs\n      description: \"Exclude verbose debug logs to reduce storage costs\"\n      filter: severity < INFO\n      disabled: false\n  metadata:\n    dependsOn:\n    - log-analytics-dataset\n\n- name: sink-writer-bq-dataeditor-binding\n  action: gcp-types/bigquery-v2:bigquery.datasets.patch\n  properties:\n    projectId: [PROJECT_ID]\n    datasetId: log_analytics_longterm\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: WRITER\n      userByEmail: $(ref.project-logging-sink.writerIdentity)\n  metadata:\n    dependsOn:\n    - project-logging-sink\n    - log-analytics-dataset\n\noutputs:\n- name: sinkWriterIdentity\n  value: $(ref.project-logging-sink.writerIdentity)\n- name: sinkDestination\n  value: $(ref.project-logging-sink.destination)\n- name: bigqueryDatasetId\n  value: log_analytics_longterm",
+  "cleaned_response": "imports:\n- path: logging_sink.jinja\n\nresources:\n- name: log-analytics-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: log_analytics_longterm\n      projectId: $(ref.project.projectId)\n    location: US\n    description: \"Long-term log analytics dataset populated by Cloud Logging sink\"\n    defaultTableExpirationMs: 31536000000\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: log-analytics\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n\n- name: project-logging-sink\n  type: gcp-types/logging-v2:projects.sinks\n  properties:\n    sink: bq-longterm-analytics-sink\n    parent: projects/[PROJECT_ID]\n    uniqueWriterIdentity: true\n    destination: bigquery.googleapis.com/projects/[PROJECT_ID]/datasets/log_analytics_longterm\n    description: \"Exports all project logs to BigQuery for long-term analytics and compliance\"\n    filter: |\n      severity >= DEFAULT\n      AND NOT protoPayload.serviceName=\"logging.googleapis.com\"\n    bigqueryOptions:\n      usePartitionedTables: true\n    exclusions:\n    - name: exclude-debug-logs\n      description: \"Exclude verbose debug logs to reduce storage costs\"\n      filter: severity < INFO\n      disabled: false\n  metadata:\n    dependsOn:\n    - log-analytics-dataset\n\n- name: sink-writer-bq-dataeditor-binding\n  action: gcp-types/bigquery-v2:bigquery.datasets.patch\n  properties:\n    projectId: [PROJECT_ID]\n    datasetId: log_analytics_longterm\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: WRITER\n      userByEmail: $(ref.project-logging-sink.writerIdentity)\n  metadata:\n    dependsOn:\n    - project-logging-sink\n    - log-analytics-dataset\n\noutputs:\n- name: sinkWriterIdentity\n  value: $(ref.project-logging-sink.writerIdentity)\n- name: sinkDestination\n  value: $(ref.project-logging-sink.destination)\n- name: bigqueryDatasetId\n  value: log_analytics_longterm",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n- path: logging_sink.jinja\n\nresources:\n- name: log-analytics-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: log_analytics_longterm\n      projectId: $(ref.project.projectId)\n    location: US\n    description: \"Long-term log analytics dataset populated by Cloud Logging sink\"\n    defaultTableExpirationMs: 31536000000\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: log-analytics\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n\n- name: project-logging-sink\n  type: gcp-types/logging-v2:projects.sinks\n  properties:\n    sink: bq-longterm-analytics-sink\n    parent: projects/[PROJECT_ID]\n    uniqueWriterIdentity: true\n    destination: bigquery.googleapis.com/projects/[PROJECT_ID]/datasets/log_analytics_longterm\n    description: \"Exports all project logs to BigQuery for long-term analytics and compliance\"\n    filter: |\n      severity >= DEFAULT\n      AND NOT protoPayload.serviceName=\"logging.googleapis.com\"\n    bigqueryOptions:\n      usePartitionedTables: true\n    exclusions:\n    - name: exclude-debug-logs\n      description: \"Exclude verbose debug logs to reduce storage costs\"\n      filter: severity < INFO\n      disabled: false\n  metadata:\n    dependsOn:\n    - log-analytics-dataset\n\n- name: sink-writer-bq-dataeditor-binding\n  action: gcp-types/bigquery-v2:bigquery.datasets.patch\n  properties:\n    projectId: [PROJECT_ID]\n    datasetId: log_analytics_longterm\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: WRITER\n      userByEmail: $(ref.project-logging-sink.writerIdentity)\n  metadata:\n    dependsOn:\n    - project-logging-sink\n    - log-analytics-dataset\n\noutputs:\n- name: sinkWriterIdentity\n  value: $(ref.project-logging-sink.writerIdentity)\n- name: sinkDestination\n  value: $(ref.project-logging-sink.destination)\n- name: bigqueryDatasetId\n  value: log_analytics_longterm",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726694,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 263,
+      "output_tokens": 904,
+      "raw_input_tokens": 263
+    }
+  },
+  "started_at": "2026-05-25T16:31:21.586113+00:00",
+  "elapsed_seconds": 12.91
+}

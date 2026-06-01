@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-NET-003",
+  "language": "k8s_yaml",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes Ingress manifest routing traffic from 'app.example.com' to a Service 'frontend-svc' on port 80, terminating TLS using a Secret named 'app-tls-cert'.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes Ingress manifest routing traffic from 'app.example.com' to a Service 'frontend-svc' on port 80, terminating TLS using a Secret named 'app-tls-cert'.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: frontend-ingress\n  namespace: default\n  labels:\n    app.kubernetes.io/name: frontend\n    app.kubernetes.io/component: ingress\n    app.kubernetes.io/managed-by: kubernetes\n  annotations:\n    nginx.ingress.kubernetes.io/ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/force-ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/backend-protocol: \"HTTP\"\n    nginx.ingress.kubernetes.io/proxy-body-size: \"8m\"\n    nginx.ingress.kubernetes.io/proxy-read-timeout: \"60\"\n    nginx.ingress.kubernetes.io/proxy-send-timeout: \"60\"\n    nginx.ingress.kubernetes.io/ssl-protocols: \"TLSv1.2 TLSv1.3\"\nspec:\n  ingressClassName: nginx\n  tls:\n    - hosts:\n        - app.example.com\n      secretName: app-tls-cert\n  rules:\n    - host: app.example.com\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend-svc\n                port:\n                  number: 80",
+  "cleaned_response": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: frontend-ingress\n  namespace: default\n  labels:\n    app.kubernetes.io/name: frontend\n    app.kubernetes.io/component: ingress\n    app.kubernetes.io/managed-by: kubernetes\n  annotations:\n    nginx.ingress.kubernetes.io/ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/force-ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/backend-protocol: \"HTTP\"\n    nginx.ingress.kubernetes.io/proxy-body-size: \"8m\"\n    nginx.ingress.kubernetes.io/proxy-read-timeout: \"60\"\n    nginx.ingress.kubernetes.io/proxy-send-timeout: \"60\"\n    nginx.ingress.kubernetes.io/ssl-protocols: \"TLSv1.2 TLSv1.3\"\nspec:\n  ingressClassName: nginx\n  tls:\n    - hosts:\n        - app.example.com\n      secretName: app-tls-cert\n  rules:\n    - host: app.example.com\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend-svc\n                port:\n                  number: 80",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: frontend-ingress\n  namespace: default\n  labels:\n    app.kubernetes.io/name: frontend\n    app.kubernetes.io/component: ingress\n    app.kubernetes.io/managed-by: kubernetes\n  annotations:\n    nginx.ingress.kubernetes.io/ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/force-ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/backend-protocol: \"HTTP\"\n    nginx.ingress.kubernetes.io/proxy-body-size: \"8m\"\n    nginx.ingress.kubernetes.io/proxy-read-timeout: \"60\"\n    nginx.ingress.kubernetes.io/proxy-send-timeout: \"60\"\n    nginx.ingress.kubernetes.io/ssl-protocols: \"TLSv1.2 TLSv1.3\"\nspec:\n  ingressClassName: nginx\n  tls:\n    - hosts:\n        - app.example.com\n      secretName: app-tls-cert\n  rules:\n    - host: app.example.com\n      http:\n        paths:\n          - path: /\n            pathType: Prefix\n            backend:\n              service:\n                name: frontend-svc\n                port:\n                  number: 80",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727711,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 275,
+      "output_tokens": 464,
+      "raw_input_tokens": 275
+    }
+  },
+  "started_at": "2026-05-25T16:48:25.704918+00:00",
+  "elapsed_seconds": 5.997
+}

@@ -1,0 +1,42 @@
+---
+- name: Install and configure nginx on Ubuntu
+  hosts: all
+  become: true
+  tasks:
+    - name: Update apt cache and install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Ensure nginx service is started and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Set ufw default policies (production security)
+      community.general.ufw:
+        policy: "{{ item.policy }}"
+        direction: "{{ item.direction }}"
+      loop:
+        - { policy: deny, direction: incoming }
+        - { policy: allow, direction: outgoing }
+
+    - name: Allow SSH (required for management)
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Allow HTTP traffic on port 80
+      community.general.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Enable ufw
+      community.general.ufw:
+        state: enabled
+        logging: 'on'

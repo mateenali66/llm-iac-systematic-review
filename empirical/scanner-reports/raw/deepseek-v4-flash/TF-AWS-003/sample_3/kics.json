@@ -1,0 +1,157 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 72,
+	"files_parsed": 1,
+	"lines_parsed": 72,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 2,
+		"LOW": 2,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:44:03.974674298Z",
+	"end": "2026-05-26T04:44:26.679263836Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EC2 Instance Monitoring Disabled",
+			"query_id": "23b70e32-032e-4fa6-ba5c-82f56b9980e6",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#monitoring",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "EC2 Instance should have detailed monitoring enabled. With detailed monitoring enabled data is available in 1-minute periods",
+			"description_id": "0d5413e6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9c0460e700fe909a127392f39d7fdf263b9207c0ed1f5dc7d3ef876bb4857661",
+					"line": 47,
+					"resource_type": "aws_instance",
+					"resource_name": "jump-host",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance.{{jump_host}}",
+					"search_line": 47,
+					"search_value": "",
+					"expected_value": "'monitoring' should be defined and not null",
+					"actual_value": "'monitoring' is undefined or null",
+					"remediation": "monitoring = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 21,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Sensitive Port Is Exposed To Wide Private Network",
+			"query_id": "92fe237e-074c-4262-81a4-2077acb928c1",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for a wide private network in either TCP or UDP protocol",
+			"description_id": "127a32be",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "04a955377a794bce7f87b74c479c2b22fe510d15cd165ad00e703e0d77cdd1c2",
+					"line": 26,
+					"resource_type": "aws_security_group",
+					"resource_name": "jump-host-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[jump_host].ingress",
+					"search_line": 26,
+					"search_value": "",
+					"expected_value": "SSH (TCP:22) should not be allowed",
+					"actual_value": "SSH (TCP:22) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "55ab60ef6f028c955db98f0b17bf3eb972045dca9696f298be91884ff71400a9",
+					"line": 42,
+					"resource_type": "aws_security_group",
+					"resource_name": "jump-host-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{jump_host}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{jump_host}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{jump_host}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "972e08db5cb1634798fd61ebee746bffb345a31b0a32972f6e25ed5a6785dca2",
+					"line": 54,
+					"resource_type": "aws_instance",
+					"resource_name": "jump-host",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance[{{jump_host}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_instance[{{jump_host}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_instance[{{jump_host}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

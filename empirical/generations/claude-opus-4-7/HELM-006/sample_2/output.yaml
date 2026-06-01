@@ -1,0 +1,185 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-worker
+description: A Helm chart for a generic worker service consuming messages from a Redis queue
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - worker
+  - redis
+  - queue
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: myorg/redis-worker
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: false
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 10001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 8080
+  metricsPort: 9090
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints: []
+
+priorityClassName: ""
+
+terminationGracePeriodSeconds: 60
+
+# Worker configuration (non-secret) -> ConfigMap
+config:
+  LOG_LEVEL: "info"
+  QUEUE_NAME: "jobs"
+  WORKER_CONCURRENCY: "10"
+  REDIS_HOST: "redis-master.redis.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_TLS: "false"
+  POLL_INTERVAL_MS: "1000"
+  MAX_RETRIES: "5"
+
+# Redis credentials -> Secret
+redis:
+  # If existingSecret is set, password/username values are ignored.
+  existingSecret: ""
+  existingSecretPasswordKey: "redis-password"
+  existingSecretUsernameKey: "redis-username"
+  username: ""
+  password: "changeme"
+
+extraEnv: []
+extraEnvFrom: []
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 80
+
+networkPolicy:
+  enabled: false
+  redisPodSelector: {}
+  redisNamespaceSelector: {}
+---
+# FILE: templates/_helpers.tpl
+{{/* Expand the name of the chart. */}}
+{{- define "redis-worker.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/* Create a default fully qualified app name. */}}
+{{- define "redis-worker.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "redis-worker.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "redis-worker.labels" -}}
+helm.sh/chart: {{ include "redis-worker.chart" . }}
+{{ include "redis-worker.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: worker
+{{- end -}}
+
+{{- define "redis-worker.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-worker.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "redis-worker.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "redis-worker.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "redis-worker.secretName" -}}
+{{- if .Values.redis.existingSecret -}}
+{{- .Values.redis.existingSecret -}}
+{{- else -}}
+{{-

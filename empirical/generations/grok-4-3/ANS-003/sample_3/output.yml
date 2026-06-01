@@ -1,0 +1,85 @@
+---
+- name: Harden CentOS 9 server
+  hosts: all
+  become: true
+  vars:
+    sshd_config: /etc/ssh/sshd_config
+    pwquality_conf: /etc/security/pwquality.conf
+  tasks:
+    - name: Disable root SSH login
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config }}"
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        validate: 'sshd -t -f %s'
+      notify: restart sshd
+
+    - name: Install required packages
+      ansible.builtin.dnf:
+        name:
+          - openssh-server
+          - fail2ban
+          - audit
+          - libpwquality
+        state: present
+        update_cache: true
+
+    - name: Enforce password complexity settings
+      ansible.builtin.blockinfile:
+        path: "{{ pwquality_conf }}"
+        block: |
+          minlen = 14
+          dcredit = -1
+          ucredit = -1
+          ocredit = -1
+          lcredit = -1
+          maxrepeat = 3
+          gecoscheck = 1
+          dictcheck = 1
+        marker: "# {mark} ANSIBLE MANAGED PASSWORD POLICY"
+        create: true
+
+    - name: Ensure pwquality is enforced in PAM
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/system-auth
+        regexp: '^password\s+requisite\s+pam_pwquality.so'
+        line: 'password requisite pam_pwquality.so try_first_pass local_users_only retry=3 authtok_type='
+        insertbefore: '^password\s+sufficient'
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Enable and start auditd
+      ansible.builtin.systemd:
+        name: auditd
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Deploy basic audit rules
+      ansible.builtin.copy:
+        dest: /etc/audit/rules.d/10-hardening.rules
+        content: |
+          -w /etc/passwd -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/group -p wa -k identity
+          -w /etc/sudoers -p wa -k privilege_escalation
+          -w /var/log/audit/ -p wa -k audit_log
+        owner: root
+        group: root
+        mode: '0640'
+      notify: reload auditd
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+    - name: reload auditd
+      ansible.builtin.command: augenrules --load
+      changed_when: true

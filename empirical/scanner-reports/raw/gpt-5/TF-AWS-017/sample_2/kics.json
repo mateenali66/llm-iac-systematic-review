@@ -1,0 +1,138 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 200,
+	"files_parsed": 1,
+	"lines_parsed": 200,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 5,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:21:48.012384554Z",
+	"end": "2026-05-26T05:22:10.577628884Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 70,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3d8cd3c0030a8f281b333c80ea876d5e1ee7c4ce1b0dd9457d545b21721c2132",
+					"line": 144,
+					"resource_type": "aws_backup_plan",
+					"resource_name": "app-db-ebs-daily",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_plan[{{db_daily}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_plan[{{db_daily}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_backup_plan[{{db_daily}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1d5c5865109b25cd1f7322107921eb6305f39ea664b1e892d36cfe989ef8a3f7",
+					"line": 123,
+					"resource_type": "aws_backup_vault",
+					"resource_name": "app-db-backup-vault",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_backup_vault[{{db}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_backup_vault[{{db}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_backup_vault[{{db}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "69919d6ead9a94b9c4c3c42c752057dc8ee18290f2db97d2f9914d7d1dadbfb7",
+					"line": 159,
+					"resource_type": "aws_iam_role",
+					"resource_name": "app-aws-backup-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{aws_backup}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{aws_backup}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_role[{{aws_backup}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0fd8e684c69ed30cabd859a436394cc38fa5aa6617076445372fc8debb634ef2",
+					"line": 110,
+					"resource_type": "aws_kms_key",
+					"resource_name": "app-backup-kms",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{backup}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{backup}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_kms_key[{{backup}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3d6ea0504ad1342c8efebfced2ae5fd45ba209d21bf6fe3ce993a4fc0e41fc30",
+					"line": 85,
+					"resource_type": "aws_kms_key",
+					"resource_name": "app-ebs-kms",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_kms_key[{{ebs}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_kms_key[{{ebs}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_kms_key[{{ebs}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

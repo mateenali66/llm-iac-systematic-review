@@ -1,0 +1,46 @@
+imports:
+- path: cloud_run_service.py
+  name: cloud_run_service
+
+resources:
+- name: python-api-cloud-run-service
+  type: cloud_run_service.py
+  properties:
+    serviceName: python-api-service
+    location: us-central1
+    image: gcr.io/cloudrun/hello
+    containerPort: 8080
+    memory: 512Mi
+    cpu: 1
+    maxInstances: 100
+    concurrency: 80
+    timeoutSeconds: 300
+    environmentVariables:
+      - name: PYTHON_VERSION
+        value: "3.12"
+    serviceAccountEmail: ${ref.service-account.email}
+    allowUnauthenticated: true
+
+- name: service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cloud-run-sa
+    displayName: Service Account for Cloud Run
+
+- name: cloud-run-invoker
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: projects/{{ env["project"] }}
+    member: serviceAccount:${ref.service-account.email}
+    role: roles/run.invoker
+
+- name: cloud-run-admin
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: projects/{{ env["project"] }}
+    member: serviceAccount:${ref.service-account.email}
+    role: roles/run.admin
+
+outputs:
+- name: serviceUrl
+  value: $(ref.python-api-cloud-run-service.status.url)

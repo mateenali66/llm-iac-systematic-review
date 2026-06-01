@@ -1,0 +1,192 @@
+resources:
+- name: prod-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: prod-gke-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.prod-vpc.selfLink)
+    ipCidrRange: 10.10.0.0/20
+    privateIpGoogleAccess: true
+    secondaryIpRanges:
+    - rangeName: gke-pods
+      ipCidrRange: 10.20.0.0/16
+    - rangeName: gke-services
+      ipCidrRange: 10.30.0.0/20
+
+- name: prod-nat-router
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.prod-vpc.selfLink)
+    nats:
+    - name: prod-nat
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.prod-gke-subnet.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+      enableEndpointIndependentMapping: true
+      minPortsPerVm: 2048
+      tcpEstablishedIdleTimeoutSec: 1200
+      logConfig:
+        enable: true
+        filter: ERRORS_ONLY
+
+- name: prod-gke-node-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: prod-gke-node
+    displayName: GKE prod node service account
+
+- name: bind-node-sa-logging-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/logging.logWriter
+    member: serviceAccount:$(ref.prod-gke-node-sa.email)
+
+- name: bind-node-sa-metric-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/monitoring.metricWriter
+    member: serviceAccount:$(ref.prod-gke-node-sa.email)
+
+- name: bind-node-sa-metadata-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/stackdriver.resourceMetadata.writer
+    member: serviceAccount:$(ref.prod-gke-node-sa.email)
+
+- name: bind-node-sa-artifact-registry-reader
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/artifactregistry.reader
+    member: serviceAccount:$(ref.prod-gke-node-sa.email)
+
+- name: prod-gke-cluster
+  type: gcp-types/container-v1:projects.locations.clusters
+  metadata:
+    dependsOn:
+    - prod-gke-subnet
+    - prod-nat-router
+    - prod-gke-node-sa
+    - bind-node-sa-logging-writer
+    - bind-node-sa-metric-writer
+    - bind-node-sa-metadata-writer
+    - bind-node-sa-artifact-registry-reader
+  properties:
+    parent: projects/$(project)/locations/us-central1
+    cluster:
+      name: prod-gke
+      description: Production GKE Standard regional cluster
+      network: $(ref.prod-vpc.selfLink)
+      subnetwork: $(ref.prod-gke-subnet.selfLink)
+      releaseChannel:
+        channel: STABLE
+      locations:
+      - us-central1-a
+      - us-central1-b
+      - us-central1-f
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterSecondaryRangeName: gke-pods
+        servicesSecondaryRangeName: gke-services
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: corp-office
+          cidrBlock: 203.0.113.0/24
+      shieldedNodes:
+        enabled: true
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        networkPolicyConfig:
+          disabled: false
+        dnsCacheConfig:
+          enabled: true
+        kubernetesDashboard:
+          disabled: true
+      loggingConfig:
+        componentConfig:
+          enableComponents:
+          - SYSTEM_COMPONENTS
+          - WORKLOADS
+          - APISERVER
+          - SCHEDULER
+          - CONTROLLER_MANAGER
+      monitoringConfig:
+        managedPrometheus:
+          enabled: true
+        componentConfig:
+          enableComponents:
+          - SYSTEM_COMPONENTS
+          - APISERVER
+          - SCHEDULER
+          - CONTROLLER_MANAGER
+      workloadIdentityConfig:
+        workloadPool: $(project).svc.id.goog
+      maintenancePolicy:
+        window:
+          dailyMaintenanceWindow:
+            startTime: "03:00"
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 110
+      networkConfig:
+        datapathProvider: ADVANCED_DATAPATH
+        enableIntraNodeVisibility: true
+      enableKubernetesAlpha: false
+      nodePools:
+      - name: prod-pool
+        initialNodeCount: 3
+        locations:
+        - us-central1-a
+        - us-central1-b
+        - us-central1-f
+        config:
+          machineType: e2-standard-4
+          diskType: pd-balanced
+          diskSizeGb: 100
+          imageType: COS_CONTAINERD
+          serviceAccount: $(ref.prod-gke-node-sa.email)
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          metadata:
+            disable-legacy-endpoints: "true"
+          labels:
+            env: prod
+            pool: prod
+          tags:
+          - gke-prod
+          shieldedInstanceConfig:
+            enableIntegrityMonitoring: true
+            enableSecureBoot: true
+          workloadMetadataConfig:
+            mode: GKE_METADATA
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0

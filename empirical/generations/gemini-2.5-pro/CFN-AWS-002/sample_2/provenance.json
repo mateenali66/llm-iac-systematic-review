@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CFN-AWS-002",
+  "language": "cloudformation",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CloudFormation template for an EC2 Auto Scaling Group serving a public web application behind an Application Load Balancer, with appropriate networking and security.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Write a CloudFormation template for an EC2 Auto Scaling Group serving a public web application behind an Application Load Balancer, with appropriate networking and security.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: >-\n  Production-ready Auto Scaling Group with Application Load Balancer.\n  This template creates a VPC, public and private subnets, an ALB, and an\n  Auto Scaling group of EC2 instances running a simple web server.\n\nParameters:\n  VpcCIDR:\n    Description: CIDR block for the VPC.\n    Type: String\n    Default: 10.0.0.0/16\n  PublicSubnet1CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.1.0/24\n  PublicSubnet2CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.2.0/24\n  PrivateSubnet1CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.101.0/24\n  PrivateSubnet2CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.102.0/24\n  InstanceType:\n    Description: EC2 instance type for the web servers.\n    Type: String\n    Default: t3.micro\n  LatestAmiId:\n    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'\n    Description: Latest Amazon Linux 2 AMI ID.\n    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'\n  AsgMinSize:\n    Description: Minimum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n  AsgMaxSize:\n    Description: Maximum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 4\n  AsgDesiredCapacity:\n    Description: Desired number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n\nResources:\n  # ------------------------------------------------------------#\n  #  VPC & Networking\n  # ------------------------------------------------------------#\n  VPC:\n    Type: AWS::EC2::VPC\n    Properties:\n      CidrBlock: !Ref VpcCIDR\n      EnableDnsSupport: true\n      EnableDnsHostnames: true\n      Tags:\n        - Key: Name\n          Value: !Sub '${AWS::StackName",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: >-\n  Production-ready Auto Scaling Group with Application Load Balancer.\n  This template creates a VPC, public and private subnets, an ALB, and an\n  Auto Scaling group of EC2 instances running a simple web server.\n\nParameters:\n  VpcCIDR:\n    Description: CIDR block for the VPC.\n    Type: String\n    Default: 10.0.0.0/16\n  PublicSubnet1CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.1.0/24\n  PublicSubnet2CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.2.0/24\n  PrivateSubnet1CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.101.0/24\n  PrivateSubnet2CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.102.0/24\n  InstanceType:\n    Description: EC2 instance type for the web servers.\n    Type: String\n    Default: t3.micro\n  LatestAmiId:\n    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'\n    Description: Latest Amazon Linux 2 AMI ID.\n    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'\n  AsgMinSize:\n    Description: Minimum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n  AsgMaxSize:\n    Description: Maximum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 4\n  AsgDesiredCapacity:\n    Description: Desired number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n\nResources:\n  # ------------------------------------------------------------#\n  #  VPC & Networking\n  # ------------------------------------------------------------#\n  VPC:\n    Type: AWS::EC2::VPC\n    Properties:\n      CidrBlock: !Ref VpcCIDR\n      EnableDnsSupport: true\n      EnableDnsHostnames: true\n      Tags:\n        - Key: Name\n          Value: !Sub '${AWS::StackName",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: >-\n  Production-ready Auto Scaling Group with Application Load Balancer.\n  This template creates a VPC, public and private subnets, an ALB, and an\n  Auto Scaling group of EC2 instances running a simple web server.\n\nParameters:\n  VpcCIDR:\n    Description: CIDR block for the VPC.\n    Type: String\n    Default: 10.0.0.0/16\n  PublicSubnet1CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.1.0/24\n  PublicSubnet2CIDR:\n    Description: CIDR block for the public subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.2.0/24\n  PrivateSubnet1CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 1.\n    Type: String\n    Default: 10.0.101.0/24\n  PrivateSubnet2CIDR:\n    Description: CIDR block for the private subnet in Availability Zone 2.\n    Type: String\n    Default: 10.0.102.0/24\n  InstanceType:\n    Description: EC2 instance type for the web servers.\n    Type: String\n    Default: t3.micro\n  LatestAmiId:\n    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'\n    Description: Latest Amazon Linux 2 AMI ID.\n    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'\n  AsgMinSize:\n    Description: Minimum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n  AsgMaxSize:\n    Description: Maximum number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 4\n  AsgDesiredCapacity:\n    Description: Desired number of instances in the Auto Scaling Group.\n    Type: Number\n    Default: 2\n\nResources:\n  # ------------------------------------------------------------#\n  #  VPC & Networking\n  # ------------------------------------------------------------#\n  VPC:\n    Type: AWS::EC2::VPC\n    Properties:\n      CidrBlock: !Ref VpcCIDR\n      EnableDnsSupport: true\n      EnableDnsHostnames: true\n      Tags:\n        - Key: Name\n          Value: !Sub '${AWS::StackName",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779726200,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 129,
+      "output_tokens": 2044,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T16:22:56.155307+00:00",
+  "elapsed_seconds": 24.461
+}

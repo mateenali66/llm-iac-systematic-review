@@ -1,0 +1,480 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: stateful-app
+description: Helm chart for a stateful application with pre-install database migration Job, StatefulSet, headless Service, and PVC
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.20.0-0"
+---
+# FILE: values.yaml
+replicaCount: 1
+
+image:
+  repository: ghcr.io/example/app
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  port: 80
+  targetPort: 8080
+
+env: {}
+# Example:
+# env:
+#   APP_ENV: "production"
+#   LOG_LEVEL: "info"
+
+secrets:
+  create: true
+  name: ""
+  annotations: {}
+  labels: {}
+  data: {}
+  # Example:
+  # data:
+  #   DATABASE_URL: "postgres://user:pass@db:5432/app"
+
+migration:
+  enabled: true
+  image:
+    repository: ghcr.io/example/app-migrations
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  command: []
+  args: []
+  # Example:
+  # command: ["/bin/sh", "-c"]
+  # args: ["bundle exec rake db:migrate"]
+  env: {}
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 900
+  podAnnotations: {}
+  podLabels: {}
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+persistence:
+  data:
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+    storageClass: ""
+  shared:
+    enabled: false
+    name: shared
+    accessModes:
+      - ReadWriteMany
+    size: 1Gi
+    storageClass: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 6
+  successThreshold: 1
+
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+  successThreshold: 1
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+networkPolicy:
+  enabled: true
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+pdb:
+  enabled: true
+  minAvailable: 1
+---
+# FILE: templates/serviceaccount.yaml
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ default (printf "%s-sa" $fullName) .Values.serviceAccount.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+automountServiceAccountToken: {{ .Values.serviceAccount.automount | default false }}
+{{- end }}
+---
+# FILE: templates/secret.yaml
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+{{- $secretName := (default (printf "%s-secrets" $fullName) .Values.secrets.name) -}}
+{{- if and .Values.secrets.create (or .Values.secrets.data (hasKey .Values.secrets "data")) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $secretName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.secrets.labels }}
+{{ toYaml . | indent 2 }}
+  {{- end }}
+  {{- with .Values.secrets.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+type: Opaque
+stringData:
+{{- range $k, $v := .Values.secrets.data }}
+  {{ $k }}: {{ $v | quote }}
+{{- end }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-headless" $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+---
+# FILE: templates/pvc.yaml
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+{{- if .Values.persistence.shared.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-%s" $fullName .Values.persistence.shared.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  accessModes:
+{{ toYaml .Values.persistence.shared.accessModes | indent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.shared.size }}
+  {{- if .Values.persistence.shared.storageClass }}
+  storageClassName: {{ .Values.persistence.shared.storageClass | quote }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/job-migrate.yaml
+{{- if .Values.migration.enabled }}
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+{{- $saName := (ternary (printf "%s-sa" $fullName) .Values.serviceAccount.name .Values.serviceAccount.create) | default (printf "%s-sa" $fullName) -}}
+{{- $secretName := (default (printf "%s-secrets" $fullName) .Values.secrets.name) -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-migrate" $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    job.kubernetes.io/type: migration
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        job.kubernetes.io/type: migration
+      {{- with .Values.migration.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ $saName }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount | default false }}
+      restartPolicy: Never
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
+      containers:
+        - name: migrate
+          image: "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag }}"
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          {{- if .Values.migration.command }}
+          command:
+{{ toYaml .Values.migration.command | indent 12 }}
+          {{- end }}
+          {{- if .Values.migration.args }}
+          args:
+{{ toYaml .Values.migration.args | indent 12 }}
+          {{- end }}
+          env:
+          {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          {{- range $k, $v := .Values.migration.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          {{- if or .Values.secrets.create .Values.secrets.name }}
+          envFrom:
+            - secretRef:
+                name: {{ $secretName }}
+          {{- end }}
+          securityContext:
+{{ toYaml .Values.securityContext | indent 12 }}
+          resources:
+{{ toYaml .Values.migration.resources | indent 12 }}
+      {{- with .Values.migration.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.migration.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.migration.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+  {{- if .Values.migration.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ .Values.migration.activeDeadlineSeconds }}
+  {{- end }}
+{{- end }}
+---
+# FILE: templates/statefulset.yaml
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+{{- $saName := (ternary (printf "%s-sa" $fullName) .Values.serviceAccount.name .Values.serviceAccount.create) | default (printf "%s-sa" $fullName) -}}
+{{- $secretName := (default (printf "%s-secrets" $fullName) .Values.secrets.name) -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  serviceName: {{ printf "%s-headless" $fullName }}
+  replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ $saName }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount | default false }}
+      terminationGracePeriodSeconds: 30
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+          {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+          {{- end }}
+          {{- if or .Values.secrets.create .Values.secrets.name }}
+          envFrom:
+            - secretRef:
+                name: {{ $secretName }}
+          {{- end }}
+          securityContext:
+{{ toYaml .Values.securityContext | indent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/app/data
+          {{- if .Values.persistence.shared.enabled }}
+            - name: shared
+              mountPath: /var/lib/app/shared
+          {{- end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 12 }}
+          startupProbe:
+{{ toYaml .Values.startupProbe | indent 12 }}
+      volumes:
+      {{- if .Values.persistence.shared.enabled }}
+        - name: shared
+          persistentVolumeClaim:
+            claimName: {{ printf "%s-%s" $fullName .Values.persistence.shared.name }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+{{ toYaml .Values.persistence.data.accessModes | indent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.data.size }}
+        {{- if .Values.persistence.data.storageClass }}
+        storageClassName: {{ .Values.persistence.data.storageClass | quote }}
+        {{- end }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-deny-all-except-dns" $fullName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}
+  egress:
+{{ toYaml .Values.networkPolicy.egress | indent 4 }}
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if and .Values.pdb.enabled (gt (int .Values.replicaCount) 1) }}
+{{- $fullName := (default (printf "%s-%s" .Release.Name .Chart.Name) .Values.fullnameOverride) | trunc 63 | trimSuffix "-" -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ printf "%s-pdb" $fullName }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

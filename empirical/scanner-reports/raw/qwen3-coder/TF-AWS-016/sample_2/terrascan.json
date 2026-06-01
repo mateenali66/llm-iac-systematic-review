@@ -1,0 +1,52 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "notEncryptedSecrets",
+        "description": "Ensure SecretsManager Secrets are Encrypted using KMS key",
+        "rule_id": "AC_AWS_0500",
+        "severity": "MEDIUM",
+        "category": "Data Protection",
+        "resource_name": "prod_database_password",
+        "resource_type": "aws_secretsmanager_secret",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 1
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 06:36:38.432415513 +0000 UTC",
+      "policies_validated": 1,
+      "violated_policies": 1,
+      "low": 0,
+      "medium": 1,
+      "high": 0
+    }
+  }
+}

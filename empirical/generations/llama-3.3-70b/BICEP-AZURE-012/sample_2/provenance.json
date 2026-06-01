@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "BICEP-AZURE-012",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an Azure Function App on the Consumption Plan for an event-driven serverless workload.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an Azure Function App on the Consumption Plan for an event-driven serverless workload.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam functionAppName string = 'eventdrivenfunctionapp'\nparam storageAccountName string = 'eventdrivenstorage'\nparam functionAppRuntime string = 'dotnet6'\nparam functionAppWorkerRuntime string = 'dotnet'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n  }\n}\n\nresource functionAppResource 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    serverFarmId: '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Web/serverfarms/ConsumptionPlan'\n    siteConfig: {\n      linuxFxVersion: 'DOCKER|mcr.microsoft.com/azure-functions/dotnet:6.0-appservice'\n      ftpsState: 'FtpsOnly'\n      httpsOnly: true\n    }\n    storageAccount: storageAccountName\n  }\n  dependsOn: [\n    storageAccountResource\n  ]\n  kind: 'functionapp'\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n    family: 'Y'\n    size: 'Y1'\n    capacity: 0\n  }\n}\n\nresource functionAppIdentity 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    identity: {\n      type: 'SystemAssigned'\n    }\n  }\n  dependsOn: [\n    functionAppResource\n  ]\n}\n\noutput functionAppNameOutput string = functionAppName\noutput functionAppIdOutput string = functionAppResource.id\noutput functionAppIdentityOutput string = functionAppIdentity.properties.identity.tenantId\noutput functionAppPrincipalIdOutput string = functionAppIdentity.properties.identity.principalId\noutput functionAppResourceIdOutput string = functionAppIdentity.id",
+  "cleaned_response": "param location string = resourceGroup().location\nparam functionAppName string = 'eventdrivenfunctionapp'\nparam storageAccountName string = 'eventdrivenstorage'\nparam functionAppRuntime string = 'dotnet6'\nparam functionAppWorkerRuntime string = 'dotnet'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n  }\n}\n\nresource functionAppResource 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    serverFarmId: '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Web/serverfarms/ConsumptionPlan'\n    siteConfig: {\n      linuxFxVersion: 'DOCKER|mcr.microsoft.com/azure-functions/dotnet:6.0-appservice'\n      ftpsState: 'FtpsOnly'\n      httpsOnly: true\n    }\n    storageAccount: storageAccountName\n  }\n  dependsOn: [\n    storageAccountResource\n  ]\n  kind: 'functionapp'\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n    family: 'Y'\n    size: 'Y1'\n    capacity: 0\n  }\n}\n\nresource functionAppIdentity 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    identity: {\n      type: 'SystemAssigned'\n    }\n  }\n  dependsOn: [\n    functionAppResource\n  ]\n}\n\noutput functionAppNameOutput string = functionAppName\noutput functionAppIdOutput string = functionAppResource.id\noutput functionAppIdentityOutput string = functionAppIdentity.properties.identity.tenantId\noutput functionAppPrincipalIdOutput string = functionAppIdentity.properties.identity.principalId\noutput functionAppResourceIdOutput string = functionAppIdentity.id",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam functionAppName string = 'eventdrivenfunctionapp'\nparam storageAccountName string = 'eventdrivenstorage'\nparam functionAppRuntime string = 'dotnet6'\nparam functionAppWorkerRuntime string = 'dotnet'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n  }\n}\n\nresource functionAppResource 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    serverFarmId: '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Web/serverfarms/ConsumptionPlan'\n    siteConfig: {\n      linuxFxVersion: 'DOCKER|mcr.microsoft.com/azure-functions/dotnet:6.0-appservice'\n      ftpsState: 'FtpsOnly'\n      httpsOnly: true\n    }\n    storageAccount: storageAccountName\n  }\n  dependsOn: [\n    storageAccountResource\n  ]\n  kind: 'functionapp'\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n    family: 'Y'\n    size: 'Y1'\n    capacity: 0\n  }\n}\n\nresource functionAppIdentity 'Microsoft.Web/sites@2022-03-01' = {\n  name: functionAppName\n  location: location\n  properties: {\n    identity: {\n      type: 'SystemAssigned'\n    }\n  }\n  dependsOn: [\n    functionAppResource\n  ]\n}\n\noutput functionAppNameOutput string = functionAppName\noutput functionAppIdOutput string = functionAppResource.id\noutput functionAppIdentityOutput string = functionAppIdentity.properties.identity.tenantId\noutput functionAppPrincipalIdOutput string = functionAppIdentity.properties.identity.principalId\noutput functionAppResourceIdOutput string = functionAppIdentity.id",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723615,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 154,
+      "output_tokens": 458,
+      "raw_input_tokens": 154
+    }
+  },
+  "started_at": "2026-05-25T15:40:13.301349+00:00",
+  "elapsed_seconds": 2.305
+}

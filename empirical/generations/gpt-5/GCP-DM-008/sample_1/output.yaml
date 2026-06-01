@@ -1,0 +1,36 @@
+resources:
+- name: kms-keyring-gcs-us
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  deletionPolicy: ABANDON
+  properties:
+    parent: projects/$(projectId)/locations/us
+    keyRingId: gcs-keyring
+
+- name: kms-crypto-key-gcs
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  deletionPolicy: ABANDON
+  metadata:
+    dependsOn:
+      - kms-keyring-gcs-us
+  properties:
+    parent: $(ref.kms-keyring-gcs-us.name)
+    cryptoKeyId: gcs-default-key
+    resource:
+      purpose: ENCRYPT_DECRYPT
+      rotationPeriod: 7776000s
+      nextRotationTime: 2026-06-01T00:00:00Z
+      versionTemplate:
+        algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+        protectionLevel: SOFTWARE
+      labels:
+        env: prod
+        use: gcs-cmek
+        managed_by: dm
+
+outputs:
+- name: keyRing
+  value: $(ref.kms-keyring-gcs-us.name)
+- name: cryptoKey
+  value: $(ref.kms-crypto-key-gcs.name)
+- name: cryptoKeyResourceId
+  value: projects/$(projectId)/locations/us/keyRings/gcs-keyring/cryptoKeys/gcs-default-key

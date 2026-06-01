@@ -1,0 +1,145 @@
+---
+- name: Install and configure PostgreSQL 15 server
+  hosts: postgresql_servers
+  become: yes
+  vars:
+    postgresql_version: 15
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_config_file: "/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf"
+    postgresql_hba_file: "/etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf"
+    postgresql_service_name: "postgresql@{{ postgresql_version }}-main"
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_database_name: "myapp_db"
+    postgresql_user_name: "myapp_user"
+    postgresql_user_password: "secure_password_here"
+    
+  tasks:
+    - name: Add PostgreSQL official APT repository key
+      apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+
+    - name: Add PostgreSQL official APT repository
+      apt_repository:
+        repo: deb https://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main
+        state: present
+        filename: pgdg
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install PostgreSQL packages
+      apt:
+        name:
+          - "postgresql-{{ postgresql_version }}"
+          - "postgresql-client-{{ postgresql_version }}"
+          - "postgresql-contrib-{{ postgresql_version }}"
+        state: present
+
+    - name: Configure postgresql.conf for production
+      lineinfile:
+        path: "{{ postgresql_config_file }}"
+        regexp: "^#?{{ item.key }}\\s*="
+        line: "{{ item.key }} = {{ item.value }}"
+        backup: yes
+      loop:
+        - { key: "listen_addresses", value: "'*'" }
+        - { key: "port", value: "5432" }
+        - { key: "max_connections", value: "200" }
+        - { key: "shared_buffers", value: "'256MB'" }
+        - { key: "effective_cache_size", value: "'1GB'" }
+        - { key: "maintenance_work_mem", value: "'64MB'" }
+        - { key: "checkpoint_completion_target", value: "0.9" }
+        - { key: "wal_buffers", value: "'16MB'" }
+        - { key: "default_statistics_target", value: "100" }
+        - { key: "random_page_cost", value: "1.1" }
+        - { key: "effective_io_concurrency", value: "200" }
+        - { key: "work_mem", value: "'4MB'" }
+        - { key: "min_wal_size", value: "'1GB'" }
+        - { key: "max_wal_size", value: "'4GB'" }
+        - { key: "logging_collector", value: "on" }
+        - { key: "log_directory", value: "'log'" }
+        - { key: "log_filename", value: "'postgresql-%Y-%m-%d_%H%M%S.log'" }
+        - { key: "log_statement", value: "'ddl'" }
+        - { key: "log_line_prefix", value: "'%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '" }
+        - { key: "log_timezone", value: "'UTC'" }
+        - { key: "datestyle", value: "'iso, mdy'" }
+        - { key: "timezone", value: "'UTC'" }
+        - { key: "lc_messages", value: "'en_US.UTF-8'" }
+        - { key: "lc_monetary", value: "'en_US.UTF-8'" }
+        - { key: "lc_numeric", value: "'en_US.UTF-8'" }
+        - { key: "lc_time", value: "'en_US.UTF-8'" }
+        - { key: "default_text_search_config", value: "'pg_catalog.english'" }
+      notify: restart postgresql
+
+    - name: Configure pg_hba.conf with allowed CIDRs
+      blockinfile:
+        path: "{{ postgresql_hba_file }}"
+        block: |
+          # TYPE  DATABASE        USER            ADDRESS                 METHOD
+          local   all             postgres                                peer
+          local   all             all                                     md5
+          host    all             all             127.0.0.1/32            md5
+          host    all             all             ::1/128                 md5
+          {% for cidr in postgresql_allowed_cidrs %}
+          host    all             all             {{ cidr }}              md5
+          {% endfor %}
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - CUSTOM PERMISSIONS"
+        backup: yes
+      notify: reload postgresql
+
+    - name: Ensure PostgreSQL service is started and enabled
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: started
+        enabled: yes
+
+    - name: Ensure .pgpass file exists for postgres user
+      copy:
+        content: |
+          *:*:*:postgres:{{ postgresql_user_password }}
+        dest: /root/.pgpass
+        mode: '0600'
+        owner: root
+        group: root
+
+    - name: Create application database
+      postgresql_db:
+        name: "{{ postgresql_database_name }}"
+        state: present
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      become_user: postgres
+
+    - name: Create application database user
+      postgresql_user:
+        name: "{{ postgresql_user_name }}"
+        password: "{{ postgresql_user_password }}"
+        state: present
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      become_user: postgres
+
+    - name: Grant privileges on database to user
+      postgresql_privs:
+        database: "{{ postgresql_database_name }}"
+        state: present
+        privs: ALL
+        type: database
+        obj: "{{ postgresql_database_name }}"
+        roles: "{{ postgresql_user_name }}"
+        login_unix_socket: "{{ postgresql_data_dir }}"
+      become_user: postgres
+
+  handlers:
+    - name: restart postgresql
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: restarted
+
+    - name: reload postgresql
+      systemd:
+        name: "{{ postgresql_service_name }}"
+        state: reloaded

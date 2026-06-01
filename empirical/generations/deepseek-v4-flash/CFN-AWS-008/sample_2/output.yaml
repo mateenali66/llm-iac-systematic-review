@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'KMS Customer-Managed Key for Database Backup Encryption'
+
+Parameters:
+  KeyAlias:
+    Type: String
+    Default: 'alias/database-backup-key'
+    Description: Alias for the KMS key
+  KeyDescription:
+    Type: String
+    Default: 'KMS key for encrypting database backups'
+    Description: Description of the KMS key
+
+Resources:
+  DatabaseBackupKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Ref KeyDescription
+      Enabled: true
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Enable IAM User Permissions'
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: 'Allow Database Backup Services'
+            Effect: Allow
+            Principal:
+              Service:
+                - backup.amazonaws.com
+                - rds.amazonaws.com
+                - dynamodb.amazonaws.com
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'kms:ViaService': !Sub 'backup.${AWS::Region}.amazonaws.com'
+          - Sid: 'Allow Key Administration'
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:Create*'
+              - 'kms:Describe*'
+              - 'kms:Enable*'
+              - 'kms:List*'
+              - 'kms:Put*'
+              - 'kms:Update*'
+              - 'kms:Revoke*'
+              - 'kms:Disable*'
+              - 'kms:Get*'
+              - 'kms:Delete*'
+              - 'kms:TagResource'
+              - 'kms:UntagResource'
+              - 'kms:ScheduleKeyDeletion'
+              - 'kms:CancelKeyDeletion'
+            Resource: '*'
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: false
+      Tags:
+        - Key: Name
+          Value: !Ref KeyAlias
+        - Key: Environment
+          Value: !Ref AWS::StackName
+        - Key: Purpose
+          Value: 'Database Backup Encryption'
+
+  DatabaseBackupKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref KeyAlias
+      TargetKeyId: !Ref DatabaseBackupKMSKey
+
+Outputs:
+  KMSKeyId:
+    Description: KMS Key ID for database backup encryption
+    Value: !Ref DatabaseBackupKMSKey
+    Export:
+      Name: !Sub '${AWS::StackName}-KMSKeyId'
+
+  KMSKeyArn:
+    Description: KMS Key ARN for database backup encryption
+    Value: !GetAtt DatabaseBackupKMSKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-KMSKeyArn'
+
+  KMSKeyAlias:
+    Description: KMS Key Alias for database backup encryption
+    Value: !Ref KeyAlias
+    Export:
+      Name: !Sub '${AWS::StackName}-KMSKeyAlias'

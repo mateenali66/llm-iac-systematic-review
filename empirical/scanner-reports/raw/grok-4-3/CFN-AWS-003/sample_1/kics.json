@@ -1,0 +1,267 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 169,
+	"files_parsed": 2,
+	"lines_parsed": 169,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 2,
+		"LOW": 2,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 9,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:29:14.975686345Z",
+	"end": "2026-05-26T05:29:20.53417Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CMK Unencrypted Storage",
+			"query_id": "ffee2785-c347-451e-89f3-11aeb08e5c84",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Ensure that storage is encrypted.",
+			"description_id": "ba38e42e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "73de81b75ec7fbb9d65eeeafafcda83458d7694a43dbe36a853749765fe710a3",
+					"line": 86,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "AuroraWriterInstance",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraWriterInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraWriterInstance.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.AuroraWriterInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Not Encrypted",
+			"query_id": "5beacce3-4020-4a3d-9e1d-a36f953df630",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS Storage should be encrypted, which means the attribute 'StorageEncrypted' should be set to 'true'",
+			"description_id": "f052de92",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8e94370f4b220517beac8082d1e4684d10035aec961d3d5de856f44bd9cc8e92",
+					"line": 86,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "AuroraWriterInstance",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraWriterInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraWriterInstance.Properties.StorageEncrypted should be defined and set to true",
+					"actual_value": "Resources.AuroraWriterInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "9fcd0a0a-9b6f-4670-a215-d94e6bf3f184",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-enableiamdatabaseauthentication",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "e4c2c085",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a20eba597c1c7b7c28628dc763d9d4bfc58fd8d5cc112d07e271ed4a152333b8",
+					"line": 86,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "AuroraWriterInstance",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraWriterInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraWriterInstance.Properties.EnableIAMDatabaseAuthentication should be defined",
+					"actual_value": "Resources.AuroraWriterInstance.Properties.EnableIAMDatabaseAuthentication is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Multi-AZ Deployment Disabled",
+			"query_id": "2b1d4935-9acf-48a7-8466-10d18bf51a69",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "AWS RDS Instance should have a multi-az deployment",
+			"description_id": "4bdb6677",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e99a5ac2ea7f07eff26d5251420625085dca6adee59c5adf92c0cbd428d48cd4",
+					"line": 86,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "AuroraWriterInstance",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraWriterInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBInstance 'AuroraWriterInstance' should have Multi-Availability Zone enabled",
+					"actual_value": "The RDS DBInstance 'AuroraWriterInstance' MultiAZ property is undefined and by default disabled"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Egress CIDR Open To World",
+			"query_id": "1cc2fbd7-816c-4fbf-ad6d-38a4afa4312a",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-security-group-egress.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Security Group Egress CIDR should not be open to the world",
+			"description_id": "ec506916",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "21b8223333052ecb8fe92fb187e5eb2417eae86722cbc51d7da544f8c7f0a429",
+					"line": 39,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DBSecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress[0].CidrIp",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress[0].CidrIp should not be open to the world",
+					"actual_value": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress[0].CidrIp is open to the world"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 31,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS DB Instance With Deletion Protection Disabled",
+			"query_id": "2c161e58-cb52-454f-abea-6470c37b5e6e",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-deletionprotection",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "459",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "RDS DBInstance should have deletion protection set to true",
+			"description_id": "606a0602",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d3a1b77a22c5609f08d021249ad3d0fc9e2ef087c6d9b1e0df6edbde0bb8a19c",
+					"line": 86,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "AuroraWriterInstance",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.AuroraWriterInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AuroraWriterInstance.Properties.DeletionProtection should be defined",
+					"actual_value": "Resources.AuroraWriterInstance.Properties.DeletionProtection is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8748d573de3d67f3a9c048c32400c4e88e7672491ca0a84d217f776c75362621",
+					"line": 42,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DBSecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBSecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBSecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.DBSecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b0ae0151d4504ec4999aaa93799760ccac09cbf8948656c6f29978a8ddedc649",
+					"line": 47,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "DBSecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress[0].Description should be set",
+					"actual_value": "Resources.DBSecurityGroup.Properties.SecurityGroupEgress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,23 @@
+properties:
+  bucketName:
+    type: string
+    description: The name of the Cloud Storage bucket the function needs to read from.
+  serviceAccountName:
+    type: string
+    description: The short name for the service account (e.g., 'my-function-sa').
+    default: function-reader-sa
+  serviceAccountDisplayName:
+    type: string
+    description: The display name for the service account.
+    default: Service Account for Cloud Function Bucket Reader
+
+resources:
+- name: {{ properties['serviceAccountName'] }}
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: {{ properties['serviceAccountName'] }}
+    displayName: {{ properties['serviceAccountDisplayName'] }}
+    projectId: {{ env['project'] }}
+
+- name: {{ properties['serviceAccountName'] }}-bucket-iam-binding
+  type: g

@@ -1,0 +1,27 @@
+imports:
+  - path: storage-bucket.py
+
+resources:
+  - name: static-website-bucket
+    type: storage-bucket.py
+    properties:
+      bucketName: my-static-website-bucket
+      location: US
+      storageClass: STANDARD
+      versioning:
+        enabled: false
+      website:
+        mainPageSuffix: index.html
+        notFoundPage: 404.html
+      iamConfiguration:
+        publicAccessPrevention: enforced
+        uniformBucketLevelAccess:
+          enabled: true
+      labels:
+        environment: production
+        purpose: static-website
+      cors:
+        - origin: ["*"]
+          method: ["GET", "HEAD"]
+          responseHeader: ["Content-Type", "Content-Length"]
+          maxAgeSeconds: 3600

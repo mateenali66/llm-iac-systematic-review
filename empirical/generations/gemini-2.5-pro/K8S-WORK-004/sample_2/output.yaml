@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-db-backup
+  namespace: production
+  labels:
+    app.kubernetes.io/name: db-backup
+    app.kubernetes.io/component: cronjob
+    app.kubernetes.io/part-of: database
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 600
+  jobTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: db-backup
+        app.kubernetes.io/component: job
+        app.kubernetes.io/part-of: database
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: db-backup-container
+              image: myorg/db-backup:2.1
+              imagePullPolicy: Always
+              envFrom:
+                - secretRef:
+                    name: db-backup-credentials
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+                - name: tmp-data
+                  mountPath: /tmp
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: db-backup-pvc
+            - name: tmp-data
+              emptyDir: {}

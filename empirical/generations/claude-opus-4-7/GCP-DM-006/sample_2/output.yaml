@@ -1,0 +1,67 @@
+imports:
+  - path: service_account.jinja
+  - path: iam_binding.jinja
+
+resources:
+  - name: cloud-function-sa
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cf-bucket-reader-sa
+      displayName: Cloud Function Bucket Reader Service Account
+      description: Service account used by Cloud Function to read objects from a designated GCS bucket
+
+  - name: bucket-object-viewer-binding
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: $(ref.target-bucket.name)
+      role: roles/storage.objectViewer
+      member: serviceAccount:$(ref.cloud-function-sa.email)
+    metadata:
+      dependsOn:
+        - cloud-function-sa
+        - target-bucket
+
+  - name: bucket-legacy-reader-binding
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: $(ref.target-bucket.name)
+      role: roles/storage.legacyBucketReader
+      member: serviceAccount:$(ref.cloud-function-sa.email)
+    metadata:
+      dependsOn:
+        - cloud-function-sa
+        - target-bucket
+
+  - name: target-bucket
+    type: storage.v1.bucket
+    properties:
+      name: {{ env["project"] }}-cf-source-data
+      location: US
+      storageClass: STANDARD
+      iamConfiguration:
+        uniformBucketLevelAccess:
+          enabled: true
+        publicAccessPrevention: enforced
+      versioning:
+        enabled: true
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 365
+              isLive: false
+      labels:
+        environment: production
+        managed-by: deployment-manager
+        purpose: cloud-function-source
+
+outputs:
+  - name: serviceAccountEmail
+    value: $(ref.cloud-function-sa.email)
+  - name: serviceAccountName
+    value: $(ref.cloud-function-sa.name)
+  - name: bucketName
+    value: $(ref.target-bucket.name)
+  - name: bucketSelfLink
+    value: $(ref.target-bucket.selfLink)

@@ -1,0 +1,42 @@
+resources:
+- name: python-api
+  type: gcp-types/run-v1:projects.locations.services
+  properties:
+    location: us-central1
+    serviceId: python-api
+    service:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      metadata:
+        name: python-api
+        annotations:
+          run.googleapis.com/ingress: internal-and-cloud-load-balancing
+      spec:
+        template:
+          metadata:
+            annotations:
+              autoscaling.knative.dev/minScale: '1'
+              autoscaling.knative.dev/maxScale: '20'
+              run.googleapis.com/execution-environment: gen2
+              run.googleapis.com/cpu-throttling: 'true'
+              run.googleapis.com/startup-cpu-boost: 'true'
+          spec:
+            containers:
+            - image: us-central1-docker.pkg.dev/PROJECT_ID/REPO/python-api:latest
+              env:
+              - name: ENV
+                value: production
+              - name: PYTHONUNBUFFERED
+                value: '1'
+              resources:
+                limits:
+                  cpu: '1'
+                  memory: 512Mi
+            containerConcurrency: 50
+            timeoutSeconds: 300
+        traffic:
+        - latestRevision: true
+          percent: 100
+outputs:
+- name: serviceUrl
+  value: $(ref.python-api.status.url)

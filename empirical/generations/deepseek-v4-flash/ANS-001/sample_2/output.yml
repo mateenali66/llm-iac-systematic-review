@@ -1,0 +1,41 @@
+- name: Install and configure nginx on Ubuntu
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure nginx is started and enabled at boot
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Install ufw (if not present)
+      apt:
+        name: ufw
+        state: present
+
+    - name: Allow SSH before enabling firewall
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+    - name: Allow HTTP (port 80)
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Enable ufw firewall
+      ufw:
+        state: enabled
+        policy: deny

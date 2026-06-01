@@ -1,0 +1,84 @@
+---
+- name: Install and configure PostgreSQL 15 server
+  become: yes
+  hosts: postgresql_servers
+  vars:
+    postgresql_version: "15"
+    postgresql_port: 5432
+    postgresql_allowed_cidrs:
+      - "127.0.0.1/32"
+      - "10.0.0.0/8"
+    postgresql_database: mydatabase
+    postgresql_username: myuser
+    postgresql_password:mypassword
+  tasks:
+  - name: Install PostgreSQL package
+    apt:
+      name: postgresql-{{ postgresql_version }}
+      state: present
+
+  - name: Configure pg_hba.conf
+    template:
+      src: templates/pg_hba.conf.j2
+      dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+      mode: '0640'
+    notify: restart postgresql
+
+  - name: Configure postgresql.conf
+    template:
+      src: templates/postgresql.conf.j2
+      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf
+      mode: '0640'
+    notify: restart postgresql
+
+  - name: Start and enable PostgreSQL service
+    service:
+      name: postgresql@{{ postgresql_version }}-main
+      state: started
+      enabled: yes
+
+  - name: Create database and user
+    become_user: postgres
+    become_method: sudo
+    postgresql_db:
+      name: "{{ postgresql_database }}"
+      state: present
+
+  - name: Create PostgreSQL user
+    become_user: postgres
+    become_method: sudo
+    postgresql_user:
+      db: "{{ postgresql_database }}"
+      name: "{{ postgresql_username }}"
+      password: "{{ postgresql_password }}"
+      state: present
+      priv: "ALL"
+
+  handlers:
+  - name: restart postgresql
+    service:
+      name: postgresql@{{ postgresql_version }}-main
+      state: restarted
+
+---
+templates/pg_hba.conf.j2:
+local   all             postgres                                peer
+host    all             all             127.0.0.1/32          md5
+host    all             all             {{ postgresql_allowed_cidrs[0] }}          md5
+host    all             all             {{ postgresql_allowed_cidrs[1] }}          md5
+
+templates/postgresql.conf.j2:
+listen_addresses = '*'
+port = {{ postgresql_port }}
+max_connections = 100
+shared_buffers = 512MB
+effective_cache_size = 1GB
+maintenance_work_mem = 64MB
+wal_buffers = 16MB
+checkpoint_completion_target = 0.9
+wal_writer_delay = 10ms
+random_page_cost = 1.1
+effective_io_concurrency = 200
+max_worker_processes = 8
+max_parallel_workers_per_gather = 4
+max_parallel_maintenance_workers = 4

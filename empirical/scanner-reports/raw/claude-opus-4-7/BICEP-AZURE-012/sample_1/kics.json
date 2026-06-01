@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 171,
+	"files_parsed": 1,
+	"lines_parsed": 171,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T03:48:51.618532586Z",
+	"end": "2026-05-26T03:48:52.432173378Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Default Azure Storage Account Network Access Is Too Permissive",
+			"query_id": "d855ced8-6157-448f-9f1d-f05a41d046f7",
+			"query_url": "https://learn.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Make sure that your Azure Storage Account access is limited to those who require it.",
+			"description_id": "d855ced8",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "c6dcb74b9f874c25258d20e039595f483022791a27f781a2541274185ce74848",
+					"line": 80,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.publicNetworkAccess",
+					"search_line": 80,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess should be set to false, and/or networkAcls.defaultAction should be set to deny",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' publicNetworkAccess is set to 'Enabled')"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "b4cbe7c10b637d55fea174d59d4673cd7a9be0d99b458c35dbad60bce09ffab8",
+					"line": 125,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[variables('functionAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[variables('functionAppName')]}}.properties",
+					"search_line": 125,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Storage Account Allows Default Network Access",
+			"query_id": "9073f073-5d60-4b46-b569-0d6baa80ed95",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.storage/storageaccounts?tabs=json#storageaccountpropertiescreateparameters-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "319",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Storage/storageAccounts' should force the use of HTTPS",
+			"description_id": "6ae0507e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "8c2b283db82cfb4f4d83f2f5e93f741f7715f87be539036edd3ecfbc6c0840d5",
+					"line": 84,
+					"resource_type": "Microsoft.Storage/storageAccounts",
+					"resource_name": "[variables('storageAccountName')]",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name=[variables('storageAccountName')].properties.networkAcls.defaultAction",
+					"search_line": 84,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Storage/storageAccounts' property value should have the 'properties.networkAcls.defaultAction' set to 'Deny'",
+					"actual_value": "resource with type 'Microsoft.Storage/storageAccounts' has the 'properties.networkAcls.defaultAction' set to 'Allow'"
+				}
+			]
+		}
+	]
+}

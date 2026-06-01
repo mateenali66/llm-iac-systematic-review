@@ -1,0 +1,235 @@
+- name: Install and configure Prometheus node_exporter
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    node_exporter_version: "1.8.2"
+    node_exporter_user: "node_exporter"
+    node_exporter_group: "node_exporter"
+    node_exporter_bin_dir: "/usr/local/bin"
+    node_exporter_config_dir: "/etc/node_exporter"
+    node_exporter_textfile_dir: "/var/lib/node_exporter/textfile_collector"
+    node_exporter_listen_address: "0.0.0.0:9100"
+    node_exporter_extra_args: []
+    node_exporter_service_name: "node_exporter"
+    arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armv7
+      armv6l: armv6
+      ppc64le: ppc64le
+      s390x: s390x
+
+  tasks:
+    - name: Determine GOARCH equivalent
+      ansible.builtin.set_fact:
+        node_exporter_go_arch: "{{ arch_map.get(ansible_architecture, 'amd64') }}"
+
+    - name: Define download variables
+      ansible.builtin.set_fact:
+        node_exporter_archive: "node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_go_arch }}.tar.gz"
+        node_exporter_download_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_go_arch }}.tar.gz"
+        node_exporter_checksums_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/sha256sums.txt"
+        node_exporter_tmp_dir: "/tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_go_arch }}"
+
+    - name: Ensure node_exporter group exists
+      ansible.builtin.group:
+        name: "{{ node_exporter_group }}"
+        system: true
+
+    - name: Ensure node_exporter user exists
+      ansible.builtin.user:
+        name: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Ensure configuration directory exists
+      ansible.builtin.file:
+        path: "{{ node_exporter_config_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Ensure textfile collector directory exists
+      ansible.builtin.file:
+        path: "{{ node_exporter_textfile_dir }}"
+        state: directory
+        owner: "{{ node_exporter_user }}"
+        group: "{{ node_exporter_group }}"
+        mode: "0755"
+
+    - name: Download node_exporter checksums file
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_checksums_url }}"
+        dest: "/tmp/node_exporter-{{ node_exporter_version }}-sha256sums.txt"
+        mode: "0644"
+      register: checksum_download
+
+    - name: Extract checksum for target archive
+      ansible.builtin.shell: "grep -E '(^|\\s){{ node_exporter_archive }}$' /tmp/node_exporter-{{ node_exporter_version }}-sha256sums.txt | awk '{print $1}'"
+      args:
+        executable: /bin/bash
+      register: node_exporter_sha256
+      changed_when: false
+      failed_when: node_exporter_sha256.rc != 0 or node_exporter_sha256.stdout == ""
+
+    - name: Set checksum fact
+      ansible.builtin.set_fact:
+        node_exporter_archive_checksum: "sha256:{{ node_exporter_sha256.stdout }}"
+
+    - name: Download node_exporter archive (verified)
+      ansible.builtin.get_url:
+        url: "{{ node_exporter_download_url }}"
+        dest: "/tmp/{{ node_exporter_archive }}"
+        mode: "0644"
+        checksum: "{{ node_exporter_archive_checksum }}"
+      register: archive_download
+
+    - name: Unarchive node_exporter
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ node_exporter_archive }}"
+        dest: "/tmp"
+        remote_src: true
+        creates: "{{ node_exporter_tmp_dir }}/node_exporter"
+
+    - name: Install node_exporter binary
+      ansible.builtin.copy:
+        src: "{{ node_exporter_tmp_dir }}/node_exporter"
+        dest: "{{ node_exporter_bin_dir }}/node_exporter"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+      notify:
+        - Restart node_exporter
+
+    - name: Cleanup extracted directory
+      ansible.builtin.file:
+        path: "{{ node_exporter_tmp_dir }}"
+        state: absent
+
+    - name: Cleanup archive
+      ansible.builtin.file:
+        path: "/tmp/{{ node_exporter_archive }}"
+        state: absent
+
+    - name: Create environment file for node_exporter options
+      ansible.builtin.copy:
+        dest: "{{ node_exporter_config_dir }}/node_exporter.env"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          NODE_EXPORTER_OPTS="--web.listen-address={{ node_exporter_listen_address }} --collector.textfile.directory={{ node_exporter_textfile_dir }}{% if node_exporter_extra_args | length > 0 %} {{ node_exporter_extra_args | join(' ') }}{% endif %}"
+      notify:
+        - Restart node_exporter
+
+    - name: Install systemd unit for node_exporter
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ node_exporter_service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Prometheus Node Exporter
+          Documentation=https://prometheus.io/docs/guides/node-exporter/
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ node_exporter_user }}
+          Group={{ node_exporter_group }}
+          EnvironmentFile=-{{ node_exporter_config_dir }}/node_exporter.env
+          ExecStart={{ node_exporter_bin_dir }}/node_exporter $NODE_EXPORTER_OPTS
+          ExecStartPre={{ node_exporter_bin_dir }}/node_exporter --version
+          Restart=on-failure
+          RestartSec=5s
+
+          # Security Hardening
+          NoNewPrivileges=yes
+          PrivateTmp=yes
+          PrivateDevices=yes
+          ProtectHome=yes
+          ProtectSystem=strict
+          ProtectKernelTunables=yes
+          ProtectKernelModules=yes
+          ProtectControlGroups=yes
+          RestrictNamespaces=yes
+          LockPersonality=yes
+          MemoryDenyWriteExecute=yes
+          RestrictRealtime=yes
+          SystemCallArchitectures=native
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+          RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Systemd daemon-reload
+        - Restart node_exporter
+
+    - name: Gather service facts (for firewall detection)
+      ansible.builtin.service_facts:
+
+    - name: Open port 9100/tcp in firewalld if running
+      ansible.posix.firewalld:
+        port: 9100/tcp
+        permanent: true
+        immediate: true
+        state: enabled
+      when:
+        - "'firewalld.service' in ansible_facts.services"
+        - ansible_facts.services['firewalld.service'].state == 'running'
+
+    - name: Check if ufw command exists
+      ansible.builtin.command: bash -lc "command -v ufw"
+      register: ufw_cmd
+      changed_when: false
+      failed_when: false
+
+    - name: Get ufw status
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      changed_when: false
+      failed_when: false
+      when: ufw_cmd.rc == 0
+
+    - name: Allow port 9100/tcp in ufw if active
+      community.general.ufw:
+        rule: allow
+        port: "9100"
+        proto: tcp
+      when:
+        - ufw_cmd.rc == 0
+        - ufw_status.stdout is search("Status: active")
+
+    - name: Enable and start node_exporter service
+      ansible.builtin.systemd:
+        name: "{{ node_exporter_service_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Wait for node_exporter to be listening on port 9100
+      ansible.builtin.wait_for:
+        port: 9100
+        delay: 0
+        timeout: 30
+        state: started
+
+  handlers:
+    - name: Systemd daemon-reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart node_exporter
+      ansible.builtin.systemd:
+        name: "{{ node_exporter_service_name }}"
+        state: restarted

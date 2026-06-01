@@ -1,0 +1,101 @@
+# FILE: Chart.yaml
+name: worker-service
+version: 1.0.0
+description: A Helm chart for deploying a generic worker service
+
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: worker-service
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 80
+redis:
+  host: redis
+  port: 6379
+  password: 
+environment:
+  VARIABLE: value
+secret:
+  redisPassword: 
+
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker-service.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worker-service.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker-service.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host }}
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worker-service.fullname" . }}-redis
+                  key: redis-password
+            - name: VARIABLE
+              value: {{ .Values.environment.VARIABLE }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "worker-service.fullname" . }}-config
+
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worker-service.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+  selector:
+    {{- include "worker-service.labels" . | nindent 4 }}
+
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worker-service.fullname" . }}-config
+data:
+  config.properties: |
+    variable={{ .Values.environment.VARIABLE }}
+
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "worker-service.fullname" . }}-redis
+type: Opaque
+data:
+  redis-password: {{ .Values.secret.redisPassword | b64enc }}
+
+# FILE: templates/_helpers.tpl
+{{- define "worker-service.fullname" -}}
+{{- printf "%s" .Values.name | default "worker-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "worker-service.labels" -}}
+app.kubernetes.io/name: {{ include "worker-service.fullname" . }}
+app.kubernetes.io/instance: {{ .Values.name | default "worker-service" }}
+{{- end -}}

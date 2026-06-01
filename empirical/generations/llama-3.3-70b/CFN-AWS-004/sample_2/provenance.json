@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CFN-AWS-004",
+  "language": "cloudformation",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CloudFormation template defining an IAM role with a policy that allows EC2 instances to write logs to CloudWatch and read configuration from Parameter Store.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Generate a CloudFormation template defining an IAM role with a policy that allows EC2 instances to write logs to CloudWatch and read configuration from Parameter Store.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nResources:\n  EC2CloudWatchRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: EC2CloudWatchPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n              - Effect: Allow\n                Action:\n                  - 'ssm:GetParameter'\n                  - 'ssm:GetParameters'\n                  - 'ssm:GetParametersByPath'\n                Resource: 'arn:aws:ssm:*:*:parameter/*'\n  EC2CloudWatchRoleInstanceProfile:\n    Type: 'AWS::IAM::InstanceProfile'\n    Properties:\n      Roles:\n        - !Ref EC2CloudWatchRole\nOutputs:\n  EC2CloudWatchRoleArn:\n    Value: !GetAtt EC2CloudWatchRole.Arn\n    Description: The ARN of the EC2 CloudWatch role\n  EC2CloudWatchRoleInstanceProfileArn:\n    Value: !GetAtt EC2CloudWatchRoleInstanceProfile.Arn\n    Description: The ARN of the EC2 CloudWatch role instance profile",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nResources:\n  EC2CloudWatchRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: EC2CloudWatchPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n              - Effect: Allow\n                Action:\n                  - 'ssm:GetParameter'\n                  - 'ssm:GetParameters'\n                  - 'ssm:GetParametersByPath'\n                Resource: 'arn:aws:ssm:*:*:parameter/*'\n  EC2CloudWatchRoleInstanceProfile:\n    Type: 'AWS::IAM::InstanceProfile'\n    Properties:\n      Roles:\n        - !Ref EC2CloudWatchRole\nOutputs:\n  EC2CloudWatchRoleArn:\n    Value: !GetAtt EC2CloudWatchRole.Arn\n    Description: The ARN of the EC2 CloudWatch role\n  EC2CloudWatchRoleInstanceProfileArn:\n    Value: !GetAtt EC2CloudWatchRoleInstanceProfile.Arn\n    Description: The ARN of the EC2 CloudWatch role instance profile",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nResources:\n  EC2CloudWatchRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: EC2CloudWatchPolicy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n              - Effect: Allow\n                Action:\n                  - 'ssm:GetParameter'\n                  - 'ssm:GetParameters'\n                  - 'ssm:GetParametersByPath'\n                Resource: 'arn:aws:ssm:*:*:parameter/*'\n  EC2CloudWatchRoleInstanceProfile:\n    Type: 'AWS::IAM::InstanceProfile'\n    Properties:\n      Roles:\n        - !Ref EC2CloudWatchRole\nOutputs:\n  EC2CloudWatchRoleArn:\n    Value: !GetAtt EC2CloudWatchRole.Arn\n    Description: The ARN of the EC2 CloudWatch role\n  EC2CloudWatchRoleInstanceProfileArn:\n    Value: !GetAtt EC2CloudWatchRoleInstanceProfile.Arn\n    Description: The ARN of the EC2 CloudWatch role instance profile",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723696,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 165,
+      "output_tokens": 334,
+      "raw_input_tokens": 165
+    }
+  },
+  "started_at": "2026-05-25T15:41:34.700825+00:00",
+  "elapsed_seconds": 1.58
+}

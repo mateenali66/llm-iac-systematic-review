@@ -1,0 +1,44 @@
+resources:
+- name: logs-analysis-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: logs_analysis
+    location: US
+    friendlyName: Logs Analysis
+    description: Dataset for long-term Cloud Logging exports
+    labels:
+      environment: prod
+      component: logging
+
+- name: logs-to-bq-sink
+  type: gcp-types/logging-v2:projects.sinks
+  metadata:
+    dependsOn:
+    - logs-analysis-dataset
+  properties:
+    parent: projects/$(ref.logs-analysis-dataset.datasetReference.projectId)
+    uniqueWriterIdentity: true
+    sink:
+      name: logs_to_bigquery
+      destination: bigquery.googleapis.com/projects/$(ref.logs-analysis-dataset.datasetReference.projectId)/datasets/$(ref.logs-analysis-dataset.datasetReference.datasetId)
+      disabled: false
+
+- name: logs-analysis-dataset-access
+  type: gcp-types/bigquery-v2:datasets.patch
+  metadata:
+    dependsOn:
+    - logs-analysis-dataset
+    - logs-to-bq-sink
+  properties:
+    projectId: $(ref.logs-analysis-dataset.datasetReference.projectId)
+    datasetId: $(ref.logs-analysis-dataset.datasetReference.datasetId)
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: WRITER
+      specialGroup: projectWriters
+    - role: READER
+      specialGroup: projectReaders
+    - role: WRITER
+      iamMember: $(ref.logs-to-bq-sink.writerIdentity)

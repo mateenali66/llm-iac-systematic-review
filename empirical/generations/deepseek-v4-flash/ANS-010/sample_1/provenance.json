@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "ANS-010",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook deploying a Java application as a systemd service: installs OpenJDK 21, creates a service user, copies the application JAR, writes the systemd unit file, and starts the service. Idempotent across re-runs.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook deploying a Java application as a systemd service: installs OpenJDK 21, creates a service user, copies the application JAR, writes the systemd unit file, and starts the service. Idempotent across re-runs.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Deploy Java application as systemd service\n  hosts: all\n  become: yes\n  vars:\n    app_user: javaapp\n    app_group: javaapp\n    app_jar_source: /path/to/application.jar\n    app_jar_dest: /opt/javaapp/application.jar\n    app_service_name: javaapp\n    java_version: 21\n    java_package: \"openjdk-{{ java_version }}-jdk\"\n\n  tasks:\n    - name: Update apt cache\n      apt:\n        update_cache: yes\n        cache_valid_time: 3600\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK 21\n      package:\n        name: \"{{ java_package }}\"\n        state: present\n\n    - name: Create application group\n      group:\n        name: \"{{ app_group }}\"\n        state: present\n        system: yes\n\n    - name: Create application user\n      user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        create_home: no\n        shell: /usr/sbin/nologin\n        state: present\n\n    - name: Create application directory\n      file:\n        path: \"{{ app_jar_dest | dirname }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Copy application JAR\n      copy:\n        src: \"{{ app_jar_source }}\"\n        dest: \"{{ app_jar_dest }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n        force: yes\n\n    - name: Write systemd unit file\n      template:\n        src: javaapp.service.j2\n        dest: \"/etc/systemd/system/{{ app_service_name }}.service\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify: reload systemd\n\n    - name: Enable and start service\n      systemd:\n        name: \"{{ app_service_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: yes\n\n  handlers:\n    - name: reload systemd\n      systemd:\n        daemon_reload: yes",
+  "cleaned_response": "- name: Deploy Java application as systemd service\n  hosts: all\n  become: yes\n  vars:\n    app_user: javaapp\n    app_group: javaapp\n    app_jar_source: /path/to/application.jar\n    app_jar_dest: /opt/javaapp/application.jar\n    app_service_name: javaapp\n    java_version: 21\n    java_package: \"openjdk-{{ java_version }}-jdk\"\n\n  tasks:\n    - name: Update apt cache\n      apt:\n        update_cache: yes\n        cache_valid_time: 3600\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK 21\n      package:\n        name: \"{{ java_package }}\"\n        state: present\n\n    - name: Create application group\n      group:\n        name: \"{{ app_group }}\"\n        state: present\n        system: yes\n\n    - name: Create application user\n      user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        create_home: no\n        shell: /usr/sbin/nologin\n        state: present\n\n    - name: Create application directory\n      file:\n        path: \"{{ app_jar_dest | dirname }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Copy application JAR\n      copy:\n        src: \"{{ app_jar_source }}\"\n        dest: \"{{ app_jar_dest }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n        force: yes\n\n    - name: Write systemd unit file\n      template:\n        src: javaapp.service.j2\n        dest: \"/etc/systemd/system/{{ app_service_name }}.service\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify: reload systemd\n\n    - name: Enable and start service\n      systemd:\n        name: \"{{ app_service_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: yes\n\n  handlers:\n    - name: reload systemd\n      systemd:\n        daemon_reload: yes",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Deploy Java application as systemd service\n  hosts: all\n  become: yes\n  vars:\n    app_user: javaapp\n    app_group: javaapp\n    app_jar_source: /path/to/application.jar\n    app_jar_dest: /opt/javaapp/application.jar\n    app_service_name: javaapp\n    java_version: 21\n    java_package: \"openjdk-{{ java_version }}-jdk\"\n\n  tasks:\n    - name: Update apt cache\n      apt:\n        update_cache: yes\n        cache_valid_time: 3600\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK 21\n      package:\n        name: \"{{ java_package }}\"\n        state: present\n\n    - name: Create application group\n      group:\n        name: \"{{ app_group }}\"\n        state: present\n        system: yes\n\n    - name: Create application user\n      user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        create_home: no\n        shell: /usr/sbin/nologin\n        state: present\n\n    - name: Create application directory\n      file:\n        path: \"{{ app_jar_dest | dirname }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Copy application JAR\n      copy:\n        src: \"{{ app_jar_source }}\"\n        dest: \"{{ app_jar_dest }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n        force: yes\n\n    - name: Write systemd unit file\n      template:\n        src: javaapp.service.j2\n        dest: \"/etc/systemd/system/{{ app_service_name }}.service\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify: reload systemd\n\n    - name: Enable and start service\n      systemd:\n        name: \"{{ app_service_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: yes\n\n  handlers:\n    - name: reload systemd\n      systemd:\n        daemon_reload: yes",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727635,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 160,
+      "output_tokens": 506,
+      "raw_input_tokens": 160
+    }
+  },
+  "started_at": "2026-05-25T16:47:10.869250+00:00",
+  "elapsed_seconds": 4.199
+}

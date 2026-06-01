@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Defines an IAM Role and Instance Profile for EC2 instances to allow writing
+  to CloudWatch Logs and reading from SSM Parameter Store.
+
+Parameters:
+  ParameterStoreReadPath:
+    Type: String
+    Description: The SSM Parameter Store path prefix that EC2 instances are allowed to read from (e.g., /myapplication/prod/*).
+    Default: /config/myapplication/*
+
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:

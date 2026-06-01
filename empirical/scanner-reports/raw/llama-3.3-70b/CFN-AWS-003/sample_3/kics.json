@@ -1,0 +1,435 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 120,
+	"files_parsed": 2,
+	"lines_parsed": 120,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 5,
+		"INFO": 1,
+		"LOW": 4,
+		"MEDIUM": 5,
+		"TRACE": 0
+	},
+	"total_counter": 15,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:06:17.874620545Z",
+	"end": "2026-05-26T06:06:22.25892313Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CMK Unencrypted Storage",
+			"query_id": "ffee2785-c347-451e-89f3-11aeb08e5c84",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Ensure that storage is encrypted.",
+			"description_id": "ba38e42e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "523a14c0ab554d79ba9d6f6fd38d7413e5acf9340093c26b07ac3afe9a4111dc",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Database.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.Database.Properties.StorageEncrypted is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "610002416dc1f6aa984c361fb0df32d33360cbe5175684bd6cd3fc7ca6f6269a",
+					"line": 37,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "Cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Cluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Cluster.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.Cluster.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Encryption Disabled",
+			"query_id": "65844ba3-03a1-40a8-b3dd-919f122e8c95",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html#cfn-rds-dbcluster-storageencrypted",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS DBCluster should have storage encrypted set to true",
+			"description_id": "654ec248",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d2cb5e4ecaa37f4c37de859720261a53dd00e9858c937432e27e45c43bf6819b",
+					"line": 37,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "Cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Cluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Cluster.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.Cluster.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Not Encrypted",
+			"query_id": "5beacce3-4020-4a3d-9e1d-a36f953df630",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS Storage should be encrypted, which means the attribute 'StorageEncrypted' should be set to 'true'",
+			"description_id": "f052de92",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7246e23d650d183a65ee1cb9d99c773017c1b1bf9c5879eb176c77829fbb0088",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Database.Properties.StorageEncrypted should be defined and set to true",
+					"actual_value": "Resources.Database.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4a1e6b34-1008-4e61-a5f2-1f7c276f8d14",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group-ingress.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Security Group Ingress CIDR should not be open to the world",
+			"description_id": "08256d31",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a68503bbfd281ba6708c363e18f08bccdaa020d541f97d665f188450b97852f2",
+					"line": 33,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 33,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].CidrIp should not be open to the world (0.0.0.0/0)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].CidrIp is open to the world (0.0.0.0/0)"
+				}
+			]
+		},
+		{
+			"query_name": "HTTP Port Open To Internet",
+			"query_id": "ddfc4eaa-af23-409f-b96c-bf5c45dc4daa",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "The HTTP port is open to the internet in a Security Group",
+			"description_id": "a39efd21",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "90eecaab3ab72e08204d6445e9644652ba33962d87b5df02e3f888ae20d46fac",
+					"line": 32,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": 32,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] should not open the HTTP port (80)",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0] opens the HTTP port (80)"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "9fcd0a0a-9b6f-4670-a215-d94e6bf3f184",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-enableiamdatabaseauthentication",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "e4c2c085",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c22572210b579491a05b32edaee2dae442ba992650d2f58159395b4d080bf9c4",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Database.Properties.EnableIAMDatabaseAuthentication should be defined",
+					"actual_value": "Resources.Database.Properties.EnableIAMDatabaseAuthentication is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Multi-AZ Deployment Disabled",
+			"query_id": "2b1d4935-9acf-48a7-8466-10d18bf51a69",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "AWS RDS Instance should have a multi-az deployment",
+			"description_id": "4bdb6677",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b9b1140942479a5d2433acdbaf0c3cccae6573966782e2882fc9631fb366335b",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBInstance 'Database' should have Multi-Availability Zone enabled",
+					"actual_value": "The RDS DBInstance 'Database' MultiAZ property is undefined and by default disabled"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 12,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fc6a0ae1e98de4e6e6ed3f344db70b25e5a6268cee25b794c1dd47f9867e8ad5",
+					"line": 12,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "VPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 12,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "Automatic Minor Upgrades Disabled",
+			"query_id": "f0104061-8bfc-4b45-8a7d-630eb502f281",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "RDS instance should have automatic minor upgrades enabled, which means the attribute 'AutoMinorVersionUpgrade' must be set to true.",
+			"description_id": "e2908402",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "68e078b01aa5d82ab6133d180ada0b96e200392f8df2ce1cf650236c3e536acc",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.Database.Properties.AutoMinorVersionUpgrade' should be defined",
+					"actual_value": "'Resources.Database.Properties.AutoMinorVersionUpgrade' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 4,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Low RDS Backup Retention Period",
+			"query_id": "e649a218-d099-4550-86a4-1231e1fcb60d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rds-dbcluster.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "AWS RDS backup retention policy should be at least 7 days",
+			"description_id": "55094eb2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1bb40416b0b7d93fe3bb1772bdff854e095735b77f3ad6e82d0708d92d045258",
+					"line": 37,
+					"resource_type": "AWS::RDS::DBCluster",
+					"resource_name": "Cluster",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Cluster.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBCluster 'Cluster' resource should have backup retention period of at least 7 days",
+					"actual_value": "The RDS DBCluster 'Cluster' resource doesn't define a backup retention period"
+				}
+			]
+		},
+		{
+			"query_name": "RDS DB Instance With Deletion Protection Disabled",
+			"query_id": "2c161e58-cb52-454f-abea-6470c37b5e6e",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-deletionprotection",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "459",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "RDS DBInstance should have deletion protection set to true",
+			"description_id": "606a0602",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "affd417cfe791c7623b248113b56ca3a48a98f8b70e88963fed25ef28380d469",
+					"line": 55,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "Database",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.Database.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.Database.Properties.DeletionProtection should be defined",
+					"actual_value": "Resources.Database.Properties.DeletionProtection is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "5e6c9c68-8a82-408e-8749-ddad78cbb9c5",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-security-group.html",
+			"severity": "INFO",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for AWS Security Group to have a description",
+			"description_id": "f7c62b11",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a7945f510656954b54ca9e04965686273ffb1fcbb1b8a3e71c2897f0caa08bb",
+					"line": 29,
+					"resource_type": "AWS::EC2::SecurityGroup",
+					"resource_name": "SecurityGroup",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.SecurityGroup.Properties.SecurityGroupIngress",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description should be set",
+					"actual_value": "Resources.SecurityGroup.Properties.SecurityGroupIngress[0].Description is undefined"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Customer-managed KMS key with automatic rotation enabled for encrypting database backups.
+
+Parameters:
+  KeyAlias:
+    Type: String
+    Default: alias/database-backups
+    Description: Alias name for the KMS key (must start with 'alias/').
+    AllowedPattern: ^alias/[a-zA-Z0-9/_-]+$
+    ConstraintDescription: Must start with 'alias/' and contain only alphanumeric characters, hyphens, underscores, or slashes.
+
+  PendingWindowInDays:
+    Type: Number
+    Default: 30
+    MinValue: 7
+    MaxValue: 30
+    Description: Waiting period (in days) before the key is deleted after scheduling deletion.
+
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues:
+      - production
+      - staging
+      - development
+    Description: Deployment environment.
+
+Resources:
+  DatabaseBackupKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub 'Customer-managed KMS key for encrypting database backups (${Environment}).'
+      Enabled: true
+      EnableKeyRotation: true
+      KeyUsage: ENCRYPT_DECRYPT
+      KeySpec: SYMMETRIC_DEFAULT
+      MultiRegion: false
+      PendingWindowInDays: !Ref PendingWindowInDays
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: database-backup-key-policy
+        Statement:
+          - Sid: EnableIAMUserPermissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowAWSBackupServiceUse
+            Effect: Allow
+            Principal:
+              Service: backup.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+              - kms:CreateGrant
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'kms:ViaService': !Sub 'backup.${AWS::Region}.amazonaws.com'
+          - Sid: AllowRDSServiceUse
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+              - kms:CreateGrant
+            Resource: '*'
+            Condition:
+              StringEquals:
+                'kms:ViaService': !Sub 'rds.${AWS::Region}.amazonaws.com'
+          - Sid: DenyKeyDeletionWithoutMFA
+            Effect: Deny
+            Principal:
+              AWS: '*'
+            Action:
+              - kms:ScheduleKeyDeletion
+              - kms:Delete*
+            Resource: '*'
+            Condition:
+              BoolIfExists:
+                'aws:MultiFactorAuthPresent': 'false'
+      Tags:
+        - Key: Name
+          Value: database-backup-key
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: DatabaseBackupEncryption
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: RotationEnabled
+          Value: 'true'
+
+  DatabaseBackupKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref KeyAlias
+      TargetKeyId: !Ref DatabaseBackupKey
+
+Outputs:
+  KeyId:
+    Description: The ID of the KMS key.
+    Value: !Ref DatabaseBackupKey
+    Export:
+      Name: !Sub '${AWS::StackName}-KeyId'
+
+  KeyArn:
+    Description: The ARN of the KMS key.
+    Value: !GetAtt DatabaseBackupKey.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-KeyArn'
+
+  KeyAliasName:
+    Description: The alias of the KMS key.
+    Value: !Ref DatabaseBackupKeyAlias
+    Export:
+      Name: !Sub '${AWS::StackName}-KeyAlias'

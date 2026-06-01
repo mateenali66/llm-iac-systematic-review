@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-007",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "variable \"bucket_name\" {\n  description = \"Name of the S3 bucket the EC2 instance can read from\"\n  type        = string\n  default     = \"app-config-bucket\"\n}\n\nvariable \"role_name\" {\n  description = \"Name of the IAM role\"\n  type        = string\n  default     = \"ec2-s3-read-role\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to resources\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"EC2 read access to app-config-bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"ec2_assume_role\" {\n  statement {\n    sid     = \"EC2AssumeRole\"\n    effect  = \"Allow\"\n    actions = [\"sts:AssumeRole\"]\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"ec2_s3_read\" {\n  name                 = var.role_name\n  description          = \"Role allowing EC2 instances to read objects from ${var.bucket_name}\"\n  assume_role_policy   = data.aws_iam_policy_document.ec2_assume_role.json\n  max_session_duration = 3600\n\n  tags = var.tags\n}\n\ndata \"aws_iam_policy_document\" \"s3_read\" {\n  statement {\n    sid    = \"ListConfigBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetBucketLocation\",\n      \"s3:ListBucket\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}\"]\n  }\n\n  statement {\n    sid    = \"ReadConfigBucketObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n      \"s3:GetObjectVersion\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}/*\"]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read\" {\n  name        = \"${var.role_name}-s3-read\"\n  description = \"Read-only access to s3://${var.bucket_name}\"\n  policy      = data.aws_iam_policy_document.s3_read.json\n\n  tags = var.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read\" {\n  role       = aws_iam_role.ec2_s3_read.name\n  policy_arn = aws_iam_policy.s3_read.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read\" {\n  name = var.role_name\n  role = aws_iam_role.ec2_s3_read.name\n  tags = var.tags\n}\n\noutput \"iam_role_arn\" {\n  description = \"ARN of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.arn\n}\n\noutput \"iam_role_name\" {\n  description = \"Name of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.name\n}\n\noutput \"instance_profile_name\" {\n  description = \"Name of the instance profile to attach to EC2 instances\"\n  value       = aws_iam_instance_profile.ec2_s3_read.name\n}\n\noutput \"instance_profile_arn\" {\n  description = \"ARN of the instance profile\"\n  value       = aws_iam_instance_profile.ec2_s3_read.arn\n}",
+  "cleaned_response": "variable \"bucket_name\" {\n  description = \"Name of the S3 bucket the EC2 instance can read from\"\n  type        = string\n  default     = \"app-config-bucket\"\n}\n\nvariable \"role_name\" {\n  description = \"Name of the IAM role\"\n  type        = string\n  default     = \"ec2-s3-read-role\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to resources\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"EC2 read access to app-config-bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"ec2_assume_role\" {\n  statement {\n    sid     = \"EC2AssumeRole\"\n    effect  = \"Allow\"\n    actions = [\"sts:AssumeRole\"]\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"ec2_s3_read\" {\n  name                 = var.role_name\n  description          = \"Role allowing EC2 instances to read objects from ${var.bucket_name}\"\n  assume_role_policy   = data.aws_iam_policy_document.ec2_assume_role.json\n  max_session_duration = 3600\n\n  tags = var.tags\n}\n\ndata \"aws_iam_policy_document\" \"s3_read\" {\n  statement {\n    sid    = \"ListConfigBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetBucketLocation\",\n      \"s3:ListBucket\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}\"]\n  }\n\n  statement {\n    sid    = \"ReadConfigBucketObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n      \"s3:GetObjectVersion\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}/*\"]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read\" {\n  name        = \"${var.role_name}-s3-read\"\n  description = \"Read-only access to s3://${var.bucket_name}\"\n  policy      = data.aws_iam_policy_document.s3_read.json\n\n  tags = var.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read\" {\n  role       = aws_iam_role.ec2_s3_read.name\n  policy_arn = aws_iam_policy.s3_read.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read\" {\n  name = var.role_name\n  role = aws_iam_role.ec2_s3_read.name\n  tags = var.tags\n}\n\noutput \"iam_role_arn\" {\n  description = \"ARN of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.arn\n}\n\noutput \"iam_role_name\" {\n  description = \"Name of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.name\n}\n\noutput \"instance_profile_name\" {\n  description = \"Name of the instance profile to attach to EC2 instances\"\n  value       = aws_iam_instance_profile.ec2_s3_read.name\n}\n\noutput \"instance_profile_arn\" {\n  description = \"ARN of the instance profile\"\n  value       = aws_iam_instance_profile.ec2_s3_read.arn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "variable \"bucket_name\" {\n  description = \"Name of the S3 bucket the EC2 instance can read from\"\n  type        = string\n  default     = \"app-config-bucket\"\n}\n\nvariable \"role_name\" {\n  description = \"Name of the IAM role\"\n  type        = string\n  default     = \"ec2-s3-read-role\"\n}\n\nvariable \"tags\" {\n  description = \"Tags to apply to resources\"\n  type        = map(string)\n  default = {\n    ManagedBy = \"Terraform\"\n    Purpose   = \"EC2 read access to app-config-bucket\"\n  }\n}\n\ndata \"aws_iam_policy_document\" \"ec2_assume_role\" {\n  statement {\n    sid     = \"EC2AssumeRole\"\n    effect  = \"Allow\"\n    actions = [\"sts:AssumeRole\"]\n\n    principals {\n      type        = \"Service\"\n      identifiers = [\"ec2.amazonaws.com\"]\n    }\n  }\n}\n\nresource \"aws_iam_role\" \"ec2_s3_read\" {\n  name                 = var.role_name\n  description          = \"Role allowing EC2 instances to read objects from ${var.bucket_name}\"\n  assume_role_policy   = data.aws_iam_policy_document.ec2_assume_role.json\n  max_session_duration = 3600\n\n  tags = var.tags\n}\n\ndata \"aws_iam_policy_document\" \"s3_read\" {\n  statement {\n    sid    = \"ListConfigBucket\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetBucketLocation\",\n      \"s3:ListBucket\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}\"]\n  }\n\n  statement {\n    sid    = \"ReadConfigBucketObjects\"\n    effect = \"Allow\"\n    actions = [\n      \"s3:GetObject\",\n      \"s3:GetObjectVersion\",\n    ]\n    resources = [\"arn:aws:s3:::${var.bucket_name}/*\"]\n  }\n}\n\nresource \"aws_iam_policy\" \"s3_read\" {\n  name        = \"${var.role_name}-s3-read\"\n  description = \"Read-only access to s3://${var.bucket_name}\"\n  policy      = data.aws_iam_policy_document.s3_read.json\n\n  tags = var.tags\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read\" {\n  role       = aws_iam_role.ec2_s3_read.name\n  policy_arn = aws_iam_policy.s3_read.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read\" {\n  name = var.role_name\n  role = aws_iam_role.ec2_s3_read.name\n  tags = var.tags\n}\n\noutput \"iam_role_arn\" {\n  description = \"ARN of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.arn\n}\n\noutput \"iam_role_name\" {\n  description = \"Name of the IAM role\"\n  value       = aws_iam_role.ec2_s3_read.name\n}\n\noutput \"instance_profile_name\" {\n  description = \"Name of the instance profile to attach to EC2 instances\"\n  value       = aws_iam_instance_profile.ec2_s3_read.name\n}\n\noutput \"instance_profile_arn\" {\n  description = \"ARN of the instance profile\"\n  value       = aws_iam_instance_profile.ec2_s3_read.arn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728610,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 246,
+      "output_tokens": 1130,
+      "raw_input_tokens": 246
+    }
+  },
+  "started_at": "2026-05-25T17:03:13.549272+00:00",
+  "elapsed_seconds": 16.83
+}

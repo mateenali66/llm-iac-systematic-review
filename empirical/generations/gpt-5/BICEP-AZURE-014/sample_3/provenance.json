@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-014",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "targetScope = 'resourceGroup'\n\n@description('Display name for the custom role.')\nparam roleName string = 'VM Read Only'\n\n@description('Description for the custom role.')\nparam roleDescription string = 'Read-only access to view Azure Virtual Machines and key related resources (network interfaces, IPs, disks) without any modification permissions.'\n\n@description('Object ID of the Microsoft Entra ID security group to assign the role to.')\nparam principalObjectId string\n\nvar roleDefinitionGuid = guid(subscription().id, roleName)\n\nresource vmReadOnlyRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionGuid\n  scope: subscription()\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    roleType: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n          'Microsoft.Compute/availabilitySets/read'\n          'Microsoft.Compute/virtualMachineScaleSets/read'\n          'Microsoft.Compute/locations/*/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/publicIPAddresses/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/virtualNetworks/subnets/read'\n          'Microsoft.Network/loadBalancers/read'\n          'Microsoft.Network/applicationGateways/read'\n          'Microsoft.Compute/disks/read'\n          'Microsoft.Compute/snapshots/read'\n          'Microsoft.Insights/metrics/read'\n          'Microsoft.Insights/metricDefinitions/read'\n          'Microsoft.Authorization/locks/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n          'Microsoft.Resources/tags/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource vmReadOnlyAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, principalObjectId, roleDefinitionGuid)\n  properties: {\n    roleDefinitionId: vmReadOnlyRole.id\n    principalId: principalObjectId\n    principalType: 'Group'\n  }\n}",
+  "cleaned_response": "targetScope = 'resourceGroup'\n\n@description('Display name for the custom role.')\nparam roleName string = 'VM Read Only'\n\n@description('Description for the custom role.')\nparam roleDescription string = 'Read-only access to view Azure Virtual Machines and key related resources (network interfaces, IPs, disks) without any modification permissions.'\n\n@description('Object ID of the Microsoft Entra ID security group to assign the role to.')\nparam principalObjectId string\n\nvar roleDefinitionGuid = guid(subscription().id, roleName)\n\nresource vmReadOnlyRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionGuid\n  scope: subscription()\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    roleType: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n          'Microsoft.Compute/availabilitySets/read'\n          'Microsoft.Compute/virtualMachineScaleSets/read'\n          'Microsoft.Compute/locations/*/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/publicIPAddresses/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/virtualNetworks/subnets/read'\n          'Microsoft.Network/loadBalancers/read'\n          'Microsoft.Network/applicationGateways/read'\n          'Microsoft.Compute/disks/read'\n          'Microsoft.Compute/snapshots/read'\n          'Microsoft.Insights/metrics/read'\n          'Microsoft.Insights/metricDefinitions/read'\n          'Microsoft.Authorization/locks/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n          'Microsoft.Resources/tags/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource vmReadOnlyAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, principalObjectId, roleDefinitionGuid)\n  properties: {\n    roleDefinitionId: vmReadOnlyRole.id\n    principalId: principalObjectId\n    principalType: 'Group'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "targetScope = 'resourceGroup'\n\n@description('Display name for the custom role.')\nparam roleName string = 'VM Read Only'\n\n@description('Description for the custom role.')\nparam roleDescription string = 'Read-only access to view Azure Virtual Machines and key related resources (network interfaces, IPs, disks) without any modification permissions.'\n\n@description('Object ID of the Microsoft Entra ID security group to assign the role to.')\nparam principalObjectId string\n\nvar roleDefinitionGuid = guid(subscription().id, roleName)\n\nresource vmReadOnlyRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: roleDefinitionGuid\n  scope: subscription()\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    roleType: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/instanceView/read'\n          'Microsoft.Compute/availabilitySets/read'\n          'Microsoft.Compute/virtualMachineScaleSets/read'\n          'Microsoft.Compute/locations/*/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/publicIPAddresses/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/virtualNetworks/subnets/read'\n          'Microsoft.Network/loadBalancers/read'\n          'Microsoft.Network/applicationGateways/read'\n          'Microsoft.Compute/disks/read'\n          'Microsoft.Compute/snapshots/read'\n          'Microsoft.Insights/metrics/read'\n          'Microsoft.Insights/metricDefinitions/read'\n          'Microsoft.Authorization/locks/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n          'Microsoft.Resources/tags/read'\n        ]\n        notActions: []\n        dataActions: []\n        notDataActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource vmReadOnlyAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, principalObjectId, roleDefinitionGuid)\n  properties: {\n    roleDefinitionId: vmReadOnlyRole.id\n    principalId: principalObjectId\n    principalType: 'Group'\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779718335,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 130,
+      "output_tokens": 4467,
+      "raw_input_tokens": 130
+    }
+  },
+  "started_at": "2026-05-25T14:08:39.364066+00:00",
+  "elapsed_seconds": 216.475
+}

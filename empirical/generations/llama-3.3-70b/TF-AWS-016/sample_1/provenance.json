@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-016",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an AWS Secrets Manager secret named 'prod/database/password' for storing the production database password used by a Lambda function.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an AWS Secrets Manager secret named 'prod/database/password' for storing the production database password used by a Lambda function.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_secretsmanager_secret\" \"database_password\" {\n  name = \"prod/database/password\"\n  description = \"Production database password for Lambda function\"\n}\n\nresource \"aws_secretsmanager_secret_version\" \"database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.database_password.id\n  secret_string = \"INSERT_PRODUCTION_DATABASE_PASSWORD_HERE\"\n}\n\nresource \"aws_iam_policy\" \"secrets_manager_policy\" {\n  name        = \"secrets-manager-policy\"\n  description = \"Policy for accessing Secrets Manager\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"secretsmanager:GetSecretValue\",\n          \"secretsmanager:DescribeSecret\",\n        ]\n        Resource = aws_secretsmanager_secret.database_password.arn\n      },\n    ]\n  })\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_secretsmanager_secret\" \"database_password\" {\n  name = \"prod/database/password\"\n  description = \"Production database password for Lambda function\"\n}\n\nresource \"aws_secretsmanager_secret_version\" \"database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.database_password.id\n  secret_string = \"INSERT_PRODUCTION_DATABASE_PASSWORD_HERE\"\n}\n\nresource \"aws_iam_policy\" \"secrets_manager_policy\" {\n  name        = \"secrets-manager-policy\"\n  description = \"Policy for accessing Secrets Manager\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"secretsmanager:GetSecretValue\",\n          \"secretsmanager:DescribeSecret\",\n        ]\n        Resource = aws_secretsmanager_secret.database_password.arn\n      },\n    ]\n  })\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_secretsmanager_secret\" \"database_password\" {\n  name = \"prod/database/password\"\n  description = \"Production database password for Lambda function\"\n}\n\nresource \"aws_secretsmanager_secret_version\" \"database_password_version\" {\n  secret_id     = aws_secretsmanager_secret.database_password.id\n  secret_string = \"INSERT_PRODUCTION_DATABASE_PASSWORD_HERE\"\n}\n\nresource \"aws_iam_policy\" \"secrets_manager_policy\" {\n  name        = \"secrets-manager-policy\"\n  description = \"Policy for accessing Secrets Manager\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect = \"Allow\"\n        Action = [\n          \"secretsmanager:GetSecretValue\",\n          \"secretsmanager:DescribeSecret\",\n        ]\n        Resource = aws_secretsmanager_secret.database_password.arn\n      },\n    ]\n  })\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724001,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 163,
+      "output_tokens": 198,
+      "raw_input_tokens": 163
+    }
+  },
+  "started_at": "2026-05-25T15:46:40.600876+00:00",
+  "elapsed_seconds": 1.243
+}

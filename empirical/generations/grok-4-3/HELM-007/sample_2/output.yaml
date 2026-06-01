@@ -1,0 +1,167 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: stateful-app
+description: Production Helm chart for stateful application with pre-install DB migration
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: myregistry/myapp
+  pullPolicy: IfNotPresent
+  tag: "1.16.0"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+podAnnotations: {}
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+nodeSelector: {}
+tolerations: []
+affinity: {}
+persistence:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+migration:
+  enabled: true
+  command: ["./migrate.sh"]
+  backoffLimit: 1
+---
+# FILE: templates/_helpers.tpl
+{{- define "stateful-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- define "stateful-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- define "stateful-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "stateful-app.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  serviceName: {{ include "stateful-app.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/migration-job.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "stateful-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/app
+      volumes: []
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: {{ .Values.persistence.accessModes }}
+        storageClassName: {{ .Values.persistence.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+---
+# FILE: templates/migration-job.yaml
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migration
+  labels:
+    app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migration
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: {{ toYaml .Values.migration.command | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+{{- end }}

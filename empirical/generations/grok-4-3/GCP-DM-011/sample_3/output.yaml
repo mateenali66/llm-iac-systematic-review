@@ -1,0 +1,116 @@
+resources:
+- name: vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+- name: subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.0.0/24
+- name: fw-allow-health-check
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 130.211.0.0/22
+    - 35.191.0.0/16
+    allowed:
+    - IPProtocol: TCP
+      ports:
+      - "80"
+- name: instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-micro
+      disks:
+      - deviceName: boot
+        type: PERSISTENT
+        boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: projects/debian-cloud/global/images/family/debian-11
+      networkInterfaces:
+      - network: $(ref.vpc.selfLink)
+        subnetwork: $(ref.subnet.selfLink)
+        accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+      tags:
+        items:
+        - allow-lb
+      metadata:
+        items:
+        - key: startup-script
+          value: |
+            #!/bin/bash
+            apt-get update && apt-get install -y apache2
+            systemctl start apache2
+- name: mig
+  type: compute.v1.instanceGroupManager
+  properties:
+    zone: us-central1-a
+    targetSize: 1
+    instanceTemplate: $(ref.instance-template.selfLink)
+    namedPorts:
+    - name: http
+      port: 80
+- name: autoscaler
+  type: compute.v1.autoscaler
+  properties:
+    zone: us-central1-a
+    target: $(ref.mig.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cpuUtilization:
+        utilizationTarget: 0.6
+- name: health-check
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+- name: backend-service
+  type: compute.v1.backendService
+  properties:
+    protocol: HTTP
+    portName: http
+    healthChecks:
+    - $(ref.health-check.selfLink)
+    backends:
+    - group: $(ref.mig.instanceGroup)
+    loadBalancingScheme: EXTERNAL_MANAGED
+- name: url-map
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.backend-service.selfLink)
+- name: ssl-cert
+  type: compute.v1.sslCertificate
+  properties:
+    certificate: |
+      -----BEGIN CERTIFICATE-----
+      MIID...
+      -----END CERTIFICATE-----
+    privateKey: |
+      -----BEGIN PRIVATE KEY-----
+      MIIE...
+      -----END PRIVATE KEY-----
+- name: target-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    urlMap: $(ref.url-map.selfLink)
+    sslCertificates:
+    - $(ref.ssl-cert.selfLink)
+- name: forwarding-rule
+  type: compute.v1.globalForwardingRule
+  properties:
+    IPProtocol: TCP
+    portRange: "443"
+    target: $(ref.target-https-proxy.selfLink)
+    loadBalancingScheme: EXTERNAL_MANAGED

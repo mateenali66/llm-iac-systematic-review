@@ -1,0 +1,106 @@
+imports:
+- path: gke-cluster.jinja
+
+resources:
+- name: gke-cluster
+  type: gke-cluster.jinja
+  properties:
+    cluster:
+      name: prod-gke-cluster
+      initialNodeCount: 1
+      location: us-central1
+      enableKubernetesAlpha: false
+      enableTpu: false
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      network: projects/{{ env["project"] }}/global/networks/default
+      subnetwork: projects/{{ env["project"] }}/regions/us-central1/subnetworks/default
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: internal-network
+          cidrBlock: 10.0.0.0/8
+      ipAllocationPolicy:
+        useIpAliases: true
+        createSubnetwork: false
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 110
+      binaryAuthorization:
+        evaluationMode: DISABLED
+      autoscaling:
+        enableNodeAutoprovisioning: false
+      securityPostureConfig:
+        mode: STANDARD
+      networkConfig:
+        datapathProvider: ADVANCED_DATAPATH
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+        networkPolicyConfig:
+          disabled: false
+        cloudRunConfig:
+          disabled: true
+      nodePools:
+      - name: prod-node-pool
+        initialNodeCount: 3
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-standard
+          imageType: COS_CONTAINERD
+          serviceAccount: default
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          metadata:
+            disable-legacy-endpoints: "true"
+          tags:
+          - gke-node
+          - prod
+          shieldedInstanceConfig:
+            enableIntegrityMonitoring: true
+            enableSecureBoot: true
+          linuxNodeConfig:
+            sysctls:
+              net.core.somaxconn: "1024"
+              net.ipv4.tcp_fin_timeout: "60"
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        upgradeSettings:
+          strategy: SURGE
+          maxSurge: 1
+          maxUnavailable: 0
+      verticalPodAutoscaling:
+        enabled: true
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      databaseEncryption:
+        state: DECRYPTED
+      workloadIdentityConfig:
+        workloadPool: {{ env["project"] }}.svc.id.goog
+      notificationConfig:
+        pubsub:
+          enabled: false
+
+outputs:
+- name: clusterName
+  value: $(ref.gke-cluster.name)
+- name: clusterEndpoint
+  value: $(ref.gke-cluster.endpoint)
+- name: clusterCaCertificate
+  value: $(ref.gke-cluster.masterAuth.clusterCaCertificate)
+- name: nodePoolName
+  value: $(ref.gke-cluster.nodePools[0].name)

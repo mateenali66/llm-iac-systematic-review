@@ -1,0 +1,36 @@
+---
+- name: Configure firewall to allow SSH and HTTPS only
+  hosts: all
+  become: yes
+  tasks:
+    - name: Enable and start firewalld service
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow SSH service through firewall
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Allow HTTPS service through firewall
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Set default zone to drop (deny all incoming by default)
+      firewalld:
+        zone: public
+        permanent: yes
+        target: DROP
+        state: enabled
+        immediate: yes
+
+    - name: Reload firewalld to apply permanent rules
+      command: firewall-cmd --reload
+      changed_when: false

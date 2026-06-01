@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nightly-database-backup
+  namespace: default
+  labels:
+    app: database-backup
+spec:
+  schedule: "0 2 * * *"
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: database-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: db-backup
+            image: myorg/db-backup:2.1
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: BACKUP_TIMESTAMP
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.creationTimestamp
+            resources:
+              requests:
+                memory: "128Mi"
+                cpu: "100m"
+              limits:
+                memory: "512Mi"
+                cpu: "500m"
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 1000
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+          securityContext:
+            runAsNonRoot: true
+          automountServiceAccountToken: false
+  startingDeadlineSeconds: 300
+  suspend: false

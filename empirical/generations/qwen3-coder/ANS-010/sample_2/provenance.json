@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "ANS-010",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook deploying a Java application as a systemd service: installs OpenJDK 21, creates a service user, copies the application JAR, writes the systemd unit file, and starts the service. Idempotent across re-runs.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook deploying a Java application as a systemd service: installs OpenJDK 21, creates a service user, copies the application JAR, writes the systemd unit file, and starts the service. Idempotent across re-runs.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Deploy Java Application as Systemd Service\n  hosts: all\n  become: yes\n  vars:\n    app_name: myapp\n    app_user: myapp\n    app_group: myapp\n    app_home: /opt/{{ app_name }}\n    app_jar: \"{{ app_name }}.jar\"\n    java_version: \"21\"\n    service_file: \"/etc/systemd/system/{{ app_name }}.service\"\n  tasks:\n    - name: Install OpenJDK {{ java_version }}\n      ansible.builtin.package:\n        name: \"openjdk-{{ java_version }}-jdk\"\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK {{ java_version }} (RedHat)\n      ansible.builtin.package:\n        name: \"java-{{ java_version }}-openjdk-devel\"\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Create application group\n      ansible.builtin.group:\n        name: \"{{ app_group }}\"\n        system: yes\n        state: present\n\n    - name: Create application user\n      ansible.builtin.user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        home: \"{{ app_home }}\"\n        create_home: no\n        state: present\n\n    - name: Create application directory\n      ansible.builtin.file:\n        path: \"{{ app_home }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Upload application JAR\n      ansible.builtin.copy:\n        src: \"{{ app_jar }}\"\n        dest: \"{{ app_home }}/{{ app_jar }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n      notify: Restart application service\n\n    - name: Create systemd service file\n      ansible.builtin.template:\n        src: app.service.j2\n        dest: \"{{ service_file }}\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify:\n        - Reload systemd daemon\n        - Restart application service\n\n    - name: Enable and start application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: no\n\n  handlers:\n    - name: Reload systemd daemon\n      ansible.builtin.systemd:\n        daemon_reload: yes\n\n    - name: Restart application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        state: restarted\n      listen: \"Restart application service\"",
+  "cleaned_response": "---\n- name: Deploy Java Application as Systemd Service\n  hosts: all\n  become: yes\n  vars:\n    app_name: myapp\n    app_user: myapp\n    app_group: myapp\n    app_home: /opt/{{ app_name }}\n    app_jar: \"{{ app_name }}.jar\"\n    java_version: \"21\"\n    service_file: \"/etc/systemd/system/{{ app_name }}.service\"\n  tasks:\n    - name: Install OpenJDK {{ java_version }}\n      ansible.builtin.package:\n        name: \"openjdk-{{ java_version }}-jdk\"\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK {{ java_version }} (RedHat)\n      ansible.builtin.package:\n        name: \"java-{{ java_version }}-openjdk-devel\"\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Create application group\n      ansible.builtin.group:\n        name: \"{{ app_group }}\"\n        system: yes\n        state: present\n\n    - name: Create application user\n      ansible.builtin.user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        home: \"{{ app_home }}\"\n        create_home: no\n        state: present\n\n    - name: Create application directory\n      ansible.builtin.file:\n        path: \"{{ app_home }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Upload application JAR\n      ansible.builtin.copy:\n        src: \"{{ app_jar }}\"\n        dest: \"{{ app_home }}/{{ app_jar }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n      notify: Restart application service\n\n    - name: Create systemd service file\n      ansible.builtin.template:\n        src: app.service.j2\n        dest: \"{{ service_file }}\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify:\n        - Reload systemd daemon\n        - Restart application service\n\n    - name: Enable and start application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: no\n\n  handlers:\n    - name: Reload systemd daemon\n      ansible.builtin.systemd:\n        daemon_reload: yes\n\n    - name: Restart application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        state: restarted\n      listen: \"Restart application service\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Deploy Java Application as Systemd Service\n  hosts: all\n  become: yes\n  vars:\n    app_name: myapp\n    app_user: myapp\n    app_group: myapp\n    app_home: /opt/{{ app_name }}\n    app_jar: \"{{ app_name }}.jar\"\n    java_version: \"21\"\n    service_file: \"/etc/systemd/system/{{ app_name }}.service\"\n  tasks:\n    - name: Install OpenJDK {{ java_version }}\n      ansible.builtin.package:\n        name: \"openjdk-{{ java_version }}-jdk\"\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Install OpenJDK {{ java_version }} (RedHat)\n      ansible.builtin.package:\n        name: \"java-{{ java_version }}-openjdk-devel\"\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Create application group\n      ansible.builtin.group:\n        name: \"{{ app_group }}\"\n        system: yes\n        state: present\n\n    - name: Create application user\n      ansible.builtin.user:\n        name: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        system: yes\n        home: \"{{ app_home }}\"\n        create_home: no\n        state: present\n\n    - name: Create application directory\n      ansible.builtin.file:\n        path: \"{{ app_home }}\"\n        state: directory\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0755'\n\n    - name: Upload application JAR\n      ansible.builtin.copy:\n        src: \"{{ app_jar }}\"\n        dest: \"{{ app_home }}/{{ app_jar }}\"\n        owner: \"{{ app_user }}\"\n        group: \"{{ app_group }}\"\n        mode: '0644'\n      notify: Restart application service\n\n    - name: Create systemd service file\n      ansible.builtin.template:\n        src: app.service.j2\n        dest: \"{{ service_file }}\"\n        owner: root\n        group: root\n        mode: '0644'\n      notify:\n        - Reload systemd daemon\n        - Restart application service\n\n    - name: Enable and start application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        enabled: yes\n        state: started\n        daemon_reload: no\n\n  handlers:\n    - name: Reload systemd daemon\n      ansible.builtin.systemd:\n        daemon_reload: yes\n\n    - name: Restart application service\n      ansible.builtin.systemd:\n        name: \"{{ app_name }}\"\n        state: restarted\n      listen: \"Restart application service\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723811,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 165,
+      "output_tokens": 555,
+      "raw_input_tokens": 165
+    }
+  },
+  "started_at": "2026-05-25T15:43:23.610453+00:00",
+  "elapsed_seconds": 7.805
+}

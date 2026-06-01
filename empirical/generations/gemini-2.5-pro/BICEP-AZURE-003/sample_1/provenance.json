@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-003",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "targetScope = 'resourceGroup'\n\n@description('The location for the resources.')\nparam location string = resourceGroup().location\n\n@description('The prefix for the App Service and App Service Plan names.')\nparam appNamePrefix string = 'webapp'\n\n@description('The SKU for the App Service Plan.')\n@allowed([\n  'F1'\n  'D1'\n  'B1'\n  'B2'\n  'B3'\n  'S1'\n  'S2'\n  'S3'\n  'P1v2'\n  'P2v2'\n  'P3v2'\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam appServicePlanSkuName string = 'S1'\n\nvar uniqueSuffix = uniqueString(resourceGroup().id)\nvar appServicePlanName = '${appNamePrefix}-plan-${uniqueSuffix}'\nvar webAppName = '${appNamePrefix}-app-${uniqueSuffix}'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {\n  name: appServicePlanName\n  location: location\n  sku: {\n    name: appServicePlanSkuName\n  }\n  properties: {\n    reserved: true // Required for Linux\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2022-09-01' = {\n  name: webAppName\n  location: location\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      http20Enabled: true\n      appSettings: [\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '1'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}\n\noutput webAppHostname string = webApp.properties.defaultHostName\noutput webAppPrincipalId string = webApp.identity.principalId",
+  "cleaned_response": "targetScope = 'resourceGroup'\n\n@description('The location for the resources.')\nparam location string = resourceGroup().location\n\n@description('The prefix for the App Service and App Service Plan names.')\nparam appNamePrefix string = 'webapp'\n\n@description('The SKU for the App Service Plan.')\n@allowed([\n  'F1'\n  'D1'\n  'B1'\n  'B2'\n  'B3'\n  'S1'\n  'S2'\n  'S3'\n  'P1v2'\n  'P2v2'\n  'P3v2'\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam appServicePlanSkuName string = 'S1'\n\nvar uniqueSuffix = uniqueString(resourceGroup().id)\nvar appServicePlanName = '${appNamePrefix}-plan-${uniqueSuffix}'\nvar webAppName = '${appNamePrefix}-app-${uniqueSuffix}'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {\n  name: appServicePlanName\n  location: location\n  sku: {\n    name: appServicePlanSkuName\n  }\n  properties: {\n    reserved: true // Required for Linux\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2022-09-01' = {\n  name: webAppName\n  location: location\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      http20Enabled: true\n      appSettings: [\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '1'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}\n\noutput webAppHostname string = webApp.properties.defaultHostName\noutput webAppPrincipalId string = webApp.identity.principalId",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "targetScope = 'resourceGroup'\n\n@description('The location for the resources.')\nparam location string = resourceGroup().location\n\n@description('The prefix for the App Service and App Service Plan names.')\nparam appNamePrefix string = 'webapp'\n\n@description('The SKU for the App Service Plan.')\n@allowed([\n  'F1'\n  'D1'\n  'B1'\n  'B2'\n  'B3'\n  'S1'\n  'S2'\n  'S3'\n  'P1v2'\n  'P2v2'\n  'P3v2'\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam appServicePlanSkuName string = 'S1'\n\nvar uniqueSuffix = uniqueString(resourceGroup().id)\nvar appServicePlanName = '${appNamePrefix}-plan-${uniqueSuffix}'\nvar webAppName = '${appNamePrefix}-app-${uniqueSuffix}'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {\n  name: appServicePlanName\n  location: location\n  sku: {\n    name: appServicePlanSkuName\n  }\n  properties: {\n    reserved: true // Required for Linux\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2022-09-01' = {\n  name: webAppName\n  location: location\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      http20Enabled: true\n      appSettings: [\n        {\n          name: 'WEBSITE_RUN_FROM_PACKAGE'\n          value: '1'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}\n\noutput webAppHostname string = webApp.properties.defaultHostName\noutput webAppPrincipalId string = webApp.identity.principalId",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779724420,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 121,
+      "output_tokens": 1509,
+      "raw_input_tokens": 121
+    }
+  },
+  "started_at": "2026-05-25T15:53:22.561808+00:00",
+  "elapsed_seconds": 17.62
+}

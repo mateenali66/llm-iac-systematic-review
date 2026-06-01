@@ -1,0 +1,15 @@
+resources:
+- name: function-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: cloud-function-reader
+    displayName: Cloud Function Storage Reader
+- name: function-bucket-iam
+  type: gcp-types/storage-v1:storage.buckets.setIamPolicy
+  properties:
+    bucket: my-target-bucket
+    policy:
+      bindings:
+      - role: roles/storage.objectViewer
+        members:
+        - serviceAccount:$(ref.function-service-account.email)

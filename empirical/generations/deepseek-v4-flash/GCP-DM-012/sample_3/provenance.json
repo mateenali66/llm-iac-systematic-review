@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-012",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/cloud_armor.py\n    name: cloud_armor.py\n\nresources:\n  - name: cloud-armor-security-policy\n    type: cloud_armor.py\n    properties:\n      securityPolicyName: cloud-armor-policy\n      description: \"Cloud Armor policy blocking specific countries and rate limiting per IP\"\n      rules:\n        - priority: 1000\n          description: \"Block traffic from blocked countries\"\n          match:\n            expr:\n              expression: \"origin.region_code in ['XX', 'YY', 'ZZ']\"\n          action: \"deny(403)\"\n          preview: false\n        - priority: 2000\n          description: \"Rate limit requests per IP to 100 per minute\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"rate_based_ban\"\n          rateLimitOptions:\n            rateLimitThreshold:\n              count: 100\n              intervalSec: 60\n            conformAction: \"allow\"\n            exceedAction: \"deny(429)\"\n            enforceOnKey: \"IP\"\n            enforceOnKeyName: \"client-ip\"\n          preview: false\n        - priority: 2147483647\n          description: \"Default allow rule\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"allow\"\n          preview: false",
+  "cleaned_response": "imports:\n  - path: templates/cloud_armor.py\n    name: cloud_armor.py\n\nresources:\n  - name: cloud-armor-security-policy\n    type: cloud_armor.py\n    properties:\n      securityPolicyName: cloud-armor-policy\n      description: \"Cloud Armor policy blocking specific countries and rate limiting per IP\"\n      rules:\n        - priority: 1000\n          description: \"Block traffic from blocked countries\"\n          match:\n            expr:\n              expression: \"origin.region_code in ['XX', 'YY', 'ZZ']\"\n          action: \"deny(403)\"\n          preview: false\n        - priority: 2000\n          description: \"Rate limit requests per IP to 100 per minute\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"rate_based_ban\"\n          rateLimitOptions:\n            rateLimitThreshold:\n              count: 100\n              intervalSec: 60\n            conformAction: \"allow\"\n            exceedAction: \"deny(429)\"\n            enforceOnKey: \"IP\"\n            enforceOnKeyName: \"client-ip\"\n          preview: false\n        - priority: 2147483647\n          description: \"Default allow rule\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"allow\"\n          preview: false",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/cloud_armor.py\n    name: cloud_armor.py\n\nresources:\n  - name: cloud-armor-security-policy\n    type: cloud_armor.py\n    properties:\n      securityPolicyName: cloud-armor-policy\n      description: \"Cloud Armor policy blocking specific countries and rate limiting per IP\"\n      rules:\n        - priority: 1000\n          description: \"Block traffic from blocked countries\"\n          match:\n            expr:\n              expression: \"origin.region_code in ['XX', 'YY', 'ZZ']\"\n          action: \"deny(403)\"\n          preview: false\n        - priority: 2000\n          description: \"Rate limit requests per IP to 100 per minute\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"rate_based_ban\"\n          rateLimitOptions:\n            rateLimitThreshold:\n              count: 100\n              intervalSec: 60\n            conformAction: \"allow\"\n            exceedAction: \"deny(429)\"\n            enforceOnKey: \"IP\"\n            enforceOnKeyName: \"client-ip\"\n          preview: false\n        - priority: 2147483647\n          description: \"Default allow rule\"\n          match:\n            expr:\n              expression: \"true\"\n          action: \"allow\"\n          preview: false",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728583,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 70,
+      "output_tokens": 286,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 6
+    }
+  },
+  "started_at": "2026-05-25T17:02:05.158158+00:00",
+  "elapsed_seconds": 58.148
+}

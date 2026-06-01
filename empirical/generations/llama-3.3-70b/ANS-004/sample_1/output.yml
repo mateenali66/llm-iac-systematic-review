@@ -1,0 +1,74 @@
+---
+- name: Install and configure Prometheus node_exporter
+  become: yes
+  hosts: all
+
+  vars:
+    node_exporter_version: "1.3.1"
+    node_exporter_port: 9100
+
+  tasks:
+  - name: Download node_exporter binary
+    get_url:
+      url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/node_exporter.tar.gz"
+      mode: '0644'
+
+  - name: Extract node_exporter binary
+    unarchive:
+      src: "/tmp/node_exporter.tar.gz"
+      dest: "/tmp"
+      compression: tar
+      interactive: yes
+      copy: no
+
+  - name: Copy node_exporter binary to /usr/local/bin
+    copy:
+      content: "{{ lookup('file', '/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter') }}"
+      dest: "/usr/local/bin/node_exporter"
+      mode: '0755'
+
+  - name: Create node_exporter systemd service file
+    template:
+      src: templates/node_exporter.service.j2
+      dest: "/etc/systemd/system/node_exporter.service"
+      mode: '0644'
+    notify: restart node_exporter
+
+  - name: Enable and start node_exporter service
+    systemd:
+      name: node_exporter
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart node_exporter
+    systemd:
+      name: node_exporter
+      state: restarted
+
+  - name: Create node_exporter service template
+    template:
+      src: templates/node_exporter.service.j2
+      dest: templates/node_exporter.service.j2
+      mode: '0644'
+ 
+  - name: Create node_exporter template
+    template:
+      src: templates/node_exporter.service.j2
+      dest: "/etc/systemd/system/node_exporter.service"
+      mode: '0644'
+
+ 
+# templates/node_exporter.service.j2
+# [Unit]
+# Description=Prometheus Node Exporter
+# After=network.target
+
+# [Service]
+# User=node_exporter
+# ExecStart=/usr/local/bin/node_exporter --web.listen-address=:{{ node_exporter_port }}
+# Restart=always
+
+# [Install]
+# WantedBy=multi-user.target

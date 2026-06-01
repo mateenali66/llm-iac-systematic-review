@@ -1,0 +1,25 @@
+resources:
+- name: long-term-logs-dataset
+  type: bigquery.v2.dataset
+  properties:
+    datasetReference:
+      datasetId: long_term_logs
+    location: US
+    defaultTableExpirationMs: 31536000000
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: READER
+      specialGroup: projectReaders
+    - role: WRITER
+      specialGroup: projectWriters
+- name: project-logs-sink
+  type: logging.v2.sink
+  metadata:
+    dependsOn:
+    - long-term-logs-dataset
+  properties:
+    name: project-logs-to-bigquery
+    destination: bigquery.googleapis.com/projects/{{ env["project"] }}/datasets/long_term_logs
+    filter: ""
+    uniqueWriterIdentity: true

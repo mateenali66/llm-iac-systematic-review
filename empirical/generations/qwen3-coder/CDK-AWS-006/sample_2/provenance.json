@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "CDK-AWS-006",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack that defines an IAM role for cross-account access, allowing a partner AWS account to invoke specific Lambda functions.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    aws_lambda as _lambda,\n    Duration,\n    ArnFormat,\n    Arn\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaAccessStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Partner account ID that will be granted access\n        partner_account_id = \"123456789012\"\n        \n        # Define specific Lambda functions that can be invoked\n        lambda_function_1 = _lambda.Function(\n            self, \"Function1\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 1'}\n\"\"\"),\n            function_name=\"cross-account-function-1\"\n        )\n        \n        lambda_function_2 = _lambda.Function(\n            self, \"Function2\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 2'}\n\"\"\"),\n            function_name=\"cross-account-function-2\"\n        )\n\n        # Create IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokeRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            role_name=\"CrossAccountLambdaInvokeRole\",\n            description=\"Role allowing partner account to invoke specific Lambda functions\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        # Attach policy to allow invocation of specific Lambda functions\n        lambda_invoke_policy = iam.Policy(\n            self, \"LambdaInvokePolicy\",\n            policy_name=\"CrossAccountLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\n                        \"lambda:InvokeFunction\",\n                        \"lambda:InvokeAsync\"\n                    ],\n                    resources=[\n                        lambda_function_1.function_arn,\n                        lambda_function_2.function_arn\n                    ]\n                )\n            ]\n        )\n        \n        cross_account_role.attach_inline_policy(lambda_invoke_policy)\n\n        # Output the role ARN for partner account reference\n        cross_account_role_arn = cross_account_role.role_arn",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    aws_lambda as _lambda,\n    Duration,\n    ArnFormat,\n    Arn\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaAccessStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Partner account ID that will be granted access\n        partner_account_id = \"123456789012\"\n        \n        # Define specific Lambda functions that can be invoked\n        lambda_function_1 = _lambda.Function(\n            self, \"Function1\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 1'}\n\"\"\"),\n            function_name=\"cross-account-function-1\"\n        )\n        \n        lambda_function_2 = _lambda.Function(\n            self, \"Function2\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 2'}\n\"\"\"),\n            function_name=\"cross-account-function-2\"\n        )\n\n        # Create IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokeRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            role_name=\"CrossAccountLambdaInvokeRole\",\n            description=\"Role allowing partner account to invoke specific Lambda functions\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        # Attach policy to allow invocation of specific Lambda functions\n        lambda_invoke_policy = iam.Policy(\n            self, \"LambdaInvokePolicy\",\n            policy_name=\"CrossAccountLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\n                        \"lambda:InvokeFunction\",\n                        \"lambda:InvokeAsync\"\n                    ],\n                    resources=[\n                        lambda_function_1.function_arn,\n                        lambda_function_2.function_arn\n                    ]\n                )\n            ]\n        )\n        \n        cross_account_role.attach_inline_policy(lambda_invoke_policy)\n\n        # Output the role ARN for partner account reference\n        cross_account_role_arn = cross_account_role.role_arn",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    aws_iam as iam,\n    aws_lambda as _lambda,\n    Duration,\n    ArnFormat,\n    Arn\n)\nfrom constructs import Construct\n\nclass CrossAccountLambdaAccessStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Partner account ID that will be granted access\n        partner_account_id = \"123456789012\"\n        \n        # Define specific Lambda functions that can be invoked\n        lambda_function_1 = _lambda.Function(\n            self, \"Function1\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 1'}\n\"\"\"),\n            function_name=\"cross-account-function-1\"\n        )\n        \n        lambda_function_2 = _lambda.Function(\n            self, \"Function2\",\n            runtime=_lambda.Runtime.PYTHON_3_9,\n            handler=\"index.handler\",\n            code=_lambda.Code.from_inline(\"\"\"\ndef handler(event, context):\n    return {'statusCode': 200, 'body': 'Hello from Function 2'}\n\"\"\"),\n            function_name=\"cross-account-function-2\"\n        )\n\n        # Create IAM role for cross-account access\n        cross_account_role = iam.Role(\n            self, \"CrossAccountLambdaInvokeRole\",\n            assumed_by=iam.AccountPrincipal(partner_account_id),\n            role_name=\"CrossAccountLambdaInvokeRole\",\n            description=\"Role allowing partner account to invoke specific Lambda functions\",\n            max_session_duration=Duration.hours(1)\n        )\n\n        # Attach policy to allow invocation of specific Lambda functions\n        lambda_invoke_policy = iam.Policy(\n            self, \"LambdaInvokePolicy\",\n            policy_name=\"CrossAccountLambdaInvokePolicy\",\n            statements=[\n                iam.PolicyStatement(\n                    effect=iam.Effect.ALLOW,\n                    actions=[\n                        \"lambda:InvokeFunction\",\n                        \"lambda:InvokeAsync\"\n                    ],\n                    resources=[\n                        lambda_function_1.function_arn,\n                        lambda_function_2.function_arn\n                    ]\n                )\n            ]\n        )\n        \n        cross_account_role.attach_inline_policy(lambda_invoke_policy)\n\n        # Output the role ARN for partner account reference\n        cross_account_role_arn = cross_account_role.role_arn",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724425,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 137,
+      "output_tokens": 509,
+      "raw_input_tokens": 137
+    }
+  },
+  "started_at": "2026-05-25T15:53:35.812294+00:00",
+  "elapsed_seconds": 9.78
+}

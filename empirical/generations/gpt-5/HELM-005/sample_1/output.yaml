@@ -1,0 +1,660 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: app-with-fluentbit
+description: Deploy a multi-container Pod (main app + Fluent Bit sidecar) with shared volume for log shipping
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.22.0-0"
+home: https://example.com/app-with-fluentbit
+sources:
+  - https://example.com/app-with-fluentbit/repo
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+icon: https://raw.githubusercontent.com/fluent/fluent-bit/master/docs/images/logo.png
+---
+
+# FILE: values.yaml
+replicaCount: 2
+
+image:
+  repository: nginx
+  tag: "1.25.5"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: false
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  annotations: {}
+  labels: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+fluentbit:
+  image:
+    repository: cr.fluentbit.io/fluent/fluent-bit
+    tag: "2.2.2"
+    pullPolicy: IfNotPresent
+  logLevel: info
+  flushInterval: 1
+  readFromHead: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  output:
+    type: stdout # one of [stdout, http]
+    http:
+      host: "logs.example.com"
+      port: 443
+      tls: true
+      uri: "/ingest"
+      format: json
+      headers: {}
+      retry_limit: 10
+  extraInputSections: []
+  extraFilterSections: []
+  extraOutputSections: []
+  extraEnv: []
+  extraVolumeMounts: []
+  extraVolumes: []
+
+logs:
+  path: /var/log/app
+  filePattern: "*.log"
+  emptyDir:
+    sizeLimit: 500Mi
+
+container:
+  command: []
+  args: []
+  env: []
+  envFrom: []
+  ports:
+    - name: http
+      containerPort: 8080
+      protocol: TCP
+
+probes:
+  liveness:
+    enabled: true
+    httpGet:
+      enabled: true
+      path: /healthz
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    httpGet:
+      enabled: true
+      path: /readyz
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  startup:
+    enabled: false
+    httpGet:
+      enabled: true
+      path: /startupz
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 30
+
+securityContext:
+  pod:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+    fsGroupChangePolicy: OnRootMismatch
+  mainContainer:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: RuntimeDefault
+  fluentBitContainer:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop: ["ALL"]
+    seccompProfile:
+      type: RuntimeDefault
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+  minAvailable: null
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: null
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints: []
+priorityClassName: ""
+
+terminationGracePeriodSeconds: 30
+
+networkPolicy:
+  enabled: false
+  ingress:
+    ports:
+      - port: 80
+        protocol: TCP
+    from:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: "{{ .Release.Namespace }}"
+  egress:
+    allowAll: true
+    toCIDRs: []
+    toFQDNs: []
+    allowDNS: true
+
+extraVolumes: []
+extraVolumeMounts: []
+
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 25%
+    maxSurge: 25%
+---
+
+# FILE: templates/_helpers.tpl
+{{- define "app-with-fluentbit.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "app-with-fluentbit.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := include "app-with-fluentbit.name" . -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "app-with-fluentbit.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" -}}
+{{- end -}}
+
+{{- define "app-with-fluentbit.labels" -}}
+helm.sh/chart: {{ include "app-with-fluentbit.chart" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/name: {{ include "app-with-fluentbit.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "app-with-fluentbit.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "app-with-fluentbit.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "app-with-fluentbit.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- if .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name }}
+{{- else -}}
+{{- include "app-with-fluentbit.fullname" . }}
+{{- end -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+---
+
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "app-with-fluentbit.serviceAccountName" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+automountServiceAccountToken: {{ ternary "true" "false" .Values.serviceAccount.automount | quote }}
+{{- end }}
+---
+
+# FILE: templates/configmap-fluentbit.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}-fluentbit
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush        {{ .Values.fluentbit.flushInterval }}
+        Daemon       Off
+        Log_Level    {{ .Values.fluentbit.logLevel }}
+        Parsers_File /fluent-bit/etc/parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              {{ printf "%s/%s" .Values.logs.path .Values.logs.filePattern }}
+        Tag               app.*
+        Refresh_Interval  5
+        Mem_Buf_Limit     10MB
+        Skip_Long_Lines   On
+        Read_From_Head    {{ ternary "On" "Off" .Values.fluentbit.readFromHead }}
+        DB                /fluent-bit/state/tail.db
+        DB.Sync           normal
+        Storage_Type      filesystem
+
+    {{- range .Values.fluentbit.extraInputSections }}
+    {{ . | nindent 4 }}
+    {{- end }}
+
+    {{- range .Values.fluentbit.extraFilterSections }}
+    {{ . | nindent 4 }}
+    {{- end }}
+
+    {{- if eq (lower .Values.fluentbit.output.type) "stdout" }}
+    [OUTPUT]
+        Name   stdout
+        Match  app.*
+    {{- else if eq (lower .Values.fluentbit.output.type) "http" }}
+    [OUTPUT]
+        Name        http
+        Match       app.*
+        Host        {{ .Values.fluentbit.output.http.host }}
+        Port        {{ .Values.fluentbit.output.http.port }}
+        {{- if .Values.fluentbit.output.http.tls }}
+        tls         On
+        tls.verify  On
+        {{- else }}
+        tls         Off
+        {{- end }}
+        URI         {{ .Values.fluentbit.output.http.uri }}
+        Format      {{ .Values.fluentbit.output.http.format }}
+        Retry_Limit {{ .Values.fluentbit.output.http.retry_limit }}
+        {{- if .Values.fluentbit.output.http.headers }}
+        {{- range $k, $v := .Values.fluentbit.output.http.headers }}
+        Header      {{ $k }} {{ $v }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+
+    {{- range .Values.fluentbit.extraOutputSections }}
+    {{ . | nindent 4 }}
+    {{- end }}
+  parsers.conf: |
+    [PARSER]
+        Name        json
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S%z
+---
+
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: {{ .Values.updateStrategy.type }}
+    {{- if eq .Values.updateStrategy.type "RollingUpdate" }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.updateStrategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.updateStrategy.rollingUpdate.maxSurge }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app-with-fluentbit.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app-with-fluentbit.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/fluentbit-config: {{ include (print $.Template.BasePath "/configmap-fluentbit.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.imagePullSecrets }}
+        - name: {{ . | quote }}
+        {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "app-with-fluentbit.serviceAccountName" . }}
+      automountServiceAccountToken: {{ ternary "true" "false" .Values.serviceAccount.automount | quote }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.container.command }}
+          command:
+            {{- toYaml .Values.container.command | nindent 12 }}
+          {{- end }}
+          {{- if .Values.container.args }}
+          args:
+            {{- toYaml .Values.container.args | nindent 12 }}
+          {{- end }}
+          ports:
+            {{- toYaml .Values.container.ports | nindent 12 }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            {{- if .Values.probes.liveness.httpGet.enabled }}
+            httpGet:
+              path: {{ .Values.probes.liveness.httpGet.path }}
+              port: {{ .Values.probes.liveness.httpGet.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            {{- if .Values.probes.readiness.httpGet.enabled }}
+            httpGet:
+              path: {{ .Values.probes.readiness.httpGet.path }}
+              port: {{ .Values.probes.readiness.httpGet.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            {{- if .Values.probes.startup.httpGet.enabled }}
+            httpGet:
+              path: {{ .Values.probes.startup.httpGet.path }}
+              port: {{ .Values.probes.startup.httpGet.port }}
+            {{- end }}
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
+          env:
+            {{- range .Values.container.env }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          {{- with .Values.container.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext.mainContainer | nindent 12 }}
+          volumeMounts:
+            - name: logs
+              mountPath: {{ .Values.logs.path }}
+            - name: tmp
+              mountPath: /tmp
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        - name: fluent-bit
+          image: "{{ .Values.fluentbit.image.repository }}:{{ .Values.fluentbit.image.tag }}"
+          imagePullPolicy: {{ .Values.fluentbit.image.pullPolicy }}
+          args:
+            - -c
+            - /fluent-bit/etc/fluent-bit.conf
+          env:
+            {{- range .Values.fluentbit.extraEnv }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.fluentbit.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.securityContext.fluentBitContainer | nindent 12 }}
+          volumeMounts:
+            - name: logs
+              mountPath: {{ .Values.logs.path }}
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc
+              readOnly: true
+            - name: fluentbit-state
+              mountPath: /fluent-bit/state
+            - name: tmp
+              mountPath: /tmp
+            {{- with .Values.fluentbit.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: logs
+          emptyDir:
+            {{- if .Values.logs.emptyDir.sizeLimit }}
+            sizeLimit: {{ .Values.logs.emptyDir.sizeLimit }}
+            {{- end }}
+        - name: fluentbit-config
+          configMap:
+            name: {{ include "app-with-fluentbit.fullname" . }}-fluentbit
+        - name: fluentbit-state
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        {{- with .Values.fluentbit.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+
+# FILE: templates/service.yaml
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.service.labels }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "app-with-fluentbit.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: {{ (index .Values.container.ports 0).name | default "http" }}
+      port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.service.targetPort | default "http" }}
+{{- end }}
+---
+
+# FILE: templates/hpa.yaml
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "app-with-fluentbit.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
+---
+
+# FILE: templates/pdb.yaml
+{{- if and .Values.podDisruptionBudget.enabled (or (gt (int .Values.replicaCount) 1) .Values.autoscaling.enabled) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "app-with-fluentbit.selectorLabels" . | nindent 6 }}
+  {{- if .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- end }}
+{{- end }}
+---
+
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "app-with-fluentbit.fullname" . }}
+  labels:
+    {{- include "app-with-fluentbit.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "app-with-fluentbit.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        {{- range .Values.networkPolicy.ingress.ports }}
+        - port: {{ .port }}
+          protocol: {{ .protocol | default "TCP" }}
+        {{- end }}
+      from:
+        {{- range .Values.networkPolicy.ingress.from }}
+        - {{- toYaml . | nindent 10 }}
+        {{- end }}
+  egress:
+    {{- if .Values.networkPolicy.egress.allowAll }}
+    - {}
+    {{- else }}
+    - to:
+        {{- range .Values.networkPolicy.egress.toCIDRs }}
+        - ipBlock:
+            cidr: {{ . | quote }}
+        {{- end }}
+      ports:
+        {{- if .Values.networkPolicy.egress.allowDNS }}
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+        {{- end }}
+    {{- end }}
+{{- end }}

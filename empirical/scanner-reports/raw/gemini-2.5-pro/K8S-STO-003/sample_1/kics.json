@@ -1,0 +1,183 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 115,
+	"files_parsed": 2,
+	"lines_parsed": 115,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 3,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:59:36.997196716Z",
+	"end": "2026-05-26T04:59:39.089599175Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3c1ec7693b7a03548d1f0092f3422d6593584eed6f7218efaf9b83c5bb408250",
+					"line": 53,
+					"resource_type": "Deployment",
+					"resource_name": "nginx-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx-deployment}}.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx-deployment}}.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{nginx-deployment}}.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2f0fcbcc25b52a5456989b65be7ad84ec98f7039283af06c5c52e189b45b92c7",
+					"line": 49,
+					"resource_type": "Deployment",
+					"resource_name": "nginx-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{nginx-deployment}}",
+					"search_line": 49,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "ConfigMap",
+					"resource_name": "nginx-config",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{ConfigMap}}.metadata.name={{nginx-config}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1b3bbc6f490f2349c845fe838f90300918c64d471b8a2e3f9ec7173eae43d229",
+					"line": 56,
+					"resource_type": "Deployment",
+					"resource_name": "nginx-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx-deployment}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=nginx-deployment is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=nginx-deployment is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "deec3a321f4b8b64b34f303844dbab274f230c1214646c14ceb71a4f8fd8e9b3",
+					"line": 49,
+					"resource_type": "Deployment",
+					"resource_name": "nginx-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx-deployment}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{nginx-deployment}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2c5df46fef7b777e5b4e34b880390ffa4e45525c9779d424a1517b2b683fa141",
+					"line": 49,
+					"resource_type": "Deployment",
+					"resource_name": "nginx-deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{nginx-deployment}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{nginx-deployment}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{nginx-deployment}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

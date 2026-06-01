@@ -1,0 +1,68 @@
+resources:
+- name: multi-region-bucket
+  type: storage.v1.bucket
+  properties:
+    name: prod-multi-region-bucket-{{ env["project"] }}
+    location: US
+    storageClass: STANDARD
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: enforced
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+      - action:
+          type: Delete
+        condition:
+          numNewerVersions: 5
+      - action:
+          type: Delete
+        condition:
+          age: 30
+          isLive: false
+    encryption:
+      defaultKmsKeyName: ""
+    logging:
+      logBucket: prod-access-logs-{{ env["project"] }}
+      logObjectPrefix: multi-region-bucket-logs/
+    labels:
+      environment: production
+      managed-by: deployment-manager
+      data-classification: internal
+
+- name: access-logs-bucket
+  type: storage.v1.bucket
+  properties:
+    name: prod-access-logs-{{ env["project"] }}
+    location: US
+    storageClass: STANDARD
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: enforced
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 90
+    labels:
+      environment: production
+      managed-by: deployment-manager
+      purpose: access-logging
+
+outputs:
+- name: bucketName
+  value: $(ref.multi-region-bucket.name)
+- name: bucketSelfLink
+  value: $(ref.multi-region-bucket.selfLink)
+- name: logsBucketName
+  value: $(ref.access-logs-bucket.name)

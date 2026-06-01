@@ -1,0 +1,222 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL Serverless v2 Cluster for Multi-Tenant SaaS Application'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the database subnets
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private subnet 1 for database deployment
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private subnet 2 for database deployment
+
+  DatabaseName:
+    Type: String
+    Default: saasdb
+    Description: Name of the initial database
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9_]*'
+    MaxLength: 64
+
+  MasterUsername:
+    Type: String
+    Description: Master username for the database
+    Default: dbadmin
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9_]*'
+    NoEcho: true
+
+  MasterUserPassword:
+    Type: String
+    Description: Master password for the database
+    MinLength: 8
+    MaxLength: 128
+    AllowedPattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};:,.<>?]).{8,128}$'
+    NoEcho: true
+
+  MinACU:
+    Type: Number
+    Default: 0.5
+    Description: Minimum Aurora Capacity Units (0.5 - 128)
+    MinValue: 0.5
+    MaxValue: 128
+
+  MaxACU:
+    Type: Number
+    Default: 8
+    Description: Maximum Aurora Capacity Units (0.5 - 128)
+    MinValue: 0.5
+    MaxValue: 128
+
+  BackupRetentionPeriod:
+    Type: Number
+    Default: 7
+    Description: Number of days to retain automated backups
+    MinValue: 1
+    MaxValue: 35
+
+  PreferredBackupWindow:
+    Type: String
+    Default: '03:00-04:00'
+    Description: Preferred backup window (UTC)
+    AllowedPattern: '^[0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9]$'
+
+  PreferredMaintenanceWindow:
+    Type: String
+    Default: 'sun:04:00-sun:05:00'
+    Description: Preferred maintenance window (UTC)
+    AllowedPattern: '^(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]-(mon|tue|wed|thu|fri|sat|sun):[0-2][0-9]:[0-5][0-9]$'
+
+Conditions:
+  IsMultiAZ: !Equals [ !Ref MinACU, !Ref MaxACU ]
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Aurora Serverless v2 cluster
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-subnet-group'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+
+  DBClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora Serverless v2 cluster
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/8
+          Description: Allow PostgreSQL access from VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster-sg'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Parameter group for Aurora PostgreSQL Serverless v2
+      Family: aurora-postgresql15
+      Parameters:
+        rds.logical_replication: '1'
+        shared_preload_libraries: 'pg_stat_statements'
+        log_statement: 'ddl'
+        log_min_duration_statement: '1000'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster-param-group'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+
+  DBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Parameter group for Aurora PostgreSQL Serverless v2 instances
+      Family: aurora-postgresql15
+      Parameters:
+        shared_preload_libraries: 'pg_stat_statements'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-param-group'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      EngineMode: provisioned
+      DBClusterIdentifier: !Sub '${AWS::StackName}-cluster'
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DatabaseName: !Ref DatabaseName
+      Port: 5432
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBClusterSecurityGroup
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      BackupRetentionPeriod: !Ref BackupRetentionPeriod
+      PreferredBackupWindow: !Ref PreferredBackupWindow
+      PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
+      StorageEncrypted: true
+      KmsKeyId: alias/aws/rds
+      DeletionProtection: true
+      CopyTagsToSnapshot: true
+      EnableHttpEndpoint: false
+      EnableCloudwatchLogsExports:
+        - postgresql
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinACU
+        MaxCapacity: !Ref MaxACU
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+        - Key: Application
+          Value: SaaS-MultiTenant
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceIdentifier: !Sub '${AWS::StackName}-instance-1'
+      DBInstanceClass: db.serverless
+      DBParameterGroupName: !Ref DBParameterGroup
+      PubliclyAccessible: false
+      AutoMinorVersionUpgrade: true
+      PromotionTier: 1
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-instance-1'
+        - Key: Environment
+          Value: !Ref AWS::StackName
+        - Key: Application
+          Value: SaaS-MultiTenant
+
+Outputs:
+  DBClusterEndpoint:
+    Description: Writer endpoint for the Aurora cluster
+    Value: !GetAtt DBCluster.Endpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-endpoint'
+
+  DBClusterReadEndpoint:
+    Description: Reader endpoint for the Aurora cluster
+    Value: !GetAtt DBCluster.ReadEndpoint.Address
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-read-endpoint'
+
+  DBClusterPort:
+    Description: Database port
+    Value: !GetAtt DBCluster.Endpoint.Port
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-port'
+
+  DBClusterResourceId:
+    Description: Resource ID for the cluster
+    Value: !GetAtt DBCluster.DBClusterResourceId
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-resource-id'
+
+  DBClusterSecurityGroupId:
+    Description: Security group ID for the cluster
+    Value: !Ref DBClusterSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-cluster-sg-id'

@@ -1,0 +1,254 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL Serverless v2 cluster for SaaS multi-tenant application'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Environment name
+  
+  DatabaseName:
+    Type: String
+    Default: saasdb
+    Description: Name of the database
+  
+  MasterUsername:
+    Type: String
+    Default: admin
+    Description: Master username for the database
+  
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the database
+  
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the Aurora cluster
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnet IDs for the Aurora cluster
+
+Mappings:
+  EnvironmentConfig:
+    development:
+      MinCapacity: 0.5
+      MaxCapacity: 2
+    staging:
+      MinCapacity: 1
+      MaxCapacity: 4
+    production:
+      MinCapacity: 2
+      MaxCapacity: 8
+
+Resources:
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Aurora PostgreSQL Serverless v2
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AuroraAccessSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-sg"
+  
+  AuroraAccessSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for applications accessing Aurora
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-app-access-sg"
+  
+  AuroraDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for Aurora PostgreSQL Serverless v2
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-subnet-group"
+  
+  AuroraClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Parameter group for Aurora PostgreSQL Serverless v2
+      Family: aurora-postgresql14
+      Parameters:
+        rds.force_ssl: 1
+        shared_preload_libraries: auto_explain,pg_stat_statements,pg_hint_plan,pg_telemetry
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-cluster-param-group"
+  
+  AuroraDBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: DB parameter group for Aurora PostgreSQL Serverless v2
+      Family: aurora-postgresql14
+      Parameters:
+        log_statement: ddl
+        log_min_duration_statement: 5000
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-db-param-group"
+  
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '14.7'
+      EngineMode: provisioned
+      DatabaseName: !Ref DatabaseName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref AuroraDBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      DBClusterParameterGroupName: !Ref AuroraClusterParameterGroup
+      BackupRetentionPeriod: 7
+      DeletionProtection: true
+      StorageEncrypted: true
+      EnableIAMDatabaseAuthentication: true
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !FindInMap [EnvironmentConfig, !Ref EnvironmentName, MinCapacity]
+        MaxCapacity: !FindInMap [EnvironmentConfig, !Ref EnvironmentName, MaxCapacity]
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-cluster"
+        - Key: Environment
+          Value: !Ref EnvironmentName
+  
+  AuroraPrimaryInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      EngineVersion: '14.7'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraDBParameterGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSMonitoringRole.Arn
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-primary"
+        - Key: Environment
+          Value: !Ref EnvironmentName
+  
+  AuroraReaderInstance:
+    Type: AWS::RDS::DBInstance
+    Condition: IsNotDevelopment
+    Properties:
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      EngineVersion: '14.7'
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBParameterGroupName: !Ref AuroraDBParameterGroup
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt RDSMonitoringRole.Arn
+      AutoMinorVersionUpgrade: true
+      CopyTagsToSnapshot: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-reader"
+        - Key: Environment
+          Value: !Ref EnvironmentName
+  
+  RDSMonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: monitoring.rds.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-rds-monitoring-role"
+  
+  AuroraSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Aurora PostgreSQL credentials
+      Name: !Sub "/${EnvironmentName}/aurora/postgres/credentials"
+      SecretString: !Sub |
+        {
+          "username": "${MasterUsername}",
+          "password": "${MasterUserPassword}",
+          "engine": "postgres",
+          "host": "${AuroraCluster.Endpoint.Address}",
+          "port": "${AuroraCluster.Endpoint.Port}",
+          "dbname": "${DatabaseName}"
+        }
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-aurora-secret"
+
+Conditions:
+  IsNotDevelopment: !Not [!Equals [!Ref EnvironmentName, development]]
+
+Outputs:
+  ClusterEndpoint:
+    Description: Aurora cluster endpoint
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterEndpoint"
+  
+  ClusterPort:
+    Description: Aurora cluster port
+    Value: !GetAtt AuroraCluster.Endpoint.Port
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterPort"
+  
+  ClusterIdentifier:
+    Description: Aurora cluster identifier
+    Value: !Ref AuroraCluster
+    Export:
+      Name: !Sub "${AWS::StackName}-ClusterIdentifier"
+  
+  PrimaryInstanceId:
+    Description: Primary instance identifier
+    Value: !Ref AuroraPrimaryInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-PrimaryInstanceId"
+  
+  ReaderInstanceId:
+    Condition: IsNotDevelopment
+    Description: Reader instance identifier
+    Value: !Ref AuroraReaderInstance
+    Export:
+      Name: !Sub "${AWS::StackName}-ReaderInstanceId"
+  
+  SecretArn:
+    Description: Secrets Manager secret ARN
+    Value: !Ref AuroraSecret
+    Export:
+      Name: !Sub "${AWS::StackName}-SecretArn"
+  
+  SecurityGroupId:
+    Description: Aurora security group ID
+    Value: !Ref AuroraSecurityGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-SecurityGroupId"

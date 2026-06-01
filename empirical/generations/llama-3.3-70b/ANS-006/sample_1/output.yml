@@ -1,0 +1,48 @@
+---
+- name: Configure deploy user and SSH
+  become: yes
+  hosts: all
+  vars:
+    deploy_user: deploy
+    deploy_user_ssh_key: !vault |
+      $ANSIBLE_VAULT;1.1;AES
+      33663434336138626564373932386662396536373462646262373434383539396538643462326638
+      61613632386638626564373932386662396536373462646262373434383539396538643462326638
+      31386662373439373932386662396536373462646262373434383539396538643462326638626564
+      373932386662396536373462646262373434383939653864346232623638
+  tasks:
+  - name: Create deploy user
+    user:
+      name: "{{ deploy_user }}"
+      group: sudo
+      append: yes
+      create_home: yes
+      shell: /bin/bash
+
+  - name: Add deploy user to sudoers
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      line: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL"
+      validate: 'visudo -cf %s'
+
+  - name: Install deploy user SSH key
+    authorized_key:
+      user: "{{ deploy_user }}"
+      state: present
+      key: "{{ deploy_user_ssh_key }}"
+
+  - name: Disable password-based SSH login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      state: present
+      regexp: '^PasswordAuthentication'
+      line: 'PasswordAuthentication no'
+    notify: restart ssh
+
+  handlers:
+  - name: restart ssh
+    service:
+      name: ssh
+      state: restarted
+      enabled: yes

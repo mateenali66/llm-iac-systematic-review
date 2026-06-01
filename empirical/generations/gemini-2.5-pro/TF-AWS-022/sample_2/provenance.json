@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-022",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "variable \"project_name\" {\n  description = \"The name of the project.\"\n  type        = string\n  default     = \"myapp\"\n}\n\nvariable \"environment\" {\n  description = \"The deployment environment (e.g., 'prod', 'staging').\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC where the ElastiCache cluster will be deployed.\"\n  type        = string\n}\n\nvariable \"private_subnet_ids\" {\n  description = \"A list of private subnet IDs for the ElastiCache subnet group.\"\n  type        = list(string)\n}\n\nvariable \"redis_auth_token\" {\n  description = \"The authentication token (password) for the Redis cluster. Must be at least 16 characters.\"\n  type        = string\n  sensitive   = true\n  # In a real scenario, this should be sourced from a secrets manager.\n}\n\nlocals {\n  name_prefix = \"${var.project_name}-${var.environment}\"\n  common_tags = {\n    Project     = var.project_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_security_group\" \"app\" {\n  name        = \"${local.name_prefix}-app-sg\"\n  description = \"Security group for application servers that need to access ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  tags = merge(local.common_tags, {\n    Name = \"${local.name_prefix}-app-sg\"\n  })\n}\n\nresource \"aws_security_group\" \"elasticache\" {\n  name        = \"${local.name_prefix}-elasticache-sg\"\n  description = \"Security group for the ElastiCache Redis cluster\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description     = \"Allow Redis traffic from application servers\"\n    from_port       = 6379\n    to_port         = 6379\n    protocol        = \"tcp\"\n    security_groups = [aws_security",
+  "cleaned_response": "variable \"project_name\" {\n  description = \"The name of the project.\"\n  type        = string\n  default     = \"myapp\"\n}\n\nvariable \"environment\" {\n  description = \"The deployment environment (e.g., 'prod', 'staging').\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC where the ElastiCache cluster will be deployed.\"\n  type        = string\n}\n\nvariable \"private_subnet_ids\" {\n  description = \"A list of private subnet IDs for the ElastiCache subnet group.\"\n  type        = list(string)\n}\n\nvariable \"redis_auth_token\" {\n  description = \"The authentication token (password) for the Redis cluster. Must be at least 16 characters.\"\n  type        = string\n  sensitive   = true\n  # In a real scenario, this should be sourced from a secrets manager.\n}\n\nlocals {\n  name_prefix = \"${var.project_name}-${var.environment}\"\n  common_tags = {\n    Project     = var.project_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_security_group\" \"app\" {\n  name        = \"${local.name_prefix}-app-sg\"\n  description = \"Security group for application servers that need to access ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  tags = merge(local.common_tags, {\n    Name = \"${local.name_prefix}-app-sg\"\n  })\n}\n\nresource \"aws_security_group\" \"elasticache\" {\n  name        = \"${local.name_prefix}-elasticache-sg\"\n  description = \"Security group for the ElastiCache Redis cluster\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description     = \"Allow Redis traffic from application servers\"\n    from_port       = 6379\n    to_port         = 6379\n    protocol        = \"tcp\"\n    security_groups = [aws_security",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "variable \"project_name\" {\n  description = \"The name of the project.\"\n  type        = string\n  default     = \"myapp\"\n}\n\nvariable \"environment\" {\n  description = \"The deployment environment (e.g., 'prod', 'staging').\"\n  type        = string\n  default     = \"prod\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The ID of the VPC where the ElastiCache cluster will be deployed.\"\n  type        = string\n}\n\nvariable \"private_subnet_ids\" {\n  description = \"A list of private subnet IDs for the ElastiCache subnet group.\"\n  type        = list(string)\n}\n\nvariable \"redis_auth_token\" {\n  description = \"The authentication token (password) for the Redis cluster. Must be at least 16 characters.\"\n  type        = string\n  sensitive   = true\n  # In a real scenario, this should be sourced from a secrets manager.\n}\n\nlocals {\n  name_prefix = \"${var.project_name}-${var.environment}\"\n  common_tags = {\n    Project     = var.project_name\n    Environment = var.environment\n    ManagedBy   = \"Terraform\"\n  }\n}\n\nresource \"aws_security_group\" \"app\" {\n  name        = \"${local.name_prefix}-app-sg\"\n  description = \"Security group for application servers that need to access ElastiCache\"\n  vpc_id      = var.vpc_id\n\n  tags = merge(local.common_tags, {\n    Name = \"${local.name_prefix}-app-sg\"\n  })\n}\n\nresource \"aws_security_group\" \"elasticache\" {\n  name        = \"${local.name_prefix}-elasticache-sg\"\n  description = \"Security group for the ElastiCache Redis cluster\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description     = \"Allow Redis traffic from application servers\"\n    from_port       = 6379\n    to_port         = 6379\n    protocol        = \"tcp\"\n    security_groups = [aws_security",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779731131,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 126,
+      "output_tokens": 2044,
+      "raw_input_tokens": 126
+    }
+  },
+  "started_at": "2026-05-25T17:45:07.772329+00:00",
+  "elapsed_seconds": 23.808
+}

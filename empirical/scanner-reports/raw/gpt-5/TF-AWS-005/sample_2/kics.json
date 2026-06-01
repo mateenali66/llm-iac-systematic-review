@@ -1,0 +1,172 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 165,
+	"files_parsed": 1,
+	"lines_parsed": 165,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:18:44.357772719Z",
+	"end": "2026-05-26T05:19:02.228771797Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f83121ea-03da-434f-9277-9cd247ab3047",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "cdbdeb30",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4f52fdfba5c09a4c643e66d222737ff8cb617291d30d893190bbcf2948951dd2",
+					"line": 49,
+					"resource_type": "aws_vpc",
+					"resource_name": "main",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_vpc[main]",
+					"search_line": 49,
+					"search_value": "",
+					"expected_value": "aws_vpc[main] should be the same as Flow Logs VPC id",
+					"actual_value": "aws_vpc[main] is not the same as Flow Logs VPC id"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Subnet Assigns Public IP",
+			"query_id": "52f04a44-6bfa-4c41-b1d3-4ae99a2de05c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#map_public_ip_on_launch",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC Subnet should not assign public IP",
+			"description_id": "2b7ea60d",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d42a98f8f5ea15536d6e0eaa191e38ec6d60bfac2db749e93b79d64d4283448c",
+					"line": 75,
+					"resource_type": "aws_subnet",
+					"resource_name": "prod-public-${each.key}",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_subnet[public].map_public_ip_on_launch",
+					"search_line": 75,
+					"search_value": "",
+					"expected_value": "aws_subnet[public].map_public_ip_on_launch should be set to false or undefined",
+					"actual_value": "aws_subnet[public].map_public_ip_on_launch is set to true",
+					"remediation": "{\"after\":\"false\",\"before\":\"true\"}",
+					"remediation_type": "replacement"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "fd632aaf-b8a1-424d-a4d1-0de22fd3247a",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_firewall#vpc_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "2e7d55e6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8dcdf82a719f8b64a27d0fd43f37244af88d517e124aaf92ed59e3fa4a644912",
+					"line": 49,
+					"resource_type": "aws_vpc",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_vpc[main]",
+					"search_line": 49,
+					"search_value": "",
+					"expected_value": "aws_vpc[main] has an 'aws_networkfirewall_firewall' associated",
+					"actual_value": "aws_vpc[main] does not have an 'aws_networkfirewall_firewall' associated"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 49,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "084c6686-2a70-4710-91b1-000393e54c12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/shield_protection#resource_arn",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "e09b31c7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ffab1315b8cafc3cc0167c089ece2fc46e05a8185c3bbffb9037f098b1405a5d",
+					"line": 98,
+					"resource_type": "aws_eip",
+					"resource_name": "prod-nat-eip-${each.key}",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_eip[nat]",
+					"search_line": 98,
+					"search_value": "",
+					"expected_value": "aws_eip has shield advanced associated",
+					"actual_value": "aws_eip does not have shield advanced associated"
+				}
+			]
+		}
+	]
+}

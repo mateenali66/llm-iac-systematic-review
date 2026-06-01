@@ -1,0 +1,96 @@
+- name: Install and configure PostgreSQL 15
+  hosts: all
+  become: yes
+  vars:
+    postgresql_version: "15"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+    postgresql_conf_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+    postgresql_listen_addresses: "0.0.0.0"
+    postgresql_port: 5432
+    postgresql_max_connections: 200
+    postgresql_shared_buffers: "256MB"
+    postgresql_effective_cache_size: "768MB"
+    postgresql_work_mem: "4MB"
+    postgresql_maintenance_work_mem: "64MB"
+    postgresql_wal_buffers: "8MB"
+    postgresql_random_page_cost: 1.1
+    postgresql_effective_io_concurrency: 200
+    postgresql_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+    postgresql_databases:
+      - name: myapp
+        owner: myappuser
+    postgresql_users:
+      - name: myappuser
+        password: "{{ vault_postgresql_password | default('changeme') }}"
+        db: myapp
+        priv: "ALL"
+
+  tasks:
+    - name: Install PostgreSQL 15
+      apt:
+        name:
+          - postgresql-{{ postgresql_version }}
+          - postgresql-client-{{ postgresql_version }}
+          - libpq-dev
+        state: present
+        update_cache: yes
+
+    - name: Ensure PostgreSQL is running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    - name: Configure postgresql.conf for production
+      template:
+        src: postgresql.conf.j2
+        dest: "{{ postgresql_conf_dir }}/postgresql.conf"
+        owner: postgres
+        group: postgres
+        mode: 0640
+      notify: restart postgresql
+
+    - name: Configure pg_hba.conf with allowed CIDRs
+      template:
+        src: pg_hba.conf.j2
+        dest: "{{ postgresql_conf_dir }}/pg_hba.conf"
+        owner: postgres
+        group: postgres
+        mode: 0640
+      notify: restart postgresql
+
+    - name: Create PostgreSQL users
+      postgresql_user:
+        name: "{{ item.name }}"
+        password: "{{ item.password }}"
+        role_attr_flags: LOGIN
+        state: present
+      loop: "{{ postgresql_users }}"
+      become_user: postgres
+      no_log: true
+
+    - name: Create PostgreSQL databases
+      postgresql_db:
+        name: "{{ item.name }}"
+        owner: "{{ item.owner }}"
+        state: present
+      loop: "{{ postgresql_databases }}"
+      become_user: postgres
+
+    - name: Grant privileges to users on databases
+      postgresql_privs:
+        db: "{{ item.db }}"
+        privs: "{{ item.priv }}"
+        type: database
+        role: "{{ item.name }}"
+      loop: "{{ postgresql_users }}"
+      become_user: postgres
+
+  handlers:
+    - name: restart postgresql
+      service:
+        name: postgresql
+        state: restarted

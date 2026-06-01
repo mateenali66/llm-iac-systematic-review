@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Provisions a secure S3 bucket for application user uploads with logging, versioning, and encryption."
+
+Resources:
+  LogBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      LifecycleConfiguration:
+        Rules:
+          - ID: LogExpirationRule
+            Status: Enabled
+            ExpirationInDays: 365
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+
+  UploadsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LogBucket
+        LogFilePrefix: "uploads-access-logs/"
+      LifecycleConfiguration:
+        Rules:
+          - ID: AbortIncompleteMultipartUpload
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+          - ID: TransitionToInfrequentAccess
+            Status: Enabled
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+          - ID: ExpireOldVersions
+            Status: Enabled
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 365
+
+  UploadsBucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref UploadsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "DenyIncorrectEncryptionHeader"
+            Effect: "Deny"
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption": "AES256"
+          - Sid: "DenyUnEncryptedObjectUploads"
+            Effect: "Deny"
+            Principal: "*"
+            Action: "s3:PutObject"
+            Resource: !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              Null:
+                "s3:x-amz-server-side-encryption": "true"
+          - Sid: "ForceTLSRequests"
+            Effect: "Deny"
+            Principal: "*"
+            Action: "s3:*"
+            Resource: !Sub "${UploadsBucket.Arn}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": "false"
+
+Outputs:
+  UploadsBucketName:
+    Description: "Name of the S3 bucket for user uploads"
+    Value: !Ref UploadsBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-UploadsBucketName"
+  UploadsBucketArn:
+    Description: "ARN of the S3 bucket for user uploads"
+    Value: !GetAtt UploadsBucket.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UploadsBucketArn"
+  LogBucketName:
+    Description: "Name of the S3 bucket for access logs"
+    Value: !Ref LogBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-LogBucketName"

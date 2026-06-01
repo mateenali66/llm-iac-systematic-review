@@ -1,0 +1,69 @@
+---
+- name: Install and configure nginx on Ubuntu
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    nginx_packages:
+      - nginx
+    nginx_service: nginx
+    allowed_http_port: 80
+
+  pre_tasks:
+    - name: Assert target is Ubuntu
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] == 'Ubuntu'
+        fail_msg: "This playbook only supports Ubuntu hosts."
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.apt:
+        name: "{{ nginx_packages }}"
+        state: present
+        install_recommends: false
+
+    - name: Ensure nginx is started and enabled at boot
+      ansible.builtin.service:
+        name: "{{ nginx_service }}"
+        state: started
+        enabled: true
+
+    - name: Ensure UFW is installed
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+
+    - name: Allow SSH through UFW (avoid lockout)
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow HTTP (port {{ allowed_http_port }}) through UFW
+      community.general.ufw:
+        rule: allow
+        port: "{{ allowed_http_port }}"
+        proto: tcp
+
+    - name: Enable UFW with default deny incoming policy
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Set default UFW outgoing policy to allow
+      community.general.ufw:
+        policy: allow
+        direction: outgoing
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: "{{ nginx_service }}"
+        state: reloaded

@@ -1,0 +1,58 @@
+resources:
+- name: vpc-custom
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: vpc-subnet-public
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.vpc-custom.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: false
+    enableFlowLogs: true
+
+- name: vpc-subnet-private
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.vpc-custom.selfLink)
+    ipCidrRange: 10.20.0.0/24
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+
+- name: vpc-firewall-allow-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.vpc-custom.selfLink)
+    direction: INGRESS
+    priority: 65534
+    sourceRanges:
+    - 10.10.0.0/24
+    - 10.20.0.0/24
+    allowed:
+    - IPProtocol: icmp
+    - IPProtocol: tcp
+    - IPProtocol: udp
+    logConfig:
+      enable: true
+
+- name: vpc-router-us-central1
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.vpc-custom.selfLink)
+    nats:
+    - name: nat-private-us-central1
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.vpc-subnet-private.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+      logConfig:
+        enable: true
+        filter: ALL

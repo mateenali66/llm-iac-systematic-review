@@ -1,0 +1,11 @@
+- hosts: all
+  become: yes
+  vars:
+    docker_user: "{{ ansible_user | default('ubuntu') }}"
+
+  tasks:
+    - name: Gather package manager facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Install prerequisites, GPG key, and repository for Debian-based systems

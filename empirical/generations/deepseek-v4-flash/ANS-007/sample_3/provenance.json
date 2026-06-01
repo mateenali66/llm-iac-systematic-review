@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "ANS-007",
+  "language": "ansible",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Generate an Ansible playbook that configures a static network interface on a Debian 12 host using the netplan module, with a specified IP, gateway, and DNS servers.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Configure static network interface on Debian 12\n  hosts: all\n  become: yes\n  vars:\n    netplan_config:\n      network:\n        version: 2\n        renderer: networkd\n        ethernets:\n          eth0:\n            addresses:\n              - \"{{ static_ip }}/24\"\n            gateway4: \"{{ gateway }}\"\n            nameservers:\n              addresses:\n                - \"{{ dns_servers }}\"\n    netplan_config_file: /etc/netplan/01-netcfg.yaml\n\n  tasks:\n    - name: Ensure netplan is installed\n      apt:\n        name: netplan.io\n        state: present\n        update_cache: yes\n\n    - name: Create netplan configuration\n      copy:\n        content: \"{{ netplan_config | to_nice_yaml }}\"\n        dest: \"{{ netplan_config_file }}\"\n        owner: root\n        group: root\n        mode: '0600'\n\n    - name: Apply netplan configuration\n      command: netplan apply\n      args:\n        creates: /run/netplan/apply.lock\n      notify: Verify network connectivity\n\n  handlers:\n    - name: Verify network connectivity\n      command: ping -c 3 {{ gateway }}\n      register: ping_result\n      failed_when: ping_result.rc != 0\n      changed_when: false",
+  "cleaned_response": "- name: Configure static network interface on Debian 12\n  hosts: all\n  become: yes\n  vars:\n    netplan_config:\n      network:\n        version: 2\n        renderer: networkd\n        ethernets:\n          eth0:\n            addresses:\n              - \"{{ static_ip }}/24\"\n            gateway4: \"{{ gateway }}\"\n            nameservers:\n              addresses:\n                - \"{{ dns_servers }}\"\n    netplan_config_file: /etc/netplan/01-netcfg.yaml\n\n  tasks:\n    - name: Ensure netplan is installed\n      apt:\n        name: netplan.io\n        state: present\n        update_cache: yes\n\n    - name: Create netplan configuration\n      copy:\n        content: \"{{ netplan_config | to_nice_yaml }}\"\n        dest: \"{{ netplan_config_file }}\"\n        owner: root\n        group: root\n        mode: '0600'\n\n    - name: Apply netplan configuration\n      command: netplan apply\n      args:\n        creates: /run/netplan/apply.lock\n      notify: Verify network connectivity\n\n  handlers:\n    - name: Verify network connectivity\n      command: ping -c 3 {{ gateway }}\n      register: ping_result\n      failed_when: ping_result.rc != 0\n      changed_when: false",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Configure static network interface on Debian 12\n  hosts: all\n  become: yes\n  vars:\n    netplan_config:\n      network:\n        version: 2\n        renderer: networkd\n        ethernets:\n          eth0:\n            addresses:\n              - \"{{ static_ip }}/24\"\n            gateway4: \"{{ gateway }}\"\n            nameservers:\n              addresses:\n                - \"{{ dns_servers }}\"\n    netplan_config_file: /etc/netplan/01-netcfg.yaml\n\n  tasks:\n    - name: Ensure netplan is installed\n      apt:\n        name: netplan.io\n        state: present\n        update_cache: yes\n\n    - name: Create netplan configuration\n      copy:\n        content: \"{{ netplan_config | to_nice_yaml }}\"\n        dest: \"{{ netplan_config_file }}\"\n        owner: root\n        group: root\n        mode: '0600'\n\n    - name: Apply netplan configuration\n      command: netplan apply\n      args:\n        creates: /run/netplan/apply.lock\n      notify: Verify network connectivity\n\n  handlers:\n    - name: Verify network connectivity\n      command: ping -c 3 {{ gateway }}\n      register: ping_result\n      failed_when: ping_result.rc != 0\n      changed_when: false",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727581,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 77,
+      "output_tokens": 287,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 13
+    }
+  },
+  "started_at": "2026-05-25T16:46:17.912409+00:00",
+  "elapsed_seconds": 3.3
+}

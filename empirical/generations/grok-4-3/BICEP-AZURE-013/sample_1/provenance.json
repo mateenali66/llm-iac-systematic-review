@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-013",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam accountName string\nparam secondaryLocation string = 'eastus'\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryLocation\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxStalenessPrefix: 100000\n      maxIntervalInSeconds: 300\n    }\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n    networkAclBypass: 'None'\n    publicNetworkAccess: 'Enabled'\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam accountName string\nparam secondaryLocation string = 'eastus'\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryLocation\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxStalenessPrefix: 100000\n      maxIntervalInSeconds: 300\n    }\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n    networkAclBypass: 'None'\n    publicNetworkAccess: 'Enabled'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam accountName string\nparam secondaryLocation string = 'eastus'\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: accountName\n  location: location\n  kind: 'GlobalDocumentDB'\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    locations: [\n      {\n        locationName: location\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryLocation\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxStalenessPrefix: 100000\n      maxIntervalInSeconds: 300\n    }\n    capabilities: [\n      {\n        name: 'EnableServerless'\n      }\n    ]\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n    networkAclBypass: 'None'\n    publicNetworkAccess: 'Enabled'\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724082,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 86,
+      "output_tokens": 270,
+      "reasoning_tokens": 704,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 56
+    }
+  },
+  "started_at": "2026-05-25T15:47:55.021626+00:00",
+  "elapsed_seconds": 7.499
+}

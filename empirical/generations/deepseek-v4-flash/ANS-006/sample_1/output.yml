@@ -1,0 +1,63 @@
+- name: Configure deploy user and SSH hardening
+  hosts: all
+  become: yes
+  vars:
+    deploy_user: deploy
+    deploy_user_ssh_key: "{{ vault_deploy_ssh_public_key }}"
+    sshd_config_path: /etc/ssh/sshd_config
+
+  tasks:
+    - name: Create deploy user
+      ansible.builtin.user:
+        name: "{{ deploy_user }}"
+        state: present
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        create_home: yes
+
+    - name: Set passwordless sudo for deploy user
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/deploy
+        line: "{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL"
+        create: yes
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Create .ssh directory for deploy user
+      ansible.builtin.file:
+        path: "/home/{{ deploy_user }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0700'
+
+    - name: Install public SSH key for deploy user
+      ansible.builtin.copy:
+        dest: "/home/{{ deploy_user }}/.ssh/authorized_keys"
+        content: "{{ deploy_user_ssh_key }}\n"
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0600'
+
+    - name: Disable password authentication in SSH
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+      notify: restart sshd
+
+    - name: Ensure SSH password authentication is disabled (if commented)
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^PasswordAuthentication yes'
+        line: 'PasswordAuthentication no'
+        state: present
+      notify: restart sshd
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted

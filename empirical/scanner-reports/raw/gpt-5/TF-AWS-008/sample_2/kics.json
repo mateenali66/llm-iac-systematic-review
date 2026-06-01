@@ -1,0 +1,140 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 195,
+	"files_parsed": 1,
+	"lines_parsed": 195,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 3,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:19:26.352000211Z",
+	"end": "2026-05-26T05:19:49.395985222Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Policies Attached To User",
+			"query_id": "b4378389-a9aa-44ee-91e7-ef183f11079e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "IAM policies should be attached only to groups or roles",
+			"description_id": "32ec58ec",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6de5746ef22005771f6fe6636e7d2626f64a03f2af6b36790460df5555b5e01a",
+					"line": 193,
+					"resource_type": "aws_iam_user_policy_attachment",
+					"resource_name": "jenkins_deploy_attach",
+					"issue_type": "RedundantAttribute",
+					"search_key": "aws_iam_user_policy_attachment[{{jenkins_deploy_attach}}].user",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'user' is redundant",
+					"actual_value": "'user' exists"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 89,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "7aee87d0001df62bd172b73be8ff0a360d638085b80c3512f5689a4b1ddbe802",
+					"line": 101,
+					"resource_type": "aws_iam_user",
+					"resource_name": "jenkins-deploy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_user[{{jenkins_deploy}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_user[{{jenkins_deploy}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_user[{{jenkins_deploy}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "998e358b4092480088ad83a8dec97f3849523a4f83a6797c9725272e591813d7",
+					"line": 94,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "jenkins-deploy-permissions-boundary",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{jenkins_deploy_boundary}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{jenkins_deploy_boundary}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_policy[{{jenkins_deploy_boundary}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6aa6f9186d93c28e01897b947efc84da5d7463e2b7bea742a6a2b3a2d5297afb",
+					"line": 189,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "jenkins-deploy-ci-cd",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{jenkins_deploy_policy}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{jenkins_deploy_policy}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_iam_policy[{{jenkins_deploy_policy}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "ANS-002",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Ansible playbook that idempotently configures the firewall on a Linux host: allows SSH (port 22), HTTPS (port 443), and explicitly denies all other inbound traffic.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Create an Ansible playbook that idempotently configures the firewall on a Linux host: allows SSH (port 22), HTTPS (port 443), and explicitly denies all other inbound traffic.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Configure firewall rules\n  hosts: all\n  become: yes\n  tasks:\n    - name: Ensure ufw is installed\n      apt:\n        name: ufw\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Ensure firewalld is installed\n      yum:\n        name: firewalld\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Start and enable ufw service\n      systemd:\n        name: ufw\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"Debian\"\n\n    - name: Start and enable firewalld service\n      systemd:\n        name: firewalld\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow SSH traffic on port 22 (ufw)\n      ufw:\n        rule: allow\n        port: '22'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow HTTPS traffic on port 443 (ufw)\n      ufw:\n        rule: allow\n        port: '443'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Deny all other incoming traffic by default (ufw)\n      ufw:\n        state: enabled\n        policy: deny\n        direction: incoming\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow SSH service (firewalld)\n      firewalld:\n        service: ssh\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow HTTPS service (firewalld)\n      firewalld:\n        service: https\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Set default zone to drop all incoming traffic (firewalld)\n      firewalld:\n        zone: public\n        permanent: yes\n        state: enabled\n        target: DROP\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"",
+  "cleaned_response": "---\n- name: Configure firewall rules\n  hosts: all\n  become: yes\n  tasks:\n    - name: Ensure ufw is installed\n      apt:\n        name: ufw\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Ensure firewalld is installed\n      yum:\n        name: firewalld\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Start and enable ufw service\n      systemd:\n        name: ufw\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"Debian\"\n\n    - name: Start and enable firewalld service\n      systemd:\n        name: firewalld\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow SSH traffic on port 22 (ufw)\n      ufw:\n        rule: allow\n        port: '22'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow HTTPS traffic on port 443 (ufw)\n      ufw:\n        rule: allow\n        port: '443'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Deny all other incoming traffic by default (ufw)\n      ufw:\n        state: enabled\n        policy: deny\n        direction: incoming\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow SSH service (firewalld)\n      firewalld:\n        service: ssh\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow HTTPS service (firewalld)\n      firewalld:\n        service: https\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Set default zone to drop all incoming traffic (firewalld)\n      firewalld:\n        zone: public\n        permanent: yes\n        state: enabled\n        target: DROP\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Configure firewall rules\n  hosts: all\n  become: yes\n  tasks:\n    - name: Ensure ufw is installed\n      apt:\n        name: ufw\n        state: present\n      when: ansible_os_family == \"Debian\"\n\n    - name: Ensure firewalld is installed\n      yum:\n        name: firewalld\n        state: present\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Start and enable ufw service\n      systemd:\n        name: ufw\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"Debian\"\n\n    - name: Start and enable firewalld service\n      systemd:\n        name: firewalld\n        state: started\n        enabled: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow SSH traffic on port 22 (ufw)\n      ufw:\n        rule: allow\n        port: '22'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow HTTPS traffic on port 443 (ufw)\n      ufw:\n        rule: allow\n        port: '443'\n        proto: tcp\n      when: ansible_os_family == \"Debian\"\n\n    - name: Deny all other incoming traffic by default (ufw)\n      ufw:\n        state: enabled\n        policy: deny\n        direction: incoming\n      when: ansible_os_family == \"Debian\"\n\n    - name: Allow SSH service (firewalld)\n      firewalld:\n        service: ssh\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Allow HTTPS service (firewalld)\n      firewalld:\n        service: https\n        permanent: yes\n        state: enabled\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"\n\n    - name: Set default zone to drop all incoming traffic (firewalld)\n      firewalld:\n        zone: public\n        permanent: yes\n        state: enabled\n        target: DROP\n        immediate: yes\n      when: ansible_os_family == \"RedHat\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723519,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 156,
+      "output_tokens": 475,
+      "raw_input_tokens": 156
+    }
+  },
+  "started_at": "2026-05-25T15:38:34.705162+00:00",
+  "elapsed_seconds": 4.916
+}

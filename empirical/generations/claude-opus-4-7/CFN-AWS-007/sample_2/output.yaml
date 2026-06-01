@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  CloudWatch Dashboard summarizing health metrics (invocations, errors,
+  throttles, average duration) for a Lambda-based API.
+
+Parameters:
+  FunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor.
+    MinLength: 1
+    MaxLength: 140
+    AllowedPattern: '^[a-zA-Z0-9-_]+$'
+    ConstraintDescription: Must be a valid Lambda function name.
+
+  DashboardName:
+    Type: String
+    Description: Name of the CloudWatch Dashboard.
+    Default: LambdaApiHealthDashboard
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z0-9-_]+$'
+
+  AlarmEmail:
+    Type: String
+    Description: Email address to receive alarm notifications.
+    AllowedPattern: '^[^\s@]+@[^\s@]+\.[^\s@]+$'
+    ConstraintDescription: Must be a valid email address.
+
+  ErrorThreshold:
+    Type: Number
+    Description: Number of errors within the evaluation period that triggers the alarm.
+    Default: 5
+    MinValue: 1
+
+  ThrottleThreshold:
+    Type: Number
+    Description: Number of throttles within the evaluation period that triggers the alarm.
+    Default: 1
+    MinValue: 1
+
+  DurationThresholdMs:
+    Type: Number
+    Description: Average duration (ms) threshold that triggers the alarm.
+    Default: 3000
+    MinValue: 1
+
+Resources:
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${FunctionName}-health-alarms'
+      DisplayName: !Sub 'Lambda API Health Alarms - ${FunctionName}'
+      KmsMasterKeyId: alias/aws/sns
+      Subscription:
+        - Endpoint: !Ref AlarmEmail
+          Protocol: email
+
+  ErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${FunctionName}-errors'
+      AlarmDescription: !Sub 'Errors detected for Lambda function ${FunctionName}.'
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref ErrorThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
+
+  ThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${FunctionName}-throttles'
+      AlarmDescription: !Sub 'Throttles detected for Lambda function ${FunctionName}.'
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: !Ref ThrottleThreshold
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
+
+  DurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${FunctionName}-high-duration'
+      AlarmDescription: !Sub 'Average duration exceeded threshold for Lambda function ${FunctionName}.'
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FunctionName
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 2
+      Threshold: !Ref DurationThresholdMs
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
+
+  HealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "text",
+              "x": 0, "y": 0, "width": 24, "height": 2,
+              "properties": {
+                "markdown": "# Lambda API Health Dashboard\n**Function:** `${FunctionName}` | **Region:** `${AWS::Region}`\n\nSummarizes invocations, errors, throttles, and average duration."
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 2, "width": 6, "height": 4,
+              "properties": {
+                "metrics": [
+                  [ "AWS/Lambda", "Invocations", "FunctionName", "${FunctionName}", { "stat": "Sum" } ]
+                ],
+                "view": "singleValue",
+                "region": "${AWS::Region}",
+                "title": "Invocations (sum, 5m)",
+                "period": 300,
+                "sparkline": true
+              }
+            },
+            {
+              "type": "metric",
+              "x": 6

@@ -1,0 +1,139 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: sidecar-logging
+description: Production Helm chart for multi-container Pod with Fluent Bit sidecar
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+---
+# FILE: values.yaml
+replicaCount: 2
+image:
+  main:
+    repository: nginx
+    pullPolicy: IfNotPresent
+    tag: "1.25-alpine"
+  fluentbit:
+    repository: fluent/fluent-bit
+    pullPolicy: IfNotPresent
+    tag: "2.1.10"
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+resources:
+  main:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  fluentbit:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+volume:
+  name: shared-logs
+  mountPath: /var/log/app
+fluentbitConfig:
+  flush: 5
+  output: "stdout"
+---
+# FILE: templates/_helpers.tpl
+{{- define "sidecar-logging.labels" -}}
+helm.sh/chart: {{ include "sidecar-logging.chart" . }}
+{{ include "sidecar-logging.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+{{- define "sidecar-logging.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "sidecar-logging.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+{{- define "sidecar-logging.name" -}}sidecar-logging{{- end -}}
+{{- define "sidecar-logging.chart" -}}{{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" }}{{- end -}}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sidecar-logging.name" . }}-fluentbit
+  labels:
+    {{- include "sidecar-logging.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         {{ .Values.fluentbitConfig.flush }}
+        Daemon        off
+        Log_Level     info
+    [INPUT]
+        Name          tail
+        Path          {{ .Values.volume.mountPath }}/*.log
+        Parser        docker
+        Tag           app.*
+    [OUTPUT]
+        Name          {{ .Values.fluentbitConfig.output }}
+        Match         *
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sidecar-logging.name" . }}
+  labels:
+    {{- include "sidecar-logging.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sidecar-logging.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sidecar-logging.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: main
+          image: "{{ .Values.image.main.repository }}:{{ .Values.image.main.tag }}"
+          imagePullPolicy: {{ .Values.image.main.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.resources.main | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.volume.name }}
+              mountPath: {{ .Values.volume.mountPath }}
+        - name: fluentbit
+          image: "{{ .Values.image.fluentbit.repository }}:{{ .Values.image.fluentbit.tag }}"
+          imagePullPolicy: {{ .Values.image.fluentbit.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            {{- toYaml .Values.resources.fluentbit | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.volume.name }}
+              mountPath: {{ .Values.volume.mountPath }}
+            - name: fluentbit-config
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
+      volumes:
+        - name: {{ .Values.volume.name }}
+          emptyDir: {}
+        - name: fluentbit-config
+          configMap:
+            name: {{ include "sidecar-logging.name" . }}-fluentbit
+            defaultMode: 0444

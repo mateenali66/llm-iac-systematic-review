@@ -1,0 +1,121 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: sidecar-logger
+description: Production Helm chart for multi-container Pod with main app and Fluent Bit sidecar
+type: application
+version: 1.0.0
+appVersion: "1.25.0"
+---
+# FILE: values.yaml
+replicaCount: 2
+image:
+  app:
+    repository: nginx
+    tag: "1.25-alpine"
+    pullPolicy: IfNotPresent
+  fluentbit:
+    repository: fluent/fluent-bit
+    tag: "2.1.10"
+    pullPolicy: IfNotPresent
+sharedVolume:
+  name: shared-logs
+  mountPath: /var/log/app
+resources:
+  app:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  fluentbit:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 2000
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - sidecar-logger
+        topologyKey: kubernetes.io/hostname
+---
+# FILE: templates/_helpers.tpl
+{{- define "sidecar-logger.labels" -}}
+helm.sh/chart: {{ include "sidecar-logger.chart" . }}
+{{ include "sidecar-logger.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+{{- define "sidecar-logger.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "sidecar-logger.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+{{- define "sidecar-logger.name" -}}sidecar-logger{{- end -}}
+{{- define "sidecar-logger.chart" -}}{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}{{- end -}}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sidecar-logger.name" . }}
+  labels:
+    {{- include "sidecar-logger.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "sidecar-logger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sidecar-logger.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      volumes:
+        - name: {{ .Values.sharedVolume.name }}
+          emptyDir: {}
+      containers:
+        - name: app
+          image: "{{ .Values.image.app.repository }}:{{ .Values.image.app.tag }}"
+          imagePullPolicy: {{ .Values.image.app.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.sharedVolume.name }}
+              mountPath: {{ .Values.sharedVolume.mountPath }}
+          resources:
+            {{- toYaml .Values.resources.app | nindent 12 }}
+          ports:
+            - containerPort: 80
+              name: http
+        - name: fluentbit
+          image: "{{ .Values.image.fluentbit.repository }}:{{ .Values.image.fluentbit.tag }}"
+          imagePullPolicy: {{ .Values.image.fluentbit.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.sharedVolume.name }}
+              mountPath: {{ .Values.sharedVolume.mountPath }}
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources.fluentbit | nindent 12 }}
+          command: ["/fluent-bit/bin/fluent-bit", "-c", "/fluent-bit/etc/fluent-bit.conf"]

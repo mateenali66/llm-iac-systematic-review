@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-012",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Armor security policy that blocks traffic from specific countries and rate-limits requests per IP.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: prod-web-armor-policy\n  type: compute.v1.securityPolicy\n  properties:\n    description: \"Production web security policy with geo-blocking and rate limiting.\"\n    rules:\n    - action: deny(403)\n      priority: 1000\n      description: \"Block traffic from specific countries.\"\n      match:\n        expr:\n          expression: \"origin.region_code in ['KP', 'IR', 'SY', 'CU']\"\n    - action: rate_based_ban\n      priority: 1100\n      description: \"Rate limit requests per source IP to mitigate DDoS or brute-force attacks.\"\n      match:\n        expr:\n          expression: \"true\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 200\n          intervalSec: 60\n        banDurationSec: 600\n        conformAction: allow\n        exceedAction: deny(429)\n        enforceOnKey: IP\n    - action: allow\n      priority: 2147483647\n      description: \"Default allow rule.\"\n      match:\n        expr:\n          expression: \"true\"",
+  "cleaned_response": "resources:\n- name: prod-web-armor-policy\n  type: compute.v1.securityPolicy\n  properties:\n    description: \"Production web security policy with geo-blocking and rate limiting.\"\n    rules:\n    - action: deny(403)\n      priority: 1000\n      description: \"Block traffic from specific countries.\"\n      match:\n        expr:\n          expression: \"origin.region_code in ['KP', 'IR', 'SY', 'CU']\"\n    - action: rate_based_ban\n      priority: 1100\n      description: \"Rate limit requests per source IP to mitigate DDoS or brute-force attacks.\"\n      match:\n        expr:\n          expression: \"true\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 200\n          intervalSec: 60\n        banDurationSec: 600\n        conformAction: allow\n        exceedAction: deny(429)\n        enforceOnKey: IP\n    - action: allow\n      priority: 2147483647\n      description: \"Default allow rule.\"\n      match:\n        expr:\n          expression: \"true\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: prod-web-armor-policy\n  type: compute.v1.securityPolicy\n  properties:\n    description: \"Production web security policy with geo-blocking and rate limiting.\"\n    rules:\n    - action: deny(403)\n      priority: 1000\n      description: \"Block traffic from specific countries.\"\n      match:\n        expr:\n          expression: \"origin.region_code in ['KP', 'IR', 'SY', 'CU']\"\n    - action: rate_based_ban\n      priority: 1100\n      description: \"Rate limit requests per source IP to mitigate DDoS or brute-force attacks.\"\n      match:\n        expr:\n          expression: \"true\"\n      rateLimitOptions:\n        rateLimitThreshold:\n          count: 200\n          intervalSec: 60\n        banDurationSec: 600\n        conformAction: allow\n        exceedAction: deny(429)\n        enforceOnKey: IP\n    - action: allow\n      priority: 2147483647\n      description: \"Default allow rule.\"\n      match:\n        expr:\n          expression: \"true\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779727608,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 127,
+      "output_tokens": 965,
+      "raw_input_tokens": 127
+    }
+  },
+  "started_at": "2026-05-25T16:46:35.235674+00:00",
+  "elapsed_seconds": 12.85
+}

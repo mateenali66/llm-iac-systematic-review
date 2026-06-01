@@ -1,0 +1,43 @@
+resources:
+- name: cloud-run-p95-latency-alert
+  type: gcp-types/monitoring-v3:projects.alertPolicies
+  properties:
+    displayName: "Cloud Run - High P95 Request Latency"
+    combiner: "OR"
+    conditions:
+    - displayName: "Cloud Run Revision - 95th Percentile Latency > 500ms for 5m"
+      conditionThreshold:
+        filter: 'metric.type="run.googleapis.com/request_latencies" AND resource.type="cloud_run_revision"'
+        comparison: "COMPARISON_GT"
+        thresholdValue: 500
+        duration: "300s"
+        trigger:
+          count: 1
+        aggregations:
+        - alignmentPeriod: "300s"
+          perSeriesAligner: "ALIGN_PERCENTILE_95"
+    notificationChannels:
+    - "$(ref.on-call-notification-channel.name)"
+    documentation:
+      content: |
+        The 95th percentile latency for a Cloud Run service has exceeded 500ms for more than 5 minutes.
+        This indicates that a significant portion of users are experiencing slow responses, potentially impacting user experience.
+
+        **Recommended Actions:**
+        1. **Investigate Service Logs:** Check the service logs in Cloud Logging for errors, exceptions, or performance bottlenecks.
+        2. **Review Recent Deployments:** Analyze recent code or configuration changes that might have introduced performance regressions.
+        3. **Analyze Traces:** Use Cloud Trace to inspect request traces and identify the specific operations or spans causing the high latency.
+        4. **Check Resource Utilization:** Review CPU and memory utilization for the Cloud Run service to see if it's under-provisioned.
+      mimeType: "text/markdown"
+
+# This is a placeholder for the notification channel resource.
+# In a real deployment, you would define the notification channel resource here
+# or reference an existing one. For example:
+#
+# - name: on-call-notification-channel
+#   type: gcp-types/monitoring-v3:projects.notificationChannels
+#   properties:
+#     displayName: "On-Call Pager"
+#     type: "pagerduty" # or "email", "slack", etc.
+#     labels:
+#       service_key: "YOUR_PAGERDUTY_INTEGRATION_KEY"

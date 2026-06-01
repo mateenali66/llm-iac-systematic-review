@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-007",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_iam_role\" \"ec2_s3_read_role\" {\n  name = \"ec2-s3-read-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"s3_read_policy\" {\n  name = \"s3-read-policy\"\n  role = aws_iam_role.ec2_s3_read_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\",\n          \"s3:ListBucket\",\n          \"s3:GetBucketLocation\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read_profile\" {\n  name = \"ec2-s3-read-profile\"\n  role = aws_iam_role.ec2_s3_read_role.name\n}",
+  "cleaned_response": "resource \"aws_iam_role\" \"ec2_s3_read_role\" {\n  name = \"ec2-s3-read-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"s3_read_policy\" {\n  name = \"s3-read-policy\"\n  role = aws_iam_role.ec2_s3_read_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\",\n          \"s3:ListBucket\",\n          \"s3:GetBucketLocation\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read_profile\" {\n  name = \"ec2-s3-read-profile\"\n  role = aws_iam_role.ec2_s3_read_role.name\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_iam_role\" \"ec2_s3_read_role\" {\n  name = \"ec2-s3-read-role\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy\" \"s3_read_policy\" {\n  name = \"s3-read-policy\"\n  role = aws_iam_role.ec2_s3_read_role.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:GetObjectVersion\",\n          \"s3:ListBucket\",\n          \"s3:GetBucketLocation\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_read_profile\" {\n  name = \"ec2-s3-read-profile\"\n  role = aws_iam_role.ec2_s3_read_role.name\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726474,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 144,
+      "output_tokens": 289,
+      "raw_input_tokens": 144
+    }
+  },
+  "started_at": "2026-05-25T16:27:49.243799+00:00",
+  "elapsed_seconds": 4.88
+}

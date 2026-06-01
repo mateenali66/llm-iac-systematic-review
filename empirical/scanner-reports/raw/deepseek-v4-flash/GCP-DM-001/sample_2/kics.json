@@ -1,0 +1,142 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 37,
+	"files_parsed": 1,
+	"lines_parsed": 37,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:38:37.380804466Z",
+	"end": "2026-05-26T04:38:37.771214966Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Compute Instance Is Publicly Accessible",
+			"query_id": "8212e2d7-e683-49bc-bf78-d6799075c5a7",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "284",
+			"cloud_provider": "GCP",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Compute instances shouldn't be accessible from the Internet.",
+			"description_id": "9f60c421",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "54a63dfcef6720d35d4122abbb92478c80190a804bf7bf040bdd909aeb378bb9",
+					"line": 18,
+					"resource_type": "compute.v1.instance",
+					"resource_name": "dev-vm-instance",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name={{dev-vm-instance}}.properties.networkInterfaces",
+					"search_line": 18,
+					"search_value": "",
+					"expected_value": "'accessConfigs' should be undefined",
+					"actual_value": "'accessConfigs' is defined and not null"
+				}
+			]
+		},
+		{
+			"query_name": "Disk Encryption Disabled",
+			"query_id": "fc040fb6-4c23-4c0d-b12a-39edac35debb",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "326",
+			"cloud_provider": "GCP",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "VM disks for critical VMs must be encrypted with Customer Supplied Encryption Keys (CSEK) or with Customer-managed encryption keys (CMEK), which means the attribute 'diskEncryptionKey' must be defined and its sub attributes 'rawKey' or 'kmsKeyName' must also be defined",
+			"description_id": "107eb8fb",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "74ac2898f322099ed02e3f1270024db37256350597ca31d0e04bcaa90987b4f7",
+					"line": 8,
+					"resource_type": "compute.v1.instance",
+					"resource_name": "dev-vm-instance",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{dev-vm-instance}}.properties.disks",
+					"search_line": 8,
+					"search_value": "",
+					"expected_value": "'diskEncryptionKey' should be defined and not null",
+					"actual_value": "'diskEncryptionKey' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Project-wide SSH Keys Are Enabled In VM Instances",
+			"query_id": "6e2b1ec1-1eca-4eb7-9d4d-2882680b4811",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "799",
+			"cloud_provider": "GCP",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "VM Instance should block project-wide SSH keys",
+			"description_id": "5e36c46d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "acc0e0659cadb70afe2dc3abc800649789e9cc03f280e6e001b49657e9e459e4",
+					"line": 23,
+					"resource_type": "compute.v1.instance",
+					"resource_name": "dev-vm-instance",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{dev-vm-instance}}.properties.metadata.items",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "'metadata.items' should have 'block-project-ssh-keys'",
+					"actual_value": "'metadata.items' does not have 'block-project-ssh-keys'"
+				}
+			]
+		},
+		{
+			"query_name": "Shielded VM Disabled",
+			"query_id": "9038b526-4c19-4928-bca2-c03d503bdb79",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Compute instances must be launched with Shielded VM enabled, which means the attribute 'shieldedInstanceConfig' must be defined and its sub attributes 'enableSecureBoot', 'enableVtpm' and 'enableIntegrityMonitoring' must be set to true",
+			"description_id": "c67722e8",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8ebcbd3e80fef477323563eee5c37789b84f1a2b23980e64cecd9069fe999e81",
+					"line": 4,
+					"resource_type": "compute.v1.instance",
+					"resource_name": "dev-vm-instance",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{dev-vm-instance}}.properties",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "'shieldedInstanceConfig' should be defined and not null",
+					"actual_value": "'shieldedInstanceConfig' is undefined or null"
+				}
+			]
+		}
+	]
+}

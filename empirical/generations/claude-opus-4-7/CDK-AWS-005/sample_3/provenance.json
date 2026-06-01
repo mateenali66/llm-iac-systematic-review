@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-005",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    Tags,\n    aws_ec2 as ec2,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    \"\"\"Production-ready VPC with public/private subnets across 2 AZs,\n    HA NAT Gateways, and Gateway VPC Endpoints for S3 and DynamoDB.\"\"\"\n\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        cidr: str = \"10.0.0.0/16\",\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self,\n            \"Vpc\",\n            ip_addresses=ec2.IpAddresses.cidr(cidr),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                    map_public_ip_on_launch=False,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Isolated\",\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        # VPC Flow Logs to CloudWatch for security/auditing\n        self.vpc.add_flow_log(\n            \"FlowLogCloudWatch\",\n            traffic_type=ec2.FlowLogTrafficType.ALL,\n        )\n\n        # Gateway endpoints (no hourly cost) for S3 and DynamoDB\n        self.s3_endpoint = self.vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        self.dynamodb_endpoint = self.vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        Tags.of(self).add(\"ManagedBy\", \"CDK\")\n        Tags.of(self).add(\"Component\", \"Network\")",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    Tags,\n    aws_ec2 as ec2,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    \"\"\"Production-ready VPC with public/private subnets across 2 AZs,\n    HA NAT Gateways, and Gateway VPC Endpoints for S3 and DynamoDB.\"\"\"\n\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        cidr: str = \"10.0.0.0/16\",\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self,\n            \"Vpc\",\n            ip_addresses=ec2.IpAddresses.cidr(cidr),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                    map_public_ip_on_launch=False,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Isolated\",\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        # VPC Flow Logs to CloudWatch for security/auditing\n        self.vpc.add_flow_log(\n            \"FlowLogCloudWatch\",\n            traffic_type=ec2.FlowLogTrafficType.ALL,\n        )\n\n        # Gateway endpoints (no hourly cost) for S3 and DynamoDB\n        self.s3_endpoint = self.vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        self.dynamodb_endpoint = self.vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        Tags.of(self).add(\"ManagedBy\", \"CDK\")\n        Tags.of(self).add(\"Component\", \"Network\")",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    Tags,\n    aws_ec2 as ec2,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    \"\"\"Production-ready VPC with public/private subnets across 2 AZs,\n    HA NAT Gateways, and Gateway VPC Endpoints for S3 and DynamoDB.\"\"\"\n\n    def __init__(\n        self,\n        scope: Construct,\n        construct_id: str,\n        cidr: str = \"10.0.0.0/16\",\n        **kwargs,\n    ) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self,\n            \"Vpc\",\n            ip_addresses=ec2.IpAddresses.cidr(cidr),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                    map_public_ip_on_launch=False,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Isolated\",\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        # VPC Flow Logs to CloudWatch for security/auditing\n        self.vpc.add_flow_log(\n            \"FlowLogCloudWatch\",\n            traffic_type=ec2.FlowLogTrafficType.ALL,\n        )\n\n        # Gateway endpoints (no hourly cost) for S3 and DynamoDB\n        self.s3_endpoint = self.vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        self.dynamodb_endpoint = self.vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),\n                ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),\n            ],\n        )\n\n        Tags.of(self).add(\"ManagedBy\", \"CDK\")\n        Tags.of(self).add(\"Component\", \"Network\")",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725323,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 255,
+      "output_tokens": 1083,
+      "raw_input_tokens": 255
+    }
+  },
+  "started_at": "2026-05-25T16:08:31.174508+00:00",
+  "elapsed_seconds": 12.063
+}

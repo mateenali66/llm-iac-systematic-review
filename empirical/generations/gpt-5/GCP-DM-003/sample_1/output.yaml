@@ -1,0 +1,92 @@
+resources:
+- name: enable-serviceusage
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: serviceusage.googleapis.com
+
+- name: enable-run
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: run.googleapis.com
+
+- name: enable-artifactregistry
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: artifactregistry.googleapis.com
+
+- name: enable-iam
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: iam.googleapis.com
+
+- name: enable-secretmanager
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: secretmanager.googleapis.com
+
+- name: enable-cloudbuild
+  type: gcp-types/serviceusage-v1:projects.services
+  properties:
+    parent: projects/$(project)
+    serviceId: cloudbuild.googleapis.com
+
+- name: cr-python-api-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    parent: projects/$(project)
+    accountId: cr-python-api-sa
+    serviceAccount:
+      displayName: Cloud Run Python 3.12 API Service Account
+
+- name: python312-api
+  type: gcp-types/run-v1:projects.locations.services
+  metadata:
+    dependsOn:
+    - enable-run
+    - cr-python-api-sa
+  properties:
+    parent: projects/$(project)/locations/us-central1
+    serviceId: python312-api
+    metadata:
+      annotations:
+        run.googleapis.com/ingress: internal-and-cloud-load-balancing
+        run.googleapis.com/client-name: deployment-manager
+    spec:
+      template:
+        metadata:
+          annotations:
+            autoscaling.knative.dev/minScale: '0'
+            autoscaling.knative.dev/maxScale: '10'
+            run.googleapis.com/cpu-throttling: 'true'
+            run.googleapis.com/execution-environment: gen2
+            run.googleapis.com/startup-cpu-boost: 'true'
+        spec:
+          serviceAccountName: $(ref.cr-python-api-sa.email)
+          containerConcurrency: 80
+          timeoutSeconds: 60
+          containers:
+          - image: us-docker.pkg.dev/$(project)/cloud-run/python312-api:latest
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PORT
+              value: '8080'
+            - name: PYTHONUNBUFFERED
+              value: '1'
+            resources:
+              limits:
+                cpu: '1'
+                memory: 512Mi
+
+outputs:
+- name: serviceName
+  value: $(ref.python312-api.metadata.name)
+- name: serviceRegion
+  value: us-central1
+- name: serviceUrl
+  value: $(ref.python312-api.status.url)

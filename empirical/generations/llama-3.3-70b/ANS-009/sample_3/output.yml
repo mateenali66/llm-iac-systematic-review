@@ -1,0 +1,57 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+
+  vars:
+    collector_port: 4317
+    export_endpoint: https://your-otlp-export-endpoint.com
+    service_name: opentelemetry-collector
+
+  tasks:
+  - name: Install OpenTelemetry Collector
+    apt:
+      name: opentelemetry-collector
+      state: present
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install OpenTelemetry Collector (RHEL/CentOS)
+    yum:
+      name: opentelemetry-collector
+      state: present
+    when: ansible_distribution in ["RedHat", "CentOS"]
+
+  - name: Create OpenTelemetry Collector configuration file
+    template:
+      src: templates/collector.yaml.j2
+      dest: /etc/otel/collector.yaml
+      mode: '0644'
+    notify: restart collector
+
+  - name: Enable and start OpenTelemetry Collector service
+    systemd:
+      name: opentelemetry-collector
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: restart collector
+    systemd:
+      name: opentelemetry-collector
+      state: restarted
+
+  templates/collector.yaml.j2:
+    receivers:
+      otlp:
+        protocol: http
+        host: 0.0.0.0
+        port: {{ collector_port }}
+    exporters:
+      otlp:
+        endpoint: {{ export_endpoint }}
+        insecure: false
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          exporters: [otlp]

@@ -1,0 +1,194 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A production-grade Helm chart for deploying Redis as a cache
+type: application
+version: 0.1.0
+appVersion: "7.2.4"
+keywords:
+  - redis
+  - cache
+  - key-value
+  - database
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: redis
+  tag: "7.2.4-alpine"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+auth:
+  enabled: true
+  # If empty, a random password is generated on first install
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "redis-password"
+
+service:
+  port: 6379
+  annotations: {}
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+podSecurityContext:
+  fsGroup: 999
+  runAsNonRoot: true
+  runAsUser: 999
+  runAsGroup: 999
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 999
+
+redisConfig: |
+  maxmemory 256mb
+  maxmemory-policy allkeys-lru
+  appendonly no
+  save ""
+  tcp-keepalive 60
+  timeout 0
+  protected-mode yes
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 1
+  failureThreshold: 5
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podAnnotations: {}
+
+networkPolicy:
+  enabled: false
+  ingressFrom: []
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "redis-cache.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "redis-cache.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Chart label.
+*/}}
+{{- define "redis-cache.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Common labels
+*/}}
+{{- define "redis-cache.labels" -}}
+helm.sh/chart: {{ include "redis-cache.chart" . }}
+{{ include "redis-cache.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: cache
+{{- end -}}
+
+{{/*
+Selector labels
+*/}}
+{{- define "redis-cache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Secret name
+*/}}
+{{- define "redis-cache.secretName" -}}
+{{- if .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecret -}}
+{{- else -}}
+{{- include "redis-cache.fullname" . -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Secret password key
+*/}}
+{{- define "redis-cache.secretPasswordKey" -}}
+{{- if .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecretPasswordKey -}}
+{{- else -}}
+redis-password
+{{- end -}}
+{{- end -}}
+---
+# FILE: templates/secret.yaml
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecret) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+type: Opaque
+data:
+  redis-password: {{ .Values.auth.password | default (randAlphaNum 32) | b64enc | quote }}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "redis-cache.fullname" . }}-config
+  labels:
+    {{- include "redis-cache.labels" . | nindent 4 }}
+data:
+  redis.conf: |
+    {{- .Values.redisConfig | nindent 4 }}

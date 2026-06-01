@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for creating a KMS customer-managed key with key rotation enabled.
+
+Resources:
+  KmsKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: Customer-managed key for database backup encryption
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Principal:
+              Service: kms.amazonaws.com
+            Action: 'kms:*'
+            Resource: '*'
+      KeyUsage: ENCRYPT_DECRYPT
+
+  KmsKeyAlias:
+    Type: 'AWS::KMS::Alias'
+    Properties:
+      AliasName: alias/db-backup-key
+      TargetKeyId: !Ref KmsKey
+
+  KmsKeyRotationSchedule:
+    Type: 'AWS::KMS::Key'
+    DependsOn: KmsKey
+    Properties:
+      Description: Customer-managed key with key rotation enabled
+      KeyPolicy: !GetAtt KmsKey.KeyPolicy
+      KeyUsage: !GetAtt KmsKey.KeyUsage
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+
+  KmsKeyRotationScheduleUpdate:
+    Type: 'AWS::KMS::Key'
+    DependsOn: KmsKeyRotationSchedule
+    Properties:
+      Description: Customer-managed key with key rotation enabled
+      KeyPolicy: !GetAtt KmsKey.KeyPolicy
+      KeyUsage: !GetAtt KmsKey.KeyUsage
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+
+Outputs:
+  KmsKeyId:
+    Value: !Ref KmsKey
+    Description: ID of the KMS customer-managed key
+  KmsKeyArn:
+    Value: !GetAtt KmsKey.Arn
+    Description: ARN of the KMS customer-managed key

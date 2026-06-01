@@ -1,0 +1,132 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 bucket for application user uploads with secure access controls'
+
+Parameters:
+  BucketNamePrefix:
+    Type: String
+    Description: Prefix for the S3 bucket name
+    Default: app-uploads
+    AllowedPattern: '[a-zA-Z0-9\-]*'
+    ConstraintDescription: Must contain only alphanumeric characters and hyphens
+
+  AllowedCORSOrigin:
+    Type: String
+    Description: Allowed origin for CORS requests
+    Default: https://example.com
+    AllowedPattern: '^https?://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(:[0-9]+)?$'
+
+Conditions:
+  UseDefaultBucketName: !Equals [!Ref BucketNamePrefix, 'app-uploads']
+
+Resources:
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If [
+        UseDefaultBucketName,
+        !Sub '${AWS::StackName}-${AWS::Region}-uploads',
+        !Sub '${BucketNamePrefix}-${AWS::AccountId}'
+      ]
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            AllowedOrigins:
+              - !Ref AllowedCORSOrigin
+            ExposedHeaders:
+              - ETag
+              - x-amz-request-id
+              - x-amz-meta-custom-header
+            MaxAge: 3000
+      NotificationConfiguration:
+        CloudWatchConfigurations:
+          - Event: s3:ObjectCreated:*
+            CloudWatchConfiguration:
+              LogGroupName: !Ref UploadsLogGroup
+          - Event: s3:ObjectRemoved:*
+            CloudWatchConfiguration:
+              LogGroupName: !Ref UploadsLogGroup
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+  UploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadsBucket
+      PolicyDocument:
+        Statement:
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !Sub '${UploadsBucket.Arn}'
+              - !Sub '${UploadsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+          - Sid: DenyIncorrectEncryptionHeader
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: !Sub '${UploadsBucket.Arn}/*'
+            Condition:
+              StringNotEquals:
+                's3:x-amz-server-side-encryption': 'AES256'
+          - Sid: RequireEncryption
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: !Sub '${UploadsBucket.Arn}/*'
+            Condition:
+              Null:
+                's3:x-amz-server-side-encryption': 'true'
+
+  UploadsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/s3/uploads-${AWS::StackName}'
+      RetentionInDays: 90
+
+Outputs:
+  UploadsBucketName:
+    Description: Name of the created S3 bucket
+    Value: !Ref UploadsBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-UploadsBucketName'
+
+  UploadsBucketArn:
+    Description: ARN of the created S3 bucket
+    Value: !GetAtt UploadsBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UploadsBucketArn'
+
+  UploadsBucketDomainName:
+    Description: Domain name of the created S3 bucket
+    Value: !GetAtt UploadsBucket.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-UploadsBucketDomainName'

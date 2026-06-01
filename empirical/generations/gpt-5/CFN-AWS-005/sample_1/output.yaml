@@ -1,0 +1,426 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Three-tier VPC with public, application, and database subnets across three AZs with NAT gateways, routing, S3 gateway endpoint, and VPC Flow Logs.
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC (e.g., 10.0.0.0/16)
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: ThreeTierVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: ThreeTierVPC-IGW
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Public Subnets across 3 AZs
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public-Subnet-1
+        - Key: Tier
+          Value: public
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: !Select [1, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public-Subnet-2
+        - Key: Tier
+          Value: public
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      CidrBlock: !Select [2, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Public-Subnet-3
+        - Key: Tier
+          Value: public
+
+  # Application (Private) Subnets across 3 AZs
+  AppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !Select [3, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: App-Subnet-1
+        - Key: Tier
+          Value: application
+  AppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: !Select [4, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: App-Subnet-2
+        - Key: Tier
+          Value: application
+  AppSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      CidrBlock: !Select [5, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: App-Subnet-3
+        - Key: Tier
+          Value: application
+
+  # Database (Private) Subnets across 3 AZs
+  DbSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      CidrBlock: !Select [6, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Db-Subnet-1
+        - Key: Tier
+          Value: database
+  DbSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs ""]
+      CidrBlock: !Select [7, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Db-Subnet-2
+        - Key: Tier
+          Value: database
+  DbSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs ""]
+      CidrBlock: !Select [8, !Cidr [!Ref VpcCidr, 9, 8]]
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Db-Subnet-3
+        - Key: Tier
+          Value: database
+
+  # Public Route Table and Associations
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public-RT
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
+  # NAT Gateways (one per AZ) and EIPs
+  NatEip1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: NatEip1
+  NatEip2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: NatEip2
+  NatEip3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: NatEip3
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: NatGateway1
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: NatGateway2
+  NatGateway3:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip3.AllocationId
+      SubnetId: !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: NatGateway3
+
+  # Application Route Tables and Associations (default route to NAT in same AZ)
+  AppRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: App-RT-1
+  AppDefaultRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+  AppSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTable1
+      SubnetId: !Ref AppSubnet1
+
+  AppRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: App-RT-2
+  AppDefaultRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+  AppSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTable2
+      SubnetId: !Ref AppSubnet2
+
+  AppRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: App-RT-3
+  AppDefaultRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTable3
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway3
+  AppSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTable3
+      SubnetId: !Ref AppSubnet3
+
+  # Database Route Tables and Associations (no internet route)
+  DbRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Db-RT-1
+  DbSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTable1
+      SubnetId: !Ref DbSubnet1
+
+  DbRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Db-RT-2
+  DbSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTable2
+      SubnetId: !Ref DbSubnet2
+
+  DbRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Db-RT-3
+  DbSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTable3
+      SubnetId: !Ref DbSubnet3
+
+  # S3 Gateway Endpoint for private subnets (App + DB route tables)
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref AppRouteTable1
+        - !Ref AppRouteTable2
+        - !Ref AppRouteTable3
+        - !Ref DbRouteTable1
+        - !Ref DbRouteTable2
+        - !Ref DbRouteTable3
+      Tags:
+        - Key: Name
+          Value: S3-Gateway-Endpoint
+
+  # VPC Flow Logs to CloudWatch Logs (security/observability best practice)
+  FlowLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/vpc/${VPC}-flow-logs
+      RetentionInDays: 365
+  FlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub vpc-flow-logs-role-${AWS::StackName}
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: vpc-flow-logs.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: vpc-flow-logs-to-cwl
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:CreateLogGroup
+                Resource: "*"
+  VPCFlowLog:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
+      LogDestinationType: cloud-watch-logs
+      DeliverLogsPermissionArn: !GetAtt FlowLogsRole.Arn
+      LogGroupName: !Ref FlowLogsLogGroup
+      Tags:
+        - Key: Name
+          Value: VPC-Flow-Logs
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::StackName}-VpcId
+  PublicSubnetIds:
+    Description: Comma-separated list of public subnet IDs
+    Value: !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicSubnetIds
+  AppSubnetIds:
+    Description: Comma-separated list of application subnet IDs
+    Value: !Join [",", [!Ref AppSubnet1, !Ref AppSubnet2, !Ref AppSubnet3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-AppSubnetIds
+  DbSubnetIds:
+    Description: Comma-separated list of database subnet IDs
+    Value: !Join [",", [!Ref DbSubnet1, !Ref DbSubnet2, !Ref DbSubnet3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-DbSubnetIds
+  NatGatewayIds:
+    Description: Comma-separated list of NAT Gateway IDs
+    Value: !Join [",", [!Ref NatGateway1, !Ref NatGateway2, !Ref NatGateway3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-NatGatewayIds
+  PublicRouteTableId:
+    Description: Public route table ID
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub ${AWS::StackName}-PublicRouteTableId
+  AppRouteTableIds:
+    Description: Comma-separated list of application route table IDs
+    Value: !Join [",", [!Ref AppRouteTable1, !Ref AppRouteTable2, !Ref AppRouteTable3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-AppRouteTableIds
+  DbRouteTableIds:
+    Description: Comma-separated list of database route table IDs
+    Value: !Join [",", [!Ref DbRouteTable1, !Ref DbRouteTable2, !Ref DbRouteTable3]]
+    Export:
+      Name: !Sub ${AWS::StackName}-DbRouteTableIds

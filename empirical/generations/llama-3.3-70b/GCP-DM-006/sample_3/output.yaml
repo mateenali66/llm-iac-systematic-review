@@ -1,0 +1,37 @@
+resources:
+  - name: cloud-function-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloud-function-sa
+      displayName: Cloud Function Service Account
+
+  - name: cloud-function-service-account-key
+    type: iam.v1.serviceAccountKey
+    properties:
+      serviceAccountId: $(ref.cloud-function-service-account.name)
+      keyAlgorithm: KEY_ALG_RSA_2048
+      privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE
+
+  - name: cloud-function-service-account-iam-policy
+    type: iam.v1.policy
+    properties:
+      bindings:
+      - role: roles/storage.objectViewer
+        members:
+        - serviceAccount:$(ref.cloud-function-service-account.email)
+      - role: roles/iam.serviceAccountUser
+        members:
+        - serviceAccount:$(ref.cloud-function-service-account.email)
+
+  - name: cloud-storage-bucket-iam-policy
+    type: storage.v1.bucketIamPolicy
+    properties:
+      bucket: 'your-bucket-name'
+      bindings:
+      - role: roles/storage.objectViewer
+        members:
+        - serviceAccount:$(ref.cloud-function-service-account.email)
+
+outputs:
+  - name: cloud-function-service-account-email
+    value: $(ref.cloud-function-service-account.email)

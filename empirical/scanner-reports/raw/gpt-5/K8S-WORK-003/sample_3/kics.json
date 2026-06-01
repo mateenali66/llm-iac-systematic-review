@@ -1,0 +1,623 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 337,
+	"files_parsed": 2,
+	"lines_parsed": 337,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 1,
+		"LOW": 13,
+		"MEDIUM": 10,
+		"TRACE": 0
+	},
+	"total_counter": 25,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:17:24.610709668Z",
+	"end": "2026-05-26T05:17:27.016630419Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "8407669e6428a945ffbc4bb2742544a10a7432ff2d2564a4112a886a5b576ae8",
+					"line": 9,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running As Root",
+			"query_id": "cf34805e-3872-4c08-bf92-6ff7bb0cfadb",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Containers should only run as non-root user. This limits the exploitability of security misconfigurations and restricts an attacker's possibilities in case of compromise",
+			"description_id": "9d5b1d16",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "17da21171347ae290c80ed0f0004e7655e1738f3419c2bfb21f808b8079c1967",
+					"line": 143,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser is higher than 0 and/or 'runAsNonRoot' is true",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser is 0 and 'runAsNonRoot' is false"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "218115acf90ba2937d2acead828739c3af598229612b3464cd1c608dc08b16b6",
+					"line": 167,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.securityContext.runAsUser=1001",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.securityContext.runAsUser is set to a low UID"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b8fdc4eabf88f435436ff133c5b3b6ff88f1f4c508854d0e82f97af65a86c524",
+					"line": 143,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser=0",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.securityContext.runAsUser is set to a low UID"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Limits Not Defined",
+			"query_id": "b14d1bc4-a208-45db-92f0-e21f8e2588e9",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory limits should be defined for each container. This prevents potential resource exhaustion by ensuring that containers consume not more than the designated amount of memory",
+			"description_id": "e0ba95cc",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4cbc84233ecc48337706df93630b736d5e97769c176c4e3c35dba1a322057353",
+					"line": 139,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.resources.limits.memory should be defined",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.resources.limits.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Requests Not Defined",
+			"query_id": "229588ef-8fde-40c8-8756-f4f2b5825ded",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory requests should be defined for each container. This allows the kubelet to reserve the requested amount of system resources and prevents over-provisioning on individual nodes",
+			"description_id": "3dcbd683",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "688ac5b2e946db393795564aff0a641878fcfd51a1598536c3388b7459bfc6e3",
+					"line": 139,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.resources.requests.memory should be defined",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.resources.requests.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Service Account Token Automount Not Disabled",
+			"query_id": "48471392-d4d0-47c0-b135-cdec95eb3eef",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "Service Account Tokens are automatically mounted even if not necessary",
+			"description_id": "51cade0f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "995952bf1777b4f72d280f1b8c6d47714c9f79ec4b1f0932066e5769aaed4e95",
+					"line": 115,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.spec",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.automountServiceAccountToken should be defined and set to false",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.automountServiceAccountToken is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c1786941d1542fdc633ec60529a6daaaf417e0838e8edeceaab9746619814fe0",
+					"line": 99,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{StatefulSet}}.metadata.name={{redis}}",
+					"search_line": 99,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "5220613923efafc9f7ef346f569873ee43342e7c97076566a8801965dc6f9c5d",
+					"line": 33,
+					"resource_type": "Service",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Service}}.metadata.name={{redis}}",
+					"search_line": 33,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "608394fd6109aad6849481494d91884bed51008023db9d936736c1e12b473bb4",
+					"line": 14,
+					"resource_type": "Service",
+					"resource_name": "redis-headless",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Service}}.metadata.name={{redis-headless}}",
+					"search_line": 14,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "redis-auth",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Secret}}.metadata.name={{redis-auth}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Limits Not Set",
+			"query_id": "4ac0e2b7-d2d2-4af7-8799-e8de6721ccda",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU limits should be set because if the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests",
+			"description_id": "9a2ef763",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "26bc0a161efaf29b4283a12bcef03673f246bc17cec047b62750b5c5cd1675a6",
+					"line": 139,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name=init-permissions",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.initContainers.name=init-permissions has resources defined",
+					"actual_value": "spec.template.spec.initContainers.name=init-permissions doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Requests Not Set",
+			"query_id": "ca469dd4-c736-448f-8ac1-30a642705e0a",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU requests should be set to ensure the sum of the resource requests of the scheduled Containers is less than the capacity of the node",
+			"description_id": "ac7ad5df",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c4be56b81fbbfc8ff08cbb1eac6e3c034897b07beef2a93e1f30033333f3b8fb",
+					"line": 139,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name=init-permissions",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.initContainers.name=init-permissions should have resources defined",
+					"actual_value": "spec.template.spec.initContainers.name=init-permissions doesn't have resources defined"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "149307b50dbbbbea6d35318cd2883712270279e309bd1e0d032c6576c1141212",
+					"line": 164,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.imagePullPolicy relies on mutable images in cache"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2eebe8d8a645ef88d59660624261f07f78511a6857f4ee3c1441f3bd25333db6",
+					"line": 141,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "08a81e1b95753fdfe57fb07a877694f20c6251f10bac91369bc0ae703448d75e",
+					"line": 163,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.containers.name={{redis}}.image does not include an image digest"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c56c6126d0424a468bd6fa22e9760e2f1932f26d350e586b088a57ca935a7c88",
+					"line": 140,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{redis}}.spec.template.spec.initContainers.name={{init-permissions}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "40346426e0bf97985e9741e16175dc13ce41290509aecf789464379bb8f73cc8",
+					"line": 112,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{init-permissions}}",
+					"actual_value": "metadata.name={{redis}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{init-permissions}}"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "40346426e0bf97985e9741e16175dc13ce41290509aecf789464379bb8f73cc8",
+					"line": 112,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{redis}}",
+					"actual_value": "metadata.name={{redis}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{redis}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c1e785fcce3104255bd3f6d009500b5358f875d88302ed2c3b8966b7f2aa4123",
+					"line": 23,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{redis}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "35f39ea34b73093dbd959e078e66e9383c8b57cb4ead859291b3c5b5fbcda033",
+					"line": 23,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{redis}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Secrets As Environment Variables",
+			"query_id": "3d658f8b-d988-41a0-a841-40043121de1e",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets-as-environment-variables",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "526",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Container should not use secrets as environment variables",
+			"description_id": "99365a7d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "572667b3113b5e70f80841e2db02664985ebb48bccced354d4851a59efc67dd2",
+					"line": 178,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.template.spec.containers.env.name={{REDIS_PASSWORD}}.valueFrom.secretKeyRef",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'spec.template.spec.containers.name={{redis}}.env.name={{REDIS_PASSWORD}}.valueFrom.secretKeyRef' should be undefined",
+					"actual_value": "'spec.template.spec.containers.name={{redis}}.env.name={{REDIS_PASSWORD}}.valueFrom.secretKeyRef' is defined"
+				}
+			]
+		},
+		{
+			"query_name": "StatefulSet Requests Storage",
+			"query_id": "8cf4671a-cf3d-46fc-8389-21e7405063a2",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Build Process",
+			"experimental": false,
+			"description": "A StatefulSet requests volume storage.",
+			"description_id": "6210afe6",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b30e4faf807e38457c47403e221f37c71d6031bd988064ef0a0815ea2baea05b",
+					"line": 284,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{redis}}.spec.volumeClaimTemplates.spec.resources.requests.storage=10Gi",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{redis}}.spec.volumeClaimTemplates.spec.resources.requests.storage should not be set",
+					"actual_value": "metadata.name={{redis}}.spec.volumeClaimTemplates.spec.resources.requests.storage is set to 10Gi"
+				}
+			]
+		},
+		{
+			"query_name": "StatefulSet Without Service Name",
+			"query_id": "bb241e61-77c3-4b97-9575-c0f8a1e008d0",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "StatefulSets should have an existing headless 'serviceName'. The headless service labels should also be implemented on StatefulSets labels.",
+			"description_id": "2ce554f2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "7a79656398127f1d808ca4a1d789de01282c783415ebd04e0f3267a749328951",
+					"line": 103,
+					"resource_type": "StatefulSet",
+					"resource_name": "redis",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name=redis.spec.serviceName",
+					"search_line": 103,
+					"search_value": "",
+					"expected_value": "metadata.name=redis.spec.serviceName should refer to a Headless Service",
+					"actual_value": "metadata.name=redis.spec.serviceName doesn't refers to a Headless Service"
+				}
+			]
+		},
+		{
+			"query_name": "Using Kubernetes Native Secret Management",
+			"query_id": "b9c83569-459b-4110-8f79-6305aa33cb37",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/secret/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "311",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Kubernetes External Secret Storage and Management System usage should be considered if you have more complex secret management needs, rather than using Kubernetes Secrets directly. Additionally, ensure that access to secrets is carefully limited",
+			"description_id": "3d7b569c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b04860bdd114f53005c4e3d678d1bad3fc5ba43247cbf46d7dd3ae9395e779c6",
+					"line": 4,
+					"resource_type": "Secret",
+					"resource_name": "redis-auth",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{redis-auth}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "External secret storage should be used",
+					"actual_value": "External secret storage is not in use"
+				}
+			]
+		}
+	]
+}

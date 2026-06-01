@@ -1,0 +1,78 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "s3BucketNoWebsiteIndexDoc",
+        "description": "Ensure that there are not any static websites being hosted on buckets you aren't aware of",
+        "rule_id": "AC_AWS_0208",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "marketing_website",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 5
+      },
+      {
+        "rule_name": "s3Versioning",
+        "description": "Enabling S3 versioning will enable easy recovery from both unintended user actions, like deletes and overwrites",
+        "rule_id": "AC_AWS_0214",
+        "severity": "HIGH",
+        "category": "Resilience",
+        "resource_name": "marketing_website",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 5
+      },
+      {
+        "rule_name": "allUsersReadAccess",
+        "description": "Misconfigured S3 buckets can leak private information to the entire internet or allow unauthorized data tampering / deletion",
+        "rule_id": "AC_AWS_0210",
+        "severity": "HIGH",
+        "category": "Identity and Access Management",
+        "resource_name": "marketing_website",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 5
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 06:32:17.755751961 +0000 UTC",
+      "policies_validated": 16,
+      "violated_policies": 3,
+      "low": 1,
+      "medium": 0,
+      "high": 2
+    }
+  }
+}

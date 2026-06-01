@@ -1,0 +1,127 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 323,
+	"files_parsed": 2,
+	"lines_parsed": 323,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:12:50.851458167Z",
+	"end": "2026-05-26T05:12:55.455714085Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "KMS Key With Vulnerable Policy",
+			"query_id": "da905474-7454-43c0-b8d2-5756ab951aba",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#cfn-kms-key-keypolicy",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Checks if the policy is vulnerable and needs updating.",
+			"description_id": "1f88b704",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6227daf4e02f22ca6ef385aaa63d388d446aa0c8adcca2218be95e4e6785e3c2",
+					"line": 75,
+					"resource_type": "AWS::KMS::Key",
+					"resource_name": "LambdaEnvKmsKey",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.LambdaEnvKmsKey.Properties.KeyPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.LambdaEnvKmsKey.Properties.KeyPolicy.Statement should not have wildcard in 'Action' and 'Principal'",
+					"actual_value": "Resources.LambdaEnvKmsKey.Properties.KeyPolicy.Statement has wildcard in 'Action' and 'Principal'"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "564aa16cd3b716d37e2abc4fa897adef9190febd5af0e565102dc5da49d92e46",
+					"line": 99,
+					"resource_type": "AWS::KMS::Key",
+					"resource_name": "LogsKmsKey",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.LogsKmsKey.Properties.KeyPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.LogsKmsKey.Properties.KeyPolicy.Statement should not have wildcard in 'Action' and 'Principal'",
+					"actual_value": "Resources.LogsKmsKey.Properties.KeyPolicy.Statement has wildcard in 'Action' and 'Principal'"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 68,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Function Without Dead Letter Queue",
+			"query_id": "c2eae442-d3ba-4cb1-84ca-1db4f80eae3d",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html#cfn-lambda-function-deadletterconfig",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "390",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "AWS Lambda Function should be configured for a Dead Letter Queue(DLQ)",
+			"description_id": "d5d9d047",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f876041a0bbf05deda0f3cca039196b8549cf4a43fccf5aa59d9e44e75251e75",
+					"line": 187,
+					"resource_type": "AWS::Lambda::Function",
+					"resource_name": "order-processor",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.OrderProcessorFunction.Properties",
+					"search_line": 187,
+					"search_value": "",
+					"expected_value": "'Resources.OrderProcessorFunction.Properties.DeadLetterConfig' should be defined and not null",
+					"actual_value": "'Resources.OrderProcessorFunction.Properties.DeadLetterConfig' is undefined or null"
+				}
+			]
+		}
+	]
+}

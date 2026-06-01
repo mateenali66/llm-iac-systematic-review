@@ -1,0 +1,274 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 479,
+	"files_parsed": 2,
+	"lines_parsed": 470,
+	"lines_ignored": 9,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 9,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 13,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:12:03.785195006Z",
+	"end": "2026-05-26T05:12:08.7882378Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EC2 Instance Subnet Has Public IP Mapping On Launch",
+			"query_id": "b3de4e4c-14be-4159-b99d-9ad194365e4c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-mappubliciponlaunch",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "EC2 Instance Subnet should not have MapPublicIpOnLaunch set to true",
+			"description_id": "22e3d598",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "16f4a9e7621d28793bc4d98ddae2b01b7a578638a1676f01e1ad6b77383eb5e7",
+					"line": 41,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "Public-Subnet-1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' is true"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1f0d80b61af6527880848b08b4a4487a851e781aaadcc6ed821ec40f9fcdad0e",
+					"line": 53,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "Public-Subnet-2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' is true"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "95fe8a50c063064b488e8faa95cd1b8651c4011b4c01797cd66c1dcebd7bc8b8",
+					"line": 65,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "Public-Subnet-3",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch' is true"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "440f26a3504b0fb707ed76062fe1cc7ecfb972c3eb26758a4d15134cde62aafb",
+					"line": 11,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "ThreeTierVPC",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 11,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 10,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RouterTable with Default Routing",
+			"query_id": "4f0908b9-eb66-433f-9145-134274e1e944",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-route-table.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Insecure Defaults",
+			"experimental": false,
+			"description": "NAT gateways are recommended, and not the default route which permits all traffic, in Route Tables.",
+			"description_id": "1f341247",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f92838708fb5515c1effbb6846a05bd33129b108a03729321ba3f0f81625622e",
+					"line": 239,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "AppDefaultRoute1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.AppDefaultRoute1.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AppDefaultRoute1.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.AppDefaultRoute1.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9f26d6b97c88e65a9c64fa58e87437143930e7b3923364eb9f6e436dc3ba175c",
+					"line": 258,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "AppDefaultRoute2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.AppDefaultRoute2.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AppDefaultRoute2.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.AppDefaultRoute2.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4a14e19e7e5d8146d9d7336727307211a95eca3ebe91943e5bbffa0da5843db5",
+					"line": 277,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "AppDefaultRoute3",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.AppDefaultRoute3.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.AppDefaultRoute3.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.AppDefaultRoute3.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "f9f3e682afb3d25162f901803cfcef5523f0ce17e52d9644c6c231da6554befa",
+					"line": 159,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicDefaultRoute",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.PublicDefaultRoute.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicDefaultRoute.Properties.NatGatewayId should be defined",
+					"actual_value": "Resources.PublicDefaultRoute.Properties.NatGatewayId is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2b7e7ecfa4cace6520af9d080cc9276e4eedd076690a6cfa7961695b93f6603a",
+					"line": 161,
+					"resource_type": "AWS::EC2::Route",
+					"resource_name": "PublicDefaultRoute",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicDefaultRoute.Properties.DestinationCidrBlock",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.PublicDefaultRoute.Properties.DestinationCidrBlock should be different from the default value",
+					"actual_value": "Resources.PublicDefaultRoute.Properties.DestinationCidrBlock is 0.0.0.0/0"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "ad7444cf-817a-4765-a79e-2145f7981faf",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-fms-policy.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "ae5e799c",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "77db3b18033efc7deb16737327edbc08659725274159bc42c1fc709c38391183",
+					"line": 180,
+					"resource_type": "AWS::EC2::EIP",
+					"resource_name": "NatEip1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NatEip1",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.NatEip1 has shield advanced associated",
+					"actual_value": "Resources.NatEip1 does not have shield advanced associated"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9507e461d5faa1981c3f266ba9983fea3ad845924eda892230c70da8b90dbaeb",
+					"line": 187,
+					"resource_type": "AWS::EC2::EIP",
+					"resource_name": "NatEip2",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NatEip2",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.NatEip2 has shield advanced associated",
+					"actual_value": "Resources.NatEip2 does not have shield advanced associated"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c5567d9134a8aef07ec2c358f50472713169dbd72d2406ad02c2ba6f4511daa0",
+					"line": 194,
+					"resource_type": "AWS::EC2::EIP",
+					"resource_name": "NatEip3",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.NatEip3",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.NatEip3 has shield advanced associated",
+					"actual_value": "Resources.NatEip3 does not have shield advanced associated"
+				}
+			]
+		}
+	]
+}

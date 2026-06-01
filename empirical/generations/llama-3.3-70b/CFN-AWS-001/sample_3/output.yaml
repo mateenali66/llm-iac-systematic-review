@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for S3 bucket to host application user uploads
+
+Resources:
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'uploads-${AWS::AccountId}-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  UploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UploadsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowGetAndPutForAuthorizedUsers
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:role/ApplicationRole'
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/uploads/*'
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: '*'
+            Action: '*'
+            Resource: !Sub 'arn:aws:s3:::${UploadsBucket}/*'
+            Condition:
+              StringNotEquals:
+                'aws:SecureTransport': 'true'
+
+Outputs:
+  UploadsBucketName:
+    Value: !Ref UploadsBucket
+    Description: Name of the S3 bucket for application user uploads

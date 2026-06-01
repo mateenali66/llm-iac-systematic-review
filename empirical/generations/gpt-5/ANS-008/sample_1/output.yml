@@ -1,0 +1,255 @@
+- name: Install and configure PostgreSQL 15
+  hosts: db_servers
+  become: true
+  gather_facts: true
+  collections:
+    - community.postgresql
+
+  vars:
+    postgres_version: 15
+    pg_listen_addresses: "*"
+    allowed_cidrs:
+      - 10.0.0.0/8
+      - 192.168.0.0/16
+    pg_db_name: appdb
+    pg_app_user: appuser
+    pg_app_password: ""
+    pg_extensions: []
+
+  pre_tasks:
+    - name: Ensure required variables are set
+      ansible.builtin.assert:
+        that:
+          - pg_app_password is string
+          - pg_app_password | length >= 12
+        fail_msg: "pg_app_password must be provided and at least 12 characters long."
+        quiet: true
+
+    - name: Set platform-specific variables
+      ansible.builtin.set_fact:
+        pg_service_name: >-
+          {{ 'postgresql' if ansible_facts.os_family in ['Debian'] else 'postgresql-' ~ postgres_version }}
+        pg_hba_path: >-
+          {{ '/etc/postgresql/' ~ postgres_version ~ '/main/pg_hba.conf' if ansible_facts.os_family in ['Debian']
+             else '/var/lib/pgsql/' ~ postgres_version ~ '/data/pg_hba.conf' }}
+        pg_data_dir: >-
+          {{ '/var/lib/postgresql/' ~ postgres_version ~ '/main' if ansible_facts.os_family in ['Debian']
+             else '/var/lib/pgsql/' ~ postgres_version ~ '/data' }}
+        pg_socket_dir: >-
+          {{ '/var/run/postgresql' if ansible_facts.os_family in ['Debian'] else '/var/lib/pgsql' }}
+        pg_bin_prefix: >-
+          {{ '' if ansible_facts.os_family in ['Debian'] else '/usr/pgsql-' ~ postgres_version ~ '/bin/' }}
+
+    - name: Calculate memory-based tuning values
+      ansible.builtin.set_fact:
+        mem_mb: "{{ ansible_facts.memtotal_mb | int }}"
+        shared_buffers_mb: "{{ [ (ansible_facts.memtotal_mb | int * 0.25) | int, 8192 ] | min | int | max(512) }}"
+        effective_cache_size_mb: "{{ (ansible_facts.memtotal_mb | int * 0.5) | int }}"
+        maintenance_work_mem_mb: "{{ [ (ansible_facts.memtotal_mb | int * 0.05) | int, 2048 ] | min | int | max(128) }}"
+        work_mem_mb: 16
+
+  tasks:
+    - name: Install PGDG repository on Debian/Ubuntu
+      ansible.builtin.include_tasks: install_pgdg_debian.yml
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: Install PGDG repository on RHEL/CentOS/Alma/Rocky
+      ansible.builtin.include_tasks: install_pgdg_redhat.yml
+      when: ansible_facts.os_family == 'RedHat'
+
+    - name: Install PostgreSQL 15 and dependencies (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - "postgresql-{{ postgres_version }}"
+          - "postgresql-client-{{ postgres_version }}"
+          - postgresql-contrib
+          - python3-psycopg2
+        state: present
+        update_cache: true
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: Install PostgreSQL 15 and dependencies (RHEL family)
+      ansible.builtin.dnf:
+        name:
+          - "postgresql{{ postgres_version }}-server"
+          - "postgresql{{ postgres_version }}"
+          - "postgresql{{ postgres_version }}-contrib"
+          - python3-psycopg2
+        state: present
+      when: ansible_facts.os_family == 'RedHat'
+
+    - name: Initialize database cluster if needed (RHEL family)
+      ansible.builtin.command: "{{ pg_bin_prefix }}postgresql-{{ postgres_version }}-setup initdb"
+      args:
+        creates: "{{ pg_data_dir }}/PG_VERSION"
+      when: ansible_facts.os_family == 'RedHat'
+      notify: Restart PostgreSQL
+
+    - name: Ensure PostgreSQL service enabled and started
+      ansible.builtin.service:
+        name: "{{ pg_service_name }}"
+        state: started
+        enabled: true
+
+    - name: Configure pg_hba.conf with secure rules
+      ansible.builtin.blockinfile:
+        path: "{{ pg_hba_path }}"
+        marker: "# {mark} ANSIBLE MANAGED ACCESS RULES"
+        insertbefore: BOF
+        create: false
+        block: |
+          # Allow postgres superuser via local socket using peer auth
+          local   all             postgres                                peer
+          # Local connections use peer auth (system user mapping)
+          local   all             all                                     peer
+          # IPv4 local connections:
+          host    all             all             127.0.0.1/32            scram-sha-256
+          # IPv6 local connections:
+          host    all             all             ::1/128                 scram-sha-256
+          # Application/remote networks (scram-sha-256):
+          {% for cidr in allowed_cidrs %}
+          host    all             all             {{ cidr }}              scram-sha-256
+          {% endfor %}
+      notify: Reload PostgreSQL
+
+    - name: Ensure PostgreSQL parameters for production
+      become_user: postgres
+      community.postgresql.postgresql_set:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+      loop:
+        - { name: "listen_addresses", value: "{{ pg_listen_addresses }}" }
+        - { name: "password_encryption", value: "scram-sha-256" }
+        - { name: "ssl", value: "on" }
+        - { name: "max_connections", value: "200" }
+        - { name: "shared_buffers", value: "{{ shared_buffers_mb }}MB" }
+        - { name: "effective_cache_size", value: "{{ effective_cache_size_mb }}MB" }
+        - { name: "maintenance_work_mem", value: "{{ maintenance_work_mem_mb }}MB" }
+        - { name: "work_mem", value: "{{ work_mem_mb }}MB" }
+        - { name: "wal_level", value: "replica" }
+        - { name: "synchronous_commit", value: "on" }
+        - { name: "checkpoint_completion_target", value: "0.9" }
+        - { name: "max_wal_size", value: "4GB" }
+        - { name: "min_wal_size", value: "1GB" }
+        - { name: "random_page_cost", value: "1.1" }
+        - { name: "effective_io_concurrency", value: "200" }
+        - { name: "logging_collector", value: "on" }
+        - { name: "log_line_prefix", value: "%m [%p] %q%u@%d " }
+        - { name: "log_min_duration_statement", value: "1000" }
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+      notify: Restart PostgreSQL
+
+    - name: Enable pg_stat_statements if requested
+      when: "'pg_stat_statements' in pg_extensions"
+      become_user: postgres
+      block:
+        - name: Ensure shared_preload_libraries includes pg_stat_statements
+          community.postgresql.postgresql_set:
+            name: shared_preload_libraries
+            value: "pg_stat_statements"
+          notify: Restart PostgreSQL
+
+        - name: Create extension pg_stat_statements in database
+          community.postgresql.postgresql_ext:
+            name: pg_stat_statements
+            db: "{{ pg_db_name }}"
+            state: present
+          vars:
+            login_unix_socket: "{{ pg_socket_dir }}"
+
+    - name: Ensure database user exists
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: "{{ pg_app_user }}"
+        password: "{{ pg_app_password }}"
+        encrypted: true
+        state: present
+      vars:
+        login_unix_socket: "{{ pg_socket_dir }}"
+      no_log: true
+
+    - name: Ensure database exists and owned by user
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: "{{ pg_db_name }}"
+        owner: "{{ pg_app_user }}"
+        encoding: "UTF8"
+        state: present
+      vars:
+        login_unix_socket: "{{ pg_socket_dir }}"
+
+    - name: Install requested extensions into database
+      become_user: postgres
+      community.postgresql.postgresql_ext:
+        name: "{{ item }}"
+        db: "{{ pg_db_name }}"
+        state: present
+      loop: "{{ pg_extensions | difference(['pg_stat_statements']) }}"
+      vars:
+        login_unix_socket: "{{ pg_socket_dir }}"
+
+  handlers:
+    - name: Restart PostgreSQL
+      ansible.builtin.service:
+        name: "{{ pg_service_name }}"
+        state: restarted
+
+    - name: Reload PostgreSQL
+      ansible.builtin.service:
+        name: "{{ pg_service_name }}"
+        state: reloaded
+
+  tasks_from: ""
+
+- name: Install PGDG repository for Debian/Ubuntu
+  hosts: db_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure keyring directory exists
+      ansible.builtin.file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: "0755"
+
+    - name: Add PostgreSQL APT repository signing key
+      ansible.builtin.apt_key:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        state: present
+        keyring: /usr/share/keyrings/postgresql.gpg
+
+    - name: Add PostgreSQL APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt {{ ansible_facts.distribution_release }}-pgdg main"
+        filename: "pgdg"
+        state: present
+
+    - name: Update APT cache
+      ansible.builtin.apt:
+        update_cache: true
+  vars:
+    ansible_facts:
+      distribution_release: "{{ ansible_distribution_release }}"
+  when: ansible_facts.os_family == 'Debian'
+  tags: [install_pgdg_debian]
+
+- name: Install PGDG repository for RHEL family
+  hosts: db_servers
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install PGDG repository RPM
+      ansible.builtin.dnf:
+        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_facts.distribution_major_version }}-{{ ansible_facts.architecture }}/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+
+    - name: Disable built-in PostgreSQL module
+      ansible.builtin.command: dnf -qy module disable postgresql
+      args:
+        warn: false
+      register: disable_module
+      changed_when: "'Nothing to do.' not in disable_module.stdout"
+
+  when: ansible_facts.os_family == 'RedHat'
+  tags: [install_pgdg_redhat]

@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "BICEP-AZURE-006",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Managed Identity and assigning it the 'Storage Blob Data Reader' role on a specific Storage Account.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Managed Identity and assigning it the 'Storage Blob Data Reader' role on a specific Storage Account.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam storageAccountName string\nparam managedIdentityName string\nparam roleDefinitionId string = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {\n  name: storageAccountName\n}\n\nresource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: managedIdentityName\n  location: location\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(storageAccount.id, managedIdentity.id, roleDefinitionId)\n  scope: storageAccount\n  properties: {\n    principalId: managedIdentity.properties.principalId\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)\n    principalType: 'ServicePrincipal'\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam storageAccountName string\nparam managedIdentityName string\nparam roleDefinitionId string = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {\n  name: storageAccountName\n}\n\nresource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: managedIdentityName\n  location: location\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(storageAccount.id, managedIdentity.id, roleDefinitionId)\n  scope: storageAccount\n  properties: {\n    principalId: managedIdentity.properties.principalId\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)\n    principalType: 'ServicePrincipal'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam storageAccountName string\nparam managedIdentityName string\nparam roleDefinitionId string = '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {\n  name: storageAccountName\n}\n\nresource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: managedIdentityName\n  location: location\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(storageAccount.id, managedIdentity.id, roleDefinitionId)\n  scope: storageAccount\n  properties: {\n    principalId: managedIdentity.properties.principalId\n    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roleDefinitionId)\n    principalType: 'ServicePrincipal'\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727728,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 126,
+      "output_tokens": 212,
+      "raw_input_tokens": 126
+    }
+  },
+  "started_at": "2026-05-25T16:48:45.821703+00:00",
+  "elapsed_seconds": 2.547
+}

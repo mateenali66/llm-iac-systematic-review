@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-SEC-001",
+  "language": "k8s_yaml",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a Kubernetes Pod manifest for an nginx container with a securityContext that drops all capabilities, runs as a non-root user, and uses a read-only root filesystem.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Create a Kubernetes Pod manifest for an nginx container with a securityContext that drops all capabilities, runs as a non-root user, and uses a read-only root filesystem.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx-secure\n  labels:\n    app: nginx-secure\nspec:\n  automountServiceAccountToken: false\n  terminationGracePeriodSeconds: 30\n  securityContext:\n    fsGroup: 101\n    fsGroupChangePolicy: OnRootMismatch\n  containers:\n  - name: nginx\n    image: nginxinc/nginx-unprivileged:1.25-alpine\n    imagePullPolicy: IfNotPresent\n    ports:\n    - containerPort: 8080\n      name: http\n      protocol: TCP\n    resources:\n      requests:\n        cpu: \"100m\"\n        memory: \"128Mi\"\n      limits:\n        cpu: \"500m\"\n        memory: \"256Mi\"\n    securityContext:\n      runAsNonRoot: true\n      runAsUser: 101\n      runAsGroup: 101\n      allowPrivilegeEscalation: false\n      capabilities:\n        drop:\n        - ALL\n      readOnlyRootFilesystem: true\n      seccompProfile:\n        type: RuntimeDefault\n    volumeMounts:\n    - name: cache\n      mountPath: /var/cache/nginx\n    - name: run\n      mountPath: /var/run\n    - name: tmp\n      mountPath: /tmp\n    readinessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 5\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n      successThreshold: 1\n    livenessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 10\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n  volumes:\n  - name: cache\n    emptyDir: {}\n  - name: run\n    emptyDir: {}\n  - name: tmp\n    emptyDir: {}",
+  "cleaned_response": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx-secure\n  labels:\n    app: nginx-secure\nspec:\n  automountServiceAccountToken: false\n  terminationGracePeriodSeconds: 30\n  securityContext:\n    fsGroup: 101\n    fsGroupChangePolicy: OnRootMismatch\n  containers:\n  - name: nginx\n    image: nginxinc/nginx-unprivileged:1.25-alpine\n    imagePullPolicy: IfNotPresent\n    ports:\n    - containerPort: 8080\n      name: http\n      protocol: TCP\n    resources:\n      requests:\n        cpu: \"100m\"\n        memory: \"128Mi\"\n      limits:\n        cpu: \"500m\"\n        memory: \"256Mi\"\n    securityContext:\n      runAsNonRoot: true\n      runAsUser: 101\n      runAsGroup: 101\n      allowPrivilegeEscalation: false\n      capabilities:\n        drop:\n        - ALL\n      readOnlyRootFilesystem: true\n      seccompProfile:\n        type: RuntimeDefault\n    volumeMounts:\n    - name: cache\n      mountPath: /var/cache/nginx\n    - name: run\n      mountPath: /var/run\n    - name: tmp\n      mountPath: /tmp\n    readinessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 5\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n      successThreshold: 1\n    livenessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 10\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n  volumes:\n  - name: cache\n    emptyDir: {}\n  - name: run\n    emptyDir: {}\n  - name: tmp\n    emptyDir: {}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx-secure\n  labels:\n    app: nginx-secure\nspec:\n  automountServiceAccountToken: false\n  terminationGracePeriodSeconds: 30\n  securityContext:\n    fsGroup: 101\n    fsGroupChangePolicy: OnRootMismatch\n  containers:\n  - name: nginx\n    image: nginxinc/nginx-unprivileged:1.25-alpine\n    imagePullPolicy: IfNotPresent\n    ports:\n    - containerPort: 8080\n      name: http\n      protocol: TCP\n    resources:\n      requests:\n        cpu: \"100m\"\n        memory: \"128Mi\"\n      limits:\n        cpu: \"500m\"\n        memory: \"256Mi\"\n    securityContext:\n      runAsNonRoot: true\n      runAsUser: 101\n      runAsGroup: 101\n      allowPrivilegeEscalation: false\n      capabilities:\n        drop:\n        - ALL\n      readOnlyRootFilesystem: true\n      seccompProfile:\n        type: RuntimeDefault\n    volumeMounts:\n    - name: cache\n      mountPath: /var/cache/nginx\n    - name: run\n      mountPath: /var/run\n    - name: tmp\n      mountPath: /tmp\n    readinessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 5\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n      successThreshold: 1\n    livenessProbe:\n      httpGet:\n        path: /\n        port: http\n        scheme: HTTP\n      initialDelaySeconds: 10\n      periodSeconds: 10\n      timeoutSeconds: 2\n      failureThreshold: 3\n  volumes:\n  - name: cache\n    emptyDir: {}\n  - name: run\n    emptyDir: {}\n  - name: tmp\n    emptyDir: {}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779734202,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 137,
+      "output_tokens": 2492,
+      "raw_input_tokens": 137
+    }
+  },
+  "started_at": "2026-05-25T18:36:14.670871+00:00",
+  "elapsed_seconds": 28.125
+}

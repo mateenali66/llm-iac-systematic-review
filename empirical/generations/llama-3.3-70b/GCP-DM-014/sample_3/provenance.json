@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "GCP-DM-014",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n  - name: github-oidc-provider\n    type: iam.v1.OidcProvider\n    properties:\n      issuerUri: https://token.actions.githubusercontent.com\n      audience: cloud-run.googleapis.com\n\n  - name: github-oidc-identity-pool\n    type: iam.v1.WorkloadIdentityPool\n    properties:\n      workloadIdentityPoolId: github-oidc-pool\n\n  - name: github-oidc-identity-pool-provider\n    type: iam.v1.WorkloadIdentityPoolProvider\n    properties:\n      providerId: github-oidc-provider\n      workloadIdentityPoolId: github-oidc-pool\n      attributeNameMapping:\n        google.subject: assertion.sub\n        attribute.github_username: assertion.repository_owner\n        attribute.github_repository: assertion.repository\n\n  - name: cloud-run-service-account\n    type: iam.v1.ServiceAccount\n    properties:\n      accountId: cloud-run-deployer\n      displayName: Cloud Run Deployer\n\n  - name: cloud-run-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: cloud-run-deployer-policy\n      bindings:\n        - role: roles/run.serviceAgent\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\n  - name: github-oidc-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: github-oidc-deployer-policy\n      bindings:\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\noutputs:\n  - name: workloadIdentityPoolId\n    value: $(ref. github-oidc-identity-pool.name)\n  - name: serviceAccountId\n    value: $(ref. cloud-run-service-account.name)",
+  "cleaned_response": "resources:\n  - name: github-oidc-provider\n    type: iam.v1.OidcProvider\n    properties:\n      issuerUri: https://token.actions.githubusercontent.com\n      audience: cloud-run.googleapis.com\n\n  - name: github-oidc-identity-pool\n    type: iam.v1.WorkloadIdentityPool\n    properties:\n      workloadIdentityPoolId: github-oidc-pool\n\n  - name: github-oidc-identity-pool-provider\n    type: iam.v1.WorkloadIdentityPoolProvider\n    properties:\n      providerId: github-oidc-provider\n      workloadIdentityPoolId: github-oidc-pool\n      attributeNameMapping:\n        google.subject: assertion.sub\n        attribute.github_username: assertion.repository_owner\n        attribute.github_repository: assertion.repository\n\n  - name: cloud-run-service-account\n    type: iam.v1.ServiceAccount\n    properties:\n      accountId: cloud-run-deployer\n      displayName: Cloud Run Deployer\n\n  - name: cloud-run-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: cloud-run-deployer-policy\n      bindings:\n        - role: roles/run.serviceAgent\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\n  - name: github-oidc-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: github-oidc-deployer-policy\n      bindings:\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\noutputs:\n  - name: workloadIdentityPoolId\n    value: $(ref. github-oidc-identity-pool.name)\n  - name: serviceAccountId\n    value: $(ref. cloud-run-service-account.name)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n  - name: github-oidc-provider\n    type: iam.v1.OidcProvider\n    properties:\n      issuerUri: https://token.actions.githubusercontent.com\n      audience: cloud-run.googleapis.com\n\n  - name: github-oidc-identity-pool\n    type: iam.v1.WorkloadIdentityPool\n    properties:\n      workloadIdentityPoolId: github-oidc-pool\n\n  - name: github-oidc-identity-pool-provider\n    type: iam.v1.WorkloadIdentityPoolProvider\n    properties:\n      providerId: github-oidc-provider\n      workloadIdentityPoolId: github-oidc-pool\n      attributeNameMapping:\n        google.subject: assertion.sub\n        attribute.github_username: assertion.repository_owner\n        attribute.github_repository: assertion.repository\n\n  - name: cloud-run-service-account\n    type: iam.v1.ServiceAccount\n    properties:\n      accountId: cloud-run-deployer\n      displayName: Cloud Run Deployer\n\n  - name: cloud-run-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: cloud-run-deployer-policy\n      bindings:\n        - role: roles/run.serviceAgent\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\n  - name: github-oidc-service-account-iam-policy\n    type: iam.v1.Policy\n    properties:\n      policyId: github-oidc-deployer-policy\n      bindings:\n        - role: roles/iam.workloadIdentityUser\n          members:\n            - serviceAccount:$(ref. cloud-run-service-account.email)\n\noutputs:\n  - name: workloadIdentityPoolId\n    value: $(ref. github-oidc-identity-pool.name)\n  - name: serviceAccountId\n    value: $(ref. cloud-run-service-account.name)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723817,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 164,
+      "output_tokens": 414,
+      "raw_input_tokens": 164
+    }
+  },
+  "started_at": "2026-05-25T15:43:36.287646+00:00",
+  "elapsed_seconds": 1.529
+}

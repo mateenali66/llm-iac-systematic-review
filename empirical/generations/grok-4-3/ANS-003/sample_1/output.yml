@@ -1,0 +1,119 @@
+---
+- name: Harden CentOS 9 Server
+  hosts: all
+  become: true
+  vars:
+    sshd_config_path: /etc/ssh/sshd_config
+    pwquality_conf: /etc/security/pwquality.conf
+    fail2ban_jail_local: /etc/fail2ban/jail.local
+    audit_rules_dir: /etc/audit/rules.d
+  tasks:
+    - name: Install required packages
+      ansible.builtin.dnf:
+        name:
+          - openssh-server
+          - libpwquality
+          - fail2ban
+          - audit
+        state: present
+        update_cache: true
+
+    - name: Disable root SSH login
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        validate: 'sshd -t -f %s'
+      notify: Restart sshd
+
+    - name: Enforce password complexity via pwquality
+      ansible.builtin.blockinfile:
+        path: "{{ pwquality_conf }}"
+        block: |
+          minlen = 14
+          dcredit = -1
+          ucredit = -1
+          lcredit = -1
+          ocredit = -1
+          minclass = 3
+          maxrepeat = 2
+          maxclassrepeat = 4
+          dictcheck = 1
+        create: true
+        marker: "# {mark} ANSIBLE MANAGED PASSWORD POLICY"
+
+    - name: Configure PAM to use pwquality (system-auth)
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/system-auth
+        regexp: '^password\s+requisite\s+pam_pwquality.so'
+        line: 'password requisite pam_pwquality.so local_users_only retry=3'
+        insertbefore: '^password\s+sufficient'
+
+    - name: Configure PAM to use pwquality (password-auth)
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/password-auth
+        regexp: '^password\s+requisite\s+pam_pwquality.so'
+        line: 'password requisite pam_pwquality.so local_users_only retry=3'
+        insertbefore: '^password\s+sufficient'
+
+    - name: Deploy hardened fail2ban jail configuration
+      ansible.builtin.blockinfile:
+        path: "{{ fail2ban_jail_local }}"
+        block: |
+          [DEFAULT]
+          bantime = 1h
+          findtime = 10m
+          maxretry = 5
+          backend = systemd
+
+          [sshd]
+          enabled = true
+          port = ssh
+          filter = sshd
+          logpath = /var/log/secure
+          maxretry = 4
+        create: true
+        marker: "# {mark} ANSIBLE MANAGED FAIL2BAN CONFIG"
+      notify: Restart fail2ban
+
+    - name: Deploy basic auditd rules for security monitoring
+      ansible.builtin.copy:
+        dest: "{{ audit_rules_dir }}/10-hardening.rules"
+        content: |
+          -w /etc/passwd -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/group -p wa -k identity
+          -w /etc/sudoers -p wa -k privilege_escalation
+          -w /etc/ssh/sshd_config -p wa -k ssh_config
+          -a always,exit -F arch=b64 -S execve -k exec
+        owner: root
+        group: root
+        mode: '0640'
+      notify: Reload auditd rules
+
+    - name: Enable and start fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        enabled: true
+        state: started
+
+    - name: Enable and start auditd
+      ansible.builtin.systemd:
+        name: auditd
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: Reload auditd rules
+      ansible.builtin.command: augenrules --load
+      changed_when: true

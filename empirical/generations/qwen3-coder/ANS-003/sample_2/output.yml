@@ -1,0 +1,193 @@
+---
+- name: Harden CentOS 9 Server
+  hosts: centos9_servers
+  become: yes
+  vars:
+    fail2ban_jail_config: |
+      [DEFAULT]
+      bantime = 3600
+      findtime = 600
+      maxretry = 3
+      ignoreip = 127.0.0.1/8 ::1
+      
+      [sshd]
+      enabled = true
+      port = ssh
+      filter = sshd
+      logpath = /var/log/secure
+      
+    auditd_rules: |
+      # Monitor authentication events
+      -w /etc/passwd -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/group -p wa -k identity
+      -w /etc/gshadow -p wa -k identity
+      
+      # Monitor sudoers changes
+      -w /etc/sudoers -p wa -k scope
+      -w /etc/sudoers.d/ -p wa -k scope
+      
+      # Monitor SSH configuration
+      -w /etc/ssh/sshd_config -p wa -k ssh
+      
+      # Monitor login events
+      -w /var/log/faillog -p wa -k logins
+      -w /var/log/lastlog -p wa -k logins
+      
+      # Monitor system startup scripts
+      -w /etc/init.d/ -p wa -k init
+      -w /etc/systemd/ -p wa -k init
+      
+      # Monitor network environment
+      -a always,exit -F arch=b64 -S sethostname,setdomainname -k system-locale
+      -w /etc/issue -p wa -k system-locale
+      -w /etc/issue.net -p wa -k system-locale
+      -w /etc/hosts -p wa -k system-locale
+      -w /etc/network/ -p wa -k system-locale
+      
+      # Monitor discretionary access control permission modifications
+      -a always,exit -F arch=b64 -S chmod,fchmod,chown,fchown,setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod
+      
+      # Monitor unsuccessful unauthorized access attempts
+      -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access
+      -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access
+      
+      # Monitor use of privileged commands
+      -a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-passwd
+      -a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-chage
+      -a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>=1000 -F auid!=4294967295 -k privileged-usermod
+      
+      # Monitor kernel module loading/unloading
+      -w /sbin/insmod -p x -k modules
+      -w /sbin/rmmod -p x -k modules
+      -w /sbin/modprobe -p x -k modules
+      
+      # Monitor system calls
+      -a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts
+      -a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=4294967295 -k delete
+      
+      # Special rules for specific users
+      -a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k privileged-escalation
+      -a always,exit -F arch=b64 -S execve -C gid!=egid -F egid=0 -k privileged-escalation
+
+  tasks:
+    - name: Update all packages
+      yum:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Install security packages
+      yum:
+        name:
+          - fail2ban
+          - audit
+          - libpwquality
+        state: present
+
+    - name: Configure SSH to disable root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+        backup: yes
+      notify: Restart sshd
+
+    - name: Configure SSH to use SSH keys only
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        backup: yes
+      notify: Restart sshd
+
+    - name: Configure SSH to disable empty passwords
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PermitEmptyPasswords"
+        line: "PermitEmptyPasswords no"
+        backup: yes
+      notify: Restart sshd
+
+    - name: Configure password complexity requirements
+      lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: "^minlen", line: "minlen = 14" }
+        - { regexp: "^minclass", line: "minclass = 4" }
+        - { regexp: "^maxrepeat", line: "maxrepeat = 2" }
+        - { regexp: "^dcredit", line: "dcredit = -1" }
+        - { regexp: "^ucredit", line: "ucredit = -1" }
+        - { regexp: "^lcredit", line: "lcredit = -1" }
+        - { regexp: "^ocredit", line: "ocredit = -1" }
+
+    - name: Configure account lockout policy
+      lineinfile:
+        path: /etc/security/faillock.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+        create: yes
+      loop:
+        - { regexp: "^deny", line: "deny = 5" }
+        - { regexp: "^unlock_time", line: "unlock_time = 900" }
+        - { regexp: "^audit", line: "audit" }
+
+    - name: Configure fail2ban jail.local
+      copy:
+        content: "{{ fail2ban_jail_config }}"
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
+
+    - name: Enable and start fail2ban service
+      systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Configure auditd rules
+      copy:
+        content: "{{ auditd_rules }}"
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Configure auditd main configuration
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: "^max_log_file", line: "max_log_file = 100" }
+        - { regexp: "^max_log_file_action", line: "max_log_file_action = rotate" }
+        - { regexp: "^num_logs", line: "num_logs = 5" }
+        - { regexp: "^space_left_action", line: "space_left_action = email" }
+        - { regexp: "^action_mail_acct", line: "action_mail_acct = root" }
+        - { regexp: "^admin_space_left_action", line: "admin_space_left_action = halt" }
+        - { regexp: "^disk_full_action", line: "disk_full_action = halt" }
+        - { regexp: "^disk_error_action", line: "disk_error_action = syslog" }
+
+    - name: Enable and start auditd service
+      systemd:
+        name: auditd
+        enabled: yes
+        state: started
+
+    - name: Set system file permissions
+      file:
+        path: "{{ item.path }}"
+        mode: "{{ item.mode }}"
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+      loop:
+        - { path: "/etc/shadow", mode: "0000", owner: "root", group: "root" }
+        - { path: "/etc/gshadow", mode: "0000", owner: "root", group: "root" }
+        - { path: "/etc/passwd

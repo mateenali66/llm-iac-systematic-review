@@ -1,0 +1,59 @@
+resources:
+- name: github-actions-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    accountId: github-actions-deployer
+    displayName: GitHub Actions Cloud Run Deployer
+    description: Service account for GitHub Actions to deploy Cloud Run services via Workload Identity Federation
+
+- name: github-wif-pool
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/{{ env["project"] }}/locations/global
+    workloadIdentityPoolId: github-actions-pool
+    displayName: GitHub Actions Pool
+    description: Workload Identity Pool for GitHub Actions OIDC federation
+    disabled: false
+
+- name: github-wif-provider
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: projects/{{ env["project"] }}/locations/global/workloadIdentityPools/github-actions-pool
+    workloadIdentityPoolProviderId: github-provider
+    displayName: GitHub OIDC Provider
+    description: OIDC provider for GitHub Actions
+    attributeMapping:
+      google.subject: assertion.sub
+      attribute.repository: assertion.repository
+      attribute.repository_owner: assertion.repository_owner
+    attributeCondition: "assertion.repository_owner == 'your-org' && assertion.repository == 'your-org/your-repo'"
+    oidc:
+      issuerUri: https://token.actions.githubusercontent.com
+    disabled: false
+  metadata:
+    dependsOn:
+    - github-wif-pool
+
+- name: github-sa-iam-binding
+  type: gcp-types/iam-v1:virtual.projects.serviceAccounts.setIamPolicy
+  properties:
+    resource: $(ref.github-actions-sa.email)
+    policy:
+      bindings:
+      - role: roles/iam.workloadIdentityUser
+        members:
+        - principal://iam.googleapis.com/projects/{{ env["project"] }}/locations/global/workloadIdentityPools/github-actions-pool/subject/repo:your-org/your-repo:ref:refs/heads/main
+      - role: roles/run.developer
+        members:
+        - serviceAccount:$(ref.github-actions-sa.email)
+      - role: roles/iam.serviceAccountUser
+        members:
+        - serviceAccount:$(ref.github-actions-sa.email)
+      - role: roles/storage.objectAdmin
+        members:
+        - serviceAccount:$(ref.github-actions-sa.email)
+  metadata:
+    dependsOn:
+    - github-actions-sa
+    - github-wif-pool
+    - github-wif-provider

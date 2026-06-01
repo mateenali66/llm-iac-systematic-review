@@ -1,0 +1,174 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: postgres-nonprod
+description: A Helm chart deploying PostgreSQL for non-production environments
+type: application
+version: 0.1.0
+appVersion: "16.1"
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+keywords:
+  - postgres
+  - postgresql
+  - database
+  - nonprod
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: postgres
+  tag: "16.1-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+# Postgres configuration
+postgres:
+  # Superuser credentials (used to bootstrap and by init job)
+  superuser: postgres
+  superuserPassword: ""  # If empty, a random password is generated on install
+  # Application database & user created by init job
+  appDatabase: appdb
+  appUser: appuser
+  appUserPassword: ""    # If empty, a random password is generated on install
+  port: 5432
+
+# Existing secret can be referenced instead of creating one
+existingSecret: ""
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+service:
+  type: ClusterIP
+  port: 5432
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+podSecurityContext:
+  fsGroup: 70
+  runAsNonRoot: true
+  runAsUser: 70
+  runAsGroup: 70
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 70
+  runAsGroup: 70
+  capabilities:
+    drop:
+      - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+initJob:
+  enabled: true
+  backoffLimit: 5
+  activeDeadlineSeconds: 600
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 6
+
+networkPolicy:
+  enabled: false
+  ingressFrom: []
+---
+# FILE: templates/_helpers.tpl
+{{/* Chart name */}}
+{{- define "postgres-nonprod.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/* Fully qualified app name */}}
+{{- define "postgres-nonprod.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/* Chart label */}}
+{{- define "postgres-nonprod.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/* Common labels */}}
+{{- define "postgres-nonprod.labels" -}}
+helm.sh/chart: {{ include "postgres-nonprod.chart" . }}
+{{ include "postgres-nonprod.selectorLabels" . }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: postgres
+environment: nonprod
+{{- end -}}
+
+{{/* Selector labels */}}
+{{- define "postgres-nonprod.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "postgres-nonprod.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/* Headless service name */}}
+{{- define "postgres-nonprod.headlessServiceName" -}}
+{{- printf "%s-headless" (include "postgres-nonprod.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/* Secret name */}}
+{{- define "postgres-nonprod.secretName" -}}
+{{- if .Values.existingSecret -}}
+{{- .Values.existingSecret -}}
+{{- else -}}
+{{- printf "%s-credentials" (include "postgres-nonprod.fullname" .) | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+---
+# FILE: templates/secret.yaml
+{{- if not .Values.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres-nonprod.secretName" . }}
+  labels:
+    {{- include "postgres-nonprod.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.postgres.superuser | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.

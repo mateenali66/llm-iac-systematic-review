@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-STO-002",
+  "language": "k8s_yaml",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Kubernetes Secret manifest storing a PostgreSQL database password for use by a Deployment via environment variables.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Write a Kubernetes Secret manifest storing a PostgreSQL database password for use by a Deployment via environment variables.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: postgres-db-password\n  labels:\n    app.kubernetes.io/name: postgres\n    app.kubernetes.io/component: database\n    app.kubernetes.io/part-of: example-app\n    app.kubernetes.io/managed-by: iac\ntype: Opaque\nimmutable: true\nstringData:\n  POSTGRES_PASSWORD: REPLACE_WITH_STRONG_PASSWORD",
+  "cleaned_response": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: postgres-db-password\n  labels:\n    app.kubernetes.io/name: postgres\n    app.kubernetes.io/component: database\n    app.kubernetes.io/part-of: example-app\n    app.kubernetes.io/managed-by: iac\ntype: Opaque\nimmutable: true\nstringData:\n  POSTGRES_PASSWORD: REPLACE_WITH_STRONG_PASSWORD",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: Secret\nmetadata:\n  name: postgres-db-password\n  labels:\n    app.kubernetes.io/name: postgres\n    app.kubernetes.io/component: database\n    app.kubernetes.io/part-of: example-app\n    app.kubernetes.io/managed-by: iac\ntype: Opaque\nimmutable: true\nstringData:\n  POSTGRES_PASSWORD: REPLACE_WITH_STRONG_PASSWORD",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779734434,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 124,
+      "output_tokens": 1144,
+      "raw_input_tokens": 124
+    }
+  },
+  "started_at": "2026-05-25T18:40:15.340430+00:00",
+  "elapsed_seconds": 18.818
+}

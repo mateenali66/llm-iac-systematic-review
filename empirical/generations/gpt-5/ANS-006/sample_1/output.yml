@@ -1,0 +1,121 @@
+- name: Provision deploy user with SSH key and harden SSH
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    deploy_user: deploy
+    deploy_shell: /bin/bash
+    deploy_home: "/home/{{ deploy_user }}"
+
+  pre_tasks:
+    - name: Ensure vault_deploy_public_key is provided
+      assert:
+        that:
+          - vault_deploy_public_key is defined
+          - vault_deploy_public_key | length > 0
+        fail_msg: "vault_deploy_public_key must be defined (store it with Ansible Vault)."
+
+  tasks:
+    - name: Determine SSH service name
+      set_fact:
+        sshd_service: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+
+    - name: Ensure sudo package is installed
+      package:
+        name: sudo
+        state: present
+
+    - name: Create deploy group
+      group:
+        name: "{{ deploy_user }}"
+        state: present
+
+    - name: Create deploy user with locked password
+      user:
+        name: "{{ deploy_user }}"
+        state: present
+        group: "{{ deploy_user }}"
+        shell: "{{ deploy_shell }}"
+        create_home: true
+        password_lock: true
+
+    - name: Ensure .ssh directory exists with correct permissions
+      file:
+        path: "{{ deploy_home }}/.ssh"
+        state: directory
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0700'
+
+    - name: Install authorized SSH key for deploy user
+      authorized_key:
+        user: "{{ deploy_user }}"
+        state: present
+        key: "{{ vault_deploy_public_key }}"
+        manage_dir: false
+        path: "{{ deploy_home }}/.ssh/authorized_keys"
+
+    - name: Ensure authorized_keys permissions are correct
+      file:
+        path: "{{ deploy_home }}/.ssh/authorized_keys"
+        owner: "{{ deploy_user }}"
+        group: "{{ deploy_user }}"
+        mode: '0600'
+
+    - name: Configure passwordless sudo for deploy user
+      copy:
+        dest: "/etc/sudoers.d/{{ deploy_user }}"
+        content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
+        validate: '/usr/sbin/visudo -cf %s'
+
+    - name: Ensure SSH public key authentication is enabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(?i)\s*PubkeyAuthentication\s+'
+        line: 'PubkeyAuthentication yes'
+        state: present
+        create: no
+        backup: yes
+      notify: Restart sshd
+
+    - name: Disable SSH password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(?i)\s*PasswordAuthentication\s+'
+        line: 'PasswordAuthentication no'
+        state: present
+        create: no
+      notify: Restart sshd
+
+    - name: Disable challenge-response authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(?i)\s*ChallengeResponseAuthentication\s+'
+        line: 'ChallengeResponseAuthentication no'
+        state: present
+        create: no
+      notify: Restart sshd
+
+    - name: Disallow root SSH login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^(?i)\s*PermitRootLogin\s+'
+        line: 'PermitRootLogin no'
+        state: present
+        create: no
+      notify: Restart sshd
+
+  handlers:
+    - name: Validate sshd configuration
+      listen: Restart sshd
+      command: sshd -t -f /etc/ssh/sshd_config
+
+    - name: Restart sshd
+      listen: Restart sshd
+      service:
+        name: "{{ sshd_service | default('sshd') }}"
+        state: restarted

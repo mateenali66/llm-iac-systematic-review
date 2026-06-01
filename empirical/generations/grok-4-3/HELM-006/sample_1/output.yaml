@@ -1,0 +1,103 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: worker
+description: A Helm chart for a generic Redis queue worker
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: ghcr.io/example/worker
+  pullPolicy: IfNotPresent
+  tag: "latest"
+service:
+  type: ClusterIP
+  port: 8080
+redis:
+  host: redis
+  port: "6379"
+  queue: default
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "worker.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "worker.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "worker.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "worker.fullname" . }}-config
+            - secretRef:
+                name: {{ include "worker.fullname" . }}-secret
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "worker.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: {{ include "worker.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worker.fullname" . }}-config
+  labels:
+    app.kubernetes.io/name: {{ include "worker.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  REDIS_HOST: {{ .Values.redis.host | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+  QUEUE_NAME: {{ .Values.redis.queue | quote }}
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "worker.fullname" . }}-secret
+  labels:
+    app.kubernetes.io/name: {{ include "worker.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+type: Opaque
+stringData:
+  REDIS_PASSWORD: ""

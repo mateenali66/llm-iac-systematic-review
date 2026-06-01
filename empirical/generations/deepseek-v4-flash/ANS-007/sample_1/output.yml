@@ -1,0 +1,38 @@
+- name: Configure static network interface on Debian 12 using netplan
+  hosts: all
+  become: yes
+  vars:
+    netplan_config:
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            addresses:
+              - "{{ static_ip }}"
+            gateway4: "{{ gateway }}"
+            nameservers:
+              addresses:
+                - "{{ dns_servers }}"
+    static_ip: "192.168.1.100/24"
+    gateway: "192.168.1.1"
+    dns_servers:
+      - "8.8.8.8"
+      - "8.8.4.4"
+
+  tasks:
+    - name: Ensure netplan directory exists
+      file:
+        path: /etc/netplan
+        state: directory
+        mode: '0755'
+
+    - name: Write netplan configuration
+      copy:
+        dest: /etc/netplan/01-netcfg.yaml
+        content: "{{ netplan_config | to_nice_yaml(indent=2) }}"
+        mode: '0644'
+
+    - name: Apply netplan configuration
+      command: netplan apply
+      changed_when: false

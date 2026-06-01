@@ -1,0 +1,48 @@
+---
+- name: Deploy Java application as systemd service
+  become: yes
+  tasks:
+  - name: Install OpenJDK 21
+    apt:
+      name: openjdk-21-jdk
+      state: present
+
+  - name: Create service user
+    user:
+      name: java-app
+      system: yes
+      state: present
+
+  - name: Copy application JAR
+    copy:
+      content: "{{ lookup('file', 'path/to/your/application.jar') }}"
+      dest: /opt/java-app/application.jar
+      mode: '0644'
+      owner: java-app
+      group: java-app
+    notify: restart java service
+
+  - name: Write systemd unit file
+    template:
+      src: templates/java-app.service.j2
+      dest: /etc/systemd/system/java-app.service
+      mode: '0644'
+    notify: reload systemd
+    notify: restart java service
+
+  - name: Enable and start java service
+    systemd:
+      name: java-app
+      state: started
+      enabled: yes
+      daemon_reload: yes
+
+  handlers:
+  - name: restart java service
+    systemd:
+      name: java-app
+      state: restarted
+
+  - name: reload systemd
+    systemd:
+      daemon_reload: yes

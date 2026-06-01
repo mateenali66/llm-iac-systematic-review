@@ -1,0 +1,83 @@
+resources:
+- name: gke-standard-cluster
+  type: container.v1.cluster
+  properties:
+    zone: us-central1-a
+    cluster:
+      name: production-cluster
+      description: GKE Standard cluster for production workloads
+      initialClusterVersion: "1.28"
+      network: projects/${PROJECT_ID}/global/networks/default
+      subnetwork: projects/${PROJECT_ID}/regions/us-central1/subnetworks/default
+      nodePools:
+      - name: production-node-pool
+        initialNodeCount: 3
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-standard
+          imageType: COS_CONTAINERD
+          oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/trace.append
+          serviceAccount: ${PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+          shieldedInstanceConfig:
+            enableSecureBoot: true
+            enableIntegrityMonitoring: true
+          tags:
+            items:
+            - production
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      ipAllocationPolicy:
+        useIpAliases: true
+        createSubnetwork: false
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - cidrBlock: 10.0.0.0/8
+          displayName: Internal VPC
+      addonsConfig:
+        networkPolicyConfig:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        httpLoadBalancing:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+        dnsCacheConfig:
+          enabled: true
+      releaseChannel:
+        channel: STABLE
+      workloadIdentityConfig:
+        workloadPool: ${PROJECT_ID}.svc.id.goog
+      verticalPodAutoscaling:
+        enabled: true
+      resourceLabels:
+        environment: production
+        managed-by: deployment-manager

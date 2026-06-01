@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 75,
+	"files_parsed": 1,
+	"lines_parsed": 75,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:24:00.141580092Z",
+	"end": "2026-05-26T06:24:00.839960176Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "AKS Cluster Network Policy Not Configured",
+			"query_id": "25c0228e-4444-459b-a2df-93c7df40b7ed",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=json#containerservicenetworkprofile-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Azure Kubernetes Service must have a network policy defined.",
+			"description_id": "25c0df8e",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "27f844fe28ee5f00a407ecc56c694018b3cfb13612ff9b17ce6b5d06b509d666",
+					"line": 41,
+					"resource_type": "Microsoft.ContainerService/managedClusters",
+					"resource_name": "[parameters('aksClusterName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('aksClusterName')]",
+					"search_line": 41,
+					"search_value": "",
+					"expected_value": "'networkProfile.networkPolicy' should be defined and not empty",
+					"actual_value": "'networkProfile.networkPolicy' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "AKS With Authorized IP Ranges Disabled",
+			"query_id": "2583fab1-953b-4fae-bd02-4a136a6c21f9",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.containerservice/managedclusters?tabs=json#managedclusterapiserveraccessprofile-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "284",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Azure Kubernetes Service must have an authorized IP range for API Services enabled",
+			"description_id": "258efab1",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "f12111367cad72e1860ed01c86dc30436adbd646e6ed921e488bdf93b3dec092",
+					"line": 41,
+					"resource_type": "Microsoft.ContainerService/managedClusters",
+					"resource_name": "[parameters('aksClusterName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('aksClusterName')]",
+					"search_line": 41,
+					"search_value": "",
+					"expected_value": "'apiServerAccessProfile.authorizedIPRanges' should be defined as an array",
+					"actual_value": "'apiServerAccessProfile.authorizedIPRanges' is undefined"
+				}
+			]
+		}
+	]
+}

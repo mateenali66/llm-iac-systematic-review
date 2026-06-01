@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 342,
+	"files_parsed": 1,
+	"lines_parsed": 342,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:18:14.474610303Z",
+	"end": "2026-05-26T05:18:37.420424841Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EC2 Instance Has Public IP",
+			"query_id": "5a2486aa-facf-477d-a5c1-b010789459ce",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#associate_public_ip_address",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "EC2 Instance should not have a public IP address.",
+			"description_id": "c6f1d1f4",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "103676cbbfb992d278f8126433a54e5e619c4fb8464ea8bc0a4d48d6bf86f046",
+					"line": 227,
+					"resource_type": "aws_instance",
+					"resource_name": "bastion-jump-host",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance.bastion",
+					"search_line": 227,
+					"search_value": "",
+					"expected_value": "'associate_public_ip_address' should be defined and not null",
+					"actual_value": "'associate_public_ip_address' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 128,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "084c6686-2a70-4710-91b1-000393e54c12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/shield_protection#resource_arn",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "e09b31c7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1150095fbcd4669159b77b0173704e1ce79848430b45e8926a388177c11a24c9",
+					"line": 308,
+					"resource_type": "aws_eip",
+					"resource_name": "bastion-jump-host-eip",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_eip[bastion]",
+					"search_line": 308,
+					"search_value": "",
+					"expected_value": "aws_eip has shield advanced associated",
+					"actual_value": "aws_eip does not have shield advanced associated"
+				}
+			]
+		}
+	]
+}

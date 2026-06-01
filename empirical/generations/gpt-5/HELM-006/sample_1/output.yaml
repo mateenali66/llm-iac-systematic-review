@@ -1,0 +1,475 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: worker-redis
+description: A generic worker service that consumes messages from a Redis queue
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.23.0-0"
+home: https://example.com/worker-redis
+sources:
+  - https://example.com/worker-redis/repo
+keywords:
+  - worker
+  - redis
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+icon: https://example.com/icon.png
+---
+# FILE: values.yaml
+image:
+  repository: ghcr.io/example/worker
+  tag: "latest"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automountServiceAccountToken: false
+
+rbac:
+  create: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+
+containerPorts:
+  http: 8080
+  metrics: 9090
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+  annotations: {}
+  labels: {}
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /startupz
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  failureThreshold: 30
+  timeoutSeconds: 2
+
+terminationGracePeriodSeconds: 30
+
+env:
+  WORKER_CONCURRENCY: "5"
+  QUEUE_NAME: "jobs"
+
+extraEnv: []
+envFrom: []
+
+config:
+  extra: {}
+
+redis:
+  host: "redis-master"
+  port: 6379
+  db: 0
+  ssl: false
+  username: ""
+  auth:
+    existingSecret: ""
+    existingSecretPasswordKey: "redis-password"
+    password: ""
+
+secret:
+  annotations: {}
+
+configmap:
+  annotations: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: null
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+priorityClassName: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+dnsPolicy: ClusterFirst
+dnsConfig: {}
+
+volumes: []
+volumeMounts: []
+
+updateStrategy:
+  type: RollingUpdate
+
+serviceMonitor:
+  enabled: false
+  namespace: ""
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+  annotations: {}
+  path: /metrics
+  port: metrics
+---
+# FILE: templates/_helpers.tpl
+{{- define "worker-redis.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "worker-redis.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains .Release.Name $name -}}
+{{- $name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "worker-redis.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" -}}
+{{- end -}}
+
+{{- define "worker-redis.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "worker-redis.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "worker-redis.labels" -}}
+helm.sh/chart: {{ include "worker-redis.chart" . }}
+{{ include "worker-redis.selectorLabels" . }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+{{- end -}}
+
+{{- define "worker-redis.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "worker-redis.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "worker-redis.redisSecretName" -}}
+{{- if .Values.redis.auth.existingSecret -}}
+{{- .Values.redis.auth.existingSecret -}}
+{{- else -}}
+{{- printf "%s-redis" (include "worker-redis.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worker-redis.fullname" . }}-config
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.configmap.annotations | nindent 4 }}
+data:
+  WORKER_CONCURRENCY: "{{ .Values.env.WORKER_CONCURRENCY | default "5" }}"
+  QUEUE_NAME: "{{ .Values.env.QUEUE_NAME | default "jobs" }}"
+  REDIS_HOST: "{{ .Values.redis.host }}"
+  REDIS_PORT: "{{ .Values.redis.port | toString }}"
+  REDIS_DB: "{{ .Values.redis.db | toString }}"
+  REDIS_TLS: "{{ ternary "true" "false" .Values.redis.ssl }}"
+  REDIS_USERNAME: "{{ .Values.redis.username | default "" }}"
+  {{- range $key, $val := .Values.config.extra }}
+  {{ $key }}: "{{ $val }}"
+  {{- end }}
+---
+# FILE: templates/secret.yaml
+{{- if and (not .Values.redis.auth.existingSecret) .Values.redis.auth.password }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "worker-redis.redisSecretName" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.secret.annotations | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.redis.auth.existingSecretPasswordKey }}: "{{ .Values.redis.auth.password }}"
+{{- end }}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "worker-redis.serviceAccountName" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+{{- end }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker-redis.fullname" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    {{- toYaml .Values.updateStrategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "worker-redis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker-redis.selectorLabels" . | nindent 8 }}
+        {{- toYaml .Values.podLabels | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "worker-redis.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      priorityClassName: {{ .Values.priorityClassName | quote }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPorts.http }}
+            - name: metrics
+              containerPort: {{ .Values.containerPorts.metrics }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "worker-redis.fullname" . }}-config
+            {{- range .Values.envFrom }}
+            - {{ toYaml . | nindent 14 | trim }}
+            {{- end }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worker-redis.redisSecretName" . }}
+                  key: {{ .Values.redis.auth.existingSecretPasswordKey }}
+                  optional: true
+            {{- range .Values.extraEnv }}
+            - {{ toYaml . | nindent 14 | trim }}
+            {{- end }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe:
+            {{- $sp := deepCopy .Values.startupProbe -}}
+            {{- $_ := unset $sp "enabled" -}}
+            {{- toYaml $sp | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- toYaml .Values.volumes | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+# FILE: templates/service.yaml
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worker-redis.fullname" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+    {{- toYaml .Values.service.labels | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "worker-redis.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "worker-redis.fullname" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "worker-redis.selectorLabels" . | nindent 6 }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+{{- end }}
+---
+# FILE: templates/hpa.yaml
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "worker-redis.fullname" . }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "worker-redis.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- $cpu := .Values.autoscaling.targetCPUUtilizationPercentage -}}
+    {{- $mem := .Values.autoscaling.targetMemoryUtilizationPercentage -}}
+    {{- if $cpu }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $cpu }}
+    {{- end }}
+    {{- if $mem }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ $mem }}
+    {{- end }}
+{{- end }}
+---
+# FILE: templates/servicemonitor.yaml
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "worker-redis.fullname" . }}
+  {{- if .Values.serviceMonitor.namespace }}
+  namespace: {{ .Values.serviceMonitor.namespace }}
+  {{- end }}
+  labels:
+    {{- include "worker-redis.labels" . | nindent 4 }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.serviceMonitor.annotations | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "worker-redis.selectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  endpoints:
+    - port: {{ .Values.serviceMonitor.port }}
+      path: {{ .Values.serviceMonitor.path }}
+      interval: {{ .Values.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+{{- end }}

@@ -1,0 +1,171 @@
+---
+- name: Harden CentOS 9 server
+  hosts: all
+  become: true
+  vars:
+    ssh_port: 22
+    allowed_ssh_users: []
+    fail2ban_bantime: 3600
+    fail2ban_findtime: 600
+    fail2ban_maxretry: 5
+    password_min_length: 14
+    password_min_classes: 4
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
+
+    - name: Restart auditd
+      ansible.builtin.command: service auditd restart
+      changed_when: true
+
+  tasks:
+    - name: Ensure EPEL repository is installed
+      ansible.builtin.dnf:
+        name: epel-release
+        state: present
+
+    - name: Update all packages to latest
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install required hardening packages
+      ansible.builtin.dnf:
+        name:
+          - fail2ban
+          - fail2ban-firewalld
+          - audit
+          - audit-libs
+          - libpwquality
+          - firewalld
+          - openssh-server
+          - policycoreutils-python-utils
+        state: present
+
+    # ---------------- SSH Hardening ----------------
+    - name: Ensure /etc/ssh/sshd_config.d directory exists
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Deploy hardened SSH configuration
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/00-hardening.conf
+        owner: root
+        group: root
+        mode: '0600'
+        content: |
+          # Managed by Ansible - SSH hardening
+          Port {{ ssh_port }}
+          Protocol 2
+          PermitRootLogin no
+          PasswordAuthentication no
+          PubkeyAuthentication yes
+          PermitEmptyPasswords no
+          ChallengeResponseAuthentication no
+          KbdInteractiveAuthentication no
+          UsePAM yes
+          X11Forwarding no
+          AllowTcpForwarding no
+          AllowAgentForwarding no
+          PermitUserEnvironment no
+          ClientAliveInterval 300
+          ClientAliveCountMax 2
+          LoginGraceTime 30
+          MaxAuthTries 3
+          MaxSessions 4
+          MaxStartups 10:30:60
+          IgnoreRhosts yes
+          HostbasedAuthentication no
+          StrictModes yes
+          LogLevel VERBOSE
+          Banner /etc/issue.net
+          Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+          MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com
+          KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512
+          {% if allowed_ssh_users | length > 0 %}
+          AllowUsers {{ allowed_ssh_users | join(' ') }}
+          {% endif %}
+      notify: Restart sshd
+
+    - name: Deploy SSH banner
+      ansible.builtin.copy:
+        dest: /etc/issue.net
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          ******************************************************************
+          *           Authorized access only. All activity is logged.      *
+          *  Disconnect IMMEDIATELY if you are not an authorized user.     *
+          ******************************************************************
+
+    - name: Validate sshd configuration
+      ansible.builtin.command: sshd -t
+      changed_when: false
+
+    # ---------------- Password Complexity ----------------
+    - name: Configure pwquality for password complexity
+      ansible.builtin.copy:
+        dest: /etc/security/pwquality.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          # Managed by Ansible - Password complexity policy
+          minlen = {{ password_min_length }}
+          minclass = {{ password_min_classes }}
+          dcredit = -1
+          ucredit = -1
+          lcredit = -1
+          ocredit = -1
+          maxrepeat = 3
+          maxclassrepeat = 4
+          gecoscheck = 1
+          dictcheck = 1
+          usercheck = 1
+          enforcing = 1
+          retry = 3
+          difok = 5
+          enforce_for_root
+
+    - name: Configure password aging in /etc/login.defs
+      ansible.builtin.lineinfile:
+        path: /etc/login.defs
+        regexp: "^{{ item.key }}"
+        line: "{{ item.key }} {{ item.value }}"
+        state: present
+      loop:
+        - { key: 'PASS_MAX_DAYS', value: '90' }
+        - { key: 'PASS_MIN_DAYS', value: '1' }
+        - { key: 'PASS_WARN_AGE', value: '7' }
+        - { key: 'PASS_MIN_LEN', value: '{{ password_min_length }}' }
+        - { key: 'UMASK', value: '027' }
+
+    - name: Configure password history and lockout via authselect
+      ansible.builtin.shell: |
+        authselect select sssd with-faillock --force || authselect select minimal with-faillock --force
+        authselect apply-changes
+      args:
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Configure faillock
+      ansible.builtin.copy:
+        dest: /etc/security/faillock.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |

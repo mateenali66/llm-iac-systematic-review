@@ -1,0 +1,35 @@
+resources:
+- name: python-api-service
+  type: gcp-types/run.googleapis.com:services
+  properties:
+    parent: projects/{{ properties["project"] }}/locations/{{ properties["region"] }}
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: python-api
+      annotations:
+        run.googleapis.com/ingress: internal-and-cloud-load-balancing
+    spec:
+      template:
+        metadata:
+          annotations:
+            run.googleapis.com/cpu-throttling: "false"
+            run.googleapis.com/execution-environment: gen2
+        spec:
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          containers:
+          - image: {{ properties["image"] }}
+            ports:
+            - containerPort: 8080
+              name: http1
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+      traffic:
+      - percent: 100
+        latestRevision: true

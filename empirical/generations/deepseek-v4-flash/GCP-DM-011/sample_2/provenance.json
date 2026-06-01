@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-011",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Managed Instance Group with autoscaling (min 1, max 5) behind an HTTPS Load Balancer.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n- path: instance_template.jinja\n  name: instance_template.jinja\n\nresources:\n- name: instance-template\n  type: instance_template.jinja\n  properties:\n    machineType: n1-standard-1\n    sourceImage: projects/debian-cloud/global/images/family/debian-10\n    network: global/networks/default\n    subnetwork: regions/us-central1/subnetworks/default\n    tags:\n      items:\n      - http-server\n      - https-server\n    serviceAccounts:\n    - email: default\n      scopes:\n      - https://www.googleapis.com/auth/cloud-platform\n    metadata:\n      items:\n      - key: startup-script\n        value: |\n          #!/bin/bash\n          apt-get update\n          apt-get install -y apache2\n          systemctl start apache2\n          systemctl enable apache2\n          echo \"<html><body><h1>Welcome to ${HOSTNAME}</h1></body></html>\" > /var/www/html/index.html\n\n- name: instance-group-manager\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: web-server\n    namedPorts:\n    - name: http\n      port: 80\n    - name: https\n      port: 443\n    autoHealingPolicies:\n    - initialDelaySec: 300\n      healthCheck: $(ref.health-check.selfLink)\n    updatePolicy:\n      type: PROACTIVE\n      minimalAction: REPLACE\n      maxSurge: 1\n      maxUnavailable: 0\n      minReadySec: 30\n\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.instance-group-manager.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      coolDownPeriodSec: 60\n      cpuUtilization:\n        utilizationTarget: 0.6\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    checkIntervalSec: 5\n    timeoutSec: 5\n    unhealthyThreshold: 2\n    healthyThreshold: 2\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n    - group: $(ref.instance-group-manager.instanceGroup)\n      balancingMode: UTILIZATION\n      maxUtilization: 0.8\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    portName: http\n    protocol: HTTP\n    timeoutSec: 30\n    enableCDN: false\n    sessionAffinity: NONE\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: target-http-proxy\n  type: compute.v1.targetHttpProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n\n- name: global-forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    target: $(ref.target-http-proxy.selfLink)\n    portRange: 80\n    IPProtocol: TCP",
+  "cleaned_response": "imports:\n- path: instance_template.jinja\n  name: instance_template.jinja\n\nresources:\n- name: instance-template\n  type: instance_template.jinja\n  properties:\n    machineType: n1-standard-1\n    sourceImage: projects/debian-cloud/global/images/family/debian-10\n    network: global/networks/default\n    subnetwork: regions/us-central1/subnetworks/default\n    tags:\n      items:\n      - http-server\n      - https-server\n    serviceAccounts:\n    - email: default\n      scopes:\n      - https://www.googleapis.com/auth/cloud-platform\n    metadata:\n      items:\n      - key: startup-script\n        value: |\n          #!/bin/bash\n          apt-get update\n          apt-get install -y apache2\n          systemctl start apache2\n          systemctl enable apache2\n          echo \"<html><body><h1>Welcome to ${HOSTNAME}</h1></body></html>\" > /var/www/html/index.html\n\n- name: instance-group-manager\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: web-server\n    namedPorts:\n    - name: http\n      port: 80\n    - name: https\n      port: 443\n    autoHealingPolicies:\n    - initialDelaySec: 300\n      healthCheck: $(ref.health-check.selfLink)\n    updatePolicy:\n      type: PROACTIVE\n      minimalAction: REPLACE\n      maxSurge: 1\n      maxUnavailable: 0\n      minReadySec: 30\n\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.instance-group-manager.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      coolDownPeriodSec: 60\n      cpuUtilization:\n        utilizationTarget: 0.6\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    checkIntervalSec: 5\n    timeoutSec: 5\n    unhealthyThreshold: 2\n    healthyThreshold: 2\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n    - group: $(ref.instance-group-manager.instanceGroup)\n      balancingMode: UTILIZATION\n      maxUtilization: 0.8\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    portName: http\n    protocol: HTTP\n    timeoutSec: 30\n    enableCDN: false\n    sessionAffinity: NONE\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: target-http-proxy\n  type: compute.v1.targetHttpProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n\n- name: global-forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    target: $(ref.target-http-proxy.selfLink)\n    portRange: 80\n    IPProtocol: TCP",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n- path: instance_template.jinja\n  name: instance_template.jinja\n\nresources:\n- name: instance-template\n  type: instance_template.jinja\n  properties:\n    machineType: n1-standard-1\n    sourceImage: projects/debian-cloud/global/images/family/debian-10\n    network: global/networks/default\n    subnetwork: regions/us-central1/subnetworks/default\n    tags:\n      items:\n      - http-server\n      - https-server\n    serviceAccounts:\n    - email: default\n      scopes:\n      - https://www.googleapis.com/auth/cloud-platform\n    metadata:\n      items:\n      - key: startup-script\n        value: |\n          #!/bin/bash\n          apt-get update\n          apt-get install -y apache2\n          systemctl start apache2\n          systemctl enable apache2\n          echo \"<html><body><h1>Welcome to ${HOSTNAME}</h1></body></html>\" > /var/www/html/index.html\n\n- name: instance-group-manager\n  type: compute.v1.instanceGroupManager\n  properties:\n    zone: us-central1-a\n    instanceTemplate: $(ref.instance-template.selfLink)\n    targetSize: 1\n    baseInstanceName: web-server\n    namedPorts:\n    - name: http\n      port: 80\n    - name: https\n      port: 443\n    autoHealingPolicies:\n    - initialDelaySec: 300\n      healthCheck: $(ref.health-check.selfLink)\n    updatePolicy:\n      type: PROACTIVE\n      minimalAction: REPLACE\n      maxSurge: 1\n      maxUnavailable: 0\n      minReadySec: 30\n\n- name: autoscaler\n  type: compute.v1.autoscaler\n  properties:\n    zone: us-central1-a\n    target: $(ref.instance-group-manager.selfLink)\n    autoscalingPolicy:\n      minNumReplicas: 1\n      maxNumReplicas: 5\n      coolDownPeriodSec: 60\n      cpuUtilization:\n        utilizationTarget: 0.6\n\n- name: health-check\n  type: compute.v1.healthCheck\n  properties:\n    checkIntervalSec: 5\n    timeoutSec: 5\n    unhealthyThreshold: 2\n    healthyThreshold: 2\n    type: HTTP\n    httpHealthCheck:\n      port: 80\n      requestPath: /\n\n- name: backend-service\n  type: compute.v1.backendService\n  properties:\n    backends:\n    - group: $(ref.instance-group-manager.instanceGroup)\n      balancingMode: UTILIZATION\n      maxUtilization: 0.8\n    healthChecks:\n    - $(ref.health-check.selfLink)\n    portName: http\n    protocol: HTTP\n    timeoutSec: 30\n    enableCDN: false\n    sessionAffinity: NONE\n\n- name: url-map\n  type: compute.v1.urlMap\n  properties:\n    defaultService: $(ref.backend-service.selfLink)\n\n- name: target-http-proxy\n  type: compute.v1.targetHttpProxy\n  properties:\n    urlMap: $(ref.url-map.selfLink)\n\n- name: global-forwarding-rule\n  type: compute.v1.globalForwardingRule\n  properties:\n    target: $(ref.target-http-proxy.selfLink)\n    portRange: 80\n    IPProtocol: TCP",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728510,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 74,
+      "output_tokens": 755,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 10
+    }
+  },
+  "started_at": "2026-05-25T17:01:43.454408+00:00",
+  "elapsed_seconds": 6.863
+}

@@ -1,0 +1,121 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "listenerNotHttps",
+        "description": "Ensure there is a listener configured on HTTPs or with a port 443",
+        "rule_id": "AC_AWS_0491",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "Listener",
+        "resource_type": "aws_lb_listener",
+        "file": "output.yaml",
+        "line": 123
+      },
+      {
+        "rule_name": "cloudWatchMonitoringLaunchConfig",
+        "description": "It is important to enable cloudWatch monitoring incase monitoring the activity",
+        "rule_id": "AC_AWS_0490",
+        "severity": "MEDIUM",
+        "category": "Logging and Monitoring",
+        "resource_name": "LaunchConfiguration",
+        "resource_type": "aws_launch_configuration",
+        "file": "output.yaml",
+        "line": 72
+      },
+      {
+        "rule_name": "targetGroupUsingHttp",
+        "description": "Ensure Target Group use HTTPs to ensure end to end encryption",
+        "rule_id": "AC_AWS_0492",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "TargetGroup",
+        "resource_type": "aws_lb_target_group",
+        "file": "output.yaml",
+        "line": 108
+      },
+      {
+        "rule_name": "vpcFlowLogsNotEnabled",
+        "description": "Ensure VPC flow logging is enabled in all VPCs",
+        "rule_id": "AC_AWS_0369",
+        "severity": "LOW",
+        "category": "Logging and Monitoring",
+        "resource_name": "VPC",
+        "resource_type": "aws_vpc",
+        "file": "output.yaml",
+        "line": 5
+      },
+      {
+        "rule_name": "port22OpenToInternet",
+        "description": "Security Groups - Unrestricted Specific Ports - (SSH,22)",
+        "rule_id": "AC_AWS_0227",
+        "severity": "HIGH",
+        "category": "Infrastructure Security",
+        "resource_name": "SecurityGroup",
+        "resource_type": "aws_security_group",
+        "file": "output.yaml",
+        "line": 57
+      },
+      {
+        "rule_name": "imdsv1LaunchConfig",
+        "description": "Launch configuration uses IMDSv1 which vulnerable to SSRF",
+        "rule_id": "AC_AWS_0487",
+        "severity": "HIGH",
+        "category": "Configuration and Vulnerability Analysis",
+        "resource_name": "LaunchConfiguration",
+        "resource_type": "aws_launch_configuration",
+        "file": "output.yaml",
+        "line": 72
+      },
+      {
+        "rule_name": "port80OpenToInternet",
+        "description": "Security Groups - Unrestricted Specific Ports - (HTTP,80)",
+        "rule_id": "AC_AWS_0228",
+        "severity": "HIGH",
+        "category": "Infrastructure Security",
+        "resource_name": "SecurityGroup",
+        "resource_type": "aws_security_group",
+        "file": "output.yaml",
+        "line": 57
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "cft",
+      "scanned_at": "2026-05-26 06:06:16.364080252 +0000 UTC",
+      "policies_validated": 148,
+      "violated_policies": 7,
+      "low": 1,
+      "medium": 3,
+      "high": 3
+    }
+  }
+}

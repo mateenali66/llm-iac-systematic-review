@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-004",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Create a GCP Deployment Manager template defining a custom-mode VPC with two subnets (public, private), a Cloud NAT gateway for the private subnet, and firewall rules allowing internal traffic.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: prod-vpc\n  type: compute.v1.network\n  properties:\n    name: prod-vpc\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: prod-public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-public-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.0.0/24\n    privateIpGoogleAccess: false\n    enableFlowLogs: true\n\n- name: prod-private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-private-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.1.0/24\n    privateIpGoogleAccess: true\n    enableFlowLogs: true\n\n- name: prod-nat-router\n  type: compute.v1.router\n  properties:\n    name: prod-nat-router\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    nats:\n    - name: prod-nat\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.prod-private-subnet.selfLink)\n        sourceIpRangesToNat:\n        - ALL_IP_RANGES\n      minPortsPerVm: 128\n      enableEndpointIndependentMapping: true\n      udpIdleTimeoutSec: 30\n      icmpIdleTimeoutSec: 30\n      tcpEstablishedIdleTimeoutSec: 1200\n      tcpTransitoryIdleTimeoutSec: 30\n      logConfig:\n        enable: true\n        filter: ALL\n\n- name: allow-internal\n  type: compute.v1.firewall\n  properties:\n    name: allow-internal\n    network: $(ref.prod-vpc.selfLink)\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 10.10.0.0/24\n    - 10.10.1.0/24\n    allowed:\n    - IPProtocol: tcp\n    - IPProtocol: udp\n    - IPProtocol: icmp\n    description: Allow internal traffic within VPC subnets\n\noutputs:\n- name: network\n  value: $(ref.prod-vpc.selfLink)\n- name: publicSubnet\n  value: $(ref.prod-public-subnet.selfLink)\n- name: privateSubnet\n  value: $(ref.prod-private-subnet.selfLink)\n- name: natRouter\n  value: $(ref.prod-nat-router.selfLink)",
+  "cleaned_response": "resources:\n- name: prod-vpc\n  type: compute.v1.network\n  properties:\n    name: prod-vpc\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: prod-public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-public-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.0.0/24\n    privateIpGoogleAccess: false\n    enableFlowLogs: true\n\n- name: prod-private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-private-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.1.0/24\n    privateIpGoogleAccess: true\n    enableFlowLogs: true\n\n- name: prod-nat-router\n  type: compute.v1.router\n  properties:\n    name: prod-nat-router\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    nats:\n    - name: prod-nat\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.prod-private-subnet.selfLink)\n        sourceIpRangesToNat:\n        - ALL_IP_RANGES\n      minPortsPerVm: 128\n      enableEndpointIndependentMapping: true\n      udpIdleTimeoutSec: 30\n      icmpIdleTimeoutSec: 30\n      tcpEstablishedIdleTimeoutSec: 1200\n      tcpTransitoryIdleTimeoutSec: 30\n      logConfig:\n        enable: true\n        filter: ALL\n\n- name: allow-internal\n  type: compute.v1.firewall\n  properties:\n    name: allow-internal\n    network: $(ref.prod-vpc.selfLink)\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 10.10.0.0/24\n    - 10.10.1.0/24\n    allowed:\n    - IPProtocol: tcp\n    - IPProtocol: udp\n    - IPProtocol: icmp\n    description: Allow internal traffic within VPC subnets\n\noutputs:\n- name: network\n  value: $(ref.prod-vpc.selfLink)\n- name: publicSubnet\n  value: $(ref.prod-public-subnet.selfLink)\n- name: privateSubnet\n  value: $(ref.prod-private-subnet.selfLink)\n- name: natRouter\n  value: $(ref.prod-nat-router.selfLink)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: prod-vpc\n  type: compute.v1.network\n  properties:\n    name: prod-vpc\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n\n- name: prod-public-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-public-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.0.0/24\n    privateIpGoogleAccess: false\n    enableFlowLogs: true\n\n- name: prod-private-subnet\n  type: compute.v1.subnetwork\n  properties:\n    name: prod-private-subnet\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    ipCidrRange: 10.10.1.0/24\n    privateIpGoogleAccess: true\n    enableFlowLogs: true\n\n- name: prod-nat-router\n  type: compute.v1.router\n  properties:\n    name: prod-nat-router\n    region: us-central1\n    network: $(ref.prod-vpc.selfLink)\n    nats:\n    - name: prod-nat\n      natIpAllocateOption: AUTO_ONLY\n      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS\n      subnetworks:\n      - name: $(ref.prod-private-subnet.selfLink)\n        sourceIpRangesToNat:\n        - ALL_IP_RANGES\n      minPortsPerVm: 128\n      enableEndpointIndependentMapping: true\n      udpIdleTimeoutSec: 30\n      icmpIdleTimeoutSec: 30\n      tcpEstablishedIdleTimeoutSec: 1200\n      tcpTransitoryIdleTimeoutSec: 30\n      logConfig:\n        enable: true\n        filter: ALL\n\n- name: allow-internal\n  type: compute.v1.firewall\n  properties:\n    name: allow-internal\n    network: $(ref.prod-vpc.selfLink)\n    direction: INGRESS\n    priority: 1000\n    sourceRanges:\n    - 10.10.0.0/24\n    - 10.10.1.0/24\n    allowed:\n    - IPProtocol: tcp\n    - IPProtocol: udp\n    - IPProtocol: icmp\n    description: Allow internal traffic within VPC subnets\n\noutputs:\n- name: network\n  value: $(ref.prod-vpc.selfLink)\n- name: publicSubnet\n  value: $(ref.prod-public-subnet.selfLink)\n- name: privateSubnet\n  value: $(ref.prod-private-subnet.selfLink)\n- name: natRouter\n  value: $(ref.prod-nat-router.selfLink)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779719241,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 148,
+      "output_tokens": 4519,
+      "raw_input_tokens": 148
+    }
+  },
+  "started_at": "2026-05-25T14:26:23.293057+00:00",
+  "elapsed_seconds": 58.016
+}

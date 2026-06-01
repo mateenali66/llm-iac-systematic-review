@@ -1,0 +1,388 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 70,
+	"files_parsed": 1,
+	"lines_parsed": 70,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 8,
+		"LOW": 2,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 16,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:14:51.146643713Z",
+	"end": "2026-05-26T06:15:15.488779418Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "DB Instance Storage Not Encrypted",
+			"query_id": "08bd0760-8752-44e1-9779-7bb369b2b4e4",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#storage_encrypted",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS DB Instance should have its storage encrypted by setting the parameter to 'true'. The storage_encrypted default value is 'false'.",
+			"description_id": "88ca11bc",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a22bde391c31c57b85495ec1f5e9246ce73b4e46d18325028d78c6909131aae9",
+					"line": 5,
+					"resource_type": "aws_db_instance",
+					"resource_name": "primary_database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[primary_database]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'storage_encrypted' should be set to true",
+					"actual_value": "'storage_encrypted' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2a016130cf5fdb8f4bf3a29750dee1335439367c411c24f4a76f1f6d526af157",
+					"line": 11,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "88fd05e0-ac0e-43d2-ba6d-fc0ba60ae1a6",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#iam_database_authentication_enabled",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "285",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "12b1c8aa",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d80be9af5c710d18f7165698cc3e7a16ae4b18467998cdae4983d4c00b4b9f72",
+					"line": 5,
+					"resource_type": "aws_db_instance",
+					"resource_name": "primary_database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[primary_database]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'iam_database_authentication_enabled' should be set to true",
+					"actual_value": "'iam_database_authentication_enabled' is undefined or null",
+					"remediation": "iam_database_authentication_enabled = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Without Logging",
+			"query_id": "8d7f7b8c-6c7c-40f8-baa6-62006c6c7b56",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#enabled_cloudwatch_logs_exports",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "RDS does not have any kind of logger",
+			"description_id": "c499a58c",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a4d7e513a89e68f67be5454e8a8cb5f23c1c2bd53365eedf3436264b986c4fc9",
+					"line": 5,
+					"resource_type": "aws_db_instance",
+					"resource_name": "primary_database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[primary_database]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'enabled_cloudwatch_logs_exports' should be defined",
+					"actual_value": "'enabled_cloudwatch_logs_exports' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f83121ea-03da-434f-9277-9cd247ab3047",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "cdbdeb30",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "bd06a0ff1c67e0b6e780a175dd7ab45f9ed5e5b1d41fa8e079aaae5680757175",
+					"line": 51,
+					"resource_type": "aws_vpc",
+					"resource_name": "vpc",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_vpc[vpc]",
+					"search_line": 51,
+					"search_value": "",
+					"expected_value": "aws_vpc[vpc] should be the same as Flow Logs VPC id",
+					"actual_value": "aws_vpc[vpc] is not the same as Flow Logs VPC id"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "fd632aaf-b8a1-424d-a4d1-0de22fd3247a",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_firewall#vpc_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "2e7d55e6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "11dec1a0535dd76648d5483de11c85ff0625dd7542374c505f253d781aead944",
+					"line": 51,
+					"resource_type": "aws_vpc",
+					"resource_name": "vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_vpc[vpc]",
+					"search_line": 51,
+					"search_value": "",
+					"expected_value": "aws_vpc[vpc] has an 'aws_networkfirewall_firewall' associated",
+					"actual_value": "aws_vpc[vpc] does not have an 'aws_networkfirewall_firewall' associated"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Sensitive Port Is Exposed To Wide Private Network",
+			"query_id": "92fe237e-074c-4262-81a4-2077acb928c1",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for a wide private network in either TCP or UDP protocol",
+			"description_id": "127a32be",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "32967a126c9435932fc41671b561d83dfa9ef365349bfce3141058743ab9c79f",
+					"line": 36,
+					"resource_type": "aws_security_group",
+					"resource_name": "saas-database-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[database_sg].ingress",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "PostgreSQL (TCP:5432) should not be allowed",
+					"actual_value": "PostgreSQL (TCP:5432) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "1681e01a2cdea16ed662f0e5de33b17c4810720abc1ae2a217e145919db1735f",
+					"line": 60,
+					"resource_type": "aws_subnet",
+					"resource_name": "database_subnet1",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{database_subnet1}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{database_subnet1}}].tags should be defined and not null",
+					"actual_value": "aws_subnet[{{database_subnet1}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9c30ecdce08a299233124389e20baac614c6cd3bde1803511492a677f3a9d998",
+					"line": 5,
+					"resource_type": "aws_db_instance",
+					"resource_name": "primary_database",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_instance[{{primary_database}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_instance[{{primary_database}}].tags should be defined and not null",
+					"actual_value": "aws_db_instance[{{primary_database}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "228fba787c5f00f35ac81239a02db1364581dd314adeca190a827dfddc042e38",
+					"line": 66,
+					"resource_type": "aws_subnet",
+					"resource_name": "database_subnet2",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{database_subnet2}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{database_subnet2}}].tags should be defined and not null",
+					"actual_value": "aws_subnet[{{database_subnet2}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5468a4a6899d4e196873902f86bc9ed5f5d2c4174de9b51f09da521023576914",
+					"line": 55,
+					"resource_type": "aws_db_subnet_group",
+					"resource_name": "saas-database-subnet-group",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_db_subnet_group[{{database_subnet_group}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_db_subnet_group[{{database_subnet_group}}].tags should be defined and not null",
+					"actual_value": "aws_db_subnet_group[{{database_subnet_group}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "41fa7c4385e20fde726ef7cd3646595f66fdb3f8f0e71fb6739d16db60bc5504",
+					"line": 51,
+					"resource_type": "aws_vpc",
+					"resource_name": "vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_vpc[{{vpc}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_vpc[{{vpc}}].tags should be defined and not null",
+					"actual_value": "aws_vpc[{{vpc}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "add2baece7ca0b6a4625f4419eac8ac69869ad9f99d05cda785ccf35a24e2e88",
+					"line": 31,
+					"resource_type": "aws_security_group",
+					"resource_name": "saas-database-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{database_sg}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{database_sg}}].tags should be defined and not null",
+					"actual_value": "aws_security_group[{{database_sg}}].tags is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "68eb4bf3-f9bf-463d-b5cf-e029bb446d2e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#description",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for all rules in AWS Security Group to have a description",
+			"description_id": "cee242dd",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "55d1623912f02d2f9406c2accb2b8d58df9c1a0c30ca9323eb3b44c6729ca5a3",
+					"line": 36,
+					"resource_type": "aws_security_group",
+					"resource_name": "saas-database-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{database_sg}}].ingress",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{database_sg}}].ingress description should be defined and not null",
+					"actual_value": "aws_security_group[{{database_sg}}].ingress description is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "793f4e2625f6be97c6f13397ec30f719ee36cf17d5df148e6a1de56a229d0ca6",
+					"line": 43,
+					"resource_type": "aws_security_group",
+					"resource_name": "saas-database-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{database_sg}}].egress",
+					"search_line": 43,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{database_sg}}].egress description should be defined and not null",
+					"actual_value": "aws_security_group[{{database_sg}}].egress description is undefined or null"
+				}
+			]
+		}
+	]
+}

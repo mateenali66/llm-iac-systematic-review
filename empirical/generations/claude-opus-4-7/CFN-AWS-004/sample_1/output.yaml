@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Role for EC2 instances with permissions to write CloudWatch Logs and read SSM Parameter Store configuration
+
+Parameters:
+  RoleName:
+    Type: String
+    Default: ec2-logs-config-role
+    Description: Name of the IAM role
+    AllowedPattern: '^[a-zA-Z0-9+=,.@_-]{1,64}$'
+
+  LogGroupPrefix:
+    Type: String
+    Default: /aws/ec2
+    Description: CloudWatch Logs log group prefix that this role can write to
+
+  ParameterStorePrefix:
+    Type: String
+    Default: /app
+    Description: SSM Parameter Store path prefix this role can read
+
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues:
+      - development
+      - staging
+      - production
+    Description: Deployment environment
+
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      Description: Role allowing EC2 instances to write CloudWatch Logs and read SSM Parameter Store
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+      Path: /
+      MaxSessionDuration: 3600
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Purpose
+          Value: EC2-Logs-Config-Access
+
+  CloudWatchLogsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${RoleName}-cloudwatch-logs'
+      Description: Allows writing logs to CloudWatch Logs
+      Roles:
+        - !Ref EC2InstanceRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CreateLogGroupsAndStreams
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:DescribeLogGroups
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPrefix}*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPrefix}*:log-stream:*'
+          - Sid: PutLogEvents
+            Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:${LogGroupPrefix}*:log-stream:*'
+
+  ParameterStorePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${RoleName}-parameter-store'
+      Description: Allows reading configuration from SSM Parameter Store
+      Roles:
+        - !Ref EC2InstanceRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ReadParameters
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:GetParametersByPath
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterStorePrefix}/*'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${ParameterStorePrefix}'
+          - Sid: DescribeParameters
+            Effect: Allow
+            Action:
+              - ssm:DescribeParameters
+            Resource: '*'
+          - Sid: DecryptSecureStringParameters
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+            Condition:
+              StringEquals:
+                kms:ViaService: !Sub 'ssm.${AWS::Region}.amazonaws.com'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub '${RoleName}-instance-profile'
+      Path: /
+      Roles:
+        - !Ref EC2InstanceRole
+
+Outputs:
+  RoleArn:
+    Description: ARN of the IAM Role
+    Value: !GetAtt EC2InstanceRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleArn'
+
+  RoleName:
+    Description: Name of the IAM Role
+    Value: !Ref EC2InstanceRole
+    Export:
+      Name: !Sub '${AWS::StackName}-RoleName'
+
+  InstanceProfileArn:
+    Description: ARN of the EC2 Instance Profile
+    Value: !GetAtt EC2InstanceProfile.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-InstanceProfileArn'
+
+  InstanceProfileName:
+    Description: Name of the EC2 Instance Profile
+    Value: !Ref EC2InstanceProfile
+    Export:

@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: KMS CMK with rotation enabled for encrypting database backups
+
+Parameters:
+  AliasName:
+    Type: String
+    Default: alias/db-backup-kms-key
+    AllowedPattern: ^alias\/[a-zA-Z0-9/_-]+$
+    Description: KMS alias name (must start with alias/)
+  KeyDeletionWindowInDays:
+    Type: Number
+    Default: 30
+    MinValue: 7
+    MaxValue: 30
+    Description: Waiting period (in days) before KMS key is deleted after scheduled deletion
+  MultiRegion:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Whether to create a multi-Region key
+
+Conditions:
+  UseMultiRegion: !Equals [!Ref MultiRegion, 'true']
+
+Resources:
+  KmsKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for encrypting database backups
+      Enabled: true
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: !If [UseMultiRegion, true, false]
+      PendingWindowInDays: !Ref KeyDeletionWindowInDays
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnableIamUserPermissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: '*'
+          - Sid: AllowRDSAndBackupUseOfTheKey
+            Effect: Allow
+            Principal:
+              Service:
+                - rds.amazonaws.com
+                - backup.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:RevokeGrant
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref AWS::AccountId
+              ForAnyValue:StringEquals:
+                kms:ViaService:
+                  - !Sub rds.${AWS::Region}.${AWS::URLSuffix}
+                  - !Sub backup.${AWS::Region}.${AWS::URLSuffix}
+              Bool:
+                kms:GrantIsForAWSResource: 'true'
+      Tags:
+        - Key: Name
+          Value: !Ref AliasName
+        - Key: Purpose
+          Value: database-backup-encryption
+
+  KmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref AliasName
+      TargetKeyId: !Ref KmsKey
+
+Outputs:
+  KmsKeyArn:
+    Description: ARN of the KMS key
+    Value: !GetAtt KmsKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyArn
+  KmsKeyId:
+    Description: ID of the KMS key
+    Value: !Ref KmsKey
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyId
+  KmsAliasName:
+    Description: KMS alias name
+    Value: !Ref KmsAlias
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsAliasName
+  KmsAliasArn:
+    Description: ARN of the KMS alias
+    Value: !Sub arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:${AliasName}
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsAliasArn

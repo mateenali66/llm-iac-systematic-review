@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "ANS-006",
+  "language": "ansible",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Harden server and configure deploy user\n  hosts: all\n  become: true\n  vars:\n    deploy_user_name: deploy\n\n  tasks:\n    - name: Create the '{{ deploy_user_name }}' user with a home directory\n      ansible.builtin.user:\n        name: \"{{ deploy_user_name }}\"\n        shell: /bin/bash\n        create_home: true\n        state: present\n\n    - name: Grant passwordless sudo to '{{ deploy_user_name }}' user\n      ansible.builtin.copy:\n        dest: \"/etc/sudoers.d/90-{{ deploy_user_name }}\"\n        content: \"{{ deploy_user_name }} ALL=(ALL) NOPASSWD: ALL\"\n        owner: root\n        group: root\n        mode: '0440'\n        validate: /usr/sbin/visudo -cf %s\n\n    - name: Set up authorized key for the '{{ deploy_user_name }}' user from vault\n      ansible.builtin.authorized_key:\n        user: \"{{ deploy_user_name }}\"\n        key: \"{{ deploy_user_ssh_public_key }}\"\n        state: present\n        mode: '0600'\n\n    - name: Disable password authentication over SSH\n      ansible.builtin.lineinfile:\n        path: /etc/ssh/sshd_config\n        regexp: '^#?\\s*PasswordAuthentication\\s+'\n        line: 'PasswordAuthentication no'\n        state: present\n        validate: /usr/sbin/sshd -t -f %s\n      notify: Restart sshd\n\n  handlers:\n    - name: Restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+  "cleaned_response": "- name: Harden server and configure deploy user\n  hosts: all\n  become: true\n  vars:\n    deploy_user_name: deploy\n\n  tasks:\n    - name: Create the '{{ deploy_user_name }}' user with a home directory\n      ansible.builtin.user:\n        name: \"{{ deploy_user_name }}\"\n        shell: /bin/bash\n        create_home: true\n        state: present\n\n    - name: Grant passwordless sudo to '{{ deploy_user_name }}' user\n      ansible.builtin.copy:\n        dest: \"/etc/sudoers.d/90-{{ deploy_user_name }}\"\n        content: \"{{ deploy_user_name }} ALL=(ALL) NOPASSWD: ALL\"\n        owner: root\n        group: root\n        mode: '0440'\n        validate: /usr/sbin/visudo -cf %s\n\n    - name: Set up authorized key for the '{{ deploy_user_name }}' user from vault\n      ansible.builtin.authorized_key:\n        user: \"{{ deploy_user_name }}\"\n        key: \"{{ deploy_user_ssh_public_key }}\"\n        state: present\n        mode: '0600'\n\n    - name: Disable password authentication over SSH\n      ansible.builtin.lineinfile:\n        path: /etc/ssh/sshd_config\n        regexp: '^#?\\s*PasswordAuthentication\\s+'\n        line: 'PasswordAuthentication no'\n        state: present\n        validate: /usr/sbin/sshd -t -f %s\n      notify: Restart sshd\n\n  handlers:\n    - name: Restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Harden server and configure deploy user\n  hosts: all\n  become: true\n  vars:\n    deploy_user_name: deploy\n\n  tasks:\n    - name: Create the '{{ deploy_user_name }}' user with a home directory\n      ansible.builtin.user:\n        name: \"{{ deploy_user_name }}\"\n        shell: /bin/bash\n        create_home: true\n        state: present\n\n    - name: Grant passwordless sudo to '{{ deploy_user_name }}' user\n      ansible.builtin.copy:\n        dest: \"/etc/sudoers.d/90-{{ deploy_user_name }}\"\n        content: \"{{ deploy_user_name }} ALL=(ALL) NOPASSWD: ALL\"\n        owner: root\n        group: root\n        mode: '0440'\n        validate: /usr/sbin/visudo -cf %s\n\n    - name: Set up authorized key for the '{{ deploy_user_name }}' user from vault\n      ansible.builtin.authorized_key:\n        user: \"{{ deploy_user_name }}\"\n        key: \"{{ deploy_user_ssh_public_key }}\"\n        state: present\n        mode: '0600'\n\n    - name: Disable password authentication over SSH\n      ansible.builtin.lineinfile:\n        path: /etc/ssh/sshd_config\n        regexp: '^#?\\s*PasswordAuthentication\\s+'\n        line: 'PasswordAuthentication no'\n        state: present\n        validate: /usr/sbin/sshd -t -f %s\n      notify: Restart sshd\n\n  handlers:\n    - name: Restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779723957,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 139,
+      "output_tokens": 1576,
+      "raw_input_tokens": 139
+    }
+  },
+  "started_at": "2026-05-25T15:45:41.634537+00:00",
+  "elapsed_seconds": 16.115
+}

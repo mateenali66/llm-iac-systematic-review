@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 bucket for application user uploads with access controls'
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: 'Name of the S3 bucket for user uploads'
+    AllowedPattern: '^[a-z0-9][a-z0-9.-]*[a-z0-9]$'
+    ConstraintDescription: 'Bucket name must be lowercase alphanumeric, hyphens, and periods'
+
+  Environment:
+    Type: String
+    Description: 'Environment name (e.g., dev, staging, prod)'
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Default: dev
+
+  LoggingBucketName:
+    Type: String
+    Description: 'Name of the S3 bucket for access logs (must exist)'
+    Default: ''
+
+Conditions:
+  HasLoggingBucket: !Not [!Equals [!Ref LoggingBucketName, '']]
+
+Resources:
+  UserUploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 90
+      LoggingConfiguration:
+        !If
+          - HasLoggingBucket
+          - DestinationBucketName: !Ref LoggingBucketName
+            LogFilePrefix: !Sub '${BucketName}/'
+          - !Ref AWS::NoValue
+      Tags:
+        - Key: Name
+          Value: !Ref BucketName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: UserUploads
+
+  UserUploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UserUploadsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureConnections
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt UserUploadsBucket.Arn
+              - !Sub '${UserUploadsBucket.Arn}/*'
+            Condition:
+              Bool:
+                'aws:SecureTransport': false
+          - Sid: DenyIncorrectEncryptionHeader
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: !Sub '${UserUploadsBucket.Arn}/*'
+            Condition:
+              StringNotEquals:
+                's3:x-amz-server-side-encryption': 'AES256'
+          - Sid: DenyNoEncryptionHeader
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: !Sub '${UserUploadsBucket.Arn}/*'
+            Condition:
+              Null:
+                's3:x-amz-server-side-encryption': true
+
+Outputs:
+  BucketName:
+    Description: 'Name of the user uploads S3 bucket'
+    Value: !Ref UserUploadsBucket
+  BucketArn:
+    Description: 'ARN of the user uploads S3 bucket'
+    Value: !GetAtt UserUploadsBucket.Arn
+  BucketDomainName:
+    Description: 'Domain name of the user uploads S3 bucket'
+    Value: !GetAtt UserUploadsBucket.DomainName

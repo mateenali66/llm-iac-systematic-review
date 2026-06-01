@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "CFN-AWS-004",
+  "language": "cloudformation",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CloudFormation template defining an IAM role with a policy that allows EC2 instances to write logs to CloudWatch and read configuration from Parameter Store.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Generate a CloudFormation template defining an IAM role with a policy that allows EC2 instances to write logs to CloudWatch and read configuration from Parameter Store.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'IAM role for EC2 instances to write CloudWatch logs and read Parameter Store'\n\nParameters:\n  RoleName:\n    Type: String\n    Default: EC2CloudWatchParameterStoreRole\n    Description: Name of the IAM role\n\nResources:\n  EC2InstanceRole:\n    Type: AWS::IAM::Role\n    Properties:\n      RoleName: !Ref RoleName\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - sts:AssumeRole\n      Path: /\n      Policies:\n        - PolicyName: CloudWatchLogsAndParameterStoreAccess\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Sid: CloudWatchLogsWriteAccess\n                Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                  - logs:DescribeLogStreams\n                Resource: \n                  - arn:aws:logs:*:*:*\n              - Sid: ParameterStoreReadAccess\n                Effect: Allow\n                Action:\n                  - ssm:GetParameter\n                  - ssm:GetParameters\n                  - ssm:GetParametersByPath\n                Resource: \n                  - arn:aws:ssm:*:*:parameter/*\n              - Sid: KMSDecryptForSecureStringParams\n                Effect: Allow\n                Action:\n                  - kms:Decrypt\n                Resource: \n                  - '*'\n                Condition:\n                  StringEquals:\n                    kms:ViaService: ssm.*.amazonaws.com\n\nOutputs:\n  RoleArn:\n    Description: ARN of the created IAM role\n    Value: !GetAtt EC2InstanceRole.Arn\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleArn'\n  RoleName:\n    Description: Name of the created IAM role\n    Value: !Ref EC2InstanceRole\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleName'",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'IAM role for EC2 instances to write CloudWatch logs and read Parameter Store'\n\nParameters:\n  RoleName:\n    Type: String\n    Default: EC2CloudWatchParameterStoreRole\n    Description: Name of the IAM role\n\nResources:\n  EC2InstanceRole:\n    Type: AWS::IAM::Role\n    Properties:\n      RoleName: !Ref RoleName\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - sts:AssumeRole\n      Path: /\n      Policies:\n        - PolicyName: CloudWatchLogsAndParameterStoreAccess\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Sid: CloudWatchLogsWriteAccess\n                Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                  - logs:DescribeLogStreams\n                Resource: \n                  - arn:aws:logs:*:*:*\n              - Sid: ParameterStoreReadAccess\n                Effect: Allow\n                Action:\n                  - ssm:GetParameter\n                  - ssm:GetParameters\n                  - ssm:GetParametersByPath\n                Resource: \n                  - arn:aws:ssm:*:*:parameter/*\n              - Sid: KMSDecryptForSecureStringParams\n                Effect: Allow\n                Action:\n                  - kms:Decrypt\n                Resource: \n                  - '*'\n                Condition:\n                  StringEquals:\n                    kms:ViaService: ssm.*.amazonaws.com\n\nOutputs:\n  RoleArn:\n    Description: ARN of the created IAM role\n    Value: !GetAtt EC2InstanceRole.Arn\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleArn'\n  RoleName:\n    Description: Name of the created IAM role\n    Value: !Ref EC2InstanceRole\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleName'",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: 'IAM role for EC2 instances to write CloudWatch logs and read Parameter Store'\n\nParameters:\n  RoleName:\n    Type: String\n    Default: EC2CloudWatchParameterStoreRole\n    Description: Name of the IAM role\n\nResources:\n  EC2InstanceRole:\n    Type: AWS::IAM::Role\n    Properties:\n      RoleName: !Ref RoleName\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - ec2.amazonaws.com\n            Action:\n              - sts:AssumeRole\n      Path: /\n      Policies:\n        - PolicyName: CloudWatchLogsAndParameterStoreAccess\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Sid: CloudWatchLogsWriteAccess\n                Effect: Allow\n                Action:\n                  - logs:CreateLogGroup\n                  - logs:CreateLogStream\n                  - logs:PutLogEvents\n                  - logs:DescribeLogStreams\n                Resource: \n                  - arn:aws:logs:*:*:*\n              - Sid: ParameterStoreReadAccess\n                Effect: Allow\n                Action:\n                  - ssm:GetParameter\n                  - ssm:GetParameters\n                  - ssm:GetParametersByPath\n                Resource: \n                  - arn:aws:ssm:*:*:parameter/*\n              - Sid: KMSDecryptForSecureStringParams\n                Effect: Allow\n                Action:\n                  - kms:Decrypt\n                Resource: \n                  - '*'\n                Condition:\n                  StringEquals:\n                    kms:ViaService: ssm.*.amazonaws.com\n\nOutputs:\n  RoleArn:\n    Description: ARN of the created IAM role\n    Value: !GetAtt EC2InstanceRole.Arn\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleArn'\n  RoleName:\n    Description: Name of the created IAM role\n    Value: !Ref EC2InstanceRole\n    Export:\n      Name: !Sub '${AWS::StackName}-EC2RoleName'",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724705,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 143,
+      "output_tokens": 463,
+      "raw_input_tokens": 143
+    }
+  },
+  "started_at": "2026-05-25T15:58:18.417684+00:00",
+  "elapsed_seconds": 7.282
+}

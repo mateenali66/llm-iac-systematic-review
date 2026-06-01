@@ -1,0 +1,142 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 77,
+	"files_parsed": 2,
+	"lines_parsed": 77,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 1,
+		"LOW": 1,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:29:03.891019594Z",
+	"end": "2026-05-26T06:29:06.110532887Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Service With External Load Balancer",
+			"query_id": "26763a1c-5dda-4772-b507-5fca7fb5f165",
+			"query_url": "https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "552",
+			"cloud_provider": "COMMON",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Service has an external load balancer, which may cause accessibility from other networks and the Internet",
+			"description_id": "2e090344",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "acbf5e16ec1b20e3386cd5ebf90f822ee8483354e923f26e5ef10585bb2bba6a",
+					"line": 4,
+					"resource_type": "Service",
+					"resource_name": "web-frontend-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend-service}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'metadata.annotations' should be set",
+					"actual_value": "'metadata.annotations' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "73d8f3dcc603fbf5922e862b2ce3d34b0b28ec67adfcc89f5f41efdc5f812d73",
+					"line": 5,
+					"resource_type": "Service",
+					"resource_name": "web-frontend-service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend-service}}.namespace",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'metadata.namespace' should not be set to default, kube-system or kube-public",
+					"actual_value": "'metadata.namespace' is set to default"
+				}
+			]
+		},
+		{
+			"query_name": "Service Does Not Target Pod",
+			"query_id": "3ca03a61-3249-4c16-8427-6f8e47dda729",
+			"query_url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Service should Target a Pod",
+			"description_id": "e7c26645",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c8aa345e071be95a648e2cb8feb94496e8b0c1ca3a9f8a8080a734c8509c77c4",
+					"line": 10,
+					"resource_type": "Service",
+					"resource_name": "web-frontend-service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend-service}}.spec.selector",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend-service}}.spec.selector label refers to a Pod label",
+					"actual_value": "metadata.name={{web-frontend-service}}.spec.selector label does not match with any Pod label"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ed5e0a8aa8c636451b6979137d7682e70f0329d68690275cf85de76f3d343629",
+					"line": 5,
+					"resource_type": "Service",
+					"resource_name": "web-frontend-service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{default}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: default"
+				}
+			]
+		}
+	]
+}

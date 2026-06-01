@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CFN-AWS-010",
+  "language": "cloudformation",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Provisions an SQS queue and a Lambda function ('order-processor') to process messages from it.\n\nResources:\n  OrderProcessorDLQ:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-dlq\n      MessageRetention",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Provisions an SQS queue and a Lambda function ('order-processor') to process messages from it.\n\nResources:\n  OrderProcessorDLQ:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-dlq\n      MessageRetention",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Provisions an SQS queue and a Lambda function ('order-processor') to process messages from it.\n\nResources:\n  OrderProcessorDLQ:\n    Type: AWS::SQS::Queue\n    Properties:\n      QueueName: order-processor-dlq\n      MessageRetention",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779726784,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 131,
+      "output_tokens": 2044,
+      "raw_input_tokens": 131
+    }
+  },
+  "started_at": "2026-05-25T16:32:42.558081+00:00",
+  "elapsed_seconds": 21.657
+}

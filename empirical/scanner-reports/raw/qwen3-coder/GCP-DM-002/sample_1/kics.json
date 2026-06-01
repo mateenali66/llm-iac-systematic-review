@@ -1,0 +1,153 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 51,
+	"files_parsed": 1,
+	"lines_parsed": 51,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 4,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:26:33.83356426Z",
+	"end": "2026-05-26T06:26:34.128717719Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Cloud Storage Anonymous or Publicly Accessible",
+			"query_id": "63ae3638-a38c-4ff4-b616-6e1f72a31a6a",
+			"query_url": "https://cloud.google.com/storage/docs/json_api/v1/buckets",
+			"severity": "CRITICAL",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1188",
+			"cloud_provider": "GCP",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Cloud Storage Buckets must not be anonymously or publicly accessible, which means the subattribute 'entity' from attributes 'acl' and 'defaultObjectAcl' must not be 'allUsers' or 'allAuthenticatedUsers'",
+			"description_id": "2146c969",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "67c5dcd00d0e5d86013e231b72139a6136ce89f4b29e6251d4473c756969f8ea",
+					"line": 31,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "log-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{log-bucket}}.properties",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "'acl' should be defined",
+					"actual_value": "'acl' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3a11a96ec6c42db9ad47464c2b623bebfefb384e8c73aaad7e81b576ca854ed4",
+					"line": 4,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "static-website-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{static-website-bucket}}.properties",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "'acl' should be defined",
+					"actual_value": "'acl' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "67c5dcd00d0e5d86013e231b72139a6136ce89f4b29e6251d4473c756969f8ea",
+					"line": 31,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "log-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{log-bucket}}.properties",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "'defaultObjectAcl' should be defined",
+					"actual_value": "'defaultObjectAcl' is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3a11a96ec6c42db9ad47464c2b623bebfefb384e8c73aaad7e81b576ca854ed4",
+					"line": 4,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "static-website-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{static-website-bucket}}.properties",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "'defaultObjectAcl' should be defined",
+					"actual_value": "'defaultObjectAcl' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Bucket Without Versioning",
+			"query_id": "227c2f58-70c6-4432-8e9a-a89c1a548cf5",
+			"query_url": "https://cloud.google.com/storage/docs/json_api/v1/buckets",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "280",
+			"cloud_provider": "GCP",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Bucket should have versioning enabled",
+			"description_id": "97c49cde",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "88fc85387170fe4612b304c180aa30a0051e6a7eaf7434b27103950017453b55",
+					"line": 31,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "log-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{log-bucket}}.properties",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "'versioning' should be defined and not null",
+					"actual_value": "'versioning' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Cloud Storage Bucket Versioning Disabled",
+			"query_id": "ad0875c1-0b39-4890-9149-173158ba3bba",
+			"query_url": "https://cloud.google.com/storage/docs/json_api/v1/buckets",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "1357",
+			"cloud_provider": "GCP",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Cloud Storage Bucket should have versioning enabled",
+			"description_id": "9b7ba7de",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "377d5200c7289cc3c11d8e299424a456784d9d4180906b793a0b2429c1365eb6",
+					"line": 31,
+					"resource_type": "storage.v1.bucket",
+					"resource_name": "log-bucket",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{log-bucket}}.properties",
+					"search_line": 31,
+					"search_value": "",
+					"expected_value": "'versioning' should be defined and not null",
+					"actual_value": "'versioning' is undefined or null"
+				}
+			]
+		}
+	]
+}

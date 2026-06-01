@@ -1,0 +1,87 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_version: "0.88.0"
+    otelcol_arch: "linux_amd64"
+    otelcol_user: "otelcol"
+    otelcol_group: "otelcol"
+    otelcol_binary_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/otelcol_{{ otelcol_version }}_{{ otelcol_arch }}.tar.gz"
+    otelcol_config_dir: "/etc/otelcol"
+    otelcol_binary_path: "/usr/local/bin/otelcol"
+    remote_endpoint: "otel-collector.example.com:4317"
+  tasks:
+    - name: Create otelcol system group
+      ansible.builtin.group:
+        name: "{{ otelcol_group }}"
+        system: true
+
+    - name: Create otelcol system user
+      ansible.builtin.user:
+        name: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        system: true
+        shell: /sbin/nologin
+        createhome: false
+
+    - name: Ensure config directory exists
+      ansible.builtin.file:
+        path: "{{ otelcol_config_dir }}"
+        state: directory
+        owner: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        mode: "0750"
+
+    - name: Download and extract OpenTelemetry Collector binary
+      ansible.builtin.unarchive:
+        src: "{{ otelcol_binary_url }}"
+        dest: /tmp
+        remote_src: true
+        creates: "/tmp/otelcol"
+
+    - name: Install OpenTelemetry Collector binary
+      ansible.builtin.copy:
+        src: "/tmp/otelcol"
+        dest: "{{ otelcol_binary_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+        remote_src: true
+
+    - name: Create OpenTelemetry Collector configuration
+      ansible.builtin.template:
+        src: otelcol-config.yaml.j2
+        dest: "{{ otelcol_config_dir }}/config.yaml"
+        owner: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        mode: "0640"
+      notify: Restart otelcol
+
+    - name: Create systemd service unit
+      ansible.builtin.template:
+        src: otelcol.service.j2
+        dest: /etc/systemd/system/otelcol.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd and restart otelcol
+
+    - name: Enable and start otelcol service
+      ansible.builtin.systemd:
+        name: otelcol
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Restart otelcol
+      ansible.builtin.systemd:
+        name: otelcol
+        state: restarted
+
+    - name: Reload systemd and restart otelcol
+      ansible.builtin.systemd:
+        daemon_reload: true
+        name: otelcol
+        state: restarted

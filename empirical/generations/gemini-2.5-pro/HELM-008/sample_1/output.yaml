@@ -1,0 +1,41 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: spring-boot-app
+description: A Helm chart for deploying Java Spring Boot applications
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+replicaCount: 1
+
+image:
+  repository: openjdk
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "17-jdk-slim"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1001
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001

@@ -1,0 +1,248 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Three-tier VPC with public, application, and database subnets across three AZs'
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: Production
+    AllowedValues:
+      - Production
+      - Staging
+      - Development
+    Description: Environment name
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: CIDR block for public subnet 1
+
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.2.0/24
+    Description: CIDR block for public subnet 2
+
+  PublicSubnet3Cidr:
+    Type: String
+    Default: 10.0.3.0/24
+    Description: CIDR block for public subnet 3
+
+  ApplicationSubnet1Cidr:
+    Type: String
+    Default: 10.0.11.0/24
+    Description: CIDR block for application subnet 1
+
+  ApplicationSubnet2Cidr:
+    Type: String
+    Default: 10.0.12.0/24
+    Description: CIDR block for application subnet 2
+
+  ApplicationSubnet3Cidr:
+    Type: String
+    Default: 10.0.13.0/24
+    Description: CIDR block for application subnet 3
+
+  DatabaseSubnet1Cidr:
+    Type: String
+    Default: 10.0.21.0/24
+    Description: CIDR block for database subnet 1
+
+  DatabaseSubnet2Cidr:
+    Type: String
+    Default: 10.0.22.0/24
+    Description: CIDR block for database subnet 2
+
+  DatabaseSubnet3Cidr:
+    Type: String
+    Default: 10.0.23.0/24
+    Description: CIDR block for database subnet 3
+
+Mappings:
+  RegionMap:
+    us-east-1:
+      AZs:
+        - us-east-1a
+        - us-east-1b
+        - us-east-1c
+    us-west-2:
+      AZs:
+        - us-west-2a
+        - us-west-2b
+        - us-west-2c
+    eu-west-1:
+      AZs:
+        - eu-west-1a
+        - eu-west-1b
+        - eu-west-1c
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-VPC"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-IGW"
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Public-Subnet-AZ1"
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Public-Subnet-AZ2"
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref PublicSubnet3Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Public-Subnet-AZ3"
+
+  ApplicationSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref ApplicationSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Application-Subnet-AZ1"
+
+  ApplicationSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref ApplicationSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Application-Subnet-AZ2"
+
+  ApplicationSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref ApplicationSubnet3Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Application-Subnet-AZ3"
+
+  DatabaseSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref DatabaseSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Database-Subnet-AZ1"
+
+  DatabaseSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref DatabaseSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Database-Subnet-AZ2"
+
+  DatabaseSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !FindInMap [RegionMap, !Ref "AWS::Region", AZs]]
+      CidrBlock: !Ref DatabaseSubnet3Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-Database-Subnet-AZ3"
+
+  NatGatewayEIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-NAT-EIP-AZ1"
+
+  NatGatewayEIP2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-NAT-EIP-AZ2"
+
+  NatGatewayEIP3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-NAT-EIP-AZ3"
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-NAT-Gateway-AZ1"
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-NAT-Gateway-AZ2"
+
+  NatGateway3:
+    Type: AWS::

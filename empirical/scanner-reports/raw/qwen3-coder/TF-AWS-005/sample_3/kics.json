@@ -1,0 +1,332 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 128,
+	"files_parsed": 1,
+	"lines_parsed": 128,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 10,
+		"LOW": 2,
+		"MEDIUM": 4,
+		"TRACE": 0
+	},
+	"total_counter": 16,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:33:00.581004842Z",
+	"end": "2026-05-26T06:33:23.987776381Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f83121ea-03da-434f-9277-9cd247ab3047",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "cdbdeb30",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b68d511f23916fbdd3d18b48ed25e24c5f0b26a0a9db4c0f498583c4392ca083",
+					"line": 5,
+					"resource_type": "aws_vpc",
+					"resource_name": "main",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_vpc[main]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "aws_vpc[main] should be the same as Flow Logs VPC id",
+					"actual_value": "aws_vpc[main] is not the same as Flow Logs VPC id"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Subnet Assigns Public IP",
+			"query_id": "52f04a44-6bfa-4c41-b1d3-4ae99a2de05c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#map_public_ip_on_launch",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "732",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC Subnet should not assign public IP",
+			"description_id": "2b7ea60d",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3b6aea09647a886f83f6b1d711585b0cdcec8f09e89a24d4177aa6dd18db0250",
+					"line": 46,
+					"resource_type": "aws_subnet",
+					"resource_name": "public-subnet-1",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_subnet[public_1].map_public_ip_on_launch",
+					"search_line": 46,
+					"search_value": "",
+					"expected_value": "aws_subnet[public_1].map_public_ip_on_launch should be set to false or undefined",
+					"actual_value": "aws_subnet[public_1].map_public_ip_on_launch is set to true",
+					"remediation": "{\"after\":\"false\",\"before\":\"true\"}",
+					"remediation_type": "replacement"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "c4cbb9944cf724bfcec11e03017e89eb390ff72d5979442209a59e34efb03258",
+					"line": 57,
+					"resource_type": "aws_subnet",
+					"resource_name": "public-subnet-2",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_subnet[public_2].map_public_ip_on_launch",
+					"search_line": 57,
+					"search_value": "",
+					"expected_value": "aws_subnet[public_2].map_public_ip_on_launch should be set to false or undefined",
+					"actual_value": "aws_subnet[public_2].map_public_ip_on_launch is set to true",
+					"remediation": "{\"after\":\"false\",\"before\":\"true\"}",
+					"remediation_type": "replacement"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "fd632aaf-b8a1-424d-a4d1-0de22fd3247a",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_firewall#vpc_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "2e7d55e6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3b40e954a04f9d85f74f51aee45e8cb048e4f81c3cbb08b5ceb37e384afc8ec8",
+					"line": 5,
+					"resource_type": "aws_vpc",
+					"resource_name": "main",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_vpc[main]",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "aws_vpc[main] has an 'aws_networkfirewall_firewall' associated",
+					"actual_value": "aws_vpc[main] does not have an 'aws_networkfirewall_firewall' associated"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 5,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Shield Advanced Not In Use",
+			"query_id": "084c6686-2a70-4710-91b1-000393e54c12",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/shield_protection#resource_arn",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "AWS Shield Advanced should be used for Amazon Route 53 hosted zone, AWS Global Accelerator accelerator, Elastic IP Address, Elastic Load Balancing, and Amazon CloudFront Distribution to protect these resources against robust DDoS attacks",
+			"description_id": "e09b31c7",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "e5f686bcbde3a9e0e68f3bd524c8b731022475bbc70006905804aefd29f45fa1",
+					"line": 23,
+					"resource_type": "aws_eip",
+					"resource_name": "nat-eip",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_eip[nat]",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "aws_eip has shield advanced associated",
+					"actual_value": "aws_eip does not have shield advanced associated"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d226818b7f1442deecfa6bca5a6ca893066ec0d7b659f440e267f7208c696444",
+					"line": 59,
+					"resource_type": "aws_subnet",
+					"resource_name": "public-subnet-2",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{public_2}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{public_2}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_subnet[{{public_2}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3efabc22379cbd1e61b8d59481bed7c579e37a02a69d42c809668843f6ec834d",
+					"line": 35,
+					"resource_type": "aws_nat_gateway",
+					"resource_name": "main-nat",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_nat_gateway[{{main}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_nat_gateway[{{main}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_nat_gateway[{{main}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "c8ef3ef919939d4612e474dcdfc1349ce55d76f768ac1318a210b6ac9bad3a15",
+					"line": 105,
+					"resource_type": "aws_route_table",
+					"resource_name": "private-rt",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_route_table[{{private}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_route_table[{{private}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_route_table[{{private}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4e84e00b9bae0df8607eb821984eac6377cab996690d9125ca38fc0d633cd662",
+					"line": 79,
+					"resource_type": "aws_subnet",
+					"resource_name": "private-subnet-2",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{private_2}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{private_2}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_subnet[{{private_2}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2e08257c8595eb919be6957956a4ab51404d5334376e265452d0cc59fe0d0d81",
+					"line": 48,
+					"resource_type": "aws_subnet",
+					"resource_name": "public-subnet-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{public_1}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{public_1}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_subnet[{{public_1}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "3b16f3c99e170472481661171311f582851cc4ceec6d39ca80706eec76ff8d4f",
+					"line": 10,
+					"resource_type": "aws_vpc",
+					"resource_name": "main-vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_vpc[{{main}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_vpc[{{main}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_vpc[{{main}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "e13902a3f92617880292ce9991014ac4fef3cbcdb957d2e70b0d881f60f55144",
+					"line": 18,
+					"resource_type": "aws_internet_gateway",
+					"resource_name": "main-igw",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_internet_gateway[{{main}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_internet_gateway[{{main}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_internet_gateway[{{main}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "d8861918a0866cb9278e508439e5140f54b4291b2c3308cbe3a64e2e37d532cd",
+					"line": 26,
+					"resource_type": "aws_eip",
+					"resource_name": "nat-eip",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_eip[{{nat}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_eip[{{nat}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_eip[{{nat}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "49d950e21149b8dbc67bb274ed1a4c6ca356dabd2f2952415881d296c9645b69",
+					"line": 92,
+					"resource_type": "aws_route_table",
+					"resource_name": "public-rt",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_route_table[{{public}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_route_table[{{public}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_route_table[{{public}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fd05af66073fac3315358074682cf759b11ab1def339561093cbda04b709b8ab",
+					"line": 69,
+					"resource_type": "aws_subnet",
+					"resource_name": "private-subnet-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_subnet[{{private_1}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_subnet[{{private_1}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_subnet[{{private_1}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		}
+	]
+}

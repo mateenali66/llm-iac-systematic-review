@@ -1,0 +1,73 @@
+imports:
+- path: logging_sink.jinja
+
+resources:
+- name: log-analytics-dataset
+  type: bigquery.v2.dataset
+  properties:
+    datasetReference:
+      datasetId: log_analytics_longterm
+      projectId: $(ref.project.projectId)
+    location: US
+    description: "Long-term log analytics dataset populated by Cloud Logging sink"
+    defaultTableExpirationMs: 31536000000
+    labels:
+      environment: production
+      managed-by: deployment-manager
+      purpose: log-analytics
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: READER
+      specialGroup: projectReaders
+    - role: WRITER
+      specialGroup: projectWriters
+
+- name: project-logging-sink
+  type: gcp-types/logging-v2:projects.sinks
+  properties:
+    sink: bq-longterm-analytics-sink
+    parent: projects/[PROJECT_ID]
+    uniqueWriterIdentity: true
+    destination: bigquery.googleapis.com/projects/[PROJECT_ID]/datasets/log_analytics_longterm
+    description: "Exports all project logs to BigQuery for long-term analytics and compliance"
+    filter: |
+      severity >= DEFAULT
+      AND NOT protoPayload.serviceName="logging.googleapis.com"
+    bigqueryOptions:
+      usePartitionedTables: true
+    exclusions:
+    - name: exclude-debug-logs
+      description: "Exclude verbose debug logs to reduce storage costs"
+      filter: severity < INFO
+      disabled: false
+  metadata:
+    dependsOn:
+    - log-analytics-dataset
+
+- name: sink-writer-bq-dataeditor-binding
+  action: gcp-types/bigquery-v2:bigquery.datasets.patch
+  properties:
+    projectId: [PROJECT_ID]
+    datasetId: log_analytics_longterm
+    access:
+    - role: OWNER
+      specialGroup: projectOwners
+    - role: READER
+      specialGroup: projectReaders
+    - role: WRITER
+      specialGroup: projectWriters
+    - role: WRITER
+      userByEmail: $(ref.project-logging-sink.writerIdentity)
+  metadata:
+    dependsOn:
+    - project-logging-sink
+    - log-analytics-dataset
+
+outputs:
+- name: sinkWriterIdentity
+  value: $(ref.project-logging-sink.writerIdentity)
+- name: sinkDestination
+  value: $(ref.project-logging-sink.destination)
+- name: bigqueryDatasetId
+  value: log_analytics_longterm

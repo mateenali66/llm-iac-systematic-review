@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-006",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS security group allowing inbound HTTPS (port 443) from the internet and SSH (port 22) for administrators, attached to a web server EC2 instance.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS security group allowing inbound HTTPS (port 443) from the internet and SSH (port 22) for administrators, attached to a web server EC2 instance.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\" # Replace with your desired region\n}\n\nvariable \"admin_ssh_cidr_blocks\" {\n  description = \"A list of CIDR blocks for administrative SSH access.\"\n  type        = list(string)\n  sensitive   = true\n}\n\nvariable \"instance_type\" {\n  description = \"EC2 instance type for the web server.\"\n  type        = string\n  default     = \"t3.micro\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The VPC ID to launch the resources in. If not provided, the default VPC will be used.\"\n  type        = string\n  default     = null\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = var.vpc_id == null ? true : false\n  id      = var.vpc_id\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Controls access to the web server\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow HTTPS from the internet\"\n    from_port        = 443\n    to_port          = 443\n    protocol         = \"tcp\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n    ipv6_cidr_blocks = [\"::/0\"]\n  }\n\n  ingress {\n    description = \"Allow SSH from admin IPs\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_ssh_cidr_blocks\n  }\n\n  egress {\n    description      = \"Allow all outbound traffic\"\n    from",
+  "cleaned_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\" # Replace with your desired region\n}\n\nvariable \"admin_ssh_cidr_blocks\" {\n  description = \"A list of CIDR blocks for administrative SSH access.\"\n  type        = list(string)\n  sensitive   = true\n}\n\nvariable \"instance_type\" {\n  description = \"EC2 instance type for the web server.\"\n  type        = string\n  default     = \"t3.micro\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The VPC ID to launch the resources in. If not provided, the default VPC will be used.\"\n  type        = string\n  default     = null\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = var.vpc_id == null ? true : false\n  id      = var.vpc_id\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Controls access to the web server\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow HTTPS from the internet\"\n    from_port        = 443\n    to_port          = 443\n    protocol         = \"tcp\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n    ipv6_cidr_blocks = [\"::/0\"]\n  }\n\n  ingress {\n    description = \"Allow SSH from admin IPs\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_ssh_cidr_blocks\n  }\n\n  egress {\n    description      = \"Allow all outbound traffic\"\n    from",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\" # Replace with your desired region\n}\n\nvariable \"admin_ssh_cidr_blocks\" {\n  description = \"A list of CIDR blocks for administrative SSH access.\"\n  type        = list(string)\n  sensitive   = true\n}\n\nvariable \"instance_type\" {\n  description = \"EC2 instance type for the web server.\"\n  type        = string\n  default     = \"t3.micro\"\n}\n\nvariable \"vpc_id\" {\n  description = \"The VPC ID to launch the resources in. If not provided, the default VPC will be used.\"\n  type        = string\n  default     = null\n}\n\ndata \"aws_vpc\" \"selected\" {\n  default = var.vpc_id == null ? true : false\n  id      = var.vpc_id\n}\n\ndata \"aws_ami\" \"amazon_linux_2\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"amzn2-ami-hvm-*-x86_64-gp2\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"web_server_sg\" {\n  name        = \"web-server-sg\"\n  description = \"Controls access to the web server\"\n  vpc_id      = data.aws_vpc.selected.id\n\n  ingress {\n    description      = \"Allow HTTPS from the internet\"\n    from_port        = 443\n    to_port          = 443\n    protocol         = \"tcp\"\n    cidr_blocks      = [\"0.0.0.0/0\"]\n    ipv6_cidr_blocks = [\"::/0\"]\n  }\n\n  ingress {\n    description = \"Allow SSH from admin IPs\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.admin_ssh_cidr_blocks\n  }\n\n  egress {\n    description      = \"Allow all outbound traffic\"\n    from",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779730148,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 2044,
+      "raw_input_tokens": 141
+    }
+  },
+  "started_at": "2026-05-25T17:28:41.566085+00:00",
+  "elapsed_seconds": 26.684
+}

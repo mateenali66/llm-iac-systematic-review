@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Three-tier VPC with public, application, and database subnets across three Availability Zones
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    Description: Environment name used as a prefix for resource tags
+    AllowedPattern: '[a-zA-Z0-9-]+'
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+    AllowedPattern: '^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$'
+
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.0.0/24
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+  PublicSubnet3Cidr:
+    Type: String
+    Default: 10.0.2.0/24
+
+  AppSubnet1Cidr:
+    Type: String
+    Default: 10.0.10.0/24
+  AppSubnet2Cidr:
+    Type: String
+    Default: 10.0.11.0/24
+  AppSubnet3Cidr:
+    Type: String
+    Default: 10.0.12.0/24
+
+  DbSubnet1Cidr:
+    Type: String
+    Default: 10.0.20.0/24
+  DbSubnet2Cidr:
+    Type: String
+    Default: 10.0.21.0/24
+  DbSubnet3Cidr:
+    Type: String
+    Default: 10.0.22.0/24
+
+  EnableNatGateways:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Whether to provision NAT Gateways for outbound internet access from private subnets
+
+Conditions:
+  CreateNatGateways: !Equals [!Ref EnableNatGateways, 'true']
+
+Resources:
+  # ----------------- VPC -----------------
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-vpc'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  # ----------------- Internet Gateway -----------------
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-igw'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # ----------------- Public Subnets -----------------
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az1'
+        - Key: Tier
+          Value: public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az2'
+        - Key: Tier
+          Value: public
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      CidrBlock: !Ref PublicSubnet3Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az3'
+        - Key: Tier
+          Value: public
+
+  # ----------------- Application (Private) Subnets -----------------
+  AppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref AppSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-subnet-az1'
+        - Key: Tier
+          Value: application
+
+  AppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref AppSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-subnet-az2'
+        - Key: Tier
+          Value: application
+
+  AppSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      CidrBlock: !Ref AppSubnet3Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${Env

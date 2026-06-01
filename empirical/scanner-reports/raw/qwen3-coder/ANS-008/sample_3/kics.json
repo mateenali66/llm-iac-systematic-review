@@ -1,0 +1,110 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 103,
+	"files_parsed": 1,
+	"lines_parsed": 103,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 285,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:21:26.589615757Z",
+	"end": "2026-05-26T06:21:40.015349763Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.yml",
+					"similarity_id": "ad78d8d930c75e95033d7f0637ed35a105c0ae388ca76e26cbd456a0379cc62a",
+					"line": 16,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "Privilege Escalation Using Become Plugin",
+			"query_id": "0e75052f-cc02-41b8-ac39-a78017527e95",
+			"query_url": "https://ansible.readthedocs.io/projects/lint/rules/partial-become/#problematic-code",
+			"severity": "MEDIUM",
+			"platform": "Ansible",
+			"cwe": "286",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "In order to perform an action as a different user with the become_user, 'become' must be defined and set to 'true'",
+			"description_id": "11502e38",
+			"files": [
+				{
+					"file_name": "../../in/output.yml",
+					"similarity_id": "a7bda3d97eaaba229394d9d1d902b4c3fc09a57c476f5b1c74ff209f6d41cd85",
+					"line": 88,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "name={{Create application database user}}.become_user={{postgres}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'become' should be defined and set to 'true' in order to perform an action with postgres",
+					"actual_value": "'become' is not defined"
+				},
+				{
+					"file_name": "../../in/output.yml",
+					"similarity_id": "a76c5910c5d36944b58bc30b2fbf64f780a6e7c369a43162b819aa328b955c87",
+					"line": 80,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "name={{Create application database}}.become_user={{postgres}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'become' should be defined and set to 'true' in order to perform an action with postgres",
+					"actual_value": "'become' is not defined"
+				},
+				{
+					"file_name": "../../in/output.yml",
+					"similarity_id": "0769eb87b43a4ea55f118b319c64917e3764412a926edeceaf2c00183f96d5c8",
+					"line": 97,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "name={{Grant privileges on database to user}}.become_user={{postgres}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'become' should be defined and set to 'true' in order to perform an action with postgres",
+					"actual_value": "'become' is not defined"
+				}
+			]
+		}
+	]
+}

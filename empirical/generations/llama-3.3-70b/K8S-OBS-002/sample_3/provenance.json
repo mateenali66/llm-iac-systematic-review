@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "K8S-OBS-002",
+  "language": "k8s_yaml",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a Kubernetes ServiceMonitor manifest (prometheus-operator) instructing Prometheus to scrape metrics from a Service named 'api-metrics' on port 9090 every 30 seconds.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Write a Kubernetes ServiceMonitor manifest (prometheus-operator) instructing Prometheus to scrape metrics from a Service named 'api-metrics' on port 9090 every 30 seconds.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: monitoring.coreos.com/v1\nkind: ServiceMonitor\nmetadata:\n  name: api-metrics-monitor\nspec:\n  selector:\n    matchLabels:\n      app: api-metrics\n  endpoints:\n  - port: metrics\n    interval: 30s\n    honorLabels: true\n  namespaceSelector:\n    matchNames:\n    - default\n  targetLabels:\n    - app\n    - instance\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: api-metrics\nspec:\n  selector:\n    app: api-metrics\n  ports:\n  - name: metrics\n    port: 9090\n    targetPort: 9090\n  type: ClusterIP",
+  "cleaned_response": "apiVersion: monitoring.coreos.com/v1\nkind: ServiceMonitor\nmetadata:\n  name: api-metrics-monitor\nspec:\n  selector:\n    matchLabels:\n      app: api-metrics\n  endpoints:\n  - port: metrics\n    interval: 30s\n    honorLabels: true\n  namespaceSelector:\n    matchNames:\n    - default\n  targetLabels:\n    - app\n    - instance\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: api-metrics\nspec:\n  selector:\n    app: api-metrics\n  ports:\n  - name: metrics\n    port: 9090\n    targetPort: 9090\n  type: ClusterIP",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: monitoring.coreos.com/v1\nkind: ServiceMonitor\nmetadata:\n  name: api-metrics-monitor\nspec:\n  selector:\n    matchLabels:\n      app: api-metrics\n  endpoints:\n  - port: metrics\n    interval: 30s\n    honorLabels: true\n  namespaceSelector:\n    matchNames:\n    - default\n  targetLabels:\n    - app\n    - instance\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: api-metrics\nspec:\n  selector:\n    app: api-metrics\n  ports:\n  - name: metrics\n    port: 9090\n    targetPort: 9090\n  type: ClusterIP",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723900,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 169,
+      "output_tokens": 149,
+      "raw_input_tokens": 169
+    }
+  },
+  "started_at": "2026-05-25T15:44:59.318398+00:00",
+  "elapsed_seconds": 0.805
+}

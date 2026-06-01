@@ -1,0 +1,58 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 45,
+	"files_parsed": 1,
+	"lines_parsed": 45,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 1,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:13:01.427000422Z",
+	"end": "2026-05-26T05:13:01.724190588Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Disk Encryption Disabled",
+			"query_id": "fc040fb6-4c23-4c0d-b12a-39edac35debb",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "326",
+			"cloud_provider": "GCP",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "VM disks for critical VMs must be encrypted with Customer Supplied Encryption Keys (CSEK) or with Customer-managed encryption keys (CMEK), which means the attribute 'diskEncryptionKey' must be defined and its sub attributes 'rawKey' or 'kmsKeyName' must also be defined",
+			"description_id": "107eb8fb",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1f6fe73b77c2cd709a48fd7cd71d70404d5a9fe4129d0510c579cc840ee1c88f",
+					"line": 21,
+					"resource_type": "compute.v1.instance",
+					"resource_name": "dev-vm-01",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{dev-vm-01}}.properties.disks",
+					"search_line": 21,
+					"search_value": "",
+					"expected_value": "'diskEncryptionKey' should be defined and not null",
+					"actual_value": "'diskEncryptionKey' is undefined or null"
+				}
+			]
+		}
+	]
+}

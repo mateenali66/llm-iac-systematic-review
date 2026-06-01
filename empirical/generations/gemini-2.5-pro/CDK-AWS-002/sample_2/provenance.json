@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-002",
+  "language": "cdk_typescript",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK TypeScript stack provisioning an EKS Fargate cluster running a containerized microservice exposed via an internet-facing Application Load Balancer.",
+  "user_message_sent": "Target IaC language: AWS CDK in TypeScript\n\nTask: Create a CDK TypeScript stack provisioning an EKS Fargate cluster running a containerized microservice exposed via an internet-facing Application Load Balancer.\n\nOutput only the AWS CDK in TypeScript code, no commentary or markdown fences.",
+  "raw_response": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';\n\nexport class EksFargateAlbStack extends cdk.Stack {\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'EksVpc', {\n      maxAzs: 3,\n      natGateways: 1,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,\n        },\n      ],\n    });\n\n    const cluster = new eks.FargateCluster(this, 'EksFargateCluster', {\n      vpc,\n      version: eks.KubernetesVersion.V1_27,\n      clusterName: 'production-fargate-cluster',\n      endpointAccess: eks.EndpointAccess.PUBLIC_AND_PRIVATE,\n      kubectlLayer: new KubectlV27Layer(this, 'KubectlLayer'),\n      fargateProfiles: {\n        AppFargateProfile: {\n          selectors: [{ namespace: 'app' }]\n        }\n      }\n    });\n\n    const albController = new eks.AlbController(this, 'AlbController', {\n      cluster: cluster,\n      version: eks.AlbControllerVersion.V2_5_1,\n    });\n\n    const appNamespace = {\n      apiVersion: 'v1',\n      kind: 'Namespace',\n      metadata: { name: 'app' },\n    };\n\n    const appDeployment = {\n      apiVersion: 'apps/v1',\n      kind: 'Deployment',\n      metadata: {\n        name: 'hello-kubernetes-deployment',\n        namespace: 'app',\n      },\n      spec: {\n        replicas: 2,\n        selector: {\n          matchLabels: { app: 'hello-kubernetes' },\n        },\n        template: {\n          metadata: {\n            labels: { app: 'hello-kubernetes' },\n          },\n          spec: {\n            containers: [\n              {\n                name: 'hello-kubernetes',\n                image: 'paulbouwer/hello-kubernetes:1.10',\n                ports: [{ containerPort: 8080 }],\n                resources: {\n                  requests: {\n                    cpu: '256m',\n                    memory: '512Mi',\n                  },\n                  limits: {\n                    cpu: '512m',\n                    memory: '1024Mi',\n                  },\n                },\n              },\n            ],\n          },\n        },\n      },\n    };\n\n    const",
+  "cleaned_response": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';\n\nexport class EksFargateAlbStack extends cdk.Stack {\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'EksVpc', {\n      maxAzs: 3,\n      natGateways: 1,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,\n        },\n      ],\n    });\n\n    const cluster = new eks.FargateCluster(this, 'EksFargateCluster', {\n      vpc,\n      version: eks.KubernetesVersion.V1_27,\n      clusterName: 'production-fargate-cluster',\n      endpointAccess: eks.EndpointAccess.PUBLIC_AND_PRIVATE,\n      kubectlLayer: new KubectlV27Layer(this, 'KubectlLayer'),\n      fargateProfiles: {\n        AppFargateProfile: {\n          selectors: [{ namespace: 'app' }]\n        }\n      }\n    });\n\n    const albController = new eks.AlbController(this, 'AlbController', {\n      cluster: cluster,\n      version: eks.AlbControllerVersion.V2_5_1,\n    });\n\n    const appNamespace = {\n      apiVersion: 'v1',\n      kind: 'Namespace',\n      metadata: { name: 'app' },\n    };\n\n    const appDeployment = {\n      apiVersion: 'apps/v1',\n      kind: 'Deployment',\n      metadata: {\n        name: 'hello-kubernetes-deployment',\n        namespace: 'app',\n      },\n      spec: {\n        replicas: 2,\n        selector: {\n          matchLabels: { app: 'hello-kubernetes' },\n        },\n        template: {\n          metadata: {\n            labels: { app: 'hello-kubernetes' },\n          },\n          spec: {\n            containers: [\n              {\n                name: 'hello-kubernetes',\n                image: 'paulbouwer/hello-kubernetes:1.10',\n                ports: [{ containerPort: 8080 }],\n                resources: {\n                  requests: {\n                    cpu: '256m',\n                    memory: '512Mi',\n                  },\n                  limits: {\n                    cpu: '512m',\n                    memory: '1024Mi',\n                  },\n                },\n              },\n            ],\n          },\n        },\n      },\n    };\n\n    const",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as ec2 from 'aws-cdk-lib/aws-ec2';\nimport * as eks from 'aws-cdk-lib/aws-eks';\nimport * as iam from 'aws-cdk-lib/aws-iam';\nimport { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';\n\nexport class EksFargateAlbStack extends cdk.Stack {\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const vpc = new ec2.Vpc(this, 'EksVpc', {\n      maxAzs: 3,\n      natGateways: 1,\n      subnetConfiguration: [\n        {\n          cidrMask: 24,\n          name: 'public',\n          subnetType: ec2.SubnetType.PUBLIC,\n        },\n        {\n          cidrMask: 24,\n          name: 'private',\n          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,\n        },\n      ],\n    });\n\n    const cluster = new eks.FargateCluster(this, 'EksFargateCluster', {\n      vpc,\n      version: eks.KubernetesVersion.V1_27,\n      clusterName: 'production-fargate-cluster',\n      endpointAccess: eks.EndpointAccess.PUBLIC_AND_PRIVATE,\n      kubectlLayer: new KubectlV27Layer(this, 'KubectlLayer'),\n      fargateProfiles: {\n        AppFargateProfile: {\n          selectors: [{ namespace: 'app' }]\n        }\n      }\n    });\n\n    const albController = new eks.AlbController(this, 'AlbController', {\n      cluster: cluster,\n      version: eks.AlbControllerVersion.V2_5_1,\n    });\n\n    const appNamespace = {\n      apiVersion: 'v1',\n      kind: 'Namespace',\n      metadata: { name: 'app' },\n    };\n\n    const appDeployment = {\n      apiVersion: 'apps/v1',\n      kind: 'Deployment',\n      metadata: {\n        name: 'hello-kubernetes-deployment',\n        namespace: 'app',\n      },\n      spec: {\n        replicas: 2,\n        selector: {\n          matchLabels: { app: 'hello-kubernetes' },\n        },\n        template: {\n          metadata: {\n            labels: { app: 'hello-kubernetes' },\n          },\n          spec: {\n            containers: [\n              {\n                name: 'hello-kubernetes',\n                image: 'paulbouwer/hello-kubernetes:1.10',\n                ports: [{ containerPort: 8080 }],\n                resources: {\n                  requests: {\n                    cpu: '256m',\n                    memory: '512Mi',\n                  },\n                  limits: {\n                    cpu: '512m',\n                    memory: '1024Mi',\n                  },\n                },\n              },\n            ],\n          },\n        },\n      },\n    };\n\n    const",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779725558,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 124,
+      "output_tokens": 2044,
+      "raw_input_tokens": 124
+    }
+  },
+  "started_at": "2026-05-25T16:12:11.736899+00:00",
+  "elapsed_seconds": 26.626
+}

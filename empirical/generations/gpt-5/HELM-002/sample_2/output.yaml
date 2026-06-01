@@ -1,0 +1,343 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A Helm chart deploying a Redis cache with StatefulSet, headless Service, PersistentVolumeClaim, and a Secret for the Redis password.
+type: application
+version: 0.1.0
+appVersion: "7.2.5"
+kubeVersion: ">=1.20.0-0"
+---
+# FILE: values.yaml
+replicaCount: 1
+
+image:
+  repository: redis
+  tag: "7.2.5-alpine"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 6379
+  annotations: {}
+  labels: {}
+
+auth:
+  # If set, the chart will not create a Secret and will use this secret name.
+  existingSecret: ""
+  # If set (and existingSecret is not provided), use this password.
+  # If empty, a strong random password will be generated on install/upgrade and persisted.
+  password: ""
+
+persistence:
+  enabled: true
+  # Use StatefulSet volumeClaimTemplates for per-pod PVCs (recommended for replicas > 1)
+  useVolumeClaimTemplate: true
+  # Create a standalone PVC (for single-replica scenarios) and mount it instead of using volumeClaimTemplates.
+  # Only used if useVolumeClaimTemplate is false and existingClaim is empty.
+  create: false
+  # Use an existing PVC by name (only if useVolumeClaimTemplate is false)
+  existingClaim: ""
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+  selector: {}
+  labels: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+terminationGracePeriodSeconds: 30
+---
+# FILE: templates/_helpers.tpl
+{{- define "redis.name" -}}
+{{- .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "redis.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.nameOverride -}}
+{{- printf "%s" .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := include "redis.name" . -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{- define "redis.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" -}}
+{{- end }}
+
+{{- define "redis.labels" -}}
+helm.sh/chart: {{ include "redis.chart" . }}
+app.kubernetes.io/name: {{ include "redis.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{- define "redis.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "redis.headlessServiceName" -}}
+{{ include "redis.fullname" . }}-headless
+{{- end }}
+
+{{- define "redis.secretName" -}}
+{{- if .Values.auth.existingSecret -}}
+{{- .Values.auth.existingSecret -}}
+{{- else -}}
+{{ include "redis.fullname" . }}-auth
+{{- end -}}
+{{- end }}
+
+{{- define "redis.pvcName" -}}
+{{ include "redis.fullname" . }}-data
+{{- end }}
+---
+# FILE: templates/secret.yaml
+{{- if not .Values.auth.existingSecret }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis.secretName" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{- $secretName := include "redis.secretName" . -}}
+  {{- $existing := (lookup "v1" "Secret" .Release.Namespace $secretName) -}}
+  {{- $password := "" -}}
+  {{- if and $existing $existing.data -}}
+  {{- $password = (index $existing.data "redis-password") | b64dec -}}
+  {{- else if .Values.auth.password -}}
+  {{- $password = .Values.auth.password -}}
+  {{- else -}}
+  {{- $password = randAlphaNum 32 -}}
+  {{- end -}}
+  redis-password: {{ $password | quote }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis.headlessServiceName" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: redis
+      port: {{ .Values.service.port }}
+      targetPort: redis
+      protocol: TCP
+  selector:
+    {{- include "redis.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis.fullname" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "redis.headlessServiceName" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "redis.selectorLabels" . | nindent 6 }}
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        {{- include "redis.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          command: ["redis-server"]
+          args:
+            - "--appendonly"
+            - "yes"
+            - "--protected-mode"
+            - "yes"
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: redis-password
+          ports:
+            - name: redis
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep -q PONG'
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'redis-cli -a "$REDIS_PASSWORD" PING | grep -q PONG'
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      {{- if and .Values.persistence.enabled (not .Values.persistence.useVolumeClaimTemplate) }}
+      volumes:
+        {{- if .Values.persistence.existingClaim }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim }}
+        {{- else if .Values.persistence.create }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "redis.pvcName" . }}
+        {{- else }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+      {{- else if not .Values.persistence.enabled }}
+      volumes:
+        - name: data
+          emptyDir: {}
+      {{- end }}
+  {{- if and .Values.persistence.enabled .Values.persistence.useVolumeClaimTemplate }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "redis.labels" . | nindent 10 }}
+          {{- with .Values.persistence.labels }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+        {{- with .Values.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size | quote }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        {{- end }}
+        {{- with .Values.persistence.selector }}
+        selector:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+  {{- end }}
+---
+# FILE: templates/pvc.yaml
+{{- if and .Values.persistence.enabled (not .Values.persistence.useVolumeClaimTemplate) (not .Values.persistence.existingClaim) .Values.persistence.create }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis.pvcName" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+  {{- with .Values.persistence.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+  {{- with .Values.persistence.selector }}
+  selector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

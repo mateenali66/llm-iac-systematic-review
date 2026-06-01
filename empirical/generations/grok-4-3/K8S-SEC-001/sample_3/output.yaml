@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-secure
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.25
+    securityContext:
+      capabilities:
+        drop:
+        - ALL
+      runAsNonRoot: true
+      runAsUser: 101
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"

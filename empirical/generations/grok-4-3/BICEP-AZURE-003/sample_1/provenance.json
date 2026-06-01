@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-003",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\nparam location string = resourceGroup().location\nparam appServicePlanName string = 'asp-${uniqueString(resourceGroup().id)}'\nparam webAppName string = 'app-${uniqueString(resourceGroup().id)}'\nparam skuName string = 'P1v3'\nparam skuTier string = 'PremiumV3'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  sku: {\n    name: skuName\n    tier: skuTier\n  }\n  properties: {\n    reserved: true\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      appSettings: [\n        {\n          name: 'WEBSITE_NODE_DEFAULT_VERSION'\n          value: '~20'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}\n```",
+  "cleaned_response": "param location string = resourceGroup().location\nparam appServicePlanName string = 'asp-${uniqueString(resourceGroup().id)}'\nparam webAppName string = 'app-${uniqueString(resourceGroup().id)}'\nparam skuName string = 'P1v3'\nparam skuTier string = 'PremiumV3'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  sku: {\n    name: skuName\n    tier: skuTier\n  }\n  properties: {\n    reserved: true\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      appSettings: [\n        {\n          name: 'WEBSITE_NODE_DEFAULT_VERSION'\n          value: '~20'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\nparam location string = resourceGroup().location\nparam appServicePlanName string = 'asp-${uniqueString(resourceGroup().id)}'\nparam webAppName string = 'app-${uniqueString(resourceGroup().id)}'\nparam skuName string = 'P1v3'\nparam skuTier string = 'PremiumV3'\n\nresource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: appServicePlanName\n  location: location\n  kind: 'linux'\n  sku: {\n    name: skuName\n    tier: skuTier\n  }\n  properties: {\n    reserved: true\n  }\n}\n\nresource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: appServicePlan.id\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n      alwaysOn: true\n      appSettings: [\n        {\n          name: 'WEBSITE_NODE_DEFAULT_VERSION'\n          value: '~20'\n        }\n        {\n          name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'\n          value: 'true'\n        }\n      ]\n    }\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723805,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 137,
+      "output_tokens": 312,
+      "reasoning_tokens": 418,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 117
+    }
+  },
+  "started_at": "2026-05-25T15:43:17.364110+00:00",
+  "elapsed_seconds": 8.529
+}

@@ -1,0 +1,142 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 99,
+	"files_parsed": 1,
+	"lines_parsed": 99,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:09:43.547681844Z",
+	"end": "2026-05-26T05:09:44.083817803Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Key Vault Not Recoverable",
+			"query_id": "7c25f361-7c66-44bf-9b69-022acd5eb4bd",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/2019-09-01/vaults?tabs=json#vaultproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "530",
+			"cloud_provider": "AZURE",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Key Vault should have 'enableSoftDelete' and 'enablePurgeProtection' set to true",
+			"description_id": "8e3ca202",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "4bfdd2b8c8b13b7ef01d857dc0017e2facc60d956e04901b8c21160341ca666b",
+					"line": 46,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('kvName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('kvName')]}}.properties",
+					"search_line": 46,
+					"search_value": "enableSoftDelete",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enableSoftDelete' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enableSoftDelete' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Web App Not Using TLS Last Version",
+			"query_id": "b5c851d5-00f1-43dc-a8de-3218fd6f71be",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteconfig-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "327",
+			"cloud_provider": "AZURE",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Resources of type 'Microsoft.Web/sites' should define 'properties.siteConfig.minTlsVersion' with '1.2'",
+			"description_id": "1a442064",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "b74db74f63f02b2b6f2130e370f6c13181b38594a0a9ba3a3ca224a8eca594c5",
+					"line": 30,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=[parameters('webAppName')]",
+					"search_line": 30,
+					"search_value": "",
+					"expected_value": "'siteConfig.minTlsVersion' should be 1.2",
+					"actual_value": "'siteConfig.minTlsVersion' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with Client Certificate Auth Disabled",
+			"query_id": "92302b47-b0cc-46cb-a28f-5610ecda140b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "287",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have client certificate authentication enabled",
+			"description_id": "1b3c50da",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "289635ea122f273d1a470534e5ad34f909d4a6f59771ff864e622f0fe3039f76",
+					"line": 36,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('webAppName')]}}.properties",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'clientCertEnabled' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'clientCertEnabled' property defined"
+				}
+			]
+		},
+		{
+			"query_name": "Website with 'Http20Enabled' Disabled",
+			"query_id": "70111098-7f85-48f0-b1b4-e4261cf5f61b",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.web/sites?tabs=json#siteproperties-object",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "757",
+			"cloud_provider": "AZURE",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "'Microsoft.Web/sites' should have 'Http20Enabled' enabled",
+			"description_id": "e0cdbc75",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "9d811f9c1aa6b340583b0f5b516ea7f7d1e507c06924a50207f4ecdd37648020",
+					"line": 36,
+					"resource_type": "Microsoft.Web/sites",
+					"resource_name": "[parameters('webAppName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('webAppName')]}}.properties",
+					"search_line": 36,
+					"search_value": "",
+					"expected_value": "resource with type 'Microsoft.Web/sites' should have the 'siteConfig' property defined",
+					"actual_value": "resource with type 'Microsoft.Web/sites' doesn't have 'siteConfig' property defined"
+				}
+			]
+		}
+	]
+}

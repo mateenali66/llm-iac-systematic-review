@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-009",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Log Analytics workspace and Application Insights instance for monitoring an App Service web application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Log Analytics workspace and Application Insights instance for monitoring an App Service web application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "@description('The base name for the resources. A unique string will be appended to this name for uniqueness.')\n@minLength(3)\nparam appName string\n\n@description('The Azure region where the resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU for the Log Analytics Workspace.')\n@allowed([\n  'PerGB2018'\n  'Free'\n  'Standalone'\n  'PerNode'\n  'Standard'\n  'Premium'\n])\nparam logAnalyticsWorkspaceSku string = 'PerGB2018'\n\n@description('The data retention in days for the Log Analytics Workspace. 30-730 for most SKUs.')\n@minValue(30)\n@maxValue(730)\nparam logRetentionInDays int = 90\n\nvar logAnalyticsWorkspaceName = 'log-${appName}-${uniqueString(resourceGroup().id)}'\nvar appInsightsName = 'appi-${appName}-${uniqueString(resourceGroup().id)}'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsWorkspaceSku\n    }\n    retentionInDays: logRetentionInDays\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n    workspaceCapping: {\n      dailyQuotaGb: -1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    IngestionMode: 'LogAnalytics'\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\noutput logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id\noutput applicationInsightsId string = applicationInsights.id\noutput applicationInsightsName string = applicationInsights.name\noutput applicationInsightsInstrumentationKey string = applicationInsights.properties.InstrumentationKey\noutput applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString",
+  "cleaned_response": "@description('The base name for the resources. A unique string will be appended to this name for uniqueness.')\n@minLength(3)\nparam appName string\n\n@description('The Azure region where the resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU for the Log Analytics Workspace.')\n@allowed([\n  'PerGB2018'\n  'Free'\n  'Standalone'\n  'PerNode'\n  'Standard'\n  'Premium'\n])\nparam logAnalyticsWorkspaceSku string = 'PerGB2018'\n\n@description('The data retention in days for the Log Analytics Workspace. 30-730 for most SKUs.')\n@minValue(30)\n@maxValue(730)\nparam logRetentionInDays int = 90\n\nvar logAnalyticsWorkspaceName = 'log-${appName}-${uniqueString(resourceGroup().id)}'\nvar appInsightsName = 'appi-${appName}-${uniqueString(resourceGroup().id)}'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsWorkspaceSku\n    }\n    retentionInDays: logRetentionInDays\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n    workspaceCapping: {\n      dailyQuotaGb: -1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    IngestionMode: 'LogAnalytics'\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\noutput logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id\noutput applicationInsightsId string = applicationInsights.id\noutput applicationInsightsName string = applicationInsights.name\noutput applicationInsightsInstrumentationKey string = applicationInsights.properties.InstrumentationKey\noutput applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "@description('The base name for the resources. A unique string will be appended to this name for uniqueness.')\n@minLength(3)\nparam appName string\n\n@description('The Azure region where the resources should be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU for the Log Analytics Workspace.')\n@allowed([\n  'PerGB2018'\n  'Free'\n  'Standalone'\n  'PerNode'\n  'Standard'\n  'Premium'\n])\nparam logAnalyticsWorkspaceSku string = 'PerGB2018'\n\n@description('The data retention in days for the Log Analytics Workspace. 30-730 for most SKUs.')\n@minValue(30)\n@maxValue(730)\nparam logRetentionInDays int = 90\n\nvar logAnalyticsWorkspaceName = 'log-${appName}-${uniqueString(resourceGroup().id)}'\nvar appInsightsName = 'appi-${appName}-${uniqueString(resourceGroup().id)}'\n\nresource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {\n  name: logAnalyticsWorkspaceName\n  location: location\n  properties: {\n    sku: {\n      name: logAnalyticsWorkspaceSku\n    }\n    retentionInDays: logRetentionInDays\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n    workspaceCapping: {\n      dailyQuotaGb: -1\n    }\n  }\n}\n\nresource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {\n  name: appInsightsName\n  location: location\n  kind: 'web'\n  properties: {\n    Application_Type: 'web'\n    WorkspaceResourceId: logAnalyticsWorkspace.id\n    IngestionMode: 'LogAnalytics'\n    publicNetworkAccessForIngestion: 'Enabled'\n    publicNetworkAccessForQuery: 'Enabled'\n  }\n}\n\noutput logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id\noutput applicationInsightsId string = applicationInsights.id\noutput applicationInsightsName string = applicationInsights.name\noutput applicationInsightsInstrumentationKey string = applicationInsights.properties.InstrumentationKey\noutput applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779724877,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 119,
+      "output_tokens": 1806,
+      "raw_input_tokens": 119
+    }
+  },
+  "started_at": "2026-05-25T16:00:53.935673+00:00",
+  "elapsed_seconds": 23.788
+}

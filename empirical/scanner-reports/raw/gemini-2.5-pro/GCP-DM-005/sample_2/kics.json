@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 9,
+	"files_parsed": 1,
+	"lines_parsed": 9,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:56:00.956543213Z",
+	"end": "2026-05-26T04:56:01.189546797Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "SQL DB Instance With SSL Disabled",
+			"query_id": "660360d3-9ca7-46d1-b147-3acc4002953f",
+			"query_url": "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+			"severity": "HIGH",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "319",
+			"cloud_provider": "GCP",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Cloud SQL Database Instance should have SSL enabled",
+			"description_id": "b42ee5a9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "c78b04082d5226d6b77e17ec59ee501acc2fa59f73b7ea19c3d118127a0da745",
+					"line": 8,
+					"resource_type": "sqladmin.v1beta4.instance",
+					"resource_name": "saas-pg-instance",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{saas-pg-instance}}.properties.settings",
+					"search_line": 8,
+					"search_value": "",
+					"expected_value": "'settings.ipConfiguration' should be defined and not null",
+					"actual_value": "'settings.ipConfiguration' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "SQL DB Instance Backup Disabled",
+			"query_id": "a5bf1a1c-92c7-401c-b4c6-ebdc8b686c01",
+			"query_url": "https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1beta4/instances",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "497",
+			"cloud_provider": "GCP",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Checks if backup configuration is enabled for all Cloud SQL Database instances",
+			"description_id": "45790b7e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0fe2a3ef3030b46c4e0266395b6f03477e2765988bb2ee5966de7b78e33632f6",
+					"line": 8,
+					"resource_type": "sqladmin.v1beta4.instance",
+					"resource_name": "saas-pg-instance",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{saas-pg-instance}}.properties.settings",
+					"search_line": 8,
+					"search_value": "",
+					"expected_value": "'settings.backupConfiguration' should be defined and not null",
+					"actual_value": "'settings.backupConfiguration' is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,57 @@
+resources:
+- name: custom-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    ipCidrRange: 10.10.10.0/24
+    region: us-central1
+    description: "Public subnet for internet-facing resources"
+
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    ipCidrRange: 10.10.20.0/24
+    region: us-central1
+    privateIpGoogleAccess: true
+    description: "Private subnet for internal resources"
+
+- name: nat-router
+  type: compute.v1.router
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    nats:
+    - name: private-subnet-nat-gateway
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.private-subnet.selfLink)
+        sourceIpRangesToNat: [ALL_IP_RANGES]
+
+- name: fw-allow-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    description: "Allow all internal traffic within the VPC"
+    direction: INGRESS
+    priority: 65534
+    allowed:
+    - IPProtocol: all
+    sourceRanges:
+    - 10.10.0.0/16
+
+- name: fw-allow-ssh-public
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    description: "Allow SSH from any source to tagged instances"
+    direction: INGRESS
+    priority: 1000

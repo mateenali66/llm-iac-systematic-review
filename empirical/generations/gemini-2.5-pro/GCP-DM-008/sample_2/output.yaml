@@ -1,0 +1,27 @@
+resources:
+- name: storage-encryption-key-ring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/$(project)/locations/global
+    keyRingId: storage-encryption-key-ring
+
+- name: storage-encryption-key
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  metadata:
+    dependsOn:
+    - storage-encryption-key-ring
+  properties:
+    parent: $(ref.storage-encryption-key-ring.name)
+    cryptoKeyId: storage-encryption-key
+    purpose: ENCRYPT_DECRYPT
+    versionTemplate:
+      protectionLevel: SOFTWARE
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+    # Rotate key every 90 days
+    rotationPeriod: 7776000s
+
+outputs:
+- name: keyName
+  value: $(ref.storage-encryption-key.name)
+- name: keyRingName
+  value: $(ref.storage-encryption-key-ring.name)

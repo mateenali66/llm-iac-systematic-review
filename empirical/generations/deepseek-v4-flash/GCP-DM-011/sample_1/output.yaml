@@ -1,0 +1,101 @@
+imports:
+  - path: templates/instance_template.jinja
+  - path: templates/health_check.jinja
+  - path: templates/backend_service.jinja
+  - path: templates/url_map.jinja
+  - path: templates/target_proxy.jinja
+  - path: templates/forwarding_rule.jinja
+  - path: templates/autoscaler.jinja
+  - path: templates/instance_group_manager.jinja
+
+resources:
+  - name: my-instance-template
+    type: templates/instance_template.jinja
+    properties:
+      machineType: e2-micro
+      sourceImage: projects/debian-cloud/global/images/family/debian-11
+      network: global/networks/default
+      subnetwork: regions/us-central1/subnetworks/default
+      tags:
+        items:
+          - http-server
+          - https-server
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              apt-get update
+              apt-get install -y apache2
+              systemctl start apache2
+              systemctl enable apache2
+              echo "<html><body><h1>Hello from instance $(hostname)</h1></body></html>" > /var/www/html/index.html
+
+  - name: my-health-check
+    type: templates/health_check.jinja
+    properties:
+      checkIntervalSec: 5
+      timeoutSec: 5
+      healthyThreshold: 2
+      unhealthyThreshold: 2
+      type: HTTP
+      port: 80
+      requestPath: /
+
+  - name: my-backend-service
+    type: templates/backend_service.jinja
+    properties:
+      healthChecks:
+        - $(ref.my-health-check.selfLink)
+      portName: http
+      protocol: HTTP
+      timeoutSec: 30
+      enableCDN: false
+      sessionAffinity: NONE
+      localityLbPolicy: ROUND_ROBIN
+
+  - name: my-url-map
+    type: templates/url_map.jinja
+    properties:
+      defaultService: $(ref.my-backend-service.selfLink)
+
+  - name: my-target-https-proxy
+    type: templates/target_proxy.jinja
+    properties:
+      urlMap: $(ref.my-url-map.selfLink)
+      sslCertificates:
+        - projects/your-project-id/global/sslCertificates/your-ssl-cert-name
+
+  - name: my-forwarding-rule
+    type: templates/forwarding_rule.jinja
+    properties:
+      target: $(ref.my-target-https-proxy.selfLink)
+      portRange: 443
+      IPProtocol: TCP
+      loadBalancingScheme: EXTERNAL
+
+  - name: my-instance-group-manager
+    type: templates/instance_group_manager.jinja
+    properties:
+      baseInstanceName: my-instance
+      instanceTemplate: $(ref.my-instance-template.selfLink)
+      targetSize: 1
+      zone: us-central1-a
+      namedPorts:
+        - name: http
+          port: 80
+      autoHealingPolicies:
+        - healthCheck: $(ref.my-health-check.selfLink)
+          initialDelaySec: 300
+
+  - name: my-autoscaler
+    type: templates/autoscaler.jinja
+    properties:
+      target: $(ref.my-instance-group-manager.selfLink)
+      zone: us-central1-a
+      autoscalingPolicy:
+        minNumReplicas: 1
+        maxNumReplicas: 5
+        coolDownPeriodSec: 60
+        cpuUtilization:
+          utilizationTarget: 0.6

@@ -1,0 +1,209 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 258,
+	"files_parsed": 1,
+	"lines_parsed": 258,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 4,
+		"INFO": 3,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 8,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:48:54.365111335Z",
+	"end": "2026-05-26T04:49:14.286845511Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Sensitive Port Is Exposed To Entire Network",
+			"query_id": "381c3f2a-ef6f-4eff-99f7-b169cda3422c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for the whole network in either TCP or UDP protocol",
+			"description_id": "5be78364",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "9d5e54846894820f3c0b65b91fe3bcea6c54bdb60b6a26f88ab53527beab5c80",
+					"line": 220,
+					"resource_type": "aws_security_group",
+					"resource_name": "nodejs-app-beanstalk-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[beanstalk_sg].ingress",
+					"search_line": -1,
+					"search_value": "TCP,443",
+					"expected_value": "HTTPS (TCP:443) should not be allowed",
+					"actual_value": "HTTPS (TCP:443) is allowed"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4f1b036a35c6a25b02ae9ac624479747533bbf3ce772e5a9d6e063b92a437679",
+					"line": 220,
+					"resource_type": "aws_security_group",
+					"resource_name": "nodejs-app-beanstalk-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[beanstalk_sg].ingress",
+					"search_line": -1,
+					"search_value": "TCP,8080",
+					"expected_value": "Known internal web port (TCP:8080) should not be allowed",
+					"actual_value": "Known internal web port (TCP:8080) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4728cd65-a20c-49da-8b31-9c08b423e4db",
+			"query_url": "https://www.terraform.io/docs/providers/aws/r/security_group.html",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Security groups allow ingress from 0.0.0.0:0 and/or ::/0",
+			"description_id": "ce3ee5e0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b78501a66fe68101297e4251a5c571b65b8dad8ca2fa3f02f54542217513d1fb",
+					"line": 224,
+					"resource_type": "aws_security_group",
+					"resource_name": "nodejs-app-beanstalk-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[beanstalk_sg]",
+					"search_line": 224,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "4e3dace1924086b4ed101497e346b61daca3c3e1248a6ee92bbb06b4f1a5ebdc",
+					"line": 232,
+					"resource_type": "aws_security_group",
+					"resource_name": "nodejs-app-beanstalk-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[beanstalk_sg]",
+					"search_line": 232,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 33,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "816bbab327c3989be58f80d2e7bfa373ad6eb98887b302eed60890c81036f5bb",
+					"line": 33,
+					"resource_type": "aws_elastic_beanstalk_application",
+					"resource_name": "nodejs-app",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_application[{{app}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_application[{{app}}].tags should be defined and not null",
+					"actual_value": "aws_elastic_beanstalk_application[{{app}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0f7242c8283cc0e459dfc4d7bfb4be3fc1a4cae9599c601a61f5eab05d80cc4d",
+					"line": 38,
+					"resource_type": "aws_elastic_beanstalk_environment",
+					"resource_name": "nodejs-production",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_environment[{{env}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_environment[{{env}}].tags should be defined and not null",
+					"actual_value": "aws_elastic_beanstalk_environment[{{env}}].tags is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Not Used",
+			"query_id": "4849211b-ac39-479e-ae78-5694d506cb24",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Security group must be used or not declared",
+			"description_id": "eff2383a",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2ab441b22d03efca741ef4e20ac9741353ae2b0bf8639c323d296804a1345af0",
+					"line": 215,
+					"resource_type": "aws_security_group",
+					"resource_name": "nodejs-app-beanstalk-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[beanstalk_sg]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_security_group[beanstalk_sg]' should be used",
+					"actual_value": "'aws_security_group[beanstalk_sg]' is not used"
+				}
+			]
+		}
+	]
+}

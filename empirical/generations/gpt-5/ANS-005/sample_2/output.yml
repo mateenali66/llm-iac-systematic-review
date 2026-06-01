@@ -1,0 +1,157 @@
+- name: Install and configure Docker
+  hosts: all
+  become: true
+  gather_facts: yes
+
+  vars:
+    target_docker_user: "{{ docker_user | default(ansible_user_id) }}"
+    docker_debian_remove:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    docker_redhat_remove:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+    docker_packages_common:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+  tasks:
+    - name: Detect APT-based systems
+      set_fact:
+        docker_apt_repo_os: "{{ 'ubuntu' if ansible_distribution | lower == 'ubuntu' else 'debian' }}"
+      when: ansible_os_family == "Debian"
+
+    - name: Remove old Docker packages (Debian family)
+      apt:
+        name: "{{ docker_debian_remove }}"
+        state: absent
+        purge: yes
+        autoremove: yes
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Install prerequisites (Debian family)
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Create directory for APT keyrings
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: ansible_os_family == "Debian"
+
+    - name: Download Docker GPG key (ASCII) for APT
+      get_url:
+        url: "https://download.docker.com/linux/{{ docker_apt_repo_os }}/gpg"
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: yes
+        validate_certs: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Convert Docker GPG key to keyring format
+      command: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.asc
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure keyring has secure permissions
+      file:
+        path: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+      when: ansible_os_family == "Debian"
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{{ docker_apt_repo_os }} {{ ansible_distribution_release | lower }} stable"
+        filename: docker
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Remove old Docker packages (RedHat family)
+      yum:
+        name: "{{ docker_redhat_remove }}"
+        state: absent
+      when: ansible_os_family == "RedHat"
+
+    - name: Install prerequisites (RedHat family)
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+          - ca-certificates
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Add Docker YUM repository
+      yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+      when: ansible_os_family == "RedHat"
+
+    - name: Refresh package metadata (RedHat family)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == "RedHat"
+
+    - name: Install Docker packages (Debian family)
+      apt:
+        name: "{{ docker_packages_common }}"
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Docker packages (RedHat family)
+      yum:
+        name: "{{ docker_packages_common }}"
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure docker group exists
+      group:
+        name: docker
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ target_docker_user }}"
+        groups: docker
+        append: yes
+
+    - name: Reset SSH connection to apply new group membership
+      meta: reset_connection
+
+    - name: Enable and start Docker service
+      service:
+        name: docker
+        enabled: yes
+        state: started

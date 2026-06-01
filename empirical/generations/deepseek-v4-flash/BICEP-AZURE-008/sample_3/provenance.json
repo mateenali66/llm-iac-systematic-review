@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "BICEP-AZURE-008",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning a Key Vault for storing certificates, connection strings, and API keys used by a Web App.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning a Key Vault for storing certificates, connection strings, and API keys used by a Web App.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "@description('The name of the Key Vault to create. Must be globally unique.')\nparam keyVaultName string\n\n@description('The Azure region where resources will be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU of the Key Vault. Default is Standard.')\n@allowed([\n  'standard'\n  'premium'\n])\nparam skuName string = 'standard'\n\n@description('Enable soft delete on the Key Vault. Default is true.')\nparam enableSoftDelete bool = true\n\n@description('Number of days to retain soft-deleted items. Default is 90.')\nparam softDeleteRetentionInDays int = 90\n\n@description('Enable purge protection on the Key Vault. Default is true.')\nparam enablePurgeProtection bool = true\n\n@description('Enable RBAC authorization for data plane. Default is true.')\nparam enableRbacAuthorization bool = true\n\n@description('List of IP addresses or CIDR ranges allowed to access the Key Vault. Empty array means no network restrictions.')\nparam allowedIpRanges array = []\n\n@description('List of virtual network subnet resource IDs allowed to access the Key Vault.')\nparam allowedSubnetIds array = []\n\n@description('Enable private endpoint access only. Default is false.')\nparam enablePrivateEndpointOnly bool = false\n\n@description('The tenant ID for the Key Vault. Defaults to the current tenant.')\nparam tenantId string = subscription().tenantId\n\nvar networkAcls = {\n  defaultAction: enablePrivateEndpointOnly ? 'Deny' : 'Allow'\n  bypass: 'AzureServices'\n  ipRules: [for ip in allowedIpRanges: {\n    value: ip\n  }]\n  virtualNetworkRules: [for subnetId in allowedSubnetIds: {\n    id: subnetId\n    ignoreMissingVnetServiceEndpoint: false\n  }]\n}\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: skuName\n    }\n    tenantId: tenantId\n    enableSoftDelete: enableSoftDelete\n    softDeleteRetentionInDays: softDeleteRetentionInDays\n    enablePurgeProtection: enablePurgeProtection\n    enableRbacAuthorization: enableRbacAuthorization\n    networkAcls: networkAcls\n    vaultUri: ''\n  }\n}\n\noutput keyVaultName string = keyVault.name\noutput keyVaultUri string = keyVault.properties.vaultUri\noutput keyVaultResourceId string = keyVault.id",
+  "cleaned_response": "@description('The name of the Key Vault to create. Must be globally unique.')\nparam keyVaultName string\n\n@description('The Azure region where resources will be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU of the Key Vault. Default is Standard.')\n@allowed([\n  'standard'\n  'premium'\n])\nparam skuName string = 'standard'\n\n@description('Enable soft delete on the Key Vault. Default is true.')\nparam enableSoftDelete bool = true\n\n@description('Number of days to retain soft-deleted items. Default is 90.')\nparam softDeleteRetentionInDays int = 90\n\n@description('Enable purge protection on the Key Vault. Default is true.')\nparam enablePurgeProtection bool = true\n\n@description('Enable RBAC authorization for data plane. Default is true.')\nparam enableRbacAuthorization bool = true\n\n@description('List of IP addresses or CIDR ranges allowed to access the Key Vault. Empty array means no network restrictions.')\nparam allowedIpRanges array = []\n\n@description('List of virtual network subnet resource IDs allowed to access the Key Vault.')\nparam allowedSubnetIds array = []\n\n@description('Enable private endpoint access only. Default is false.')\nparam enablePrivateEndpointOnly bool = false\n\n@description('The tenant ID for the Key Vault. Defaults to the current tenant.')\nparam tenantId string = subscription().tenantId\n\nvar networkAcls = {\n  defaultAction: enablePrivateEndpointOnly ? 'Deny' : 'Allow'\n  bypass: 'AzureServices'\n  ipRules: [for ip in allowedIpRanges: {\n    value: ip\n  }]\n  virtualNetworkRules: [for subnetId in allowedSubnetIds: {\n    id: subnetId\n    ignoreMissingVnetServiceEndpoint: false\n  }]\n}\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: skuName\n    }\n    tenantId: tenantId\n    enableSoftDelete: enableSoftDelete\n    softDeleteRetentionInDays: softDeleteRetentionInDays\n    enablePurgeProtection: enablePurgeProtection\n    enableRbacAuthorization: enableRbacAuthorization\n    networkAcls: networkAcls\n    vaultUri: ''\n  }\n}\n\noutput keyVaultName string = keyVault.name\noutput keyVaultUri string = keyVault.properties.vaultUri\noutput keyVaultResourceId string = keyVault.id",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "@description('The name of the Key Vault to create. Must be globally unique.')\nparam keyVaultName string\n\n@description('The Azure region where resources will be deployed.')\nparam location string = resourceGroup().location\n\n@description('The SKU of the Key Vault. Default is Standard.')\n@allowed([\n  'standard'\n  'premium'\n])\nparam skuName string = 'standard'\n\n@description('Enable soft delete on the Key Vault. Default is true.')\nparam enableSoftDelete bool = true\n\n@description('Number of days to retain soft-deleted items. Default is 90.')\nparam softDeleteRetentionInDays int = 90\n\n@description('Enable purge protection on the Key Vault. Default is true.')\nparam enablePurgeProtection bool = true\n\n@description('Enable RBAC authorization for data plane. Default is true.')\nparam enableRbacAuthorization bool = true\n\n@description('List of IP addresses or CIDR ranges allowed to access the Key Vault. Empty array means no network restrictions.')\nparam allowedIpRanges array = []\n\n@description('List of virtual network subnet resource IDs allowed to access the Key Vault.')\nparam allowedSubnetIds array = []\n\n@description('Enable private endpoint access only. Default is false.')\nparam enablePrivateEndpointOnly bool = false\n\n@description('The tenant ID for the Key Vault. Defaults to the current tenant.')\nparam tenantId string = subscription().tenantId\n\nvar networkAcls = {\n  defaultAction: enablePrivateEndpointOnly ? 'Deny' : 'Allow'\n  bypass: 'AzureServices'\n  ipRules: [for ip in allowedIpRanges: {\n    value: ip\n  }]\n  virtualNetworkRules: [for subnetId in allowedSubnetIds: {\n    id: subnetId\n    ignoreMissingVnetServiceEndpoint: false\n  }]\n}\n\nresource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {\n  name: keyVaultName\n  location: location\n  properties: {\n    sku: {\n      family: 'A'\n      name: skuName\n    }\n    tenantId: tenantId\n    enableSoftDelete: enableSoftDelete\n    softDeleteRetentionInDays: softDeleteRetentionInDays\n    enablePurgeProtection: enablePurgeProtection\n    enableRbacAuthorization: enableRbacAuthorization\n    networkAcls: networkAcls\n    vaultUri: ''\n  }\n}\n\noutput keyVaultName string = keyVault.name\noutput keyVaultUri string = keyVault.properties.vaultUri\noutput keyVaultResourceId string = keyVault.id",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727785,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 125,
+      "output_tokens": 557,
+      "raw_input_tokens": 125
+    }
+  },
+  "started_at": "2026-05-25T16:49:39.970331+00:00",
+  "elapsed_seconds": 5.467
+}

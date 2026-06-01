@@ -1,0 +1,28 @@
+resources:
+- name: app-cache-redis
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    parent: projects/my-project/locations/us-central1
+    instanceId: app-cache-redis
+    displayName: app-cache-redis
+    labels:
+      environment: prod
+      role: cache
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: us-central1-a
+    redisVersion: REDIS_7_0
+    authEnabled: true
+    transitEncryptionMode: SERVER_AUTHENTICATION
+    authorizedNetwork: projects/my-project/global/networks/default
+    redisConfigs:
+      maxmemory-policy: allkeys-lru
+    maintenancePolicy:
+      weeklyMaintenanceWindow:
+      - day: SUNDAY
+        startTime:
+          hours: 3
+          minutes: 0
+          seconds: 0
+          nanos: 0
+    deletionProtectionEnabled: true

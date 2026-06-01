@@ -1,0 +1,52 @@
+imports:
+  - path: templates/logging_sink_bigquery.py
+    name: logging_sink_bigquery.py
+
+resources:
+  - name: log-export-bigquery-dataset
+    type: bigquery.v2.dataset
+    properties:
+      datasetReference:
+        datasetId: log_export_dataset
+        projectId: ${PROJECT_ID}
+      location: US
+      description: "Dataset for long-term log analysis from Cloud Logging sink"
+      defaultTableExpirationMs: 7776000000  # 90 days in milliseconds
+      labels:
+        environment: production
+        purpose: log-analysis
+
+  - name: log-export-sink
+    type: logging.v2.sink
+    properties:
+      sink: project-log-export-bigquery
+      destination: "bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_export_dataset"
+      filter: |
+        severity >= WARNING
+        OR resource.type = "k8s_container"
+        OR resource.type = "gce_instance"
+      includeChildren: true
+      description: "Sink to export logs to BigQuery for long-term analysis"
+      disabled: false
+      uniqueWriterIdentity: true
+      outputVersionFormat: V2
+      bigqueryOptions:
+        usePartitionedTables: true
+        usesTimestampColumnPartitioning: true
+
+  - name: log-export-sink-writer-permission
+    action: gcp-types/cloudresourcemanager-v1:cloudresourcemanager.projects.setIamPolicy
+    properties:
+      resource: ${PROJECT_ID}
+      policy:
+        bindings:
+          - role: roles/bigquery.dataEditor
+            members:
+              - $(ref.log-export-sink.writerIdentity)
+          - role: roles/bigquery.jobUser
+            members:
+              - $(ref.log-export-sink.writerIdentity)
+    metadata:
+      dependsOn:
+        - log-export-sink
+        - log-export-bigquery-dataset

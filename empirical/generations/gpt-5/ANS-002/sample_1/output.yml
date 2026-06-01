@@ -1,0 +1,152 @@
+- name: Configure firewall to allow SSH and HTTPS only
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    allowed_services_firewalld:
+      - ssh
+      - https
+    allowed_ports_tcp:
+      - "22"
+      - "443"
+
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Choose firewalld path if appropriate
+      ansible.builtin.set_fact:
+        use_firewalld: "{{ ('firewalld' in ansible_facts.packages) or (ansible_facts.os_family in ['RedHat','Suse','Fedora','Rocky','AlmaLinux']) }}"
+        use_ufw: "{{ ('ufw' in ansible_facts.packages) or (ansible_facts.os_family in ['Debian']) }}"
+
+    - block:
+        - name: Ensure firewalld is installed
+          ansible.builtin.package:
+            name: firewalld
+            state: present
+
+        - name: Ensure firewalld service is enabled and running
+          ansible.builtin.service:
+            name: firewalld
+            state: started
+            enabled: true
+
+        - name: Get default firewalld zone
+          ansible.builtin.command: firewall-cmd --get-default-zone
+          register: fw_default_zone
+          changed_when: false
+
+        - name: Allow required services (SSH, HTTPS) in default zone (permanent and runtime)
+          ansible.posix.firewalld:
+            service: "{{ item }}"
+            zone: "{{ fw_default_zone.stdout | trim }}"
+            state: enabled
+            permanent: true
+            immediate: true
+          loop: "{{ allowed_services_firewalld }}"
+
+        - name: List existing services in default zone (permanent)
+          ansible.builtin.command: "firewall-cmd --permanent --zone={{ fw_default_zone.stdout | trim }} --list-services"
+          register: fw_services
+          changed_when: false
+
+        - name: Disable non-allowed services in default zone
+          ansible.posix.firewalld:
+            service: "{{ item }}"
+            zone: "{{ fw_default_zone.stdout | trim }}"
+            state: disabled
+            permanent: true
+            immediate: true
+          loop: "{{ (fw_services.stdout | default('') | trim) | split() }}"
+          when: item not in allowed_services_firewalld
+
+        - name: List existing open ports in default zone (permanent)
+          ansible.builtin.command: "firewall-cmd --permanent --zone={{ fw_default_zone.stdout | trim }} --list-ports"
+          register: fw_ports
+          changed_when: false
+
+        - name: Disable non-allowed TCP ports in default zone
+          ansible.posix.firewalld:
+            port: "{{ item }}"
+            zone: "{{ fw_default_zone.stdout | trim }}"
+            state: disabled
+            permanent: true
+            immediate: true
+          loop: "{{ (fw_ports.stdout | default('') | trim) | split() }}"
+          when:
+            - item != ''
+            - item is match('^[0-9]+/tcp$')
+            - (item.split('/')[0]) not in allowed_ports_tcp
+
+        - name: Set default zone target to DROP (deny all other inbound)
+          ansible.posix.firewalld:
+            zone: "{{ fw_default_zone.stdout | trim }}"
+            target: DROP
+            permanent: true
+            immediate: true
+      when: use_firewalld
+
+    - block:
+        - name: Ensure ufw is installed
+          ansible.builtin.package:
+            name: ufw
+            state: present
+
+        - name: Get UFW status (verbose)
+          ansible.builtin.command: ufw status verbose
+          register: ufw_status
+          changed_when: false
+          failed_when: false
+
+        - name: Determine if extraneous allow rules exist
+          ansible.builtin.set_fact:
+            ufw_allowed_targets_raw: "{{ ufw_status.stdout | default('') | regex_findall('^\\s*([0-9A-Za-z_./() :+-]+?)\\s+ALLOW', multiline=True) | map('regex_replace', ' \\(v6\\)', '') | map('trim') | list }}"
+            ufw_allowed_expected_labels:
+              - "22/tcp"
+              - "443/tcp"
+              - "OpenSSH"
+        - name: Normalize allowed rules and compute extraneous
+          ansible.builtin.set_fact:
+            ufw_extraneous_allows: >-
+              {{
+                ufw_allowed_targets_raw
+                | reject('in', ufw_allowed_expected_labels)
+                | list
+              }}
+
+        - name: Reset UFW if extraneous allows are present
+          ansible.builtin.command: ufw --force reset
+          when: ufw_extraneous_allows | length > 0
+          changed_when: true
+
+        - name: Ensure default incoming policy is deny
+          community.general.ufw:
+            direction: incoming
+            policy: deny
+
+        - name: Ensure default outgoing policy is allow
+          community.general.ufw:
+            direction: outgoing
+            policy: allow
+
+        - name: Allow SSH (22/tcp)
+          community.general.ufw:
+            rule: allow
+            port: "22"
+            proto: tcp
+
+        - name: Allow HTTPS (443/tcp)
+          community.general.ufw:
+            rule: allow
+            port: "443"
+            proto: tcp
+
+        - name: Ensure UFW is enabled
+          community.general.ufw:
+            state: enabled
+            logging: 'on'
+      when:
+        - not use_firewalld
+        - use_ufw

@@ -1,0 +1,54 @@
+resources:
+  - name: github-oidc-provider
+    type: iam.v1.OidcProvider
+    properties:
+      issuerUri: https://token.actions.githubusercontent.com
+      audience: cloud-run.googleapis.com
+
+  - name: github-oidc-identity-pool
+    type: iam.v1.WorkloadIdentityPool
+    properties:
+      workloadIdentityPoolId: github-oidc-pool
+
+  - name: github-oidc-identity-pool-provider
+    type: iam.v1.WorkloadIdentityPoolProvider
+    properties:
+      providerId: github-oidc-provider
+      workloadIdentityPoolId: github-oidc-pool
+      attributeNameMapping:
+        google.subject: assertion.sub
+        attribute.github_username: assertion.repository_owner
+        attribute.github_repository: assertion.repository
+
+  - name: cloud-run-service-account
+    type: iam.v1.ServiceAccount
+    properties:
+      accountId: cloud-run-deployer
+      displayName: Cloud Run Deployer
+
+  - name: cloud-run-service-account-iam-policy
+    type: iam.v1.Policy
+    properties:
+      policyId: cloud-run-deployer-policy
+      bindings:
+        - role: roles/run.serviceAgent
+          members:
+            - serviceAccount:$(ref. cloud-run-service-account.email)
+        - role: roles/iam.workloadIdentityUser
+          members:
+            - serviceAccount:$(ref. cloud-run-service-account.email)
+
+  - name: github-oidc-service-account-iam-policy
+    type: iam.v1.Policy
+    properties:
+      policyId: github-oidc-deployer-policy
+      bindings:
+        - role: roles/iam.workloadIdentityUser
+          members:
+            - serviceAccount:$(ref. cloud-run-service-account.email)
+
+outputs:
+  - name: workloadIdentityPoolId
+    value: $(ref. github-oidc-identity-pool.name)
+  - name: serviceAccountId
+    value: $(ref. cloud-run-service-account.name)

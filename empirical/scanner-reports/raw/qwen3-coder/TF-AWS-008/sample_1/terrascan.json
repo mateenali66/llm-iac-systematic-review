@@ -1,0 +1,65 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "iamUserInlinePolicy",
+        "description": "Ensure IAM policies are attached only to groups or roles",
+        "rule_id": "AC_AWS_0475",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "jenkins_deploy_policy",
+        "resource_type": "aws_iam_user_policy",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 6
+      },
+      {
+        "rule_name": "programmaticAccessCreation",
+        "description": "Ensure that there are no exposed Amazon IAM access keys in order to protect your AWS resources against unapproved access",
+        "rule_id": "AC_AWS_0133",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "jenkins_deploy_key",
+        "resource_type": "aws_iam_access_key",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 68
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 06:34:04.683400052 +0000 UTC",
+      "policies_validated": 7,
+      "violated_policies": 2,
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    }
+  }
+}

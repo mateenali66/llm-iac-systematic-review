@@ -1,0 +1,40 @@
+imports:
+  - path: templates/service_account.jinja
+  - path: templates/iam_binding.jinja
+
+resources:
+  - name: cf-storage-reader-sa
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cf-storage-reader
+      displayName: Cloud Function Storage Reader Service Account
+      description: Service account used by Cloud Function to read objects from a designated GCS bucket
+      projectId: $(ref.project.projectId)
+
+  - name: bucket-object-viewer-binding
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: my-application-data-bucket
+      role: roles/storage.objectViewer
+      member: serviceAccount:$(ref.cf-storage-reader-sa.email)
+    metadata:
+      dependsOn:
+        - cf-storage-reader-sa
+
+  - name: bucket-legacy-reader-binding
+    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+    properties:
+      bucket: my-application-data-bucket
+      role: roles/storage.legacyBucketReader
+      member: serviceAccount:$(ref.cf-storage-reader-sa.email)
+    metadata:
+      dependsOn:
+        - cf-storage-reader-sa
+
+outputs:
+  - name: serviceAccountEmail
+    value: $(ref.cf-storage-reader-sa.email)
+  - name: serviceAccountName
+    value: $(ref.cf-storage-reader-sa.name)
+  - name: serviceAccountUniqueId
+    value: $(ref.cf-storage-reader-sa.uniqueId)

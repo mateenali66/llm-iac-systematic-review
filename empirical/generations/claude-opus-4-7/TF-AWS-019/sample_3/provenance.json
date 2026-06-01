@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-019",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudWatch alarm that fires when the CPU utilization of an EC2 instance 'i-0123456789abcdef' exceeds 80% for 10 consecutive minutes.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create a CloudWatch alarm that fires when the CPU utilization of an EC2 instance 'i-0123456789abcdef' exceeds 80% for 10 consecutive minutes.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"instance_id\" {\n  description = \"EC2 instance ID to monitor\"\n  type        = string\n  default     = \"i-0123456789abcdef\"\n}\n\nvariable \"alarm_actions\" {\n  description = \"List of ARNs (e.g., SNS topics) to notify when the alarm transitions to ALARM state\"\n  type        = list(string)\n  default     = []\n}\n\nvariable \"ok_actions\" {\n  description = \"List of ARNs to notify when the alarm transitions to OK state\"\n  type        = list(string)\n  default     = []\n}\n\nresource \"aws_cloudwatch_metric_alarm\" \"ec2_high_cpu\" {\n  alarm_name          = \"ec2-${var.instance_id}-high-cpu-utilization\"\n  alarm_description   = \"Triggers when EC2 instance ${var.instance_id} CPU utilization exceeds 80% for 10 consecutive minutes.\"\n\n  namespace           = \"AWS/EC2\"\n  metric_name         = \"CPUUtilization\"\n  statistic           = \"Average\"\n  unit                = \"Percent\"\n\n  period              = 60\n  evaluation_periods  = 10\n  datapoints_to_alarm = 10\n\n  threshold           = 80\n  comparison_operator = \"GreaterThanThreshold\"\n  treat_missing_data  = \"missing\"\n\n  dimensions = {\n    InstanceId = var.instance_id\n  }\n\n  actions_enabled = true\n  alarm_actions   = var.alarm_actions\n  ok_actions      = var.ok_actions\n\n  tags = {\n    Name        = \"ec2-${var.instance_id}-high-cpu-utilization\"\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\noutput \"alarm_arn\" {\n  description = \"ARN of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.arn\n}\n\noutput \"alarm_name\" {\n  description = \"Name of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.alarm_name\n}",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"instance_id\" {\n  description = \"EC2 instance ID to monitor\"\n  type        = string\n  default     = \"i-0123456789abcdef\"\n}\n\nvariable \"alarm_actions\" {\n  description = \"List of ARNs (e.g., SNS topics) to notify when the alarm transitions to ALARM state\"\n  type        = list(string)\n  default     = []\n}\n\nvariable \"ok_actions\" {\n  description = \"List of ARNs to notify when the alarm transitions to OK state\"\n  type        = list(string)\n  default     = []\n}\n\nresource \"aws_cloudwatch_metric_alarm\" \"ec2_high_cpu\" {\n  alarm_name          = \"ec2-${var.instance_id}-high-cpu-utilization\"\n  alarm_description   = \"Triggers when EC2 instance ${var.instance_id} CPU utilization exceeds 80% for 10 consecutive minutes.\"\n\n  namespace           = \"AWS/EC2\"\n  metric_name         = \"CPUUtilization\"\n  statistic           = \"Average\"\n  unit                = \"Percent\"\n\n  period              = 60\n  evaluation_periods  = 10\n  datapoints_to_alarm = 10\n\n  threshold           = 80\n  comparison_operator = \"GreaterThanThreshold\"\n  treat_missing_data  = \"missing\"\n\n  dimensions = {\n    InstanceId = var.instance_id\n  }\n\n  actions_enabled = true\n  alarm_actions   = var.alarm_actions\n  ok_actions      = var.ok_actions\n\n  tags = {\n    Name        = \"ec2-${var.instance_id}-high-cpu-utilization\"\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\noutput \"alarm_arn\" {\n  description = \"ARN of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.arn\n}\n\noutput \"alarm_name\" {\n  description = \"Name of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.alarm_name\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_version = \">= 1.3.0\"\n\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n}\n\nvariable \"instance_id\" {\n  description = \"EC2 instance ID to monitor\"\n  type        = string\n  default     = \"i-0123456789abcdef\"\n}\n\nvariable \"alarm_actions\" {\n  description = \"List of ARNs (e.g., SNS topics) to notify when the alarm transitions to ALARM state\"\n  type        = list(string)\n  default     = []\n}\n\nvariable \"ok_actions\" {\n  description = \"List of ARNs to notify when the alarm transitions to OK state\"\n  type        = list(string)\n  default     = []\n}\n\nresource \"aws_cloudwatch_metric_alarm\" \"ec2_high_cpu\" {\n  alarm_name          = \"ec2-${var.instance_id}-high-cpu-utilization\"\n  alarm_description   = \"Triggers when EC2 instance ${var.instance_id} CPU utilization exceeds 80% for 10 consecutive minutes.\"\n\n  namespace           = \"AWS/EC2\"\n  metric_name         = \"CPUUtilization\"\n  statistic           = \"Average\"\n  unit                = \"Percent\"\n\n  period              = 60\n  evaluation_periods  = 10\n  datapoints_to_alarm = 10\n\n  threshold           = 80\n  comparison_operator = \"GreaterThanThreshold\"\n  treat_missing_data  = \"missing\"\n\n  dimensions = {\n    InstanceId = var.instance_id\n  }\n\n  actions_enabled = true\n  alarm_actions   = var.alarm_actions\n  ok_actions      = var.ok_actions\n\n  tags = {\n    Name        = \"ec2-${var.instance_id}-high-cpu-utilization\"\n    ManagedBy   = \"Terraform\"\n    Environment = \"production\"\n  }\n}\n\noutput \"alarm_arn\" {\n  description = \"ARN of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.arn\n}\n\noutput \"alarm_name\" {\n  description = \"Name of the CloudWatch CPU utilization alarm\"\n  value       = aws_cloudwatch_metric_alarm.ec2_high_cpu.alarm_name\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729301,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 265,
+      "output_tokens": 787,
+      "raw_input_tokens": 265
+    }
+  },
+  "started_at": "2026-05-25T17:14:50.324864+00:00",
+  "elapsed_seconds": 10.841
+}

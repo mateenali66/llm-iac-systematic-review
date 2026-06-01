@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-006",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: cloud-function-service-account\n  type: iam.v1.serviceAccount\n  properties:\n    accountId: cf-storage-reader-sa\n    displayName: Service Account for Cloud Function Storage Reader\n    projectId: {{ env['project'] }}\n\n- name: storage-bucket-reader-role\n  type: gcp-types/iam-v1:projects.roles\n  properties:\n    parent: projects/{{ env['project'] }}\n    roleId: customStorageObjectViewer\n    role:\n      title: Custom Storage Object Viewer\n      description: Custom role to read objects from specific bucket\n      includedPermissions:\n        - storage.objects.get\n        - storage.objects.list\n\n- name: service-account-storage-policy\n  type: gcp-types/storage-v1:buckets/setIamPolicy\n  properties:\n    bucket: $(ref.cloud-storage-bucket.name)\n    project: {{ env['project'] }}\n    bindings:\n      - role: roles/storage.objectViewer\n        members:\n          - serviceAccount: $(ref.cloud-function-service-account.email)\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\n- name: service-account-key\n  type: iam.v1.serviceAccount.key\n  properties:\n    parent: $(ref.cloud-function-service-account.name)\n    keyAlgorithm: KEY_ALG_RSA_2048\n    privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\noutputs:\n- name: serviceAccountEmail\n  value: $(ref.cloud-function-service-account.email)\n- name: serviceAccountKey\n  value: $(ref.service-account-key.privateKeyData)",
+  "cleaned_response": "resources:\n- name: cloud-function-service-account\n  type: iam.v1.serviceAccount\n  properties:\n    accountId: cf-storage-reader-sa\n    displayName: Service Account for Cloud Function Storage Reader\n    projectId: {{ env['project'] }}\n\n- name: storage-bucket-reader-role\n  type: gcp-types/iam-v1:projects.roles\n  properties:\n    parent: projects/{{ env['project'] }}\n    roleId: customStorageObjectViewer\n    role:\n      title: Custom Storage Object Viewer\n      description: Custom role to read objects from specific bucket\n      includedPermissions:\n        - storage.objects.get\n        - storage.objects.list\n\n- name: service-account-storage-policy\n  type: gcp-types/storage-v1:buckets/setIamPolicy\n  properties:\n    bucket: $(ref.cloud-storage-bucket.name)\n    project: {{ env['project'] }}\n    bindings:\n      - role: roles/storage.objectViewer\n        members:\n          - serviceAccount: $(ref.cloud-function-service-account.email)\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\n- name: service-account-key\n  type: iam.v1.serviceAccount.key\n  properties:\n    parent: $(ref.cloud-function-service-account.name)\n    keyAlgorithm: KEY_ALG_RSA_2048\n    privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\noutputs:\n- name: serviceAccountEmail\n  value: $(ref.cloud-function-service-account.email)\n- name: serviceAccountKey\n  value: $(ref.service-account-key.privateKeyData)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: cloud-function-service-account\n  type: iam.v1.serviceAccount\n  properties:\n    accountId: cf-storage-reader-sa\n    displayName: Service Account for Cloud Function Storage Reader\n    projectId: {{ env['project'] }}\n\n- name: storage-bucket-reader-role\n  type: gcp-types/iam-v1:projects.roles\n  properties:\n    parent: projects/{{ env['project'] }}\n    roleId: customStorageObjectViewer\n    role:\n      title: Custom Storage Object Viewer\n      description: Custom role to read objects from specific bucket\n      includedPermissions:\n        - storage.objects.get\n        - storage.objects.list\n\n- name: service-account-storage-policy\n  type: gcp-types/storage-v1:buckets/setIamPolicy\n  properties:\n    bucket: $(ref.cloud-storage-bucket.name)\n    project: {{ env['project'] }}\n    bindings:\n      - role: roles/storage.objectViewer\n        members:\n          - serviceAccount: $(ref.cloud-function-service-account.email)\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\n- name: service-account-key\n  type: iam.v1.serviceAccount.key\n  properties:\n    parent: $(ref.cloud-function-service-account.name)\n    keyAlgorithm: KEY_ALG_RSA_2048\n    privateKeyType: TYPE_GOOGLE_CREDENTIALS_FILE\n  metadata:\n    dependsOn:\n      - cloud-function-service-account\n\noutputs:\n- name: serviceAccountEmail\n  value: $(ref.cloud-function-service-account.email)\n- name: serviceAccountKey\n  value: $(ref.service-account-key.privateKeyData)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725058,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 143,
+      "output_tokens": 333,
+      "raw_input_tokens": 143
+    }
+  },
+  "started_at": "2026-05-25T16:04:13.156547+00:00",
+  "elapsed_seconds": 5.443
+}

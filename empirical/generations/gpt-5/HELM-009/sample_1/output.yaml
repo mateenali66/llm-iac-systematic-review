@@ -1,0 +1,444 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: nginx-reverse-proxy
+description: Helm chart to deploy NGINX as a reverse proxy with custom configuration, LoadBalancer Service, and restricted egress via NetworkPolicy.
+type: application
+version: 0.1.0
+appVersion: "1.25.5"
+
+---
+# FILE: values.yaml
+# Image configuration
+image:
+  repository: nginx
+  tag: "1.25.5-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: myRegistryKey
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: false
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  annotations: {}
+  loadBalancerIP: ""
+  externalTrafficPolicy: Cluster
+  loadBalancerSourceRanges: []
+  sessionAffinity: None
+
+resources:
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Optional topology spread to improve HA across zones/nodes
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: topology.kubernetes.io/zone
+#   whenUnsatisfiable: ScheduleAnyway
+#   labelSelector: {}
+
+# Optional PodDisruptionBudget
+pdb:
+  enabled: false
+  minAvailable: 50%
+
+# NGINX Configuration (ConfigMap). Customize upstream/backend and server behavior here.
+# Note: NGINX will listen on 8080 (non-privileged). Service maps port 80 -> 8080 by default.
+nginxConfig: |-
+  user  nginx;
+  worker_processes  auto;
+
+  error_log  /dev/stderr notice;
+  pid        /var/run/nginx.pid;
+
+  events {
+    worker_connections  1024;
+  }
+
+  http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /dev/stdout  main;
+
+    sendfile        on;
+    tcp_nopush      on;
+    keepalive_timeout  65;
+
+    # Define your upstream(s) here. Replace service name/port as needed.
+    upstream backend {
+      server backend.default.svc.cluster.local:8080;
+      # server 10.0.0.10:8080;
+    }
+
+    server {
+      listen       8080;
+      server_name  _;
+
+      # Simple health endpoint
+      location /healthz {
+        access_log off;
+        return 200 'ok';
+        add_header Content-Type text/plain;
+      }
+
+      location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_buffering on;
+        proxy_read_timeout 60s;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_pass http://backend;
+      }
+    }
+  }
+
+# NetworkPolicy configuration to restrict upstream traffic (egress).
+# By default, only DNS egress is allowed. Add explicit egress rules to permit upstreams.
+networkPolicy:
+  enabled: true
+
+  # Allow DNS egress for name resolution (to kube-dns/coredns in kube-system).
+  allowDNS: true
+
+  # Additional egress rules appended to the policy.
+  # Example:
+  # additionalEgress:
+  #   - to:
+  #       - namespaceSelector:
+  #           matchLabels:
+  #             kubernetes.io/metadata.name: default
+  #         podSelector:
+  #           matchLabels:
+  #             app.kubernetes.io/name: backend
+  #     ports:
+  #       - protocol: TCP
+  #         port: 8080
+  additionalEgress: []
+
+# Extra volumes/mounts if needed
+extraVolumes: []
+extraVolumeMounts: []
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "nginx-reverse-proxy.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "nginx-reverse-proxy.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := include "nginx-reverse-proxy.name" . -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "nginx-reverse-proxy.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" -}}
+{{- end -}}
+
+{{- define "nginx-reverse-proxy.labels" -}}
+helm.sh/chart: {{ include "nginx-reverse-proxy.chart" . }}
+app.kubernetes.io/name: {{ include "nginx-reverse-proxy.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "nginx-reverse-proxy.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "nginx-reverse-proxy.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "nginx-reverse-proxy.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "nginx-reverse-proxy.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "nginx-reverse-proxy.serviceAccountName" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+automountServiceAccountToken: {{ ternary "true" "false" .Values.serviceAccount.automount | quote }}
+{{- end }}
+
+---
+# FILE: templates/configmap-nginx.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}-config
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+    {{- .Values.nginxConfig | nindent 4 }}
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-nginx.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "nginx-reverse-proxy.serviceAccountName" . }}
+      automountServiceAccountToken: {{ ternary "true" "false" .Values.serviceAccount.automount | quote }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: nginx
+          image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.targetPort }}
+              scheme: HTTP
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.service.targetPort }}
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: cache
+              mountPath: /var/cache/nginx
+            - name: run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+            {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: {{ include "nginx-reverse-proxy.fullname" . }}-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+            defaultMode: 0444
+        - name: cache
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP | quote }}
+  {{- end }}
+  {{- with .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      appProtocol: http
+  selector:
+    {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 4 }}
+
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Egress
+  egress:
+    {{- if .Values.networkPolicy.allowDNS }}
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- end }}
+    {{- with .Values.networkPolicy.additionalEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}
+
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "nginx-reverse-proxy.fullname" . }}
+  labels:
+    {{- include "nginx-reverse-proxy.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "nginx-reverse-proxy.selectorLabels" . | nindent 6 }}
+{{- end }}

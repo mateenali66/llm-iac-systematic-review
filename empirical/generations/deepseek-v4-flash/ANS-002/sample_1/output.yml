@@ -1,0 +1,40 @@
+- name: Configure firewall to allow SSH and HTTPS, deny all other inbound
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure firewalld is installed
+      package:
+        name: firewalld
+        state: present
+
+    - name: Ensure firewalld is running and enabled
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow SSH (port 22/tcp)
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Allow HTTPS (port 443/tcp)
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Set default zone to drop (deny all inbound traffic not explicitly allowed)
+      firewalld:
+        zone: drop
+        state: enabled
+        permanent: yes
+        immediate: yes
+
+    - name: Reload firewalld to apply permanent rules
+      systemd:
+        name: firewalld
+        state: reloaded

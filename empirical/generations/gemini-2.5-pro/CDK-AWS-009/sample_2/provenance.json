@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-009",
+  "language": "cdk_python",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CDK Python stack provisioning an AWS WAF web ACL with managed rule sets attached to an Application Load Balancer.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Write a CDK Python stack provisioning an AWS WAF web ACL with managed rule sets attached to an Application Load Balancer.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    aws_elasticloadbalancingv2 as elbv2,\n    aws_wafv2 as wafv2,\n)\nfrom constructs import Construct\n\nclass WafAlbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create a VPC for the Application Load Balancer\n        vpc = ec2.Vpc(\n            self, \"WafVpc\",\n            max_azs=2,\n            nat_gateways=1,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"public-subnet\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"private-subnet\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ]\n        )\n\n        # Create an Application Load Balancer\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"WafAlb\",\n            vpc=vpc,\n            internet_facing=True\n        )\n\n        # Create the WAFv2 Web ACL\n        web_acl = wafv",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    aws_elasticloadbalancingv2 as elbv2,\n    aws_wafv2 as wafv2,\n)\nfrom constructs import Construct\n\nclass WafAlbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create a VPC for the Application Load Balancer\n        vpc = ec2.Vpc(\n            self, \"WafVpc\",\n            max_azs=2,\n            nat_gateways=1,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"public-subnet\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"private-subnet\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ]\n        )\n\n        # Create an Application Load Balancer\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"WafAlb\",\n            vpc=vpc,\n            internet_facing=True\n        )\n\n        # Create the WAFv2 Web ACL\n        web_acl = wafv",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    aws_elasticloadbalancingv2 as elbv2,\n    aws_wafv2 as wafv2,\n)\nfrom constructs import Construct\n\nclass WafAlbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create a VPC for the Application Load Balancer\n        vpc = ec2.Vpc(\n            self, \"WafVpc\",\n            max_azs=2,\n            nat_gateways=1,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"public-subnet\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"private-subnet\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ]\n        )\n\n        # Create an Application Load Balancer\n        alb = elbv2.ApplicationLoadBalancer(\n            self, \"WafAlb\",\n            vpc=vpc,\n            internet_facing=True\n        )\n\n        # Create the WAFv2 Web ACL\n        web_acl = wafv",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779725984,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 119,
+      "output_tokens": 2044,
+      "raw_input_tokens": 119
+    }
+  },
+  "started_at": "2026-05-25T16:19:26.298809+00:00",
+  "elapsed_seconds": 18.74
+}

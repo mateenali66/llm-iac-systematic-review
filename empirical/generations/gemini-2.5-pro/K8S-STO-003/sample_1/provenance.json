@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "K8S-STO-003",
+  "language": "k8s_yaml",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a Kubernetes ConfigMap manifest storing an nginx.conf configuration file mounted into an nginx Deployment at /etc/nginx/conf.d/.",
+  "user_message_sent": "Target IaC language: Kubernetes manifest (YAML)\n\nTask: Generate a Kubernetes ConfigMap manifest storing an nginx.conf configuration file mounted into an nginx Deployment at /etc/nginx/conf.d/.\n\nOutput only the Kubernetes manifest (YAML) code, no commentary or markdown fences.",
+  "raw_response": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: nginx-config\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\ndata:\n  default.conf: |\n    server {\n        listen       80;\n        listen  [::]:80;\n        server_name  _;\n\n        # Production-grade logging\n        access_log /var/log/nginx/access.log main;\n        error_log /var/log/nginx/error.log warn;\n\n        # Root and index files\n        root   /usr/share/nginx/html;\n        index  index.html index.htm;\n\n        # Default location block\n        location / {\n            try_files $uri $uri/ =404;\n        }\n\n        # Health check endpoint\n        location /healthz {\n            access_log off;\n            return 200 \"OK\";\n        }\n\n        # Deny access to hidden files\n        location ~ /\\. {\n            deny all;\n        }\n\n        # Error pages\n        error_page   500 502 503 504  /50x.html;\n        location = /50x.html {\n            root   /usr/share/nginx/html;\n        }\n    }\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: nginx\n      app.kubernetes.io/instance: nginx-instance\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name:",
+  "cleaned_response": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: nginx-config\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\ndata:\n  default.conf: |\n    server {\n        listen       80;\n        listen  [::]:80;\n        server_name  _;\n\n        # Production-grade logging\n        access_log /var/log/nginx/access.log main;\n        error_log /var/log/nginx/error.log warn;\n\n        # Root and index files\n        root   /usr/share/nginx/html;\n        index  index.html index.htm;\n\n        # Default location block\n        location / {\n            try_files $uri $uri/ =404;\n        }\n\n        # Health check endpoint\n        location /healthz {\n            access_log off;\n            return 200 \"OK\";\n        }\n\n        # Deny access to hidden files\n        location ~ /\\. {\n            deny all;\n        }\n\n        # Error pages\n        error_page   500 502 503 504  /50x.html;\n        location = /50x.html {\n            root   /usr/share/nginx/html;\n        }\n    }\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: nginx\n      app.kubernetes.io/instance: nginx-instance\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name:",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: nginx-config\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\ndata:\n  default.conf: |\n    server {\n        listen       80;\n        listen  [::]:80;\n        server_name  _;\n\n        # Production-grade logging\n        access_log /var/log/nginx/access.log main;\n        error_log /var/log/nginx/error.log warn;\n\n        # Root and index files\n        root   /usr/share/nginx/html;\n        index  index.html index.htm;\n\n        # Default location block\n        location / {\n            try_files $uri $uri/ =404;\n        }\n\n        # Health check endpoint\n        location /healthz {\n            access_log off;\n            return 200 \"OK\";\n        }\n\n        # Deny access to hidden files\n        location ~ /\\. {\n            deny all;\n        }\n\n        # Error pages\n        error_page   500 502 503 504  /50x.html;\n        location = /50x.html {\n            root   /usr/share/nginx/html;\n        }\n    }\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\n  labels:\n    app.kubernetes.io/name: nginx\n    app.kubernetes.io/instance: nginx-instance\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app.kubernetes.io/name: nginx\n      app.kubernetes.io/instance: nginx-instance\n  template:\n    metadata:\n      labels:\n        app.kubernetes.io/name:",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779729394,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 125,
+      "output_tokens": 2044,
+      "raw_input_tokens": 125
+    }
+  },
+  "started_at": "2026-05-25T17:16:12.828919+00:00",
+  "elapsed_seconds": 21.697
+}

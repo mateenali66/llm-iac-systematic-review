@@ -1,0 +1,29 @@
+resources:
+- name: static-website-bucket
+  type: gcp-types/storage-v1:buckets
+  properties:
+    name: $(env.deployment)-static-site-bucket
+    storageClass: STANDARD
+    location: US-CENTRAL1
+    versioning:
+      enabled: true
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    cors:
+    - origin: ["*"]
+      method: ["GET"]
+      responseHeader: ["Content-Type"]
+      maxAgeSeconds: 3600
+
+- name: static-website-bucket-iam
+  type: gcp-types/storage-v1:bucket.iam
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    bindings:
+    - role: roles/storage.objectViewer
+      members:
+      - allUsers

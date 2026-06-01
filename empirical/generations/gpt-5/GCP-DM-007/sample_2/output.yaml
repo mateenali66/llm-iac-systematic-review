@@ -1,0 +1,202 @@
+resources:
+- name: vpc-prod
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: vpc-prod-subnet-us-central1
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.vpc-prod.selfLink)
+    ipCidrRange: 10.0.0.0/20
+    privateIpGoogleAccess: true
+    secondaryIpRanges:
+    - rangeName: gke-pods
+      ipCidrRange: 10.4.0.0/14
+    - rangeName: gke-services
+      ipCidrRange: 10.8.0.0/20
+
+- name: vpc-prod-router-us-central1
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.vpc-prod.selfLink)
+
+- name: vpc-prod-nat-us-central1
+  type: compute.v1.routerNat
+  properties:
+    region: us-central1
+    router: $(ref.vpc-prod-router-us-central1.name)
+    natIpAllocateOption: AUTO_ONLY
+    sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+    subnetworks:
+    - name: $(ref.vpc-prod-subnet-us-central1.selfLink)
+      sourceIpRangesToNat:
+      - ALL_IP_RANGES
+    enableEndpointIndependentMapping: true
+    minPortsPerVm: 128
+
+- name: gke-secrets-keyring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/$(project)/locations/us-central1
+    keyRingId: gke-secrets-ring
+
+- name: gke-secrets-key
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.gke-secrets-keyring.name)
+    cryptoKeyId: gke-secrets
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 2592000s
+    nextRotationTime: 2026-07-01T00:00:00Z
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+
+- name: kms-iam-binding-gke
+  type: gcp-types/cloudkms-v1:virtual.projects.locations.keyRings.cryptoKeys.iamMemberBinding
+  properties:
+    resource: $(ref.gke-secrets-key.name)
+    role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+    member: serviceAccount:service-$(projectNumber)@container-engine-robot.iam.gserviceaccount.com
+  metadata:
+    dependsOn:
+    - gke-secrets-key
+
+- name: gke-node-sa
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: gke-node
+    displayName: GKE Node Service Account
+
+- name: project-iam-logging-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/logging.logWriter
+    member: serviceAccount:$(ref.gke-node-sa.email)
+
+- name: project-iam-monitoring-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/monitoring.metricWriter
+    member: serviceAccount:$(ref.gke-node-sa.email)
+
+- name: project-iam-stackdriver-metadata-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/stackdriver.resourceMetadata.writer
+    member: serviceAccount:$(ref.gke-node-sa.email)
+
+- name: project-iam-artifactregistry-reader
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/artifactregistry.reader
+    member: serviceAccount:$(ref.gke-node-sa.email)
+
+- name: gke-prod-cluster
+  type: gcp-types/container-v1:projects.locations.clusters
+  properties:
+    parent: projects/$(project)/locations/us-central1
+    cluster:
+      name: gke-prod
+      description: Production GKE Standard regional cluster (private)
+      network: $(ref.vpc-prod.selfLink)
+      subnetwork: $(ref.vpc-prod-subnet-us-central1.selfLink)
+      releaseChannel:
+        channel: STABLE
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      resourceLabels:
+        environment: prod
+      shieldedNodes:
+        enabled: true
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+        networkPolicyConfig:
+          disabled: false
+      networkPolicy:
+        provider: CALICO
+        enabled: true
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterSecondaryRangeName: gke-pods
+        servicesSecondaryRangeName: gke-services
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: true
+        masterIpv4CidrBlock: 172.16.0.16/28
+      workloadIdentityConfig:
+        identityNamespace: $(project).svc.id.goog
+      databaseEncryption:
+        state: ENCRYPTED
+        keyName: $(ref.gke-secrets-key.name)
+      verticalPodAutoscaling:
+        enabled: true
+      removeDefaultNodePool: true
+      initialNodeCount: 1
+  metadata:
+    dependsOn:
+    - vpc-prod
+    - vpc-prod-subnet-us-central1
+    - vpc-prod-router-us-central1
+    - vpc-prod-nat-us-central1
+    - gke-secrets-key
+    - kms-iam-binding-gke
+
+- name: gke-prod-nodepool-primary
+  type: gcp-types/container-v1:projects.locations.clusters.nodePools
+  properties:
+    parent: projects/$(project)/locations/us-central1/clusters/gke-prod
+    nodePool:
+      name: prod-pool
+      config:
+        machineType: e2-standard-4
+        diskType: pd-balanced
+        diskSizeGb: 100
+        imageType: COS_CONTAINERD
+        serviceAccount: $(ref.gke-node-sa.email)
+        oauthScopes:
+        - https://www.googleapis.com/auth/cloud-platform
+        metadata:
+          disable-legacy-endpoints: "true"
+        shieldedInstanceConfig:
+          enableIntegrityMonitoring: true
+          enableSecureBoot: true
+        tags:
+        - gke
+        - prod
+        workloadMetadataConfig:
+          nodeMetadata: GKE_METADATA_SERVER
+      initialNodeCount: 3
+      autoscaling:
+        enabled: true
+        minNodeCount: 3
+        maxNodeCount: 10
+      management:
+        autoRepair: true
+        autoUpgrade: true
+      upgradeSettings:
+        maxSurge: 1
+        maxUnavailable: 0
+      locations:
+      - us-central1-a
+      - us-central1-b
+      - us-central1-c
+  metadata:
+    dependsOn:
+    - gke-prod-cluster
+    - gke-node-sa
+    - project-iam-logging-writer
+    - project-iam-monitoring-writer
+    - project-iam-stackdriver-metadata-writer
+    - project-iam-artifactregistry-reader

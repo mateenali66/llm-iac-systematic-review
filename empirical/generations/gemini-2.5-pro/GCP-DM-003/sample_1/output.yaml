@@ -1,0 +1,52 @@
+resources:
+- name: python-api-service
+  type: gcp-types/run-v1:projects.locations.services
+  properties:
+    parent: projects/$(project)/locations/us-central1
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: my-python-api
+      namespace: $(project)
+    spec:
+      template:
+        metadata:
+          annotations:
+            autoscaling.knative.dev/maxScale: '10'
+            run.googleapis.com/execution-environment: 'gen2'
+            run.googleapis.com/cpu-throttling: 'true'
+        spec:
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: $(project_number)-compute@developer.gserviceaccount.com
+          containers:
+          - image: us-docker.pkg.dev/cloudrun/container/hello
+            ports:
+            - name: http1
+              containerPort: 8080
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+            startupProbe:
+              initialDelaySeconds: 0
+              timeoutSeconds: 1
+              failureThreshold: 1
+              periodSeconds: 240
+              tcpSocket:
+                port: 8080
+      traffic:
+      - percent: 100
+        latestRevision: true
+- name: python-api-iam-binding
+  type: gcp-types/run-v1:projects.locations.services.iam
+  properties:
+    resource: $(ref.python-api-service.name)
+    policy:
+      bindings:
+      - role: roles/run.invoker
+        members:
+        - allUsers
+  metadata:
+    dependsOn:
+    - python-api-service

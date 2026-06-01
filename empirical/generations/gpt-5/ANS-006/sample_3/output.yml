@@ -1,0 +1,88 @@
+- name: Configure deploy user and SSH hardening
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    sshd_config_path: /etc/ssh/sshd_config
+
+  pre_tasks:
+    - name: Determine SSH service name
+      ansible.builtin.set_fact:
+        sshd_service: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"
+
+  tasks:
+    - name: Ensure sudo is installed
+      ansible.builtin.package:
+        name: sudo
+        state: present
+      tags: [packages, sudo]
+
+    - name: Ensure deploy group exists
+      ansible.builtin.group:
+        name: deploy
+        state: present
+      tags: [users]
+
+    - name: Ensure deploy user exists
+      ansible.builtin.user:
+        name: deploy
+        groups: deploy
+        append: true
+        create_home: true
+        shell: /bin/bash
+        password_lock: true
+        state: present
+      tags: [users]
+
+    - name: Install authorized SSH key for deploy user
+      ansible.builtin.authorized_key:
+        user: deploy
+        key: "{{ deploy_public_ssh_key }}"
+        state: present
+        manage_dir: true
+      no_log: true
+      tags: [ssh, users]
+
+    - name: Configure passwordless sudo for deploy
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/deploy
+        owner: root
+        group: root
+        mode: '0440'
+        content: |
+          deploy ALL=(ALL) NOPASSWD:ALL
+        validate: 'visudo -cf %s'
+      tags: [sudo]
+
+    - name: Ensure SSH allows public key authentication
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^(#\s*)?PubkeyAuthentication\s+.*$'
+        line: 'PubkeyAuthentication yes'
+        state: present
+        backrefs: false
+      notify: Restart SSH
+      tags: [ssh]
+
+    - name: Disable password authentication for SSH
+      ansible.builtin.lineinfile:
+        path: "{{ sshd_config_path }}"
+        regexp: '^(#\s*)?PasswordAuthentication\s+.*$'
+        line: 'PasswordAuthentication no'
+        state: present
+        backrefs: false
+      notify: Restart SSH
+      tags: [ssh]
+
+    - name: Ensure SSH service is enabled
+      ansible.builtin.service:
+        name: "{{ sshd_service }}"
+        enabled: true
+      tags: [ssh]
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.service:
+        name: "{{ sshd_service }}"
+        state: restarted

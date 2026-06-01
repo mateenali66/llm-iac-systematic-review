@@ -1,0 +1,226 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 129,
+	"files_parsed": 2,
+	"lines_parsed": 129,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 6,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 7,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:59:53.848744335Z",
+	"end": "2026-05-26T04:59:55.976569169Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{api-service}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "55455726002886b176295856013b7a28dc69fa63ea0ef6ec943d8b60a6b002bf",
+					"line": 14,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-service}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=api-service is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=api-service is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "423cdff2dbd791ed332c34b1a42d3271bcadc0aefc299a1bb5a8352ceabfadaa",
+					"line": 37,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d7f40e6e884d01c428ca52efa3a0c4fe61195bcc470b43d9714d271224b03b62",
+					"line": 36,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{api-service}}.spec.template.spec.containers.name={{api-service}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6845a0288f6c3cbca154e7dc30fd7a05f62e917a852a8d984e72187477bfa08b",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-service}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-service}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{api-service}}",
+					"actual_value": "metadata.name={{api-service}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{api-service}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1e97d81cbd6799ad3ec0212ea5b15028c1132ecf6687e2f4e5bdf489a5aa67ca",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-service}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-service}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{api-service}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "da4f47c861524aeccede8e797ba735b69f3dbb2d53a13f6fec57d74a514903b8",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "api-service",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{api-service}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-service}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{api-service}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

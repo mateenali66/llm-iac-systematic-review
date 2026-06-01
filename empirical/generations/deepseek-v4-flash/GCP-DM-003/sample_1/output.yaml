@@ -1,0 +1,53 @@
+resources:
+- name: cloud-run-api-service
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: python-api-service
+      namespace: {{ project }}
+    spec:
+      template:
+        metadata:
+          annotations:
+            autoscaling.knative.dev/maxScale: "10"
+            autoscaling.knative.dev/minScale: "0"
+            run.googleapis.com/startup-cpu-boost: "true"
+            run.googleapis.com/cpu-throttling: "false"
+        spec:
+          serviceAccountName: {{ serviceAccount }}
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          containers:
+          - image: {{ image }}
+            ports:
+            - containerPort: 8080
+              name: http1
+            env:
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            resources:
+              limits:
+                cpu: "1"
+                memory: 512Mi
+            startupProbe:
+              tcpSocket:
+                port: 8080
+              initialDelaySeconds: 0
+              timeoutSeconds: 240
+              periodSeconds: 240
+              failureThreshold: 1
+            livenessProbe:
+              httpGet:
+                path: /health
+                port: 8080
+              initialDelaySeconds: 10
+              periodSeconds: 30
+              timeoutSeconds: 5
+              failureThreshold: 3
+      traffic:
+      - percent: 100
+        latestRevision: true

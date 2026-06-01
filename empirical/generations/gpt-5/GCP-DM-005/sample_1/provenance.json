@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-005",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: enable-compute\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/compute.googleapis.com\n\n- name: enable-servicenetworking\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/servicenetworking.googleapis.com\n\n- name: enable-sqladmin\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/sqladmin.googleapis.com\n\n- name: saas-vpc\n  type: gcp-types/compute-v1:networks\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n  dependsOn:\n  - enable-compute\n\n- name: private-service-range\n  type: gcp-types/compute-v1:globalAddresses\n  properties:\n    addressType: INTERNAL\n    prefixLength: 24\n    purpose: VPC_PEERING\n    network: $(ref.saas-vpc.selfLink)\n  dependsOn:\n  - saas-vpc\n\n- name: vpc-peering-connection\n  type: gcp-types/servicenetworking-v1:services.connections\n  properties:\n    parent: services/servicenetworking.googleapis.com\n    network: $(ref.saas-vpc.selfLink)\n    reservedPeeringRanges:\n    - $(ref.private-service-range.name)\n  dependsOn:\n  - enable-servicenetworking\n  - private-service-range\n\n- name: saas-postgres15\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    name: saas-postgres15\n    databaseVersion: POSTGRES_15\n    region: us-central1\n    settings:\n      tier: db-custom-2-7680\n      activationPolicy: ALWAYS\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 200\n      storageAutoResize: true\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        transactionLogRetentionDays: 7\n        backupRetentionSettings:\n          retainedBackups: 7\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: $(ref.saas-vpc.selfLink)\n        requireSsl: true\n      locationPreference:\n        zone: us-central1-a\n        secondaryZone: us-central1-b\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: on\n      - name: log_min_duration_statement\n        value: \"2000\"\n      userLabels:\n        env: prod\n        app: saas\n    deletionProtectionEnabled: true\n  dependsOn:\n  - enable-sqladmin\n  - vpc-peering-connection",
+  "cleaned_response": "resources:\n- name: enable-compute\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/compute.googleapis.com\n\n- name: enable-servicenetworking\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/servicenetworking.googleapis.com\n\n- name: enable-sqladmin\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/sqladmin.googleapis.com\n\n- name: saas-vpc\n  type: gcp-types/compute-v1:networks\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n  dependsOn:\n  - enable-compute\n\n- name: private-service-range\n  type: gcp-types/compute-v1:globalAddresses\n  properties:\n    addressType: INTERNAL\n    prefixLength: 24\n    purpose: VPC_PEERING\n    network: $(ref.saas-vpc.selfLink)\n  dependsOn:\n  - saas-vpc\n\n- name: vpc-peering-connection\n  type: gcp-types/servicenetworking-v1:services.connections\n  properties:\n    parent: services/servicenetworking.googleapis.com\n    network: $(ref.saas-vpc.selfLink)\n    reservedPeeringRanges:\n    - $(ref.private-service-range.name)\n  dependsOn:\n  - enable-servicenetworking\n  - private-service-range\n\n- name: saas-postgres15\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    name: saas-postgres15\n    databaseVersion: POSTGRES_15\n    region: us-central1\n    settings:\n      tier: db-custom-2-7680\n      activationPolicy: ALWAYS\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 200\n      storageAutoResize: true\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        transactionLogRetentionDays: 7\n        backupRetentionSettings:\n          retainedBackups: 7\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: $(ref.saas-vpc.selfLink)\n        requireSsl: true\n      locationPreference:\n        zone: us-central1-a\n        secondaryZone: us-central1-b\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: on\n      - name: log_min_duration_statement\n        value: \"2000\"\n      userLabels:\n        env: prod\n        app: saas\n    deletionProtectionEnabled: true\n  dependsOn:\n  - enable-sqladmin\n  - vpc-peering-connection",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: enable-compute\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/compute.googleapis.com\n\n- name: enable-servicenetworking\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/servicenetworking.googleapis.com\n\n- name: enable-sqladmin\n  type: gcp-types/serviceusage-v1:services.enable\n  properties:\n    name: projects/$(project)/services/sqladmin.googleapis.com\n\n- name: saas-vpc\n  type: gcp-types/compute-v1:networks\n  properties:\n    autoCreateSubnetworks: false\n    routingConfig:\n      routingMode: REGIONAL\n  dependsOn:\n  - enable-compute\n\n- name: private-service-range\n  type: gcp-types/compute-v1:globalAddresses\n  properties:\n    addressType: INTERNAL\n    prefixLength: 24\n    purpose: VPC_PEERING\n    network: $(ref.saas-vpc.selfLink)\n  dependsOn:\n  - saas-vpc\n\n- name: vpc-peering-connection\n  type: gcp-types/servicenetworking-v1:services.connections\n  properties:\n    parent: services/servicenetworking.googleapis.com\n    network: $(ref.saas-vpc.selfLink)\n    reservedPeeringRanges:\n    - $(ref.private-service-range.name)\n  dependsOn:\n  - enable-servicenetworking\n  - private-service-range\n\n- name: saas-postgres15\n  type: gcp-types/sqladmin-v1beta4:instances\n  properties:\n    name: saas-postgres15\n    databaseVersion: POSTGRES_15\n    region: us-central1\n    settings:\n      tier: db-custom-2-7680\n      activationPolicy: ALWAYS\n      availabilityType: REGIONAL\n      dataDiskType: PD_SSD\n      dataDiskSizeGb: 200\n      storageAutoResize: true\n      maintenanceWindow:\n        day: 7\n        hour: 3\n        updateTrack: stable\n      backupConfiguration:\n        enabled: true\n        startTime: \"03:00\"\n        pointInTimeRecoveryEnabled: true\n        transactionLogRetentionDays: 7\n        backupRetentionSettings:\n          retainedBackups: 7\n          retentionUnit: COUNT\n      ipConfiguration:\n        ipv4Enabled: false\n        privateNetwork: $(ref.saas-vpc.selfLink)\n        requireSsl: true\n      locationPreference:\n        zone: us-central1-a\n        secondaryZone: us-central1-b\n      insightsConfig:\n        queryInsightsEnabled: true\n        queryStringLength: 1024\n        recordApplicationTags: true\n        recordClientAddress: true\n      databaseFlags:\n      - name: cloudsql.iam_authentication\n        value: on\n      - name: log_min_duration_statement\n        value: \"2000\"\n      userLabels:\n        env: prod\n        app: saas\n    deletionProtectionEnabled: true\n  dependsOn:\n  - enable-sqladmin\n  - vpc-peering-connection",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779719316,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 5559,
+      "raw_input_tokens": 141
+    }
+  },
+  "started_at": "2026-05-25T14:27:21.311929+00:00",
+  "elapsed_seconds": 74.795
+}

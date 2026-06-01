@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-003",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  type        = string\n  description = \"VPC ID for the jump host\"\n}\n\nvariable \"subnet_id\" {\n  type        = string\n  description = \"Public subnet ID for the jump host\"\n}\n\nvariable \"allowed_ssh_cidrs\" {\n  type        = list(string)\n  description = \"CIDR blocks allowed to SSH to the jump host\"\n}\n\nvariable \"key_name\" {\n  type        = string\n  description = \"Existing EC2 key pair name for SSH access\"\n}\n\ndata \"aws_ami\" \"al2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-*-x86_64\"]\n  }\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump\" {\n  name        = \"jump-host-sg\"\n  description = \"Security group for internal jump host\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"SSH from allowed networks\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_ssh_cidrs\n  }\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump\" {\n  ami                         = data.aws_ami.al2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = var.subnet_id\n  vpc_security_group_ids      = [aws_security_group.jump.id]\n  key_name                    = var.key_name\n  associate_public_ip_address = true\n  monitoring                  = true\n  ebs_optimized               = true\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_tokens   = \"required\"\n    http_endpoint = \"enabled\"\n  }\n\n  tags = {\n    Name = \"jump-host\"\n    Role = \"bastion\"\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  type        = string\n  description = \"VPC ID for the jump host\"\n}\n\nvariable \"subnet_id\" {\n  type        = string\n  description = \"Public subnet ID for the jump host\"\n}\n\nvariable \"allowed_ssh_cidrs\" {\n  type        = list(string)\n  description = \"CIDR blocks allowed to SSH to the jump host\"\n}\n\nvariable \"key_name\" {\n  type        = string\n  description = \"Existing EC2 key pair name for SSH access\"\n}\n\ndata \"aws_ami\" \"al2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-*-x86_64\"]\n  }\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump\" {\n  name        = \"jump-host-sg\"\n  description = \"Security group for internal jump host\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"SSH from allowed networks\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_ssh_cidrs\n  }\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump\" {\n  ami                         = data.aws_ami.al2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = var.subnet_id\n  vpc_security_group_ids      = [aws_security_group.jump.id]\n  key_name                    = var.key_name\n  associate_public_ip_address = true\n  monitoring                  = true\n  ebs_optimized               = true\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_tokens   = \"required\"\n    http_endpoint = \"enabled\"\n  }\n\n  tags = {\n    Name = \"jump-host\"\n    Role = \"bastion\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"vpc_id\" {\n  type        = string\n  description = \"VPC ID for the jump host\"\n}\n\nvariable \"subnet_id\" {\n  type        = string\n  description = \"Public subnet ID for the jump host\"\n}\n\nvariable \"allowed_ssh_cidrs\" {\n  type        = list(string)\n  description = \"CIDR blocks allowed to SSH to the jump host\"\n}\n\nvariable \"key_name\" {\n  type        = string\n  description = \"Existing EC2 key pair name for SSH access\"\n}\n\ndata \"aws_ami\" \"al2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-*-x86_64\"]\n  }\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_security_group\" \"jump\" {\n  name        = \"jump-host-sg\"\n  description = \"Security group for internal jump host\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    description = \"SSH from allowed networks\"\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = var.allowed_ssh_cidrs\n  }\n\n  egress {\n    description = \"Allow all outbound\"\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"jump-host-sg\"\n  }\n}\n\nresource \"aws_instance\" \"jump\" {\n  ami                         = data.aws_ami.al2023.id\n  instance_type               = \"t3.medium\"\n  subnet_id                   = var.subnet_id\n  vpc_security_group_ids      = [aws_security_group.jump.id]\n  key_name                    = var.key_name\n  associate_public_ip_address = true\n  monitoring                  = true\n  ebs_optimized               = true\n\n  root_block_device {\n    volume_size           = 20\n    volume_type           = \"gp3\"\n    encrypted             = true\n    delete_on_termination = true\n  }\n\n  metadata_options {\n    http_tokens   = \"required\"\n    http_endpoint = \"enabled\"\n  }\n\n  tags = {\n    Name = \"jump-host\"\n    Role = \"bastion\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726395,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 157,
+      "output_tokens": 523,
+      "reasoning_tokens": 805,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 137
+    }
+  },
+  "started_at": "2026-05-25T16:26:18.805676+00:00",
+  "elapsed_seconds": 16.302
+}

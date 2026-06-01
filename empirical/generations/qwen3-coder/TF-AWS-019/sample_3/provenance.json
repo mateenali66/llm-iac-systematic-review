@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-019",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudWatch alarm that fires when the CPU utilization of an EC2 instance 'i-0123456789abcdef' exceeds 80% for 10 consecutive minutes.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create a CloudWatch alarm that fires when the CPU utilization of an EC2 instance 'i-0123456789abcdef' exceeds 80% for 10 consecutive minutes.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_cloudwatch_metric_alarm\" \"ec2_cpu_utilization\" {\n  alarm_name                = \"ec2-cpu-utilization-alarm\"\n  comparison_operator       = \"GreaterThanThreshold\"\n  evaluation_periods        = 10\n  metric_name               = \"CPUUtilization\"\n  namespace                 = \"AWS/EC2\"\n  period                    = 60\n  statistic                 = \"Average\"\n  threshold                 = 80\n  alarm_description         = \"This metric monitors EC2 instance CPU utilization\"\n  insufficient_data_actions = []\n  treat_missing_data        = \"notBreaching\"\n\n  dimensions = {\n    InstanceId = \"i-0123456789abcdef\"\n  }\n\n  tags = {\n    Name        = \"EC2-CPU-Utilization-Alarm\"\n    Environment = \"production\"\n  }\n}",
+  "cleaned_response": "resource \"aws_cloudwatch_metric_alarm\" \"ec2_cpu_utilization\" {\n  alarm_name                = \"ec2-cpu-utilization-alarm\"\n  comparison_operator       = \"GreaterThanThreshold\"\n  evaluation_periods        = 10\n  metric_name               = \"CPUUtilization\"\n  namespace                 = \"AWS/EC2\"\n  period                    = 60\n  statistic                 = \"Average\"\n  threshold                 = 80\n  alarm_description         = \"This metric monitors EC2 instance CPU utilization\"\n  insufficient_data_actions = []\n  treat_missing_data        = \"notBreaching\"\n\n  dimensions = {\n    InstanceId = \"i-0123456789abcdef\"\n  }\n\n  tags = {\n    Name        = \"EC2-CPU-Utilization-Alarm\"\n    Environment = \"production\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_cloudwatch_metric_alarm\" \"ec2_cpu_utilization\" {\n  alarm_name                = \"ec2-cpu-utilization-alarm\"\n  comparison_operator       = \"GreaterThanThreshold\"\n  evaluation_periods        = 10\n  metric_name               = \"CPUUtilization\"\n  namespace                 = \"AWS/EC2\"\n  period                    = 60\n  statistic                 = \"Average\"\n  threshold                 = 80\n  alarm_description         = \"This metric monitors EC2 instance CPU utilization\"\n  insufficient_data_actions = []\n  treat_missing_data        = \"notBreaching\"\n\n  dimensions = {\n    InstanceId = \"i-0123456789abcdef\"\n  }\n\n  tags = {\n    Name        = \"EC2-CPU-Utilization-Alarm\"\n    Environment = \"production\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726738,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 160,
+      "output_tokens": 177,
+      "raw_input_tokens": 160
+    }
+  },
+  "started_at": "2026-05-25T16:32:15.235348+00:00",
+  "elapsed_seconds": 3.606
+}

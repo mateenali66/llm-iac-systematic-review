@@ -1,0 +1,34 @@
+resources:
+  - name: static-website-bucket
+    type: storage.v1.bucket
+    properties:
+      bucketPolicy:
+        uniformBucketLevelAccess:
+          enabled: true
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 365
+      location: US
+      storageClass: STANDARD
+      versioning:
+        enabled: true
+      website:
+        mainPageSuffix: index.html
+        notFoundPage: 404.html
+  - name: static-website-bucket-iam-policy
+    type: storage.v1.bucketIamPolicy
+    properties:
+      bucket: $(ref.static-website-bucket.name)
+      bindings:
+        - role: roles/storage.objectViewer
+          members:
+            - allUsers
+        - role: roles/storage.legacyObjectReader
+          members:
+            - allUsers
+outputs:
+  - name: bucketName
+    value: $(ref.static-website-bucket.name)

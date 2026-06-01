@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 15,
+	"files_parsed": 1,
+	"lines_parsed": 15,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:36:10.634400555Z",
+	"end": "2026-05-26T06:36:32.98694476Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Secretsmanager Secret Without KMS",
+			"query_id": "a2f548f2-188c-4fff-b172-e9a6acb216bd",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret#kms_key_id",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS Secretmanager should use AWS KMS customer master key (CMK) to encrypt the secret values in the versions stored in the secret",
+			"description_id": "c9c95b59",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "632c0eb702d77cc1227bf8e3276c42fdaccd1d056c22962b37f378cceeed30b0",
+					"line": 1,
+					"resource_type": "aws_secretsmanager_secret",
+					"resource_name": "prod/database/password",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_secretsmanager_secret[{{prod_database_password}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_secretsmanager_secret.kms_key_id should be defined and not null",
+					"actual_value": "aws_secretsmanager_secret.kms_key_id is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		}
+	]
+}

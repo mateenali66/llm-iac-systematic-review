@@ -1,0 +1,52 @@
+resources:
+- name: saas-postgres
+  type: gcp-types/sqladmin-v1beta4:instances
+  properties:
+    region: us-central1
+    databaseVersion: POSTGRES_15
+    settings:
+      tier: db-custom-2-7680
+      availabilityType: REGIONAL
+      backupConfiguration:
+        enabled: true
+        startTime: "03:00"
+        pointInTimeRecoveryEnabled: true
+        backupRetentionSettings:
+          retainedBackups: 30
+          retentionUnit: COUNT
+      ipConfiguration:
+        ipv4Enabled: false
+        privateNetwork: $(ref.saas-vpc.selfLink)
+        requireSsl: true
+        sslMode: ENCRYPTED_ONLY
+      maintenanceWindow:
+        day: 7
+        hour: 4
+      userLabels:
+        app: saas
+        env: prod
+        managed-by: deployment-manager
+    rootPassword: $(ref.saas-db-root-password.password)
+- name: saas-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+- name: saas-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.saas-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.0.0/24
+    privateIpGoogleAccess: true
+- name: saas-db-root-password
+  type: gcp-types/gcp-secret-manager-v1:secrets
+  properties:
+    secretId: saas-db-root-password
+    replication:
+      automatic: true
+- name: saas-db-root-password-value
+  type: gcp-types/gcp-secret-manager-v1:secrets.versions
+  properties:
+    parent: $(ref.saas-db-root-password.name)
+    payload:
+      data: $(ref.saas-db-root-password.password)

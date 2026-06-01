@@ -1,0 +1,21 @@
+resources:
+- name: multi-region-gcs-bucket
+  type: storage.v1.bucket
+  properties:
+    name: my-multi-region-bucket-12345
+    location: US
+    storageClass: STANDARD
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: enforced
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: true
+    labels:
+      environment: prod
+      managed-by: deployment-manager

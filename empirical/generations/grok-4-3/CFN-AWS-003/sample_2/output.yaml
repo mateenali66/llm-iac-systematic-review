@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Production-grade Aurora PostgreSQL Serverless v2 cluster for SaaS multi-tenant workloads
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the Aurora cluster
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnets across multiple AZs
+  MasterUsername:
+    Type: String
+    Default: saasadmin
+  MasterPassword:
+    Type: String
+    NoEcho: true
+  MinACU:
+    Type: Number
+    Default: 0.5
+  MaxACU:
+    Type: Number
+    Default: 64
+  BackupRetentionDays:
+    Type: Number
+    Default: 35
+Resources:
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Aurora PostgreSQL Serverless v2 access
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/8
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+  AuroraSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Aurora Serverless v2
+      SubnetIds: !Ref PrivateSubnetIds
+  AuroraKMSKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for Aurora encryption
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: '*'
+  AuroraClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: Custom parameters for multi-tenant SaaS
+      Family: aurora-postgresql15
+      Parameters:
+        shared_preload_libraries: pg_stat_statements,pg_hint_plan
+        log_min_duration_statement: '1000'
+        rds.force_ssl: '1'
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      DBClusterParameterGroupName: !Ref AuroraClusterParameterGroup
+      DBSubnetGroupName: !Ref AuroraSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterPassword
+      DatabaseName: saas_multitenant
+      StorageEncrypted: true
+      KmsKeyId: !Ref AuroraKMSKey
+      BackupRetentionPeriod: !Ref BackupRetentionDays
+      PreferredBackupWindow: 03:00-04:00
+      PreferredMaintenanceWindow: sun:04:00-sun:05:00
+      EnableIAMDatabaseAuthentication: true
+      EnableCloudwatchLogsExports:
+        - postgresql
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinACU
+        MaxCapacity: !Ref MaxACU
+      DeletionProtection: true
+      CopyTagsToSnapshot: true
+  AuroraWriterInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+      EnablePerformanceInsights: true
+      PerformanceInsightsRetentionPeriod: 7
+      MonitoringInterval: 60
+      MonitoringRoleArn: !GetAtt MonitoringRole.Arn
+  MonitoringRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: monitoring.rds.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole
+Outputs:
+  ClusterEndpoint:
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+  ClusterReadEndpoint:
+    Value: !GetAtt AuroraCluster.ReadEndpoint.Address
+  ClusterIdentifier:
+    Value: !Ref AuroraCluster

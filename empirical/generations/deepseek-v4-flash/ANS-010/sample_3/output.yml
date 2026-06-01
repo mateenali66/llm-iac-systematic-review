@@ -1,0 +1,83 @@
+- name: Deploy Java application as systemd service
+  hosts: all
+  become: yes
+  vars:
+    app_user: javaapp
+    app_group: javaapp
+    app_jar_source: /path/to/your/application.jar
+    app_jar_dest: /opt/javaapp/application.jar
+    app_service_name: javaapp
+    java_version: 21
+    java_package: "openjdk-{{ java_version }}-jre-headless"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Install OpenJDK {{ java_version }}
+      package:
+        name: "{{ java_package }}"
+        state: present
+
+    - name: Create application group
+      group:
+        name: "{{ app_group }}"
+        state: present
+        system: yes
+
+    - name: Create application user
+      user:
+        name: "{{ app_user }}"
+        group: "{{ app_group }}"
+        system: yes
+        create_home: no
+        shell: /usr/sbin/nologin
+        state: present
+
+    - name: Create application directory
+      file:
+        path: "{{ app_jar_dest | dirname }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0755'
+
+    - name: Copy application JAR
+      copy:
+        src: "{{ app_jar_source }}"
+        dest: "{{ app_jar_dest }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0644'
+      notify: restart javaapp service
+
+    - name: Write systemd unit file
+      template:
+        src: javaapp.service.j2
+        dest: "/etc/systemd/system/{{ app_service_name }}.service"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: reload systemd and restart javaapp service
+
+    - name: Enable and start service
+      systemd:
+        name: "{{ app_service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+  handlers:
+    - name: restart javaapp service
+      systemd:
+        name: "{{ app_service_name }}"
+        state: restarted
+
+    - name: reload systemd and restart javaapp service
+      systemd:
+        name: "{{ app_service_name }}"
+        state: restarted
+        daemon_reload: yes

@@ -1,0 +1,863 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-tier-app
+description: A Helm chart for a multi-tier application with frontend, backend, and Postgres
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.23.0-0"
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+imagePullSecrets: []
+namespaceOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+networkPolicy:
+  enabled: true
+
+frontend:
+  replicas: 3
+  image:
+    repository: ghcr.io/example/frontend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  containerPort: 8080
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  env:
+    extra: []
+  config:
+    API_BASE_URL: "" # If empty, will default to http://<release>-backend:8080
+  podAnnotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  livenessProbe:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+    periodSeconds: 10
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    path: /readyz
+    initialDelaySeconds: 5
+    timeoutSeconds: 2
+    periodSeconds: 5
+    failureThreshold: 3
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+backend:
+  replicas: 3
+  image:
+    repository: ghcr.io/example/backend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  containerPort: 8080
+  service:
+    type: ClusterIP
+    port: 8080
+    annotations: {}
+  env:
+    extra: []
+  config:
+    LOG_LEVEL: info
+  podAnnotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  livenessProbe:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+    periodSeconds: 10
+    failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    path: /readyz
+    initialDelaySeconds: 5
+    timeoutSeconds: 2
+    periodSeconds: 5
+    failureThreshold: 3
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: "15.6"
+    pullPolicy: IfNotPresent
+  service:
+    port: 5432
+    annotations: {}
+  storage:
+    size: 20Gi
+    className: ""
+  initdb:
+    scripts:
+      enabled: true
+      createExtensions: true
+      extensions:
+        - "uuid-ossp"
+        - "pgcrypto"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 6
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 6
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+secrets:
+  db:
+    create: true
+    name: ""
+    username: "appuser"
+    password: "" # REQUIRED if create=true. Provide via --set or external secret manager.
+    database: "appdb"
+---
+# FILE: templates/serviceaccount-frontend.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ printf "%s-frontend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: frontend
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+automountServiceAccountToken: false
+---
+# FILE: templates/serviceaccount-backend.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ printf "%s-backend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: backend
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+automountServiceAccountToken: false
+---
+# FILE: templates/serviceaccount-postgres.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ printf "%s-postgres" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: database
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+automountServiceAccountToken: false
+---
+# FILE: templates/configmap-frontend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-frontend-config" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: frontend
+data:
+  API_BASE_URL: {{ default (printf "http://%s-backend:%d" .Release.Name (int .Values.backend.service.port)) .Values.frontend.config.API_BASE_URL | quote }}
+---
+# FILE: templates/configmap-backend.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-backend-config" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: backend
+data:
+  LOG_LEVEL: {{ default "info" .Values.backend.config.LOG_LEVEL | quote }}
+  DB_HOST: {{ printf "%s-postgres" .Release.Name | quote }}
+  DB_PORT: {{ printf "%d" (int .Values.postgres.service.port) | quote }}
+---
+# FILE: templates/configmap-postgres.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-postgres-config" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: database
+data:
+  {{- if and .Values.postgres.initdb.scripts.enabled .Values.postgres.initdb.scripts.createExtensions }}
+  init-extensions.sql: |
+    {{- range $ext := .Values.postgres.initdb.scripts.extensions }}
+    CREATE EXTENSION IF NOT EXISTS "{{ $ext }}";
+    {{- end }}
+  {{- else }}
+  README: |
+    Place initialization SQL scripts here by enabling postgres.initdb.scripts.enabled
+  {{- end }}
+---
+# FILE: templates/secret-db.yaml
+{{- if .Values.secrets.db.create }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: database
+type: Opaque
+stringData:
+  username: {{ required "A non-empty .Values.secrets.db.username is required" .Values.secrets.db.username | quote }}
+  password: {{ required "A non-empty .Values.secrets.db.password is required when secrets.db.create=true" .Values.secrets.db.password | quote }}
+  database: {{ required "A non-empty .Values.secrets.db.database is required" .Values.secrets.db.database | quote }}
+{{- end }}
+---
+# FILE: templates/service-frontend.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-frontend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  annotations:
+    {{- toYaml .Values.frontend.service.annotations | nindent 4 }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+  ports:
+    - name: http
+      port: {{ .Values.frontend.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.frontend.containerPort }}
+---
+# FILE: templates/service-backend.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-backend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  annotations:
+    {{- toYaml .Values.backend.service.annotations | nindent 4 }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.backend.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+  ports:
+    - name: http
+      port: {{ .Values.backend.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.backend.containerPort }}
+---
+# FILE: templates/service-postgres.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-postgres" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  annotations:
+    {{- toYaml .Values.postgres.service.annotations | nindent 4 }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.service.port }}
+      targetPort: 5432
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-postgres-hl" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: database
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.service.port }}
+      targetPort: 5432
+      protocol: TCP
+---
+# FILE: templates/deployment-frontend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-frontend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: frontend
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap-frontend.yaml") . | sha256sum }}
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: frontend
+      annotations:
+        {{- toYaml .Values.frontend.podAnnotations | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-frontend.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ printf "%s-frontend" .Release.Name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.frontend.containerPort }}
+              protocol: TCP
+          env:
+            - name: API_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-frontend-config" .Release.Name }}
+                  key: API_BASE_URL
+            {{- with .Values.frontend.env.extra }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+          livenessProbe:
+            {{- if .Values.frontend.livenessProbe.enabled }}
+            httpGet:
+              path: {{ .Values.frontend.livenessProbe.path }}
+              port: {{ .Values.frontend.containerPort }}
+            initialDelaySeconds: {{ .Values.frontend.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.frontend.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.frontend.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.frontend.livenessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+          readinessProbe:
+            {{- if .Values.frontend.readinessProbe.enabled }}
+            httpGet:
+              path: {{ .Values.frontend.readinessProbe.path }}
+              port: {{ .Values.frontend.containerPort }}
+            initialDelaySeconds: {{ .Values.frontend.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.frontend.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.frontend.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.frontend.readinessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      nodeSelector:
+        {{- toYaml .Values.frontend.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.frontend.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.frontend.affinity | nindent 8 }}
+---
+# FILE: templates/deployment-backend.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-backend" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: backend
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap-backend.yaml") . | sha256sum }}
+    checksum/secret-db: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: backend
+      annotations:
+        {{- toYaml .Values.backend.podAnnotations | nindent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-backend.yaml") . | sha256sum }}
+        checksum/secret-db: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ printf "%s-backend" .Release.Name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.containerPort }}
+              protocol: TCP
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-backend-config" .Release.Name }}
+                  key: LOG_LEVEL
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-backend-config" .Release.Name }}
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-backend-config" .Release.Name }}
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: database
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: password
+            {{- with .Values.backend.env.extra }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            capabilities:
+              drop: ["ALL"]
+          livenessProbe:
+            {{- if .Values.backend.livenessProbe.enabled }}
+            httpGet:
+              path: {{ .Values.backend.livenessProbe.path }}
+              port: {{ .Values.backend.containerPort }}
+            initialDelaySeconds: {{ .Values.backend.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.backend.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.backend.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.backend.livenessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+          readinessProbe:
+            {{- if .Values.backend.readinessProbe.enabled }}
+            httpGet:
+              path: {{ .Values.backend.readinessProbe.path }}
+              port: {{ .Values.backend.containerPort }}
+            initialDelaySeconds: {{ .Values.backend.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.backend.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.backend.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.backend.readinessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      nodeSelector:
+        {{- toYaml .Values.backend.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.backend.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.backend.affinity | nindent 8 }}
+---
+# FILE: templates/statefulset-postgres.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ printf "%s-postgres" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/component: database
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap-postgres.yaml") . | sha256sum }}
+    checksum/secret-db: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+spec:
+  serviceName: {{ printf "%s-postgres-hl" .Release.Name }}
+  replicas: {{ .Values.postgres.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: database
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: database
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap-postgres.yaml") . | sha256sum }}
+        checksum/secret-db: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ printf "%s-postgres" .Release.Name }}
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 999
+        fsGroupChangePolicy: "OnRootMismatch"
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: database
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default (printf "%s-db-credentials" .Release.Name) .Values.secrets.db.name }}
+                  key: password
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 999
+            runAsGroup: 999
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            {{- if .Values.postgres.initdb.scripts.enabled }}
+            - name: initdb
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+            {{- end }}
+          livenessProbe:
+            {{- if .Values.postgres.livenessProbe.enabled }}
+            exec:
+              command:
+                - sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: {{ .Values.postgres.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.postgres.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.postgres.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.postgres.livenessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+          readinessProbe:
+            {{- if .Values.postgres.readinessProbe.enabled }}
+            exec:
+              command:
+                - sh
+                - -c
+                - exec pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h 127.0.0.1 -p 5432
+            initialDelaySeconds: {{ .Values.postgres.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.postgres.readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.postgres.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.postgres.readinessProbe.failureThreshold }}
+            {{- else }}
+            exec:
+              command: ["sh", "-c", "true"]
+            {{- end }}
+      volumes:
+        {{- if .Values.postgres.initdb.scripts.enabled }}
+        - name: initdb
+          configMap:
+            name: {{ printf "%s-postgres-config" .Release.Name }}
+        {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: {{ .Chart.Name }}
+          app.kubernetes.io/instance: {{ .Release.Name }}
+          app.kubernetes.io/component: database
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.postgres.storage.size }}
+        {{- if .Values.postgres.storage.className }}
+        storageClassName: {{ .Values.postgres.storage.className | quote }}
+        {{- end }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-frontend-egress" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: frontend
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS to kube-dns
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow egress to backend service
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/component: backend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.backend.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-backend-ingress-egress" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/component: frontend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.backend.service.port }}
+  egress:
+    # Allow DNS
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow to Postgres
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/component: database
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ printf "%s-postgres-ingress" .Release.Name }}
+  namespace: {{ default .Release.Namespace .Values.namespaceOverride | quote }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: {{ .Release.Name }}
+              app.kubernetes.io/component: backend
+      ports:
+        - protocol: TCP
+          port: {{ .Values.postgres.service.port }}
+{{- end }}

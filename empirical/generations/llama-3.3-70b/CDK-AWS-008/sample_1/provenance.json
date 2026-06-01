@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-008",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that sets up CloudWatch alarms and an SNS topic for paging the on-call engineer when API Gateway error rate exceeds 1%.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that sets up CloudWatch alarms and an SNS topic for paging the on-call engineer when API Gateway error rate exceeds 1%.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_cloudwatch as cloudwatch\nfrom aws_cdk import aws_cloudwatch_actions as cloudwatch_actions\nfrom aws_cdk import aws_sns as sns\nfrom aws_cdk import aws_sns_subscriptions as sns_subscriptions\nfrom aws_cdk import aws_apigateway as apigateway\n\nclass ApiGatewayAlarmStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        api = apigateway.RestApi(self, 'api')\n\n        topic = sns.Topic(self, 'topic')\n\n        topic.add_subscription(sns_subscriptions.EmailSubscription('oncall@example.com'))\n\n        error_rate_alarm = cloudwatch.Alarm(\n            self, 'error_rate_alarm',\n            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,\n            threshold=1,\n            evaluation_periods=1,\n            datapoints_to_alarm=1,\n            metric=cloudwatch.Metric(\n                namespace='AWS/ApiGateway',\n                metric_name='ErrorRate',\n                dimensions={\n                    'ApiId': api.rest_api_id\n                }\n            )\n        )\n\n        error_rate_alarm.add_alarm_action(\n            cloudwatch_actions.SnsAction(topic)\n        )\n\n        error_rate_alarm.add_insufficient_data_action(\n            cloudwatch_actions.SnsAction(topic)\n        )",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_cloudwatch as cloudwatch\nfrom aws_cdk import aws_cloudwatch_actions as cloudwatch_actions\nfrom aws_cdk import aws_sns as sns\nfrom aws_cdk import aws_sns_subscriptions as sns_subscriptions\nfrom aws_cdk import aws_apigateway as apigateway\n\nclass ApiGatewayAlarmStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        api = apigateway.RestApi(self, 'api')\n\n        topic = sns.Topic(self, 'topic')\n\n        topic.add_subscription(sns_subscriptions.EmailSubscription('oncall@example.com'))\n\n        error_rate_alarm = cloudwatch.Alarm(\n            self, 'error_rate_alarm',\n            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,\n            threshold=1,\n            evaluation_periods=1,\n            datapoints_to_alarm=1,\n            metric=cloudwatch.Metric(\n                namespace='AWS/ApiGateway',\n                metric_name='ErrorRate',\n                dimensions={\n                    'ApiId': api.rest_api_id\n                }\n            )\n        )\n\n        error_rate_alarm.add_alarm_action(\n            cloudwatch_actions.SnsAction(topic)\n        )\n\n        error_rate_alarm.add_insufficient_data_action(\n            cloudwatch_actions.SnsAction(topic)\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import aws_cloudwatch as cloudwatch\nfrom aws_cdk import aws_cloudwatch_actions as cloudwatch_actions\nfrom aws_cdk import aws_sns as sns\nfrom aws_cdk import aws_sns_subscriptions as sns_subscriptions\nfrom aws_cdk import aws_apigateway as apigateway\n\nclass ApiGatewayAlarmStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        api = apigateway.RestApi(self, 'api')\n\n        topic = sns.Topic(self, 'topic')\n\n        topic.add_subscription(sns_subscriptions.EmailSubscription('oncall@example.com'))\n\n        error_rate_alarm = cloudwatch.Alarm(\n            self, 'error_rate_alarm',\n            comparison_operator=cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,\n            threshold=1,\n            evaluation_periods=1,\n            datapoints_to_alarm=1,\n            metric=cloudwatch.Metric(\n                namespace='AWS/ApiGateway',\n                metric_name='ErrorRate',\n                dimensions={\n                    'ApiId': api.rest_api_id\n                }\n            )\n        )\n\n        error_rate_alarm.add_alarm_action(\n            cloudwatch_actions.SnsAction(topic)\n        )\n\n        error_rate_alarm.add_insufficient_data_action(\n            cloudwatch_actions.SnsAction(topic)\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723661,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 164,
+      "output_tokens": 296,
+      "raw_input_tokens": 164
+    }
+  },
+  "started_at": "2026-05-25T15:41:00.843047+00:00",
+  "elapsed_seconds": 1.065
+}

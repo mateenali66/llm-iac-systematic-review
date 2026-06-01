@@ -1,0 +1,306 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 215,
+	"files_parsed": 2,
+	"lines_parsed": 215,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 6,
+		"INFO": 1,
+		"LOW": 5,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 12,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:15:48.581420888Z",
+	"end": "2026-05-26T05:15:50.4840815Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Non Kube System Pod With Host Mount",
+			"query_id": "aa8f7a35-9923-4cad-bd61-a19b7f6aac91",
+			"query_url": "https://kubernetes.io/docs/concepts/storage/volumes/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "668",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "A non kube-system workload should not have hostPath mounted",
+			"description_id": "e8553157",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1545c7ad4bf2d94b660f2b142d44e4ac4056ff7e4462b63cc94172fa2ffd9d02",
+					"line": 135,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{sys}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/sys' mounted",
+					"actual_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/sys' mounted"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "20ac5a4d51bf51cbb1d3b631e55b195250b644d0356b0c3eca0a03f4ef49b49c",
+					"line": 139,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{root}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/' mounted",
+					"actual_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/' mounted"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a2ae2b7b2afd889bb88ed8437427d7b13df6f5f6883e04b084c2c416e04d1129",
+					"line": 131,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{proc}}.hostPath.path",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' should not have hostPath '/proc' mounted",
+					"actual_value": "Resource name 'prometheus-node-exporter' of kind 'DaemonSet' in non kube-system namespace 'default' has a hostPath '/proc' mounted"
+				}
+			]
+		},
+		{
+			"query_name": "Workload Mounting With Sensitive OS Directory",
+			"query_id": "5308a7a8-06f8-45ac-bf10-791fe21de46e",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/pod-security-policy/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "200",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Workload is mounting a volume with sensitive OS Directory",
+			"description_id": "73339cde",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "e3aacab5345a9de434e2dce73548a6d98bc38435e578263d938601e3d7c1eab2",
+					"line": 131,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{proc}}.hostPath.path",
+					"search_line": 131,
+					"search_value": "",
+					"expected_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/proc' with hostPath",
+					"actual_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/proc' with hostPath"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "71961a543d741e45449a02eff1d168c11158e1f5bdde57c3a94fb04b99fd59ad",
+					"line": 139,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{root}}.hostPath.path",
+					"search_line": 139,
+					"search_value": "",
+					"expected_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/' with hostPath",
+					"actual_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/' with hostPath"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3ffbc5f088b4f1313a3bd677be9d27ad6adf6f5a9aceafac64de62f3a7c3be2d",
+					"line": 135,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.volumes.name={{sys}}.hostPath.path",
+					"search_line": 135,
+					"search_value": "",
+					"expected_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' should not mount a host sensitive OS directory '/sys' with hostPath",
+					"actual_value": "Workload name 'prometheus-node-exporter' of kind 'DaemonSet' is mounting a host sensitive OS directory '/sys' with hostPath"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b744d44aaabdd0b002a6d1c877ae3da391c0da68fc6fd993676d295cc3abc598",
+					"line": 76,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "b8ebd49c2bc6a8b0c1d906ca60d9a15a0737e2324b785e4c01de3e6d00216ffc",
+					"line": 75,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{prometheus-node-exporter}}.spec.template.spec.containers.name={{node-exporter}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bd8f280cfb3dfd7128577b65644c1c5afd64de3b66ed453e650a6030f4bc7991",
+					"line": 41,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{prometheus-node-exporter}}.spec.template.metadata",
+					"search_line": 41,
+					"search_value": "",
+					"expected_value": "metadata.name={{prometheus-node-exporter}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{node-exporter}}",
+					"actual_value": "metadata.name={{prometheus-node-exporter}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{node-exporter}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "006c3e3a89392796a101037517a9bc65c77fb67996c03209895110ae1124e53a",
+					"line": 23,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{prometheus-node-exporter}}",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "metadata.name={{prometheus-node-exporter}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{prometheus-node-exporter}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "093c74c5eda79e8354581bb22690405ab978b7e5e2e2bf31170629e8d293affe",
+					"line": 23,
+					"resource_type": "DaemonSet",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{prometheus-node-exporter}}",
+					"search_line": 23,
+					"search_value": "",
+					"expected_value": "metadata.name={{prometheus-node-exporter}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{prometheus-node-exporter}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6ff9e31bb79b7ee90d835ec54a366c1f709537287a05508fb82385e7f9825c5e",
+					"line": 13,
+					"resource_type": "ServiceAccount",
+					"resource_name": "prometheus-node-exporter",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{monitoring}}",
+					"search_line": 13,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: monitoring"
+				}
+			]
+		}
+	]
+}

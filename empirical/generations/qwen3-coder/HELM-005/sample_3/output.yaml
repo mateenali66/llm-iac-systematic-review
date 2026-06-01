@@ -1,0 +1,226 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-container-app
+description: A Helm chart for a multi-container application with Fluent Bit sidecar
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Default values for multi-container-app chart
+
+# Application container configuration
+app:
+  image:
+    repository: nginx
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  ports:
+    - containerPort: 80
+      name: http
+  volumeMounts:
+    - name: app-logs
+      mountPath: /var/log/app
+
+# Fluent Bit sidecar configuration
+fluentbit:
+  image:
+    repository: fluent/fluent-bit
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  config:
+    service: |
+      [SERVICE]
+          Flush         1
+          Log_Level     info
+          Daemon        off
+          Parsers_File  parsers.conf
+    inputs: |
+      [INPUT]
+          Name              tail
+          Path              /var/log/app/*.log
+          Refresh_Interval  5
+          Mem_Buf_Limit     5MB
+          Skip_Long_Lines   On
+          DB                /var/log/app/flb.db
+          Tag               app.*
+    filters: |
+      [FILTER]
+          Name   record_modifier
+          Match  app.*
+          Record hostname ${HOSTNAME}
+    outputs: |
+      [OUTPUT]
+          Name   stdout
+          Match  app.*
+          Format json_lines
+  volumeMounts:
+    - name: app-logs
+      mountPath: /var/log/app
+    - name: fluentbit-config
+      mountPath: /fluent-bit/etc/
+
+# Common pod configuration
+pod:
+  annotations: {}
+  labels: {}
+  restartPolicy: Always
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 2000
+
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "multi-container-app.fullname" . }}
+  labels:
+    {{- include "multi-container-app.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "multi-container-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.pod.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "multi-container-app.selectorLabels" . | nindent 8 }}
+        {{- with .Values.pod.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.pod.securityContext | nindent 8 }}
+      containers:
+        - name: app
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            {{- toYaml .Values.app.ports | nindent 12 }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .Values.app.volumeMounts | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+        - name: fluentbit
+          image: "{{ .Values.fluentbit.image.repository }}:{{ .Values.fluentbit.image.tag }}"
+          imagePullPolicy: {{ .Values.fluentbit.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.fluentbit.resources | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .Values.fluentbit.volumeMounts | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: app-logs
+          emptyDir: {}
+        - name: fluentbit-config
+          configMap:
+            name: {{ include "multi-container-app.fullname" . }}-config
+      restartPolicy: {{ .Values.pod.restartPolicy }}
+
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "multi-container-app.fullname" . }}-config
+  labels:
+    {{- include "multi-container-app.labels" . | nindent 4 }}
+data:
+  fluent-bit.conf: |
+    {{- .Values.fluentbit.config.service | nindent 4 }}
+    {{- .Values.fluentbit.config.inputs | nindent 4 }}
+    {{- .Values.fluentbit.config.filters | nindent 4 }}
+    {{- .Values.fluentbit.config.outputs | nindent 4 }}
+  parsers.conf: |
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "multi-container-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "multi-container-app.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "multi-container-app.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "multi-container-app.labels" -}}
+helm.sh/chart: {{ include "multi-container-app.chart" . }}
+{{ include "multi-container-app.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "multi-container-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "multi-container-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

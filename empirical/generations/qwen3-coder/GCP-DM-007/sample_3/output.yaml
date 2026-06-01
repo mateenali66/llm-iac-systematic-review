@@ -1,0 +1,100 @@
+imports:
+- path: gke-cluster.jinja
+
+resources:
+- name: gke-cluster
+  type: gke-cluster.jinja
+  properties:
+    cluster:
+      name: prod-gke-cluster
+      initialNodeCount: 1
+      location: us-central1
+      masterAuth:
+        clientCertificateConfig:
+          issueClientCertificate: false
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      network: projects/{{ env["project"] }}/global/networks/default
+      subnetwork: projects/{{ env["project"] }}/regions/us-central1/subnetworks/default
+      addonsConfig:
+        httpLoadBalancing:
+          disabled: false
+        horizontalPodAutoscaling:
+          disabled: false
+        kubernetesDashboard:
+          disabled: true
+        networkPolicyConfig:
+          disabled: false
+      maintenancePolicy:
+        window:
+          dailyMaintenanceWindow:
+            startTime: "03:00"
+      ipAllocationPolicy:
+        useIpAliases: true
+        clusterSecondaryRangeName: pods
+        servicesSecondaryRangeName: services
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: internal-network
+          cidrBlock: 10.0.0.0/8
+      privateClusterConfig:
+        enablePrivateNodes: false
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      networkPolicy:
+        enabled: true
+      binaryAuthorization:
+        evaluationMode: DISABLED
+      autoscaling:
+        enableNodeAutoprovisioning: false
+      defaultMaxPodsConstraint:
+        maxPodsPerNode: 110
+      resourceUsageExportConfig:
+        enableNetworkEgressMetering: false
+        consumptionMeteringConfig:
+          enabled: true
+      authenticatorGroupsConfig:
+        securityGroup: ""
+      notificationConfig:
+        pubsub:
+          enabled: false
+      confidentialNodes:
+        enabled: false
+      nodePools:
+      - name: prod-node-pool
+        initialNodeCount: 3
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-standard
+          imageType: COS_CONTAINERD
+          serviceAccount: default
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          metadata:
+            disable-legacy-endpoints: "true"
+          tags:
+          - gke-prod
+          - prod-workload
+          shieldedInstanceConfig:
+            enableIntegrityMonitoring: true
+            enableSecureBoot: true
+          linuxNodeConfig:
+            sysctls:
+              net.core.somaxconn: "1024"
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 10
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        upgradeSettings:
+          strategy: SURGE
+          maxSurge: 1
+          maxUnavailable: 0
+        locations:
+        - us-central1-a
+        - us-central1-b
+        - us-central1-c

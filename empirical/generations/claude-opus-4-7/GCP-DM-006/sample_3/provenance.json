@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-006",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template creating a service account for a Cloud Function that needs to read from a specific Cloud Storage bucket.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/service_account.jinja\n  - path: templates/iam_binding.jinja\n\nresources:\n  - name: cf-storage-reader-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-storage-reader\n      displayName: Cloud Function Storage Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n      projectId: $(ref.project.projectId)\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cf-storage-reader-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cf-storage-reader-sa.name)\n  - name: serviceAccountUniqueId\n    value: $(ref.cf-storage-reader-sa.uniqueId)",
+  "cleaned_response": "imports:\n  - path: templates/service_account.jinja\n  - path: templates/iam_binding.jinja\n\nresources:\n  - name: cf-storage-reader-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-storage-reader\n      displayName: Cloud Function Storage Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n      projectId: $(ref.project.projectId)\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cf-storage-reader-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cf-storage-reader-sa.name)\n  - name: serviceAccountUniqueId\n    value: $(ref.cf-storage-reader-sa.uniqueId)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/service_account.jinja\n  - path: templates/iam_binding.jinja\n\nresources:\n  - name: cf-storage-reader-sa\n    type: iam.v1.serviceAccount\n    properties:\n      accountId: cf-storage-reader\n      displayName: Cloud Function Storage Reader Service Account\n      description: Service account used by Cloud Function to read objects from a designated GCS bucket\n      projectId: $(ref.project.projectId)\n\n  - name: bucket-object-viewer-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.objectViewer\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\n  - name: bucket-legacy-reader-binding\n    type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n    properties:\n      bucket: my-application-data-bucket\n      role: roles/storage.legacyBucketReader\n      member: serviceAccount:$(ref.cf-storage-reader-sa.email)\n    metadata:\n      dependsOn:\n        - cf-storage-reader-sa\n\noutputs:\n  - name: serviceAccountEmail\n    value: $(ref.cf-storage-reader-sa.email)\n  - name: serviceAccountName\n    value: $(ref.cf-storage-reader-sa.name)\n  - name: serviceAccountUniqueId\n    value: $(ref.cf-storage-reader-sa.uniqueId)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726553,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 256,
+      "output_tokens": 570,
+      "raw_input_tokens": 256
+    }
+  },
+  "started_at": "2026-05-25T16:29:05.340857+00:00",
+  "elapsed_seconds": 8.001
+}

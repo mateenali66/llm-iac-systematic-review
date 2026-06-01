@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "GCP-DM-003",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n  - name: cloudrun-service\n    type: cloudrun.v1.service\n    properties:\n      service:\n        metadata:\n          name: python-api-service\n        spec:\n          template:\n            spec:\n              containers:\n              - image: gcr.io/[PROJECT_ID]/python-api-image\n                ports:\n                - containerPort: 8080\n          traffic:\n          - percent: 100\n            latestRevision: true\n      location: us-central1\n\n  - name: python-api-image\n    action: gcr.io/cloud-builders/docker\n    properties:\n      docker:\n        dockerfile: |\n          # Use an official lightweight Python image.\n          # https://hub.docker.com/_/python\n          FROM python:3.12-slim\n\n          # Set environment variables\n          ENV APP_HOME /app\n          WORKDIR $APP_HOME\n\n          # Install any needed packages specified in requirements.txt\n          COPY requirements.txt .\n          RUN pip install --no-cache-dir -r requirements.txt\n\n          # Copy application code\n          COPY . .\n\n          # Make port 8080 available to the world outside this container\n          EXPOSE 8080\n\n          # Define environment variable\n          ENV NAME World\n\n          # Run app.py when the container launches\n          CMD [\"python\", \"app.py\"]\n        images:\n        - gcr.io/[PROJECT_ID]/python-api-image\n\n  - name: cloudrun-service-iam-policy\n    type: cloudrun.v1.serviceIamPolicy\n    properties:\n      service: python-api-service\n      location: us-central1\n      policy:\n        bindings:\n        - role: roles/run.invoker\n          members:\n          - allUsers\n\n  - name: cloudrun-service-logging\n    type: logging.v2.sink\n    properties:\n      parent: projects/[PROJECT_ID]\n      sink: cloudrun-service-logs\n      destination: logging.googleapis.com/projects/[PROJECT_ID]/logs/cloudrun-service-log\n      filter: 'resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\"'\n      uniqueWriterIdentity: true\n\n  - name: cloudrun-service-monitoring\n    type: monitoring.v3.alertPolicy\n    properties:\n      displayName: Cloud Run Service Alert Policy\n      combiner: OR\n      conditions:\n      - conditionThreshold:\n          thresholdValue: 0.5\n          comparisonOperator: COMPARISON_GT\n          duration: 300s\n          query: 'select count(*) from log_entry WHERE resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\" AND severity >= WARNING'\n        displayName: Cloud Run Service Error Rate\n      documentation:\n        content: 'Alerts when Cloud Run service error rate exceeds threshold'\n        mime_type: text/markdown\n      enabled: true",
+  "cleaned_response": "resources:\n  - name: cloudrun-service\n    type: cloudrun.v1.service\n    properties:\n      service:\n        metadata:\n          name: python-api-service\n        spec:\n          template:\n            spec:\n              containers:\n              - image: gcr.io/[PROJECT_ID]/python-api-image\n                ports:\n                - containerPort: 8080\n          traffic:\n          - percent: 100\n            latestRevision: true\n      location: us-central1\n\n  - name: python-api-image\n    action: gcr.io/cloud-builders/docker\n    properties:\n      docker:\n        dockerfile: |\n          # Use an official lightweight Python image.\n          # https://hub.docker.com/_/python\n          FROM python:3.12-slim\n\n          # Set environment variables\n          ENV APP_HOME /app\n          WORKDIR $APP_HOME\n\n          # Install any needed packages specified in requirements.txt\n          COPY requirements.txt .\n          RUN pip install --no-cache-dir -r requirements.txt\n\n          # Copy application code\n          COPY . .\n\n          # Make port 8080 available to the world outside this container\n          EXPOSE 8080\n\n          # Define environment variable\n          ENV NAME World\n\n          # Run app.py when the container launches\n          CMD [\"python\", \"app.py\"]\n        images:\n        - gcr.io/[PROJECT_ID]/python-api-image\n\n  - name: cloudrun-service-iam-policy\n    type: cloudrun.v1.serviceIamPolicy\n    properties:\n      service: python-api-service\n      location: us-central1\n      policy:\n        bindings:\n        - role: roles/run.invoker\n          members:\n          - allUsers\n\n  - name: cloudrun-service-logging\n    type: logging.v2.sink\n    properties:\n      parent: projects/[PROJECT_ID]\n      sink: cloudrun-service-logs\n      destination: logging.googleapis.com/projects/[PROJECT_ID]/logs/cloudrun-service-log\n      filter: 'resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\"'\n      uniqueWriterIdentity: true\n\n  - name: cloudrun-service-monitoring\n    type: monitoring.v3.alertPolicy\n    properties:\n      displayName: Cloud Run Service Alert Policy\n      combiner: OR\n      conditions:\n      - conditionThreshold:\n          thresholdValue: 0.5\n          comparisonOperator: COMPARISON_GT\n          duration: 300s\n          query: 'select count(*) from log_entry WHERE resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\" AND severity >= WARNING'\n        displayName: Cloud Run Service Error Rate\n      documentation:\n        content: 'Alerts when Cloud Run service error rate exceeds threshold'\n        mime_type: text/markdown\n      enabled: true",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n  - name: cloudrun-service\n    type: cloudrun.v1.service\n    properties:\n      service:\n        metadata:\n          name: python-api-service\n        spec:\n          template:\n            spec:\n              containers:\n              - image: gcr.io/[PROJECT_ID]/python-api-image\n                ports:\n                - containerPort: 8080\n          traffic:\n          - percent: 100\n            latestRevision: true\n      location: us-central1\n\n  - name: python-api-image\n    action: gcr.io/cloud-builders/docker\n    properties:\n      docker:\n        dockerfile: |\n          # Use an official lightweight Python image.\n          # https://hub.docker.com/_/python\n          FROM python:3.12-slim\n\n          # Set environment variables\n          ENV APP_HOME /app\n          WORKDIR $APP_HOME\n\n          # Install any needed packages specified in requirements.txt\n          COPY requirements.txt .\n          RUN pip install --no-cache-dir -r requirements.txt\n\n          # Copy application code\n          COPY . .\n\n          # Make port 8080 available to the world outside this container\n          EXPOSE 8080\n\n          # Define environment variable\n          ENV NAME World\n\n          # Run app.py when the container launches\n          CMD [\"python\", \"app.py\"]\n        images:\n        - gcr.io/[PROJECT_ID]/python-api-image\n\n  - name: cloudrun-service-iam-policy\n    type: cloudrun.v1.serviceIamPolicy\n    properties:\n      service: python-api-service\n      location: us-central1\n      policy:\n        bindings:\n        - role: roles/run.invoker\n          members:\n          - allUsers\n\n  - name: cloudrun-service-logging\n    type: logging.v2.sink\n    properties:\n      parent: projects/[PROJECT_ID]\n      sink: cloudrun-service-logs\n      destination: logging.googleapis.com/projects/[PROJECT_ID]/logs/cloudrun-service-log\n      filter: 'resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\"'\n      uniqueWriterIdentity: true\n\n  - name: cloudrun-service-monitoring\n    type: monitoring.v3.alertPolicy\n    properties:\n      displayName: Cloud Run Service Alert Policy\n      combiner: OR\n      conditions:\n      - conditionThreshold:\n          thresholdValue: 0.5\n          comparisonOperator: COMPARISON_GT\n          duration: 300s\n          query: 'select count(*) from log_entry WHERE resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"python-api-service\" AND severity >= WARNING'\n        displayName: Cloud Run Service Error Rate\n      documentation:\n        content: 'Alerts when Cloud Run service error rate exceeds threshold'\n        mime_type: text/markdown\n      enabled: true",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723752,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 162,
+      "output_tokens": 574,
+      "raw_input_tokens": 162
+    }
+  },
+  "started_at": "2026-05-25T15:42:29.817148+00:00",
+  "elapsed_seconds": 2.536
+}

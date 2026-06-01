@@ -1,0 +1,118 @@
+imports:
+- path: kms.jinja
+
+resources:
+- name: kms-deployment
+  type: kms.jinja
+  properties:
+    projectId: my-project-id
+    location: us-central1
+    keyRingName: storage-encryption-keyring
+    cryptoKeyName: storage-encryption-key
+    rotationPeriodSeconds: 7776000s
+    nextRotationOffsetSeconds: 86400
+    keyPurpose: ENCRYPT_DECRYPT
+    algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+    protectionLevel: SOFTWARE
+    bucketName: my-encrypted-storage-bucket
+    storageLocation: US
+    storageClass: STANDARD
+    versioningEnabled: true
+    uniformBucketLevelAccess: true
+    publicAccessPrevention: enforced
+    storageServiceAccount: service-PROJECT_NUMBER@gs-project-accounts.iam.gserviceaccount.com
+
+outputs:
+- name: keyRingId
+  value: $(ref.kms-deployment.keyRingId)
+- name: cryptoKeyId
+  value: $(ref.kms-deployment.cryptoKeyId)
+- name: bucketName
+  value: $(ref.kms-deployment.bucketName)
+
+---
+# kms.jinja
+resources:
+{% set keyRingId = 'projects/' ~ properties['projectId'] ~ '/locations/' ~ properties['location'] ~ '/keyRings/' ~ properties['keyRingName'] %}
+{% set cryptoKeyId = keyRingId ~ '/cryptoKeys/' ~ properties['cryptoKeyName'] %}
+
+- name: {{ properties['keyRingName'] }}
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/{{ properties['projectId'] }}/locations/{{ properties['location'] }}
+    keyRingId: {{ properties['keyRingName'] }}
+
+- name: {{ properties['cryptoKeyName'] }}
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.{{ properties['keyRingName'] }}.name)
+    cryptoKeyId: {{ properties['cryptoKeyName'] }}
+    purpose: {{ properties['keyPurpose'] }}
+    rotationPeriod: {{ properties['rotationPeriodSeconds'] }}
+    nextRotationTime:
+      seconds: {{ properties['nextRotationOffsetSeconds'] }}
+    versionTemplate:
+      algorithm: {{ properties['algorithm'] }}
+      protectionLevel: {{ properties['protectionLevel'] }}
+  metadata:
+    dependsOn:
+    - {{ properties['keyRingName'] }}
+
+- name: {{ properties['cryptoKeyName'] }}-iam-binding
+  action: gcp-types/cloudkms-v1:cloudkms.projects.locations.keyRings.cryptoKeys.setIamPolicy
+  properties:
+    resource: {{ cryptoKeyId }}
+    policy:
+      bindings:
+      - role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+        members:
+        - serviceAccount:{{ properties['storageServiceAccount'] }}
+  metadata:
+    dependsOn:
+    - {{ properties['cryptoKeyName'] }}
+
+- name: {{ properties['bucketName'] }}
+  type: storage.v1.bucket
+  properties:
+    name: {{ properties['bucketName'] }}
+    location: {{ properties['storageLocation'] }}
+    storageClass: {{ properties['storageClass'] }}
+    versioning:
+      enabled: {{ properties['versioningEnabled'] }}
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: {{ properties['uniformBucketLevelAccess'] }}
+      publicAccessPrevention: {{ properties['publicAccessPrevention'] }}
+    encryption:
+      defaultKmsKeyName: {{ cryptoKeyId }}
+    lifecycle:
+      rule:
+      - action:
+          type: SetStorageClass
+          storageClass: NEARLINE
+        condition:
+          age: 30
+      - action:
+          type: SetStorageClass
+          storageClass: COLDLINE
+        condition:
+          age: 90
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: false
+    logging:
+      logBucket: {{ properties['bucketName'] }}-logs
+      logObjectPrefix: access-logs/
+  metadata:
+    dependsOn:
+    - {{ properties['cryptoKeyName'] }}-iam-binding
+
+outputs:
+- name: keyRingId
+  value: {{ keyRingId }}
+- name: cryptoKeyId
+  value: {{ cryptoKeyId }}
+- name: bucketName
+  value: {{ properties['bucketName'] }}

@@ -1,0 +1,79 @@
+imports:
+  - path: templates/logging_sink.jinja
+
+resources:
+  - name: log-analytics-dataset
+    type: bigquery.v2.dataset
+    properties:
+      datasetReference:
+        datasetId: log_analytics_dataset
+        projectId: $(ref.project.projectId)
+      location: US
+      description: "Long-term log analytics dataset for Cloud Logging export"
+      defaultTableExpirationMs: 31536000000
+      defaultPartitionExpirationMs: 31536000000
+      labels:
+        environment: production
+        purpose: log-analytics
+        managed-by: deployment-manager
+      access:
+        - role: OWNER
+          specialGroup: projectOwners
+        - role: READER
+          specialGroup: projectReaders
+        - role: WRITER
+          specialGroup: projectWriters
+
+  - name: project-log-sink
+    type: gcp-types/logging-v2:projects.sinks
+    properties:
+      sink: project-bigquery-log-sink
+      parent: projects/[PROJECT_ID]
+      uniqueWriterIdentity: true
+      destination: bigquery.googleapis.com/projects/[PROJECT_ID]/datasets/$(ref.log-analytics-dataset.datasetReference.datasetId)
+      description: "Exports all project logs to BigQuery for long-term analysis and compliance"
+      filter: |
+        severity >= DEFAULT
+        AND NOT protoPayload.serviceName="logging.googleapis.com"
+      bigqueryOptions:
+        usePartitionedTables: true
+      exclusions:
+        - name: exclude-healthchecks
+          description: "Exclude noisy load balancer health check logs"
+          filter: 'resource.type="http_load_balancer" AND httpRequest.userAgent=~"GoogleHC"'
+          disabled: false
+        - name: exclude-debug
+          description: "Exclude debug-level logs to reduce cost"
+          filter: 'severity=DEBUG'
+          disabled: false
+    metadata:
+      dependsOn:
+        - log-analytics-dataset
+
+  - name: sink-writer-bigquery-binding
+    action: gcp-types/bigquery-v2:bigquery.datasets.patch
+    properties:
+      projectId: [PROJECT_ID]
+      datasetId: $(ref.log-analytics-dataset.datasetReference.datasetId)
+      access:
+        - role: OWNER
+          specialGroup: projectOwners
+        - role: READER
+          specialGroup: projectReaders
+        - role: WRITER
+          specialGroup: projectWriters
+        - role: WRITER
+          userByEmail: $(ref.project-log-sink.writerIdentity)
+    metadata:
+      dependsOn:
+        - project-log-sink
+
+outputs:
+  - name: sinkName
+    value: $(ref.project-log-sink.name)
+  - name: sinkWriterIdentity
+    value: $(ref.project-log-sink.writerIdentity)
+  - name: sinkDestination
+    value: $(ref.project-log-sink.destination)
+  - name: bigqueryDatasetId
+    value: $(ref.log-analytics-dataset.datasetReference.datasetId)

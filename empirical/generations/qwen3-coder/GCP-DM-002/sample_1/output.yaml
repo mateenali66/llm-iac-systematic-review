@@ -1,0 +1,51 @@
+resources:
+- name: static-website-bucket
+  type: storage.v1.bucket
+  properties:
+    location: US
+    storageClass: STANDARD
+    cors:
+    - origin:
+      - "*"
+      method:
+      - GET
+      - HEAD
+      maxAgeSeconds: 3600
+    logging:
+      logBucket: ${ref.log-bucket.name}
+      logObjectPrefix: static-website-access
+    versioning:
+      enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+
+- name: log-bucket
+  type: storage.v1.bucket
+  properties:
+    location: US
+    storageClass: STANDARD
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365
+
+- name: bucket-iam-policy
+  type: gcp-types/storage-v1:virtual.buckets.iamPolicy
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    bindings:
+    - role: roles/storage.objectViewer
+      members:
+      - allUsers
+  metadata:
+    dependsOn:
+    - static-website-bucket

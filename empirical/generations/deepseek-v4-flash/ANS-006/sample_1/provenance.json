@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "ANS-006",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Configure deploy user and SSH hardening\n  hosts: all\n  become: yes\n  vars:\n    deploy_user: deploy\n    deploy_user_ssh_key: \"{{ vault_deploy_ssh_public_key }}\"\n    sshd_config_path: /etc/ssh/sshd_config\n\n  tasks:\n    - name: Create deploy user\n      ansible.builtin.user:\n        name: \"{{ deploy_user }}\"\n        state: present\n        shell: /bin/bash\n        groups: sudo\n        append: yes\n        create_home: yes\n\n    - name: Set passwordless sudo for deploy user\n      ansible.builtin.lineinfile:\n        path: /etc/sudoers.d/deploy\n        line: \"{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL\"\n        create: yes\n        mode: '0440'\n        validate: 'visudo -cf %s'\n\n    - name: Create .ssh directory for deploy user\n      ansible.builtin.file:\n        path: \"/home/{{ deploy_user }}/.ssh\"\n        state: directory\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0700'\n\n    - name: Install public SSH key for deploy user\n      ansible.builtin.copy:\n        dest: \"/home/{{ deploy_user }}/.ssh/authorized_keys\"\n        content: \"{{ deploy_user_ssh_key }}\\n\"\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0600'\n\n    - name: Disable password authentication in SSH\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^#?PasswordAuthentication'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n    - name: Ensure SSH password authentication is disabled (if commented)\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^PasswordAuthentication yes'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n  handlers:\n    - name: restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+  "cleaned_response": "- name: Configure deploy user and SSH hardening\n  hosts: all\n  become: yes\n  vars:\n    deploy_user: deploy\n    deploy_user_ssh_key: \"{{ vault_deploy_ssh_public_key }}\"\n    sshd_config_path: /etc/ssh/sshd_config\n\n  tasks:\n    - name: Create deploy user\n      ansible.builtin.user:\n        name: \"{{ deploy_user }}\"\n        state: present\n        shell: /bin/bash\n        groups: sudo\n        append: yes\n        create_home: yes\n\n    - name: Set passwordless sudo for deploy user\n      ansible.builtin.lineinfile:\n        path: /etc/sudoers.d/deploy\n        line: \"{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL\"\n        create: yes\n        mode: '0440'\n        validate: 'visudo -cf %s'\n\n    - name: Create .ssh directory for deploy user\n      ansible.builtin.file:\n        path: \"/home/{{ deploy_user }}/.ssh\"\n        state: directory\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0700'\n\n    - name: Install public SSH key for deploy user\n      ansible.builtin.copy:\n        dest: \"/home/{{ deploy_user }}/.ssh/authorized_keys\"\n        content: \"{{ deploy_user_ssh_key }}\\n\"\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0600'\n\n    - name: Disable password authentication in SSH\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^#?PasswordAuthentication'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n    - name: Ensure SSH password authentication is disabled (if commented)\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^PasswordAuthentication yes'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n  handlers:\n    - name: restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Configure deploy user and SSH hardening\n  hosts: all\n  become: yes\n  vars:\n    deploy_user: deploy\n    deploy_user_ssh_key: \"{{ vault_deploy_ssh_public_key }}\"\n    sshd_config_path: /etc/ssh/sshd_config\n\n  tasks:\n    - name: Create deploy user\n      ansible.builtin.user:\n        name: \"{{ deploy_user }}\"\n        state: present\n        shell: /bin/bash\n        groups: sudo\n        append: yes\n        create_home: yes\n\n    - name: Set passwordless sudo for deploy user\n      ansible.builtin.lineinfile:\n        path: /etc/sudoers.d/deploy\n        line: \"{{ deploy_user }} ALL=(ALL) NOPASSWD: ALL\"\n        create: yes\n        mode: '0440'\n        validate: 'visudo -cf %s'\n\n    - name: Create .ssh directory for deploy user\n      ansible.builtin.file:\n        path: \"/home/{{ deploy_user }}/.ssh\"\n        state: directory\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0700'\n\n    - name: Install public SSH key for deploy user\n      ansible.builtin.copy:\n        dest: \"/home/{{ deploy_user }}/.ssh/authorized_keys\"\n        content: \"{{ deploy_user_ssh_key }}\\n\"\n        owner: \"{{ deploy_user }}\"\n        group: \"{{ deploy_user }}\"\n        mode: '0600'\n\n    - name: Disable password authentication in SSH\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^#?PasswordAuthentication'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n    - name: Ensure SSH password authentication is disabled (if commented)\n      ansible.builtin.lineinfile:\n        path: \"{{ sshd_config_path }}\"\n        regexp: '^PasswordAuthentication yes'\n        line: 'PasswordAuthentication no'\n        state: present\n      notify: restart sshd\n\n  handlers:\n    - name: restart sshd\n      ansible.builtin.service:\n        name: sshd\n        state: restarted",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727563,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 149,
+      "output_tokens": 495,
+      "raw_input_tokens": 149
+    }
+  },
+  "started_at": "2026-05-25T16:45:59.346063+00:00",
+  "elapsed_seconds": 4.406
+}

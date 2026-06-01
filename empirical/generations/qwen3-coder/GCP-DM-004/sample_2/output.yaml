@@ -1,0 +1,75 @@
+resources:
+- name: custom-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.1.0/24
+    privateIpGoogleAccess: false
+
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.2.0/24
+    privateIpGoogleAccess: true
+
+- name: cloud-router
+  type: compute.v1.router
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    nats:
+    - name: nat-config
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.private-subnet.selfLink)
+        sourceIpRangesToNat: ALL_IP_RANGES
+
+- name: allow-internal-firewall
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    priority: 1000
+    allowed:
+    - IPProtocol: all
+    sourceRanges:
+    - 10.0.0.0/8
+    direction: INGRESS
+    disabled: false
+
+- name: allow-ssh-firewall
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    priority: 1000
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "22"
+    sourceRanges:
+    - 0.0.0.0/0
+    direction: INGRESS
+    disabled: false
+
+- name: allow-health-check-firewall
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc.selfLink)
+    priority: 1000
+    allowed:
+    - IPProtocol: tcp
+    sourceRanges:
+    - 35.191.0.0/16
+    - 130.211.0.0/22
+    direction: INGRESS
+    disabled: false

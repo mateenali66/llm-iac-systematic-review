@@ -1,0 +1,15 @@
+resources:
+- name: cf-reader-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    parent: projects/$(project)
+    accountId: cf-reader
+    serviceAccount:
+      displayName: Cloud Functions Reader Service Account
+      description: Service account for Cloud Functions to read objects from a specific Cloud Storage bucket.
+- name: grant-cf-reader-storage-object-viewer
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: your-bucket-name
+    role: roles/storage.objectViewer
+    member: serviceAccount:$(ref.cf-reader-sa.email)

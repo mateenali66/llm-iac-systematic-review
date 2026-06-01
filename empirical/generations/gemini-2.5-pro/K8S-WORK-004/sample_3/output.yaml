@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-backup-nightly
+  labels:
+    app.kubernetes.io/name: db-backup
+    app.kubernetes.io/component: cronjob
+spec:
+  schedule: "0 2 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            fsGroup: 1001
+          containers:
+          - name: db-backup-runner
+            image: myorg/db-backup:2.1
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                - ALL
+            env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: db-backup-credentials
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-backup-credentials
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-backup-credentials
+                  key: DB_PASSWORD
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "250m"
+                memory: "256Mi"
+            volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          restartPolicy: OnFailure
+          volumes:
+          - name: tmp
+            emptyDir: {}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1

@@ -1,0 +1,86 @@
+resources:
+  - name: cloudrun-service
+    type: cloudrun.v1.service
+    properties:
+      service:
+        metadata:
+          name: python-api-service
+        spec:
+          template:
+            spec:
+              containers:
+              - image: gcr.io/[PROJECT_ID]/python-api-image
+                ports:
+                - containerPort: 8080
+          traffic:
+          - percent: 100
+            latestRevision: true
+      location: us-central1
+
+  - name: python-api-image
+    action: gcr.io/cloud-builders/docker
+    properties:
+      docker:
+        dockerfile: |
+          # Use an official lightweight Python image.
+          # https://hub.docker.com/_/python
+          FROM python:3.12-slim
+
+          # Set environment variables
+          ENV APP_HOME /app
+          WORKDIR $APP_HOME
+
+          # Install any needed packages specified in requirements.txt
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+
+          # Copy application code
+          COPY . .
+
+          # Make port 8080 available to the world outside this container
+          EXPOSE 8080
+
+          # Define environment variable
+          ENV NAME World
+
+          # Run app.py when the container launches
+          CMD ["python", "app.py"]
+        images:
+        - gcr.io/[PROJECT_ID]/python-api-image
+
+  - name: cloudrun-service-iam-policy
+    type: cloudrun.v1.serviceIamPolicy
+    properties:
+      service: python-api-service
+      location: us-central1
+      policy:
+        bindings:
+        - role: roles/run.invoker
+          members:
+          - allUsers
+
+  - name: cloudrun-service-logging
+    type: logging.v2.sink
+    properties:
+      parent: projects/[PROJECT_ID]
+      sink: cloudrun-service-logs
+      destination: logging.googleapis.com/projects/[PROJECT_ID]/logs/cloudrun-service-log
+      filter: 'resource.type="cloud_run_revision" AND resource.labels.service_name="python-api-service"'
+      uniqueWriterIdentity: true
+
+  - name: cloudrun-service-monitoring
+    type: monitoring.v3.alertPolicy
+    properties:
+      displayName: Cloud Run Service Alert Policy
+      combiner: OR
+      conditions:
+      - conditionThreshold:
+          thresholdValue: 0.5
+          comparisonOperator: COMPARISON_GT
+          duration: 300s
+          query: 'select count(*) from log_entry WHERE resource.type="cloud_run_revision" AND resource.labels.service_name="python-api-service" AND severity >= WARNING'
+        displayName: Cloud Run Service Error Rate
+      documentation:
+        content: 'Alerts when Cloud Run service error rate exceeds threshold'
+        mime_type: text/markdown
+      enabled: true

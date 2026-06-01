@@ -1,0 +1,112 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 283,
+	"files_parsed": 1,
+	"lines_parsed": 283,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:09:16.450261887Z",
+	"end": "2026-05-26T05:09:17.279136512Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Passwords And Secrets - Generic Password",
+			"query_id": "487f4be7-3fd9-4506-a07a-eae252180c08",
+			"query_url": "https://docs.kics.io/latest/secrets/",
+			"severity": "HIGH",
+			"platform": "Common",
+			"cwe": "798",
+			"cloud_provider": "COMMON",
+			"category": "Secret Management",
+			"experimental": false,
+			"description": "Query to find passwords and secrets in infrastructure code.",
+			"description_id": "d69d8a89",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "c4caae126bc5db90ac6bc9647b660cfca9cadf9032e781fd11b3da5abf4c2994",
+					"line": 136,
+					"issue_type": "RedundantAttribute",
+					"search_key": "",
+					"search_line": 0,
+					"search_value": "",
+					"expected_value": "Hardcoded secret key should not appear in source",
+					"actual_value": "Hardcoded secret key appears in source"
+				}
+			]
+		},
+		{
+			"query_name": "SQL Server Database Without Auditing",
+			"query_id": "e055285c-bc01-48b4-8aa5-8a54acdd29df",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases/auditingsettings",
+			"severity": "MEDIUM",
+			"platform": "AzureResourceManager",
+			"cwe": "778",
+			"cloud_provider": "AZURE",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every 'Microsoft.Sql/servers/databases' resource should have Auditing Enabled",
+			"description_id": "16d077a1",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "18bde2ca6bcdd1e899898f335e249004faf6b93cc27a85a95aa38dfbddbbd18e",
+					"line": 162,
+					"resource_type": "Microsoft.Sql/servers/databases",
+					"resource_name": "['${sqlServer.name}/${parameters('sqlDbName')}']",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name=['${sqlServer.name}/${parameters('sqlDbName')}']",
+					"search_line": 162,
+					"search_value": "",
+					"expected_value": "resource '['${sqlServer.name}/${parameters('sqlDbName')}']' should have an enabled 'auditingsettings' resource",
+					"actual_value": "resource '['${sqlServer.name}/${parameters('sqlDbName')}']' is missing an enabled 'auditingsettings' resource"
+				}
+			]
+		},
+		{
+			"query_name": "SQL Server Database With Unrecommended Retention Days",
+			"query_id": "c09cdac2-7670-458a-bf6c-efad6880973a",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.sql/servers/databases/auditingsettings?tabs=json",
+			"severity": "LOW",
+			"platform": "AzureResourceManager",
+			"cwe": "778",
+			"cloud_provider": "AZURE",
+			"category": "Observability",
+			"experimental": false,
+			"description": "SQL Server Database Auditing Settings should keep the audit logs in the storage account for at least 90 days",
+			"description_id": "7867ae74",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "f755ff36e6b83fedcc61c4af3fa4bd8090f3dd13b5fc8583c6858200db1c0e12",
+					"line": 198,
+					"resource_type": "auditingSettings",
+					"resource_name": "Default",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.resources.name={{Default}}.properties.retentionDays",
+					"search_line": 198,
+					"search_value": "",
+					"expected_value": "'auditingSettings.properties.retentionDays' parameter default value should be defined and above 90 days",
+					"actual_value": "'auditingSettings.properties.retentionDays' parameter default value is %!d(string=[parameters('logRetentionDays')])"
+				}
+			]
+		}
+	]
+}

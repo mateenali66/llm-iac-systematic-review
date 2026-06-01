@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  OrderProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-queue
+      VisibilityTimeout: 300
+      MessageRetentionPeriod: 345600
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrderProcessorDLQ.Arn
+        maxReceiveCount: 3
+  OrderProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-dlq
+      MessageRetentionPeriod: 1209600
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SQSAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource: !GetAtt OrderProcessorQueue.Arn
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order-processor
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 512
+      Code:
+        ZipFile: |
+          import json
+          def handler(event, context):
+              for record in event.get('Records', []):
+                  body = record.get('body')
+                  print(f"Processing message: {body}")
+              return {'statusCode': 200}
+  SQSEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderProcessorQueue.Arn
+      FunctionName: !Ref OrderProcessorFunction
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      Enabled: true

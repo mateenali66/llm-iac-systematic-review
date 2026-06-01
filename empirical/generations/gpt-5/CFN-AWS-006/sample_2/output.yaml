@@ -1,0 +1,575 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS Fargate cluster with two microservices behind an internal Network Load Balancer
+
+Parameters:
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.0.0/24
+    Description: CIDR block for the first public subnet
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.1.0/24
+    Description: CIDR block for the second public subnet
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.0.10.0/24
+    Description: CIDR block for the first private subnet
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.0.11.0/24
+    Description: CIDR block for the second private subnet
+  ServiceAImage:
+    Type: String
+    Default: public.ecr.aws/ecs-samples/amazon-ecs-sample:latest
+    Description: Container image for Service A
+  ServiceBImage:
+    Type: String
+    Default: public.ecr.aws/ecs-samples/amazon-ecs-sample:latest
+    Description: Container image for Service B
+  ServiceAPort:
+    Type: Number
+    Default: 8080
+    Description: Listener and container port for Service A
+  ServiceBPort:
+    Type: Number
+    Default: 9090
+    Description: Listener and container port for Service B
+  ServiceADesiredCount:
+    Type: Number
+    Default: 2
+    Description: Desired task count for Service A
+  ServiceBDesiredCount:
+    Type: Number
+    Default: 2
+    Description: Desired task count for Service B
+  TaskCpu:
+    Type: Number
+    Default: 512
+    AllowedValues:
+      - 256
+      - 512
+      - 1024
+      - 2048
+    Description: Fargate task CPU (valid values 256,512,1024,2048)
+  TaskMemory:
+    Type: Number
+    Default: 1024
+    AllowedValues:
+      - 512
+      - 1024
+      - 2048
+      - 3072
+      - 4096
+      - 5120
+      - 6144
+      - 7168
+      - 8192
+    Description: Fargate task memory in MiB (ensure compatible with CPU)
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    Description: CloudWatch Logs retention in days
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-vpc'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-igw'
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-az1'
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-az2'
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private-az1'
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private-az2'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-public-rt'
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  NatEip1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatEip2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip1.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-nat-az1'
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEip2.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-nat-az2'
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private-rt-az1'
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-private-rt-az2'
+
+  PrivateRoute1Default:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway1
+
+  PrivateRoute2Default:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway2
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: !Ref PrivateSubnet1
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: !Ref PrivateSubnet2
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${AWS::StackName}-cluster'
+      Configuration:
+        ExecuteCommandConfiguration:
+          Logging: DEFAULT
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-cluster'
+
+  ECSServiceExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-ecs-exec-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-ecs-exec-role'
+
+  ECSTaskRoleA:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-task-role-a'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-task-role-a'
+
+  ECSTaskRoleB:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-task-role-b'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ecs-tasks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-task-role-b'
+
+  ServiceALogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/ecs/${AWS::StackName}/service-a'
+      RetentionInDays: !Ref LogRetentionDays
+
+  ServiceBLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/ecs/${AWS::StackName}/service-b'
+      RetentionInDays: !Ref LogRetentionDays
+
+  ServiceATaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AWS::StackName}-service-a'
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !GetAtt ECSServiceExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRoleA.Arn
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ContainerDefinitions:
+        - Name: service-a
+          Image: !Ref ServiceAImage
+          Essential: true
+          PortMappings:
+            - ContainerPort: !Ref ServiceAPort
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ServiceALogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: service
+          Environment:
+            - Name: SERVICE_NAME
+              Value: service-a
+
+  ServiceBTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${AWS::StackName}-service-b'
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: !Ref TaskCpu
+      Memory: !Ref TaskMemory
+      ExecutionRoleArn: !GetAtt ECSServiceExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRoleB.Arn
+      RuntimePlatform:
+        OperatingSystemFamily: LINUX
+        CpuArchitecture: X86_64
+      ContainerDefinitions:
+        - Name: service-b
+          Image: !Ref ServiceBImage
+          Essential: true
+          PortMappings:
+            - ContainerPort: !Ref ServiceBPort
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref ServiceBLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: service
+          Environment:
+            - Name: SERVICE_NAME
+              Value: service-b
+
+  ServiceASecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Service A tasks
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceAPort
+          ToPort: !Ref ServiceAPort
+          CidrIp: !Ref PrivateSubnet1Cidr
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceAPort
+          ToPort: !Ref ServiceAPort
+          CidrIp: !Ref PrivateSubnet2Cidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-sg-service-a'
+
+  ServiceBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Service B tasks
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceBPort
+          ToPort: !Ref ServiceBPort
+          CidrIp: !Ref PrivateSubnet1Cidr
+        - IpProtocol: tcp
+          FromPort: !Ref ServiceBPort
+          ToPort: !Ref ServiceBPort
+          CidrIp: !Ref PrivateSubnet2Cidr
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-sg-service-b'
+
+  InternalNLB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internal
+      Type: network
+      Subnets:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      LoadBalancerAttributes:
+        - Key: load_balancing.cross_zone.enabled
+          Value: 'true'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-nlb-internal'
+
+  TargetGroupA:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VPC
+      Protocol: TCP
+      Port: !Ref ServiceAPort
+      TargetType: ip
+      HealthCheckProtocol: TCP
+      HealthCheckPort: traffic-port
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '30'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-tg-a'
+
+  TargetGroupB:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      VpcId: !Ref VPC
+      Protocol: TCP
+      Port: !Ref ServiceBPort
+      TargetType: ip
+      HealthCheckProtocol: TCP
+      HealthCheckPort: traffic-port
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '30'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-tg-b'
+
+  NLBListenerA:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref InternalNLB
+      Port: !Ref ServiceAPort
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroupA
+
+  NLBListenerB:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref InternalNLB
+      Port: !Ref ServiceBPort
+      Protocol: TCP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroupB
+
+  ECSServiceA:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - NLBListenerA
+    Properties:
+      ServiceName: !Sub '${AWS::StackName}-service-a'
+      Cluster: !Ref ECSCluster
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DesiredCount: !Ref ServiceADesiredCount
+      HealthCheckGracePeriodSeconds: 60
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      EnableECSManagedTags: true
+      PropagateTags: TASK_DEFINITION
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroupA
+          ContainerName: service-a
+          ContainerPort: !Ref ServiceAPort
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          Subnets:
+            - !Ref PrivateSubnet1
+            - !Ref PrivateSubnet2
+          SecurityGroups:
+            - !Ref ServiceASecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-service-a'
+
+  ECSServiceB:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - NLBListenerB
+    Properties:
+      ServiceName: !Sub '${AWS::StackName}-service-b'
+      Cluster: !Ref ECSCluster
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DesiredCount: !Ref ServiceBDesiredCount
+      HealthCheckGracePeriodSeconds: 60
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      EnableECSManagedTags: true
+      PropagateTags: TASK_DEFINITION
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroupB
+          ContainerName: service-b
+          ContainerPort: !Ref ServiceBPort
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: DISABLED
+          Subnets:
+            - !Ref PrivateSubnet1
+            - !Ref PrivateSubnet2
+          SecurityGroups:
+            - !Ref ServiceBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-service-b'
+
+Outputs:
+  ClusterArn:
+    Description: ECS Cluster ARN
+    Value: !Ref ECSCluster
+  ServiceAName:
+    Description: ECS Service A name
+    Value: !GetAtt ECSServiceA.Name
+  ServiceBName:
+    Description: ECS Service B name
+    Value: !GetAtt ECSServiceB.Name
+  InternalNLBDNSName:
+    Description: Internal NLB DNS name (resolvable within the VPC)
+    Value: !GetAtt InternalNLB.DNSName
+  TargetGroupAArn:
+    Description: Target Group A ARN
+    Value: !Ref TargetGroupA
+  TargetGroupBArn:
+    Description: Target Group B ARN
+    Value: !Ref TargetGroupB

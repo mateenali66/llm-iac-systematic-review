@@ -1,0 +1,70 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "diagnostic errors while loading terraform config dir '/in'. error from terraform:\n/in/output.tf:96,25-25: Unterminated string literal; Unable to find the closing quote mark before the end of the file.\n/in/output.tf:96,25-25: Invalid block definition; Either a quoted string block label or an opening brace (\"{\") is expected here.\n/in/output.tf:96,1-9: Missing name for resource; All resource blocks must have 2 labels (type, name).\n"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "s3Versioning",
+        "description": "Enabling S3 versioning will enable easy recovery from both unintended user actions, like deletes and overwrites",
+        "rule_id": "AC_AWS_0214",
+        "severity": "HIGH",
+        "category": "Resilience",
+        "resource_name": "content",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 31
+      },
+      {
+        "rule_name": "s3Versioning",
+        "description": "Enabling S3 versioning will enable easy recovery from both unintended user actions, like deletes and overwrites",
+        "rule_id": "AC_AWS_0214",
+        "severity": "HIGH",
+        "category": "Resilience",
+        "resource_name": "logs",
+        "resource_type": "aws_s3_bucket",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 52
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 05:03:27.922855295 +0000 UTC",
+      "policies_validated": 16,
+      "violated_policies": 2,
+      "low": 0,
+      "medium": 0,
+      "high": 2
+    }
+  }
+}

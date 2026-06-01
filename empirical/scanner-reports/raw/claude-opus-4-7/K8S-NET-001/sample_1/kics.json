@@ -1,0 +1,114 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 78,
+	"files_parsed": 2,
+	"lines_parsed": 78,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 1,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 3,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T03:59:24.342070002Z",
+	"end": "2026-05-26T03:59:31.954932839Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "73d8f3dcc603fbf5922e862b2ce3d34b0b28ec67adfcc89f5f41efdc5f812d73",
+					"line": 5,
+					"resource_type": "Service",
+					"resource_name": "api-server",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-server}}.namespace",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "'metadata.namespace' should not be set to default, kube-system or kube-public",
+					"actual_value": "'metadata.namespace' is set to default"
+				}
+			]
+		},
+		{
+			"query_name": "Service Does Not Target Pod",
+			"query_id": "3ca03a61-3249-4c16-8427-6f8e47dda729",
+			"query_url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Service should Target a Pod",
+			"description_id": "e7c26645",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "cb5009c1c720bb44e4d877af83bf2c1574d95881aa52c37a1fc8a9ac81f90424",
+					"line": 14,
+					"resource_type": "Service",
+					"resource_name": "api-server",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{api-server}}.spec.selector",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{api-server}}.spec.selector label refers to a Pod label",
+					"actual_value": "metadata.name={{api-server}}.spec.selector label does not match with any Pod label"
+				}
+			]
+		},
+		{
+			"query_name": "Ensure Administrative Boundaries Between Resources",
+			"query_id": "e84eaf4d-2f45-47b2-abe8-e581b06deb66",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/",
+			"severity": "INFO",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "As a best practice, ensure that is made the correct use of namespaces to adequately administer your resources. Kubernetes Authorization plugins can also be used to create policies that segregate user access to namespaces.",
+			"description_id": "8182d7cf",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ed5e0a8aa8c636451b6979137d7682e70f0329d68690275cf85de76f3d343629",
+					"line": 5,
+					"resource_type": "Service",
+					"resource_name": "api-server",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.namespace={{default}}",
+					"search_line": 5,
+					"search_value": "",
+					"expected_value": "ensure that these namespaces are the ones you need and are adequately administered as per your requirements.",
+					"actual_value": "namespaces in use: default"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,111 @@
+imports:
+  - path: templates/instance_template.jinja
+    name: instance_template.jinja
+  - path: templates/health_check.jinja
+    name: health_check.jinja
+  - path: templates/backend_service.jinja
+    name: backend_service.jinja
+  - path: templates/url_map.jinja
+    name: url_map.jinja
+  - path: templates/target_proxy.jinja
+    name: target_proxy.jinja
+  - path: templates/forwarding_rule.jinja
+    name: forwarding_rule.jinja
+  - path: templates/autoscaler.jinja
+    name: autoscaler.jinja
+  - path: templates/instance_group_manager.jinja
+    name: instance_group_manager.jinja
+
+resources:
+  - name: instance-template
+    type: instance_template.jinja
+    properties:
+      machineType: e2-micro
+      sourceImage: projects/debian-cloud/global/images/family/debian-11
+      network: global/networks/default
+      subnetwork: regions/us-central1/subnetworks/default
+      tags:
+        items:
+          - http-server
+          - https-server
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              apt-get update
+              apt-get install -y apache2
+              systemctl enable apache2
+              systemctl start apache2
+              echo "<html><body><h1>Hello from instance $(hostname)</h1></body></html>" > /var/www/html/index.html
+
+  - name: health-check
+    type: health_check.jinja
+    properties:
+      checkIntervalSec: 5
+      timeoutSec: 5
+      healthyThreshold: 2
+      unhealthyThreshold: 2
+      type: HTTP
+      port: 80
+      requestPath: /
+
+  - name: backend-service
+    type: backend_service.jinja
+    properties:
+      healthChecks:
+        - $(ref.health-check.selfLink)
+      portName: http
+      protocol: HTTP
+      timeoutSec: 30
+      connectionDraining:
+        drainingTimeoutSec: 60
+      enableCDN: false
+      sessionAffinity: NONE
+
+  - name: instance-group-manager
+    type: instance_group_manager.jinja
+    properties:
+      baseInstanceName: web-server
+      instanceTemplate: $(ref.instance-template.selfLink)
+      targetSize: 1
+      zone: us-central1-a
+      namedPorts:
+        - name: http
+          port: 80
+      autoHealingPolicies:
+        - healthCheck: $(ref.health-check.selfLink)
+          initialDelaySec: 60
+
+  - name: autoscaler
+    type: autoscaler.jinja
+    properties:
+      target: $(ref.instance-group-manager.selfLink)
+      zone: us-central1-a
+      autoscalingPolicy:
+        minNumReplicas: 1
+        maxNumReplicas: 5
+        coolDownPeriodSec: 60
+        cpuUtilization:
+          utilizationTarget: 0.6
+
+  - name: url-map
+    type: url_map.jinja
+    properties:
+      defaultService: $(ref.backend-service.selfLink)
+
+  - name: target-http-proxy
+    type: target_proxy.jinja
+    properties:
+      urlMap: $(ref.url-map.selfLink)
+      sslCertificates: []
+      sslPolicy: null
+
+  - name: forwarding-rule
+    type: forwarding_rule.jinja
+    properties:
+      IPProtocol: TCP
+      portRange: 80
+      target: $(ref.target-http-proxy.selfLink)
+      loadBalancingScheme: EXTERNAL
+      networkTier: PREMIUM

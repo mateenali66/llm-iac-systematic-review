@@ -1,0 +1,76 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multi-tier-app
+description: A Helm chart for a generic multi-tier application with frontend, backend, and database.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+---
+# FILE: values.yaml
+# Global values
+global:
+  # -- Common labels to add to all resources
+  labels: {}
+
+# -- Frontend tier configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: "1.25"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  # -- Ingress configuration for the frontend
+  ingress:
+    enabled: false
+    # className: "nginx"
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # hosts:
+    #   - host: chart-example.local
+    #     paths:
+    #       - path: /
+    #         pathType: ImplementationSpecific
+    # tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  # -- Resource requests and limits
+  resources:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+  # -- Pod security context
+  podSecurityContext:
+    fsGroup: 101 # NGINX group
+  # -- Container security context
+  securityContext:
+    runAsUser: 101 # NGINX user
+    runAsGroup: 101 # NGINX group
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+  # -- Non-sensitive configuration data for the frontend
+  config:
+    API_URL: "http://{{ .Release.Name }}-backend:8080/api"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# -- Backend tier configuration
+backend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: bitnami/node-exporter
+    tag: "1.7.0" #

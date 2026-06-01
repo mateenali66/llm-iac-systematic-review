@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Production-ready Auto Scaling Group with Application Load Balancer.
+  This template creates a VPC, public and private subnets, an ALB, and an
+  Auto Scaling group of EC2 instances running a simple web server.
+
+Parameters:
+  VpcCIDR:
+    Description: CIDR block for the VPC.
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnet1CIDR:
+    Description: CIDR block for the public subnet in Availability Zone 1.
+    Type: String
+    Default: 10.0.1.0/24
+  PublicSubnet2CIDR:
+    Description: CIDR block for the public subnet in Availability Zone 2.
+    Type: String
+    Default: 10.0.2.0/24
+  PrivateSubnet1CIDR:
+    Description: CIDR block for the private subnet in Availability Zone 1.
+    Type: String
+    Default: 10.0.101.0/24
+  PrivateSubnet2CIDR:
+    Description: CIDR block for the private subnet in Availability Zone 2.
+    Type: String
+    Default: 10.0.102.0/24
+  InstanceType:
+    Description: EC2 instance type for the web servers.
+    Type: String
+    Default: t3.micro
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Description: Latest Amazon Linux 2 AMI ID.
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+  AsgMinSize:
+    Description: Minimum number of instances in the Auto Scaling Group.
+    Type: Number
+    Default: 2
+  AsgMaxSize:
+    Description: Maximum number of instances in the Auto Scaling Group.
+    Type: Number
+    Default: 4
+  AsgDesiredCapacity:
+    Description: Desired number of instances in the Auto Scaling Group.
+    Type: Number
+    Default: 2
+
+Resources:
+  # ------------------------------------------------------------#
+  #  VPC & Networking
+  # ------------------------------------------------------------#
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName

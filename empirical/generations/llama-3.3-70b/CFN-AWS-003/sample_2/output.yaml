@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Aurora PostgreSQL Serverless v2 cluster for a SaaS multi-tenant application'
+
+Resources:
+  DatabaseCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      EngineMode: serverless
+      Engine: aurora-postgresql
+      EngineVersion: '13.8'
+      MasterUsername: !Sub 'saasapp${AWS::Region}'
+      MasterUserPassword: !Sub 'saasapp${AWS::Region}password'
+      DatabaseName: saasappdb
+      Port: 5432
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 64
+        MinCapacity: 4
+        SecondsUntilAutoPause: 300
+      DBSubnetGroupName: !Ref DBSubnetGroup
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupName: !Sub 'saasapp-${AWS::Region}-db-subnet-group'
+      DBSubnetGroupDescription: DB Subnet Group for SaaS application
+      SubnetIds: !Split [',', !Sub '${SubnetId1},${SubnetId2},${SubnetId3}']
+
+  DBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security Group for SaaS application database
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+
+  DBSecurityGroupIngress:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      GroupId: !Ref DBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      CidrIp: 0.0.0.0/0
+
+Parameters:
+  SubnetId1:
+    Type: 'AWS::EC2::Subnet::Id'
+    Description: Subnet ID 1 for DB Subnet Group
+  SubnetId2:
+    Type: 'AWS::EC2::Subnet::Id'
+    Description: Subnet ID 2 for DB Subnet Group
+  SubnetId3:
+    Type: 'AWS::EC2::Subnet::Id'
+    Description: Subnet ID 3 for DB Subnet Group
+
+Outputs:
+  DatabaseClusterIdentifier:
+    Value: !Ref DatabaseCluster
+    Description: Database Cluster Identifier
+  DatabaseClusterEndpoint:
+    Value: !GetAtt DatabaseCluster.EndpointAddress
+    Description: Database Cluster Endpoint Address
+  DatabaseClusterPort:
+    Value: !GetAtt DatabaseCluster.Port
+    Description: Database Cluster Port

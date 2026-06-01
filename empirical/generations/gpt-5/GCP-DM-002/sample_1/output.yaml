@@ -1,0 +1,46 @@
+resources:
+- name: website-bucket
+  type: storage.v1.bucket
+  properties:
+    name: static-website-bucket-001
+    location: US
+    storageClass: STANDARD
+    labels:
+      environment: production
+      managed-by: deploymentmanager
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    versioning:
+      enabled: true
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          isLive: false
+          age: 90
+    cors:
+    - origin: ["*"]
+      method: ["GET", "HEAD"]
+      responseHeader: ["Content-Type", "Cache-Control"]
+      maxAgeSeconds: 3600
+
+- name: website-bucket-public-read
+  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding
+  properties:
+    bucket: $(ref.website-bucket.name)
+    role: roles/storage.objectViewer
+    member: allUsers
+  metadata:
+    dependsOn:
+    - website-bucket
+
+outputs:
+- name: bucketName
+  value: $(ref.website-bucket.name)
+- name: websiteEndpoint
+  value: https://storage.googleapis.com/$(ref.website-bucket.name)/

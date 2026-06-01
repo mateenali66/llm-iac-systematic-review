@@ -1,0 +1,295 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: multitier-app
+description: Production Helm chart for multi-tier application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+frontend:
+  image:
+    repository: nginx
+    tag: "1.25-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    type: ClusterIP
+    port: 80
+backend:
+  image:
+    repository: your-backend-image
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  service:
+    type: ClusterIP
+    port: 8080
+postgres:
+  image:
+    repository: postgres
+    tag: "15-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  storage:
+    size: 10Gi
+    storageClassName: standard
+  service:
+    type: ClusterIP
+    port: 5432
+secret:
+  dbUser: postgres
+  dbPassword: change-me-in-production
+  dbName: appdb
+---
+# FILE: templates/frontend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-frontend-config
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+data:
+  NGINX_HOST: "localhost"
+---
+# FILE: templates/backend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-backend-config
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+data:
+  APP_ENV: "production"
+  DB_HOST: "{{ .Release.Name }}-postgres"
+---
+# FILE: templates/postgres-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-config
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: postgres
+data:
+  POSTGRES_DB: {{ .Values.secret.dbName }}
+---
+# FILE: templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-db-secret
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+type: Opaque
+stringData:
+  POSTGRES_USER: {{ .Values.secret.dbUser }}
+  POSTGRES_PASSWORD: {{ .Values.secret.dbPassword }}
+---
+# FILE: templates/frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 101
+      containers:
+      - name: frontend
+        image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+        imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-frontend-config
+        resources:
+          {{- toYaml .Values.frontend.resources | nindent 12 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+# FILE: templates/backend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/component: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: backend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-backend-config
+        - secretRef:
+            name: {{ .Release.Name }}-db-secret
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 12 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+# FILE: templates/postgres-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: postgres
+spec:
+  serviceName: {{ .Release.Name }}-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Release.Name }}
+      app.kubernetes.io/component: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Release.Name }}
+        app.kubernetes.io/component: postgres
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 999
+      containers:
+      - name: postgres
+        image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+        imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-postgres-config
+        - secretRef:
+            name: {{ .Release.Name }}-db-secret
+        resources:
+          {{- toYaml .Values.postgres.resources | nindent 12 }}
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: {{ .Values.postgres.storage.storageClassName }}
+      resources:
+        requests:
+          storage: {{ .Values.postgres.storage.size }}
+---
+# FILE: templates/frontend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: frontend
+  ports:
+  - port: {{ .Values.frontend.service.port }}
+    targetPort: 80
+---
+# FILE: templates/backend-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.backend.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: backend
+  ports:
+  - port: {{ .Values.backend.service.port }}
+    targetPort: 8080
+---
+# FILE: templates/postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: postgres
+spec:
+  type: {{ .Values.postgres.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: postgres
+  ports:
+  - port: {{ .Values.postgres.service.port }}
+    targetPort: 5432

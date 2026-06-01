@@ -1,0 +1,19 @@
+---
+- name: Harden CentOS 9 Server
+  hosts: all
+  become: true
+  vars:
+    min_pass_len: 14
+    min_pass_dcredit: -1
+    min_pass_ucredit: -1
+    min_pass_lcredit: -1
+    min_pass_ocredit: -1
+    audit_rules_content: |
+      ## First rule - delete all
+      -D
+
+      ## Increase the buffers to survive stress events.
+      ## Make this bigger for busy systems
+      -b 8192
+
+      ## This rule is required for the anaconda installer to work

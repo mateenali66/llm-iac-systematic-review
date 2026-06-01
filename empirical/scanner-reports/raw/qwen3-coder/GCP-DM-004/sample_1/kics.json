@@ -1,0 +1,58 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 61,
+	"files_parsed": 1,
+	"lines_parsed": 61,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 32,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 1,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:26:43.990025084Z",
+	"end": "2026-05-26T06:26:44.272338584Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "SSH Access Is Not Restricted",
+			"query_id": "dee21308-2a7a-49de-8ff7-c9b87e188575",
+			"query_url": "https://cloud.google.com/compute/docs/reference/rest/v1/firewalls",
+			"severity": "MEDIUM",
+			"platform": "GoogleDeploymentManager",
+			"cwe": "284",
+			"cloud_provider": "GCP",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Google Firewall should not allow SSH access (port 22) from the Internet (public CIDR block) to ensure the principle of least privileges",
+			"description_id": "10629ac9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "63dfc3030bccfab86951d15f49da300d074492bef1282f2aa868ded7e0fd8f3f",
+					"line": 58,
+					"resource_type": "compute.v1.firewall",
+					"resource_name": "allow-ssh-firewall",
+					"issue_type": "IncorrectValue",
+					"search_key": "resources.name={{allow-ssh-firewall}}.properties.allowed[%!d(string=22)].ports=%!s(MISSING)",
+					"search_line": 58,
+					"search_value": "",
+					"expected_value": "'allowed[0].ports' to not include SSH port 22",
+					"actual_value": "'allowed[0].ports' includes SSH port 22"
+				}
+			]
+		}
+	]
+}

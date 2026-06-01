@@ -1,0 +1,190 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: nginx-reverse-proxy
+description: Production-grade NGINX reverse proxy with custom config, LoadBalancer Service, and NetworkPolicy
+type: application
+version: 1.0.0
+appVersion: "1.27.2"
+keywords:
+  - nginx
+  - reverse-proxy
+  - ingress
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+---
+# FILE: values.yaml
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.27.2-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: false
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - NET_BIND_SERVICE
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+nodeSelector: {}
+tolerations: []
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: nginx-reverse-proxy
+
+# Upstream service the proxy routes to
+upstream:
+  host: backend.default.svc.cluster.local
+  port: 8000
+  # Used by NetworkPolicy egress
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: default
+
+# Custom nginx.conf rendered to ConfigMap
+nginxConfig: |
+  worker_processes auto;
+  error_log /var/log/nginx/error.log warn;
+  pid /tmp/nginx.pid;
+
+  events {
+    worker_connections 1024;
+    use epoll;
+    multi_accept on;
+  }
+
+  http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+    access_log /var/log/nginx/access.log main;
+
+    sendfile        on;
+    tcp_nopush      on;
+    tcp_nodelay     on;
+    keepalive_timeout  65;
+    server_tokens   off;
+    client_max_body_size 10m;
+    client_body_temp_path /tmp/client_body;
+    proxy_temp_path       /tmp/proxy;
+    fastcgi_temp_path     /tmp/fastcgi;
+    uwsgi_temp_path       /tmp/uwsgi;
+    scgi_temp_path        /tmp/scgi;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    upstream backend {
+      server {{ .Values.upstream.host }}:{{ .Values.upstream.port }};
+      keepalive 32;
+    }
+
+    server {
+      listen 8080 default_server;
+      server_name _;
+
+      location /healthz {
+        access_log off;
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+      }
+
+      location / {
+        proxy_pass http://backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        proxy_buffering on;
+      }
+    }
+  }
+
+networkPolicy:
+  enabled: true
+  ingress:
+    # Allow ingress from anywhere on port 8080 (LoadBalancer terminates here)
+    fromCIDRs:

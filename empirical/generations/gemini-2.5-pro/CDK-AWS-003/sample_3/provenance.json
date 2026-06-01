@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-003",
+  "language": "cdk_typescript",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK TypeScript stack for an S3 bucket storing customer-uploaded files with lifecycle policies (delete after 365 days).",
+  "user_message_sent": "Target IaC language: AWS CDK in TypeScript\n\nTask: Generate a CDK TypeScript stack for an S3 bucket storing customer-uploaded files with lifecycle policies (delete after 365 days).\n\nOutput only the AWS CDK in TypeScript code, no commentary or markdown fences.",
+  "raw_response": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as s3 from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsStack extends cdk.Stack {\n  public readonly uploadsBucket: s3.IBucket;\n\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new s3.Bucket(this, 'AccessLogsBucket', {\n      removalPolicy: cdk.RemovalPolicy.DESTROY,\n      autoDeleteObjects: true,\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      lifecycleRules: [\n        {\n          expiration: cdk.Duration.days(90),\n        },\n      ],\n    });\n\n    this.uploadsBucket = new s3.Bucket(this, 'CustomerUploadsBucket', {\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      versioned: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      removalPolicy: cdk.RemovalPolicy.RETAIN,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 'uploads-access-logs/',\n      lifecycleRules: [\n        {\n          id: 'DeleteAfterOneYear',\n          enabled: true,\n          expiration: cdk.Duration.days(365),\n        },\n        {\n          id: 'AbortIncompleteMultipartUploads',\n          enabled: true,\n          abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),\n        },\n        {\n          id: 'ExpireNonCurrentVersions',\n          enabled: true,\n          noncurrentVersionExpiration: cdk.Duration.days(30),\n        },\n      ],\n    });\n\n    new cdk.CfnOutput(this, 'UploadsBucketName', {\n      value: this.uploadsBucket.bucketName,\n      description: 'Name of the S3 bucket for customer uploads',\n    });\n  }\n}",
+  "cleaned_response": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as s3 from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsStack extends cdk.Stack {\n  public readonly uploadsBucket: s3.IBucket;\n\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new s3.Bucket(this, 'AccessLogsBucket', {\n      removalPolicy: cdk.RemovalPolicy.DESTROY,\n      autoDeleteObjects: true,\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      lifecycleRules: [\n        {\n          expiration: cdk.Duration.days(90),\n        },\n      ],\n    });\n\n    this.uploadsBucket = new s3.Bucket(this, 'CustomerUploadsBucket', {\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      versioned: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      removalPolicy: cdk.RemovalPolicy.RETAIN,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 'uploads-access-logs/',\n      lifecycleRules: [\n        {\n          id: 'DeleteAfterOneYear',\n          enabled: true,\n          expiration: cdk.Duration.days(365),\n        },\n        {\n          id: 'AbortIncompleteMultipartUploads',\n          enabled: true,\n          abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),\n        },\n        {\n          id: 'ExpireNonCurrentVersions',\n          enabled: true,\n          noncurrentVersionExpiration: cdk.Duration.days(30),\n        },\n      ],\n    });\n\n    new cdk.CfnOutput(this, 'UploadsBucketName', {\n      value: this.uploadsBucket.bucketName,\n      description: 'Name of the S3 bucket for customer uploads',\n    });\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import * as cdk from 'aws-cdk-lib';\nimport { Construct } from 'constructs';\nimport * as s3 from 'aws-cdk-lib/aws-s3';\n\nexport class CustomerUploadsStack extends cdk.Stack {\n  public readonly uploadsBucket: s3.IBucket;\n\n  constructor(scope: Construct, id: string, props?: cdk.StackProps) {\n    super(scope, id, props);\n\n    const accessLogsBucket = new s3.Bucket(this, 'AccessLogsBucket', {\n      removalPolicy: cdk.RemovalPolicy.DESTROY,\n      autoDeleteObjects: true,\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      lifecycleRules: [\n        {\n          expiration: cdk.Duration.days(90),\n        },\n      ],\n    });\n\n    this.uploadsBucket = new s3.Bucket(this, 'CustomerUploadsBucket', {\n      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,\n      encryption: s3.BucketEncryption.S3_MANAGED,\n      enforceSSL: true,\n      versioned: true,\n      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,\n      removalPolicy: cdk.RemovalPolicy.RETAIN,\n      serverAccessLogsBucket: accessLogsBucket,\n      serverAccessLogsPrefix: 'uploads-access-logs/',\n      lifecycleRules: [\n        {\n          id: 'DeleteAfterOneYear',\n          enabled: true,\n          expiration: cdk.Duration.days(365),\n        },\n        {\n          id: 'AbortIncompleteMultipartUploads',\n          enabled: true,\n          abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),\n        },\n        {\n          id: 'ExpireNonCurrentVersions',\n          enabled: true,\n          noncurrentVersionExpiration: cdk.Duration.days(30),\n        },\n      ],\n    });\n\n    new cdk.CfnOutput(this, 'UploadsBucketName', {\n      value: this.uploadsBucket.bucketName,\n      description: 'Name of the S3 bucket for customer uploads',\n    });\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779725635,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 122,
+      "output_tokens": 2029,
+      "raw_input_tokens": 122
+    }
+  },
+  "started_at": "2026-05-25T16:13:31.729984+00:00",
+  "elapsed_seconds": 23.857
+}

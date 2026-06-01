@@ -1,0 +1,156 @@
+imports:
+  - path: cloud-run-service.jinja
+
+resources:
+  - name: api-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloud-run-api-sa
+      displayName: Cloud Run Python API Service Account
+      description: Dedicated service account for the Cloud Run Python 3.12 API service
+
+  - name: api-artifact-registry
+    type: gcp-types/artifactregistry-v1:projects.locations.repositories
+    properties:
+      parent: projects/[PROJECT_ID]/locations/us-central1
+      repositoryId: python-api-repo
+      repository:
+        format: DOCKER
+        description: Container registry for Python API images
+        labels:
+          environment: production
+          managed-by: deployment-manager
+
+  - name: api-secret-key
+    type: gcp-types/secretmanager-v1:projects.secrets
+    properties:
+      parent: projects/[PROJECT_ID]
+      secretId: python-api-secret-key
+      secret:
+        replication:
+          automatic: {}
+        labels:
+          environment: production
+          app: python-api
+
+  - name: secret-accessor-binding
+    type: gcp-types/secretmanager-v1:virtual.projects.secrets.iamMemberBinding
+    properties:
+      resource: $(ref.api-secret-key.name)
+      role: roles/secretmanager.secretAccessor
+      member: $(ref.api-service-account.email)
+
+  - name: python-api-cloud-run
+    type: gcp-types/run-v1:namespaces.services
+    metadata:
+      dependsOn:
+        - api-service-account
+        - api-artifact-registry
+        - api-secret-key
+    properties:
+      parent: namespaces/[PROJECT_ID]
+      location: us-central1
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      metadata:
+        name: python-api
+        namespace: '[PROJECT_ID]'
+        labels:
+          environment: production
+          app: python-api
+          runtime: python-3-12
+          managed-by: deployment-manager
+        annotations:
+          run.googleapis.com/ingress: internal-and-cloud-load-balancing
+          run.googleapis.com/ingress-status: internal-and-cloud-load-balancing
+          run.googleapis.com/launch-stage: GA
+          run.googleapis.com/description: Production Python 3.12 API on Cloud Run
+      spec:
+        template:
+          metadata:
+            name: python-api-v1
+            labels:
+              app: python-api
+              version: v1
+            annotations:
+              autoscaling.knative.dev/minScale: '1'
+              autoscaling.knative.dev/maxScale: '20'
+              run.googleapis.com/cpu-throttling: 'false'
+              run.googleapis.com/startup-cpu-boost: 'true'
+              run.googleapis.com/execution-environment: gen2
+              run.googleapis.com/sessionAffinity: 'true'
+          spec:
+            serviceAccountName: $(ref.api-service-account.email)
+            containerConcurrency: 80
+            timeoutSeconds: 300
+            containers:
+              - name: python-api
+                image: us-central1-docker.pkg.dev/[PROJECT_ID]/python-api-repo/python-api:latest
+                ports:
+                  - name: http1
+                    containerPort: 8080
+                    protocol: TCP
+                env:
+                  - name: PYTHONUNBUFFERED
+                    value: '1'
+                  - name: PYTHONDONTWRITEBYTECODE
+                    value: '1'
+                  - name: PORT
+                    value: '8080'
+                  - name: ENVIRONMENT
+                    value: production
+                  - name: LOG_LEVEL
+                    value: INFO
+                  - name: GCP_PROJECT
+                    value: '[PROJECT_ID]'
+                  - name: API_SECRET_KEY
+                    valueFrom:
+                      secretKeyRef:
+                        name: python-api-secret-key
+                        key: latest
+                resources:
+                  limits:
+                    cpu: '2'
+                    memory: 1Gi
+                  requests:
+                    cpu: '1'
+                    memory: 512Mi
+                startupProbe:
+                  httpGet:
+                    path: /health/startup
+                    port: 8080
+                    httpHeaders:
+                      - name: User-Agent
+                        value: GoogleHC/1.0
+                  initialDelaySeconds: 5
+                  timeoutSeconds: 3
+                  periodSeconds: 10
+                  failureThreshold: 6
+                livenessProbe:
+                  httpGet:
+                    path: /health/live
+                    port: 8080
+                    httpHeaders:
+                      - name: User-Agent
+                        value: GoogleHC/1.0
+                  initialDelaySeconds: 30
+                  timeoutSeconds: 3
+                  periodSeconds: 30
+                  failureThreshold: 3
+                securityContext:
+                  runAsNonRoot: true
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+        traffic:
+          - percent: 100
+            latestRevision: true
+
+outputs:
+  - name: serviceUrl
+    value: $(ref.python-api-cloud-run.status.url)
+  - name: serviceName
+    value: $(ref.python-api-cloud-run.metadata.name)
+  - name: serviceAccountEmail
+    value: $(ref.api-service-account.email)
+  - name: artifactRegistryRepo
+    value: $(ref.api-artifact-registry.name)

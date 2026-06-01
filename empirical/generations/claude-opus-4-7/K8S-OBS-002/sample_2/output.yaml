@@ -1,0 +1,38 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: api-metrics
+    app.kubernetes.io/component: metrics
+    release: prometheus
+spec:
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector:
+    matchNames:
+      - default
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-metrics
+  endpoints:
+    - port: "9090"
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      scheme: http
+      honorLabels: false
+      honorTimestamps: true
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: 'go_gc_.*|process_.*'
+          action: keep
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: service
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node

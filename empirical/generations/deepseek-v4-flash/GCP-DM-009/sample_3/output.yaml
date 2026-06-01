@@ -1,0 +1,38 @@
+imports:
+  - path: templates/logging_sink_bigquery.py
+    name: logging_sink_bigquery.py
+
+resources:
+  - name: log-analysis-dataset
+    type: bigquery.v2.dataset
+    properties:
+      datasetReference:
+        datasetId: log_analysis_dataset
+      location: US
+      description: "Dataset for long-term log analysis"
+      defaultTableExpirationMs: 31536000000  # 1 year in milliseconds
+      labels:
+        environment: production
+        purpose: log-analysis
+
+  - name: log-export-sink
+    type: logging.v2.sink
+    properties:
+      sink: project-log-sink
+      destination: "bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/log_analysis_dataset"
+      filter: "severity >= WARNING"
+      description: "Export logs to BigQuery for analysis"
+      uniqueWriterIdentity: true
+      outputVersionFormat: V2
+      includeChildren: false
+      disabled: false
+      bigqueryOptions:
+        usePartitionedTables: true
+        usesTimestampColumnPartitioning: true
+
+  - name: sink-writer-permission
+    type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+    properties:
+      resource: projects/${PROJECT_ID}
+      role: roles/bigquery.dataEditor
+      member: $(ref.log-export-sink.writerIdentity)

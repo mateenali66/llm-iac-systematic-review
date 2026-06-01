@@ -1,0 +1,58 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 153,
+	"files_parsed": 1,
+	"lines_parsed": 153,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 1,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T03:48:17.770771251Z",
+	"end": "2026-05-26T03:48:18.443567168Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Key Vault Not Recoverable",
+			"query_id": "7c25f361-7c66-44bf-9b69-022acd5eb4bd",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/2019-09-01/vaults?tabs=json#vaultproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "530",
+			"cloud_provider": "AZURE",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Key Vault should have 'enableSoftDelete' and 'enablePurgeProtection' set to true",
+			"description_id": "8e3ca202",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "d7b59a236a816c6d2c2b9f503cabfaf875abbde38b3a470f83eb702112e86452",
+					"line": 76,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('keyVaultName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('keyVaultName')]}}.properties",
+					"search_line": 76,
+					"search_value": "enablePurgeProtection",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enablePurgeProtection' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enablePurgeProtection' property defined"
+				}
+			]
+		}
+	]
+}

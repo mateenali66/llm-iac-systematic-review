@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "TF-AWS-023",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS WAFv2 web ACL attached to a CloudFront distribution that blocks common SQL injection and cross-site scripting attacks.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS WAFv2 web ACL attached to a CloudFront distribution that blocks common SQL injection and cross-site scripting attacks.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_wafv2_web_acl\" \"cloudfront_waf\" {\n  name        = \"cloudfront-waf-web-acl\"\n  description = \"Web ACL for CloudFront blocking SQLi and XSS attacks\"\n  scope       = \"CLOUDFRONT\"\n\n  default_action {\n    allow {}\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesSQLiRuleSet\"\n    priority = 1\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesSQLiRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesSQLiRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesXssRuleSet\"\n    priority = 2\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesXssRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesXssRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  visibility_config {\n    cloudwatch_metrics_enabled = true\n    metric_name                = \"cloudfront-waf-web-acl\"\n    sampled_requests_enabled   = true\n  }\n}\n\nresource \"aws_wafv2_web_acl_association\" \"cloudfront_association\" {\n  resource_arn = aws_cloudfront_distribution.main.arn\n  web_acl_arn  = aws_wafv2_web_acl.cloudfront_waf.arn\n}",
+  "cleaned_response": "resource \"aws_wafv2_web_acl\" \"cloudfront_waf\" {\n  name        = \"cloudfront-waf-web-acl\"\n  description = \"Web ACL for CloudFront blocking SQLi and XSS attacks\"\n  scope       = \"CLOUDFRONT\"\n\n  default_action {\n    allow {}\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesSQLiRuleSet\"\n    priority = 1\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesSQLiRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesSQLiRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesXssRuleSet\"\n    priority = 2\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesXssRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesXssRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  visibility_config {\n    cloudwatch_metrics_enabled = true\n    metric_name                = \"cloudfront-waf-web-acl\"\n    sampled_requests_enabled   = true\n  }\n}\n\nresource \"aws_wafv2_web_acl_association\" \"cloudfront_association\" {\n  resource_arn = aws_cloudfront_distribution.main.arn\n  web_acl_arn  = aws_wafv2_web_acl.cloudfront_waf.arn\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_wafv2_web_acl\" \"cloudfront_waf\" {\n  name        = \"cloudfront-waf-web-acl\"\n  description = \"Web ACL for CloudFront blocking SQLi and XSS attacks\"\n  scope       = \"CLOUDFRONT\"\n\n  default_action {\n    allow {}\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesSQLiRuleSet\"\n    priority = 1\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesSQLiRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesSQLiRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  rule {\n    name     = \"AWS-AWSManagedRulesXssRuleSet\"\n    priority = 2\n\n    override_action {\n      none {}\n    }\n\n    statement {\n      managed_rule_group_statement {\n        name        = \"AWSManagedRulesXssRuleSet\"\n        vendor_name = \"AWS\"\n      }\n    }\n\n    visibility_config {\n      cloudwatch_metrics_enabled = true\n      metric_name                = \"AWSManagedRulesXssRuleSet\"\n      sampled_requests_enabled   = true\n    }\n  }\n\n  visibility_config {\n    cloudwatch_metrics_enabled = true\n    metric_name                = \"cloudfront-waf-web-acl\"\n    sampled_requests_enabled   = true\n  }\n}\n\nresource \"aws_wafv2_web_acl_association\" \"cloudfront_association\" {\n  resource_arn = aws_cloudfront_distribution.main.arn\n  web_acl_arn  = aws_wafv2_web_acl.cloudfront_waf.arn\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729411,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 68,
+      "output_tokens": 393,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 4
+    }
+  },
+  "started_at": "2026-05-25T17:16:47.948584+00:00",
+  "elapsed_seconds": 3.63
+}

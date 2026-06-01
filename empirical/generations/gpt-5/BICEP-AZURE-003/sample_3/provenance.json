@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-003",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning an App Service Plan and a Web App for a Node.js 20 application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\n\n@description('A short prefix used for resource names')\nparam namePrefix string = 'node'\n\n@description('Deployment environment name (e.g., prod, staging)')\nparam environment string = 'prod'\n\n@description('Globally unique Web App name. Defaults to a unique name based on prefix and environment.')\n@minLength(2)\nparam appName string = toLower('${namePrefix}-${environment}-${uniqueString(resourceGroup().id)}')\n\n@description('App Service Plan SKU')\n@allowed([\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam skuName string = 'P1v3'\n\n@description('Number of workers in the App Service Plan')\n@minValue(1)\n@maxValue(20)\nparam skuCapacity int = 1\n\n@description('Enable zone redundancy for the App Service Plan (supported regions only)')\nparam zoneRedundant bool = true\n\n@description('Common resource tags')\nparam tags object = {\n  environment: environment\n  workload: 'webapp'\n}\n\nvar aspName = toLower('${namePrefix}-${environment}-asp')\n\nresource plan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: aspName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: skuName\n    tier: 'PremiumV3'\n    size: skuName\n    capacity: skuCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n    zoneRedundant: zoneRedundant\n  }\n}\n\nresource site 'Microsoft.Web/sites@2023-12-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      alwaysOn: true\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppName string = site.name\noutput webAppDefaultHostName string = site.properties.defaultHostName",
+  "cleaned_response": "param location string = resourceGroup().location\n\n@description('A short prefix used for resource names')\nparam namePrefix string = 'node'\n\n@description('Deployment environment name (e.g., prod, staging)')\nparam environment string = 'prod'\n\n@description('Globally unique Web App name. Defaults to a unique name based on prefix and environment.')\n@minLength(2)\nparam appName string = toLower('${namePrefix}-${environment}-${uniqueString(resourceGroup().id)}')\n\n@description('App Service Plan SKU')\n@allowed([\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam skuName string = 'P1v3'\n\n@description('Number of workers in the App Service Plan')\n@minValue(1)\n@maxValue(20)\nparam skuCapacity int = 1\n\n@description('Enable zone redundancy for the App Service Plan (supported regions only)')\nparam zoneRedundant bool = true\n\n@description('Common resource tags')\nparam tags object = {\n  environment: environment\n  workload: 'webapp'\n}\n\nvar aspName = toLower('${namePrefix}-${environment}-asp')\n\nresource plan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: aspName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: skuName\n    tier: 'PremiumV3'\n    size: skuName\n    capacity: skuCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n    zoneRedundant: zoneRedundant\n  }\n}\n\nresource site 'Microsoft.Web/sites@2023-12-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      alwaysOn: true\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppName string = site.name\noutput webAppDefaultHostName string = site.properties.defaultHostName",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\n\n@description('A short prefix used for resource names')\nparam namePrefix string = 'node'\n\n@description('Deployment environment name (e.g., prod, staging)')\nparam environment string = 'prod'\n\n@description('Globally unique Web App name. Defaults to a unique name based on prefix and environment.')\n@minLength(2)\nparam appName string = toLower('${namePrefix}-${environment}-${uniqueString(resourceGroup().id)}')\n\n@description('App Service Plan SKU')\n@allowed([\n  'P1v3'\n  'P2v3'\n  'P3v3'\n])\nparam skuName string = 'P1v3'\n\n@description('Number of workers in the App Service Plan')\n@minValue(1)\n@maxValue(20)\nparam skuCapacity int = 1\n\n@description('Enable zone redundancy for the App Service Plan (supported regions only)')\nparam zoneRedundant bool = true\n\n@description('Common resource tags')\nparam tags object = {\n  environment: environment\n  workload: 'webapp'\n}\n\nvar aspName = toLower('${namePrefix}-${environment}-asp')\n\nresource plan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: aspName\n  location: location\n  kind: 'linux'\n  tags: tags\n  sku: {\n    name: skuName\n    tier: 'PremiumV3'\n    size: skuName\n    capacity: skuCapacity\n  }\n  properties: {\n    reserved: true\n    perSiteScaling: false\n    zoneRedundant: zoneRedundant\n  }\n}\n\nresource site 'Microsoft.Web/sites@2023-12-01' = {\n  name: appName\n  location: location\n  kind: 'app,linux'\n  tags: tags\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: plan.id\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'NODE|20-lts'\n      alwaysOn: true\n      http20Enabled: true\n      minTlsVersion: '1.2'\n      scmMinTlsVersion: '1.2'\n      ftpsState: 'Disabled'\n    }\n  }\n}\n\noutput appServicePlanId string = plan.id\noutput webAppName string = site.name\noutput webAppDefaultHostName string = site.properties.defaultHostName",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779708205,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 125,
+      "output_tokens": 3550,
+      "raw_input_tokens": 125
+    }
+  },
+  "started_at": "2026-05-25T11:22:38.619208+00:00",
+  "elapsed_seconds": 46.83
+}

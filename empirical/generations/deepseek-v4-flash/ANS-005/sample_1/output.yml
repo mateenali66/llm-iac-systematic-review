@@ -1,0 +1,72 @@
+- name: Install Docker and configure user access
+  hosts: all
+  become: yes
+  vars:
+    docker_user: "{{ ansible_user }}"
+  tasks:
+    - name: Install required system packages
+      package:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_pkg_mgr == "apt"
+
+    - name: Add Docker GPG key (Debian/Ubuntu)
+      apt_key:
+        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+        state: present
+      when: ansible_pkg_mgr == "apt"
+
+    - name: Add Docker repository (Debian/Ubuntu)
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_pkg_mgr == "apt"
+
+    - name: Install Docker (Debian/Ubuntu)
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+      when: ansible_pkg_mgr == "apt"
+
+    - name: Install required system packages (RHEL/CentOS)
+      package:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+      when: ansible_pkg_mgr == "yum"
+
+    - name: Add Docker repository (RHEL/CentOS)
+      yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+      when: ansible_pkg_mgr == "yum"
+
+    - name: Install Docker (RHEL/CentOS)
+      yum:
+        name: docker-ce
+        state: present
+      when: ansible_pkg_mgr == "yum"
+
+    - name: Ensure Docker is started and enabled at boot
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: yes

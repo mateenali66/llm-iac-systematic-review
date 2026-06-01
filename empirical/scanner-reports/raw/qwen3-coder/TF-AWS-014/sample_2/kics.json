@@ -1,0 +1,86 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 9,
+	"files_parsed": 1,
+	"lines_parsed": 9,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 1,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:35:35.137853261Z",
+	"end": "2026-05-26T06:35:58.154241841Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CloudWatch Log Group Without KMS",
+			"query_id": "0afbcfe9-d341-4b92-a64c-7e6de0543879",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "AWS CloudWatch Log groups should be encrypted using KMS",
+			"description_id": "4258abe6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "74d7e9a6eb6a66960698ca5868161db2de4b846b10df4f7bd60c8f7b7a3c7e3d",
+					"line": 1,
+					"resource_type": "aws_cloudwatch_log_group",
+					"resource_name": "/aws/app/prod",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_cloudwatch_log_group[prod_app_logs]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Attribute 'kms_key_id' should be set",
+					"actual_value": "Attribute 'kms_key_id' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		}
+	]
+}

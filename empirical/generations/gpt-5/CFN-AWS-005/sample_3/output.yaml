@@ -1,0 +1,540 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Three-tier VPC with public, application, and database subnets across three AZs, NAT gateways, routes, endpoints, and flow logs.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: prod
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9\-]{1,20}$'
+    Description: Environment name used for tagging resources.
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    AllowedPattern: ^([0-9]{1,3}\.){3}[0-9]{1,3}\/([0-9]|[12][0-9]|3[0-2])$
+    ConstraintDescription: Must be a valid IPv4 CIDR block.
+  LogRetentionInDays:
+    Type: Number
+    Default: 30
+    AllowedValues: [1,3,5,7,14,30,60,90,120,150,180,365,400,545,731,1827,3653]
+    Description: CloudWatch Logs retention for VPC Flow Logs.
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-igw
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-a
+        - Key: Tier
+          Value: public
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Select [1, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-b
+        - Key: Tier
+          Value: public
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      CidrBlock: !Select [2, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-c
+        - Key: Tier
+          Value: public
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [3, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-a
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [4, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-b
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [5, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-c
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [6, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-a
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [7, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-b
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [2, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      CidrBlock: !Select [8, !Cidr [!Ref VpcCidr, 32, 8]]
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-c
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-public-rt
+        - Key: Tier
+          Value: public
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  PublicDefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  PublicSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet3
+
+  NatEipA:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-eip-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatEipB:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-eip-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatEipC:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-eip-c
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatGatewayA:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipA.AllocationId
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-a
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatGatewayB:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipB.AllocationId
+      SubnetId: !Ref PublicSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-b
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  NatGatewayC:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt NatEipC.AllocationId
+      SubnetId: !Ref PublicSubnet3
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-nat-c
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-rt-a
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-rt-b
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppRouteTableC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-app-rt-c
+        - Key: Tier
+          Value: application
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  AppDefaultRouteA:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTableA
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayA
+
+  AppDefaultRouteB:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTableB
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayB
+
+  AppDefaultRouteC:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref AppRouteTableC
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGatewayC
+
+  AppSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTableA
+      SubnetId: !Ref AppSubnet1
+
+  AppSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTableB
+      SubnetId: !Ref AppSubnet2
+
+  AppSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref AppRouteTableC
+      SubnetId: !Ref AppSubnet3
+
+  DbRouteTableA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-rt-a
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbRouteTableB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-rt-b
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbRouteTableC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-db-rt-c
+        - Key: Tier
+          Value: database
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DbSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTableA
+      SubnetId: !Ref DbSubnet1
+
+  DbSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTableB
+      SubnetId: !Ref DbSubnet2
+
+  DbSubnet3RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref DbRouteTableC
+      SubnetId: !Ref DbSubnet3
+
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      RouteTableIds:
+        - !Ref AppRouteTableA
+        - !Ref AppRouteTableB
+        - !Ref AppRouteTableC
+        - !Ref DbRouteTableA
+        - !Ref DbRouteTableB
+        - !Ref DbRouteTableC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-s3-endpoint
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DynamoDBGatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      RouteTableIds:
+        - !Ref AppRouteTableA
+        - !Ref AppRouteTableB
+        - !Ref AppRouteTableC
+        - !Ref DbRouteTableA
+        - !Ref DbRouteTableB
+        - !Ref DbRouteTableC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.dynamodb
+      VpcEndpointType: Gateway
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-dynamodb-endpoint
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  FlowLogsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /vpc/${EnvironmentName}/flow-logs
+      RetentionInDays: !Ref LogRetentionInDays
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc-flow-logs
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  FlowLogsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${EnvironmentName}-vpc-flow-logs-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: vpc-flow-logs.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: vpc-flow-logs-to-cw
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc-flow-logs-role
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  VpcFlowLogs:
+    Type: AWS::EC2::FlowLog
+    Properties:
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ALL
+      LogDestinationType: cloud-watch-logs
+      LogGroupName: !Ref FlowLogsLogGroup
+      DeliverLogsPermissionArn: !GetAtt FlowLogsRole.Arn
+      MaxAggregationInterval: 600
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-vpc-flow-logs
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+  AvailabilityZones:
+    Description: AZs used
+    Value: !Join
+      - ','
+      - - !Select [0, !GetAZs '']
+        - !Select [1, !GetAZs '']
+        - !Select [2, !GetAZs '']
+  PublicSubnetIds:
+    Description: Public subnet IDs (AZ a,b,c)
+    Value: !Join [',', [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
+  AppSubnetIds:
+    Description: Application subnet IDs (AZ a,b,c)
+    Value: !Join [',', [!Ref AppSubnet1, !Ref AppSubnet2, !Ref AppSubnet3]]
+  DbSubnetIds:
+    Description: Database subnet IDs (AZ a,b,c)
+    Value: !Join [',', [!Ref DbSubnet1, !Ref DbSubnet2, !Ref DbSubnet3]]
+  PublicRouteTableId:
+    Description: Public route table ID
+    Value: !Ref PublicRouteTable
+  AppRouteTableIds:
+    Description: Application route table IDs
+    Value: !Join [',', [!Ref AppRouteTableA, !Ref AppRouteTableB, !Ref AppRouteTableC]]
+  DbRouteTableIds:
+    Description: Database route table IDs
+    Value: !Join [',', [!Ref DbRouteTableA, !Ref DbRouteTableB, !Ref DbRouteTableC]]
+  NatGatewayIds:
+    Description: NAT Gateway IDs (AZ a,b,c)
+    Value: !Join [',', [!Ref NatGatewayA, !Ref NatGatewayB, !Ref NatGatewayC]]

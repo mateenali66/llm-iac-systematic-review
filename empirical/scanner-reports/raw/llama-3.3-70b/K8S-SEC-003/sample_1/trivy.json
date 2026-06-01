@@ -1,0 +1,90 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:11:50.044244587Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "MisconfSummary": {
+        "Successes": 58,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV040",
+          "AVDID": "AVD-KSV-0040",
+          "Title": "resource quota usage",
+          "Description": "Ensure that a ResourceQuota policy is configured to limit aggregate resource usage within a namespace",
+          "Message": "A resource quota policy with hard memory and CPU limits should be configured per namespace",
+          "Namespace": "builtin.kubernetes.KSV040",
+          "Query": "data.builtin.kubernetes.KSV040.deny",
+          "Resolution": "Create a ResourceQuota policy with memory and CPU quotas for each namespace",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ksv040",
+          "References": [
+            "https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/quota-memory-cpu-namespace/",
+            "https://avd.aquasec.com/misconfig/ksv040"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Provider": "Kubernetes",
+            "Service": "general",
+            "StartLine": 8,
+            "EndLine": 10,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 8,
+                  "Content": "    cpu: 16",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mcpu\u001b[0m: \u001b[38;5;37m16",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 9,
+                  "Content": "    memory: 32Gi",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mmemory\u001b[0m: 32Gi",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 10,
+                  "Content": "    pods: 100",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mpods\u001b[0m: \u001b[38;5;37m100\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

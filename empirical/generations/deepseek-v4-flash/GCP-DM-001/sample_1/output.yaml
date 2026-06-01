@@ -1,0 +1,25 @@
+imports:
+  - path: vm-template.jinja
+
+resources:
+  - name: dev-vm-instance
+    type: vm-template.jinja
+    properties:
+      zone: us-central1-a
+      machineType: e2-medium
+      imageFamily: ubuntu-2204-lts
+      imageProject: ubuntu-os-cloud
+      diskSizeGb: 20
+      network: global/networks/default
+      subnet: regions/us-central1/subnetworks/default
+      tags:
+        items:
+          - dev
+          - http-server
+      labels:
+        environment: development
+        workload: dev-vm
+      serviceAccounts:
+        - email: default
+          scopes:
+            - https://www.googleapis.com/auth/cloud-platform

@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-003",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"trusted_ssh_cidr_blocks\" {\n  type        = list(string)\n  description = \"List of trusted CIDR blocks for SSH access to the jump host (e.g., corporate office IPs).\"\n  default     = [\"0.0.0.0/0\"] # WARNING: This is insecure. Replace with your specific IP range in a .tfvars file.\n}\n\nvariable \"engineer_public_key\" {\n  type        = string\n  description = \"The public SSH key for the key pair used to access the jump host.\"\n  sensitive   = true\n}\n\nlocals {\n  name_prefix = \"internal-jump-host\"\n  common_tags = {\n    ManagedBy   = \"Terraform\"\n    Project     = \"Internal-Tools\"\n    Environment = \"production\"\n  }\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = merge(",
+  "cleaned_response": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"trusted_ssh_cidr_blocks\" {\n  type        = list(string)\n  description = \"List of trusted CIDR blocks for SSH access to the jump host (e.g., corporate office IPs).\"\n  default     = [\"0.0.0.0/0\"] # WARNING: This is insecure. Replace with your specific IP range in a .tfvars file.\n}\n\nvariable \"engineer_public_key\" {\n  type        = string\n  description = \"The public SSH key for the key pair used to access the jump host.\"\n  sensitive   = true\n}\n\nlocals {\n  name_prefix = \"internal-jump-host\"\n  common_tags = {\n    ManagedBy   = \"Terraform\"\n    Project     = \"Internal-Tools\"\n    Environment = \"production\"\n  }\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = merge(",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "terraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n  }\n  required_version = \">= 1.2.0\"\n}\n\nprovider \"aws\" {\n  region = \"us-east-1\"\n}\n\nvariable \"trusted_ssh_cidr_blocks\" {\n  type        = list(string)\n  description = \"List of trusted CIDR blocks for SSH access to the jump host (e.g., corporate office IPs).\"\n  default     = [\"0.0.0.0/0\"] # WARNING: This is insecure. Replace with your specific IP range in a .tfvars file.\n}\n\nvariable \"engineer_public_key\" {\n  type        = string\n  description = \"The public SSH key for the key pair used to access the jump host.\"\n  sensitive   = true\n}\n\nlocals {\n  name_prefix = \"internal-jump-host\"\n  common_tags = {\n    ManagedBy   = \"Terraform\"\n    Project     = \"Internal-Tools\"\n    Environment = \"production\"\n  }\n}\n\ndata \"aws_ami\" \"amazon_linux_2023\" {\n  most_recent = true\n  owners      = [\"amazon\"]\n\n  filter {\n    name   = \"name\"\n    values = [\"al2023-ami-2023.*-x86_64\"]\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = merge(",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "MAX_TOKENS"
+      }
+    ],
+    "created": 1779729904,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 142,
+      "output_tokens": 2044,
+      "raw_input_tokens": 142
+    }
+  },
+  "started_at": "2026-05-25T17:24:39.616096+00:00",
+  "elapsed_seconds": 24.82
+}

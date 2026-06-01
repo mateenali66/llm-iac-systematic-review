@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-010",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a CDK Python stack with an S3 bucket configured for log delivery from CloudFront, with KMS encryption and a 1-year lifecycle to Glacier.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Generate a CDK Python stack with an S3 bucket configured for log delivery from CloudFront, with KMS encryption and a 1-year lifecycle to Glacier.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_s3 as s3\nfrom aws_cdk import aws_kms as kms\nfrom aws_cdk import aws_iam as iam\n\nclass CloudFrontLogDeliveryStack(cdk.Stack):\n\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.log_bucket = s3.Bucket(\n            self, 'CloudFrontLogBucket',\n            versioned=True,\n            encryption=s3.BucketEncryption.KMS,\n            encryption_key=kms.Key(\n                self, 'LogBucketKey',\n                description='Key for CloudFront log bucket encryption',\n                alias='cloudfront-log-bucket-key'\n            )\n        )\n\n        self.log_bucket.add_to_resource_policy(\n            policy_statement=iam.PolicyStatement(\n                effect=iam.Effect.ALLOW,\n                principals=[iam.ServicePrincipal('cloudfront.amazonaws.com')],\n                actions=['s3:PutObject'],\n                resources=[self.log_bucket.arn_for_objects('*')]\n            )\n        )\n\n        self.log_bucket.add_lifecycle_rule(\n            rule=s3.LifecycleRule(\n                id='cloudfront-log-rule',\n                prefix='cloudfront/',\n                enabled=True,\n                transitions=[\n                    s3.Transition(\n                        storage_class=s3.StorageClass.GLACIER,\n                        transition_after=cdk.Duration.days(365)\n                    )\n                ]\n            )\n        )",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_s3 as s3\nfrom aws_cdk import aws_kms as kms\nfrom aws_cdk import aws_iam as iam\n\nclass CloudFrontLogDeliveryStack(cdk.Stack):\n\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.log_bucket = s3.Bucket(\n            self, 'CloudFrontLogBucket',\n            versioned=True,\n            encryption=s3.BucketEncryption.KMS,\n            encryption_key=kms.Key(\n                self, 'LogBucketKey',\n                description='Key for CloudFront log bucket encryption',\n                alias='cloudfront-log-bucket-key'\n            )\n        )\n\n        self.log_bucket.add_to_resource_policy(\n            policy_statement=iam.PolicyStatement(\n                effect=iam.Effect.ALLOW,\n                principals=[iam.ServicePrincipal('cloudfront.amazonaws.com')],\n                actions=['s3:PutObject'],\n                resources=[self.log_bucket.arn_for_objects('*')]\n            )\n        )\n\n        self.log_bucket.add_lifecycle_rule(\n            rule=s3.LifecycleRule(\n                id='cloudfront-log-rule',\n                prefix='cloudfront/',\n                enabled=True,\n                transitions=[\n                    s3.Transition(\n                        storage_class=s3.StorageClass.GLACIER,\n                        transition_after=cdk.Duration.days(365)\n                    )\n                ]\n            )\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import aws_s3 as s3\nfrom aws_cdk import aws_kms as kms\nfrom aws_cdk import aws_iam as iam\n\nclass CloudFrontLogDeliveryStack(cdk.Stack):\n\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.log_bucket = s3.Bucket(\n            self, 'CloudFrontLogBucket',\n            versioned=True,\n            encryption=s3.BucketEncryption.KMS,\n            encryption_key=kms.Key(\n                self, 'LogBucketKey',\n                description='Key for CloudFront log bucket encryption',\n                alias='cloudfront-log-bucket-key'\n            )\n        )\n\n        self.log_bucket.add_to_resource_policy(\n            policy_statement=iam.PolicyStatement(\n                effect=iam.Effect.ALLOW,\n                principals=[iam.ServicePrincipal('cloudfront.amazonaws.com')],\n                actions=['s3:PutObject'],\n                resources=[self.log_bucket.arn_for_objects('*')]\n            )\n        )\n\n        self.log_bucket.add_lifecycle_rule(\n            rule=s3.LifecycleRule(\n                id='cloudfront-log-rule',\n                prefix='cloudfront/',\n                enabled=True,\n                transitions=[\n                    s3.Transition(\n                        storage_class=s3.StorageClass.GLACIER,\n                        transition_after=cdk.Duration.days(365)\n                    )\n                ]\n            )\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723674,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 164,
+      "output_tokens": 301,
+      "raw_input_tokens": 164
+    }
+  },
+  "started_at": "2026-05-25T15:41:13.099301+00:00",
+  "elapsed_seconds": 1.355
+}

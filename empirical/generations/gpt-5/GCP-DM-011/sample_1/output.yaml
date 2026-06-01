@@ -1,0 +1,167 @@
+resources:
+- name: web-instance-template
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-medium
+      tags:
+        items:
+        - web-server
+      serviceAccounts:
+      - email: default
+        scopes:
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring.write
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+      shieldedInstanceConfig:
+        enableSecureBoot: true
+        enableVtpm: true
+        enableIntegrityMonitoring: true
+      disks:
+      - boot: true
+        autoDelete: true
+        initializeParams:
+          sourceImage: projects/debian-cloud/global/images/family/debian-12
+          diskSizeGb: 20
+      networkInterfaces:
+      - network: global/networks/default
+        accessConfigs:
+        - name: External NAT
+          type: ONE_TO_ONE_NAT
+      metadata:
+        items:
+        - key: enable-oslogin
+          value: "TRUE"
+        - key: block-project-ssh-keys
+          value: "TRUE"
+        - key: startup-script
+          value: |
+            #!/bin/bash
+            set -euo pipefail
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nginx
+            rm -f /var/www/html/index.nginx-debian.html || true
+            cat > /var/www/html/index.html <<'EOF'
+            Hello from Managed Instance Group behind HTTPS Load Balancer
+            EOF
+            systemctl enable nginx
+            systemctl restart nginx
+
+- name: web-mig
+  type: compute.v1.instanceGroupManager
+  zone: us-central1-a
+  properties:
+    baseInstanceName: web
+    instanceTemplate: $(ref.web-instance-template.selfLink)
+    targetSize: 1
+    namedPorts:
+    - name: http
+      port: 80
+    autoHealingPolicies:
+    - healthCheck: $(ref.web-hc.selfLink)
+      initialDelaySec: 300
+
+- name: web-mig-autoscaler
+  type: compute.v1.autoscaler
+  zone: us-central1-a
+  properties:
+    target: $(ref.web-mig.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cpuUtilization:
+        utilizationTarget: 0.6
+      cooldownPeriodSec: 60
+
+- name: allow-lb-to-instances
+  type: compute.v1.firewall
+  properties:
+    network: global/networks/default
+    direction: INGRESS
+    priority: 1000
+    targetTags:
+    - web-server
+    sourceRanges:
+    - 130.211.0.0/22
+    - 35.191.0.0/16
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "80"
+
+- name: web-hc
+  type: compute.v1.healthCheck
+  properties:
+    type: HTTP
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+      proxyHeader: NONE
+
+- name: web-backend
+  type: compute.v1.backendService
+  properties:
+    loadBalancingScheme: EXTERNAL
+    protocol: HTTP
+    portName: http
+    timeoutSec: 30
+    connectionDraining:
+      drainingTimeoutSec: 10
+    healthChecks:
+    - $(ref.web-hc.selfLink)
+    backends:
+    - group: $(ref.web-mig.instanceGroup)
+      balancingMode: UTILIZATION
+      maxUtilization: 0.8
+    logConfig:
+      enable: true
+      sampleRate: 1.0
+
+- name: web-urlmap
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.web-backend.selfLink)
+
+- name: web-ssl-cert
+  type: compute.v1.sslCertificate
+  properties:
+    name: web-ssl-cert
+    managed:
+      domains:
+      - example.com
+
+- name: web-https-proxy
+  type: compute.v1.targetHttpsProxy
+  properties:
+    urlMap: $(ref.web-urlmap.selfLink)
+    sslCertificates:
+    - $(ref.web-ssl-cert.selfLink)
+
+- name: web-lb-ip
+  type: compute.v1.globalAddress
+  properties:
+    addressType: EXTERNAL
+    ipVersion: IPV4
+
+- name: web-https-forwarding-rule
+  type: compute.v1.globalForwardingRule
+  properties:
+    IPAddress: $(ref.web-lb-ip.address)
+    IPProtocol: TCP
+    loadBalancingScheme: EXTERNAL
+    portRange: "443"
+    target: $(ref.web-https-proxy.selfLink)
+    networkTier: PREMIUM
+
+outputs:
+- name: loadBalancerIP
+  value: $(ref.web-lb-ip.address)
+- name: httpsEndpoint
+  value: https://example.com/

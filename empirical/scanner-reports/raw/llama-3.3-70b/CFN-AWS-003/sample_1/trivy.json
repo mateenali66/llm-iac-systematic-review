@@ -1,0 +1,558 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:06:26.865731591Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 39,
+        "Failures": 4
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0077",
+          "AVDID": "AVD-AWS-0077",
+          "Title": "RDS Cluster and RDS instance should have backup retention longer than default 1 day",
+          "Description": "RDS backup retention for clusters defaults to 1 day, this may not be enough to identify and respond to an issue. Backup retention periods should be set to a period that is a balance on cost and limiting risk.\n",
+          "Message": "Cluster instance has very low backup retention period.",
+          "Namespace": "builtin.aws.rds.aws0077",
+          "Query": "data.builtin.aws.rds.aws0077.deny",
+          "Resolution": "Explicitly set the retention period to greater than the default",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0077",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html#USER_WorkingWithAutomatedBackups.BackupRetention",
+            "https://avd.aquasec.com/misconfig/avd-aws-0077"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:12-28",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 12,
+            "EndLine": 28,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 12,
+                  "Content": "  DatabaseCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDatabaseCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "    Type: 'AWS::RDS::DBCluster'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::RDS::DBCluster'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "      Engine: 'aurora-postgresql'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: \u001b[38;5;37m'aurora-postgresql'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "      EngineMode: 'serverless'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineMode\u001b[0m: \u001b[38;5;37m'serverless'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 18,
+                  "Content": "      EngineVersion: '14.3'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.3'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 19,
+                  "Content": "      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mMasterUsername\u001b[0m: !Sub 'saas_app_user_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 20,
+                  "Content": "      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUserPassword\u001b[0m: !Sub 'saas_app_password_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 21,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0079",
+          "AVDID": "AVD-AWS-0079",
+          "Title": "There is no encryption specified or encryption is disabled on the RDS Cluster.",
+          "Description": "Encryption should be enabled for an RDS Aurora cluster.\nWhen enabling encryption by setting the kms_key_id, the storage_encrypted must also be set to true.\n",
+          "Message": "Cluster does not have storage encryption enabled.",
+          "Namespace": "builtin.aws.rds.aws0079",
+          "Query": "data.builtin.aws.rds.aws0079.deny",
+          "Resolution": "Enable encryption for RDS clusters",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0079",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0079"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:12-28",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 12,
+            "EndLine": 28,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 12,
+                  "Content": "  DatabaseCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDatabaseCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "    Type: 'AWS::RDS::DBCluster'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::RDS::DBCluster'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "      Engine: 'aurora-postgresql'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: \u001b[38;5;37m'aurora-postgresql'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "      EngineMode: 'serverless'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineMode\u001b[0m: \u001b[38;5;37m'serverless'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 18,
+                  "Content": "      EngineVersion: '14.3'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.3'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 19,
+                  "Content": "      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mMasterUsername\u001b[0m: !Sub 'saas_app_user_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 20,
+                  "Content": "      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUserPassword\u001b[0m: !Sub 'saas_app_password_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 21,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "aws-vpc-add-description-to-security-group-rule",
+          "AVDID": "AVD-AWS-0124",
+          "Title": "Missing description for security group rule.",
+          "Description": "Security group rules should include a description for auditing purposes.\n\nSimplifies auditing, debugging, and managing security groups.\n",
+          "Message": "Security group rule does not have a description.",
+          "Namespace": "builtin.aws.ec2.aws0124",
+          "Query": "data.builtin.aws.ec2.aws0124.deny",
+          "Resolution": "Add descriptions for all security groups rules",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule",
+          "References": [
+            "https://www.cloudconformity.com/knowledge-base/aws/EC2/security-group-rules-description.html",
+            "https://avd.aquasec.com/misconfig/aws-vpc-add-description-to-security-group-rule"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "DatabaseSecurityGroup",
+            "Provider": "AWS",
+            "Service": "ec2",
+            "StartLine": 36,
+            "EndLine": 39,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 30,
+                  "Content": "  DatabaseSecurityGroup:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDatabaseSecurityGroup\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 31,
+                  "Content": "    Type: 'AWS::EC2::SecurityGroup'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::EC2::SecurityGroup'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 32,
+                  "Content": "    Properties:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 33,
+                  "Content": "      GroupDescription: 'Security group for Aurora PostgreSQL Serverless v2 cluster'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mGroupDescription\u001b[0m: \u001b[38;5;37m'Security group for Aurora PostgreSQL Serverless v2 cluster'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 34,
+                  "Content": "      VpcId: !GetAtt 'VPC.Id'",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mVpcId\u001b[0m: !GetAtt 'VPC.Id'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 35,
+                  "Content": "      SecurityGroupIngress:",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mSecurityGroupIngress\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 36,
+                  "Content": "        - IpProtocol: tcp",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        - \u001b[38;5;33mIpProtocol\u001b[0m: tcp",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 37,
+                  "Content": "          FromPort: 5432",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "          \u001b[38;5;33mFromPort\u001b[0m: \u001b[38;5;37m5432",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 38,
+                  "Content": "          ToPort: 5432",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mToPort\u001b[0m: \u001b[38;5;37m5432",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 39,
+                  "Content": "          CidrIp: '0.0.0.0/0'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m          \u001b[38;5;33mCidrIp\u001b[0m: \u001b[38;5;37m'0.0.0.0/0'\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "DatabaseSecurityGroup",
+                "Filename": "output.yaml",
+                "Location": {
+                  "StartLine": 30,
+                  "EndLine": 39
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0343",
+          "AVDID": "AVD-AWS-0343",
+          "Title": "RDS Cluster Deletion Protection Disabled",
+          "Description": "Ensure deletion protection is enabled for RDS clusters.",
+          "Message": "Cluster does not have Deletion Protection enabled",
+          "Namespace": "builtin.aws.rds.aws0343",
+          "Query": "data.builtin.aws.rds.aws0343.deny",
+          "Resolution": "Modify the RDS clusters to enable deletion protection.",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0343",
+          "References": [
+            "https://docs.aws.amazon.com/config/latest/developerguide/rds-cluster-deletion-protection-enabled.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0343"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:12-28",
+            "Provider": "AWS",
+            "Service": "rds",
+            "StartLine": 12,
+            "EndLine": 28,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 12,
+                  "Content": "  DatabaseCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mDatabaseCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 13,
+                  "Content": "    Type: 'AWS::RDS::DBCluster'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::RDS::DBCluster'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "    Properties:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;33mProperties\u001b[0m:",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "      DBClusterIdentifier: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mDBClusterIdentifier\u001b[0m: !Sub 'saas-app-cluster-${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "      Engine: 'aurora-postgresql'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mEngine\u001b[0m: \u001b[38;5;37m'aurora-postgresql'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 17,
+                  "Content": "      EngineMode: 'serverless'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineMode\u001b[0m: \u001b[38;5;37m'serverless'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 18,
+                  "Content": "      EngineVersion: '14.3'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mEngineVersion\u001b[0m: \u001b[38;5;37m'14.3'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 19,
+                  "Content": "      MasterUsername: !Sub 'saas_app_user_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m      \u001b[38;5;33mMasterUsername\u001b[0m: !Sub 'saas_app_user_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 20,
+                  "Content": "      MasterUserPassword: !Sub 'saas_app_password_${AWS::Region}'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      \u001b[38;5;33mMasterUserPassword\u001b[0m: !Sub 'saas_app_password_${AWS::Region}'",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 21,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

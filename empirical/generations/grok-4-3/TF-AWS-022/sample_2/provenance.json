@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-022",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name = \"elasticache-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"a\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.1.0/24\"\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name = \"elasticache-subnet-a\"\n  }\n}\n\nresource \"aws_subnet\" \"b\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.2.0/24\"\n  availability_zone = \"us-east-1b\"\n  tags = {\n    Name = \"elasticache-subnet-b\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name   = \"redis-sg\"\n  vpc_id = aws_vpc.main.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [aws_vpc.main.cidr_block]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_replication_group\" \"redis\" {\n  replication_group_id       = \"app-redis-cluster\"\n  description                = \"Production Redis cluster for application caching\"\n  node_type                  = \"cache.t3.micro\"\n  num_cache_clusters         = 3\n  engine                     = \"redis\"\n  engine_version             = \"6.2\"\n  port                       = 6379\n  subnet_group_name          = aws_elasticache_subnet_group.redis.name\n  security_group_ids         = [aws_security_group.redis.id]\n  automatic_failover_enabled = true\n  multi_az_enabled           = true\n  at_rest_encryption_enabled = true\n  transit_encryption_enabled = true\n  apply_immediately          = false\n  tags = {\n    Environment = \"production\"\n    Purpose     = \"application-caching\"\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name = \"elasticache-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"a\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.1.0/24\"\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name = \"elasticache-subnet-a\"\n  }\n}\n\nresource \"aws_subnet\" \"b\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.2.0/24\"\n  availability_zone = \"us-east-1b\"\n  tags = {\n    Name = \"elasticache-subnet-b\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name   = \"redis-sg\"\n  vpc_id = aws_vpc.main.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [aws_vpc.main.cidr_block]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_replication_group\" \"redis\" {\n  replication_group_id       = \"app-redis-cluster\"\n  description                = \"Production Redis cluster for application caching\"\n  node_type                  = \"cache.t3.micro\"\n  num_cache_clusters         = 3\n  engine                     = \"redis\"\n  engine_version             = \"6.2\"\n  port                       = 6379\n  subnet_group_name          = aws_elasticache_subnet_group.redis.name\n  security_group_ids         = [aws_security_group.redis.id]\n  automatic_failover_enabled = true\n  multi_az_enabled           = true\n  at_rest_encryption_enabled = true\n  transit_encryption_enabled = true\n  apply_immediately          = false\n  tags = {\n    Environment = \"production\"\n    Purpose     = \"application-caching\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name = \"elasticache-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"a\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.1.0/24\"\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name = \"elasticache-subnet-a\"\n  }\n}\n\nresource \"aws_subnet\" \"b\" {\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = \"10.0.2.0/24\"\n  availability_zone = \"us-east-1b\"\n  tags = {\n    Name = \"elasticache-subnet-b\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-subnet-group\"\n  subnet_ids = [aws_subnet.a.id, aws_subnet.b.id]\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name   = \"redis-sg\"\n  vpc_id = aws_vpc.main.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [aws_vpc.main.cidr_block]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name = \"redis-sg\"\n  }\n}\n\nresource \"aws_elasticache_replication_group\" \"redis\" {\n  replication_group_id       = \"app-redis-cluster\"\n  description                = \"Production Redis cluster for application caching\"\n  node_type                  = \"cache.t3.micro\"\n  num_cache_clusters         = 3\n  engine                     = \"redis\"\n  engine_version             = \"6.2\"\n  port                       = 6379\n  subnet_group_name          = aws_elasticache_subnet_group.redis.name\n  security_group_ids         = [aws_security_group.redis.id]\n  automatic_failover_enabled = true\n  multi_az_enabled           = true\n  at_rest_encryption_enabled = true\n  transit_encryption_enabled = true\n  apply_immediately          = false\n  tags = {\n    Environment = \"production\"\n    Purpose     = \"application-caching\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727014,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 90,
+      "output_tokens": 532,
+      "reasoning_tokens": 886,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 60
+    }
+  },
+  "started_at": "2026-05-25T16:36:44.867106+00:00",
+  "elapsed_seconds": 9.43
+}

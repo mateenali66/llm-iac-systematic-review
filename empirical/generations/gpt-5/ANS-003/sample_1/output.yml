@@ -1,0 +1,270 @@
+- name: Harden CentOS 9 Server
+  hosts: all
+  become: true
+  vars:
+    pwquality_conf: |
+      minlen = 14
+      minclass = 4
+      dcredit = -1
+      ucredit = -1
+      lcredit = -1
+      ocredit = -1
+      maxrepeat = 3
+      maxclassrepeat = 3
+      difok = 4
+      retry = 3
+      enforcing = 1
+      dictcheck = 1
+    fail2ban_jail_local: |
+      [DEFAULT]
+      bantime = 1h
+      findtime = 15m
+      maxretry = 5
+      backend = systemd
+      banaction = firewalld
+      usedns = warn
+      ignoreip = 127.0.0.1/8 ::1
+
+      [sshd]
+      enabled = true
+      mode = aggressive
+      port = ssh
+      logpath = %(sshd_log)s
+      maxretry = 5
+      findtime = 15m
+      bantime = 1h
+    auditd_config:
+      log_format: RAW
+      log_file: /var/log/audit/audit.log
+      write_logs: yes
+      flush: incremental_async
+      freq: 50
+      num_logs: 5
+      name_format: HOSTNAME
+      max_log_file: 50
+      max_log_file_action: rotate
+      space_left: 75
+      space_left_action: email
+      action_mail_acct: root
+      admin_space_left: 50
+      admin_space_left_action: single
+      disk_full_action: single
+      disk_error_action: single
+    sshd_hardening_conf: |
+      # Ansible managed hardening for SSHD
+      PermitRootLogin no
+      PermitEmptyPasswords no
+      PubkeyAuthentication yes
+      PasswordAuthentication yes
+      X11Forwarding no
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+      LoginGraceTime 30
+      UsePAM yes
+  tasks:
+    - name: Ensure EPEL repository is enabled (CentOS)
+      package:
+        name: epel-release
+        state: present
+      when: "'CentOS' in ansible_facts['distribution']"
+
+    - name: Install required packages
+      package:
+        name:
+          - openssh-server
+          - libpwquality
+          - fail2ban
+          - firewalld
+          - audit
+        state: present
+
+    - name: Ensure SSHD service is enabled and running
+      systemd:
+        name: sshd
+        enabled: true
+        state: started
+
+    - name: Deploy SSH hardening drop-in
+      copy:
+        dest: /etc/ssh/sshd_config.d/99-hardening.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: "{{ sshd_hardening_conf }}"
+      notify: Validate and reload sshd
+
+    - name: Ensure password quality configuration is enforced
+      copy:
+        dest: /etc/security/pwquality.conf
+        owner: root
+        group: root
+        mode: '0644'
+        content: "{{ pwquality_conf }}"
+
+    - name: Check for authselect availability
+      stat:
+        path: /usr/bin/authselect
+      register: authselect
+
+    - name: Get current authselect profile details
+      command: authselect current
+      when: authselect.stat.exists
+      register: authselect_current
+      changed_when: false
+      failed_when: false
+
+    - name: Enable with-pwquality feature in authselect
+      command: authselect enable-feature with-pwquality
+      when:
+        - authselect.stat.exists
+        - authselect_current.stdout is defined
+        - "'with-pwquality' not in authselect_current.stdout"
+      notify: Apply authselect changes
+
+    - name: Ensure firewalld service is enabled and running
+      systemd:
+        name: firewalld
+        enabled: true
+        state: started
+
+    - name: Configure fail2ban
+      copy:
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+        content: "{{ fail2ban_jail_local }}"
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban service is enabled and running
+      systemd:
+        name: fail2ban
+        enabled: true
+        state: started
+
+    - name: Ensure auditd is enabled and running
+      systemd:
+        name: auditd
+        enabled: true
+        state: started
+
+    - name: Configure auditd.conf settings
+      lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: '^#?\s*{{ item.key }}\s*=.*'
+        line: '{{ item.key }} = {{ item.value }}'
+        state: present
+        create: no
+        backup: yes
+      loop: "{{ auditd_config|dict2items }}"
+      notify: Reload auditd
+
+    - name: Deploy audit rules
+      copy:
+        dest: /etc/audit/rules.d/99-hardening.rules
+        owner: root
+        group: root
+        mode: '0640'
+        content: |
+          ## Ansible managed - Auditd Hardening Rules
+
+          ## Increase buffer size
+          -b 8192
+
+          ## Disable previous rules
+          -D
+
+          ## Time change events
+          -a always,exit -F arch=b64 -S adjtimex,settimeofday,clock_settime -k time-change
+          -a always,exit -F arch=b32 -S adjtimex,settimeofday,clock_settime -k time-change
+          -w /etc/localtime -p wa -k time-change
+
+          ## Identity changes
+          -w /etc/group -p wa -k identity
+          -w /etc/passwd -p wa -k identity
+          -w /etc/gshadow -p wa -k identity
+          -w /etc/shadow -p wa -k identity
+          -w /etc/security/opasswd -p wa -k identity
+
+          ## System locale and network
+          -w /etc/issue -p wa -k system-locale
+          -w /etc/issue.net -p wa -k system-locale
+          -w /etc/hosts -p wa -k network
+          -w /etc/sysconfig/network -p wa -k network
+
+          ## Login/logout events
+          -w /var/log/lastlog -p wa -k logins
+          -w /var/run/utmp -p wa -k session
+          -w /var/log/wtmp -p wa -k logins
+          -w /var/log/btmp -p wa -k logins
+
+          ## Sudoers changes and privilege escalation related files
+          -w /etc/sudoers -p wa -k scope
+          -w /etc/sudoers.d/ -p wa -k scope
+          -w /usr/bin/sudo -p x -k priv_esc
+          -w /bin/su -p x -k priv_esc
+
+          ## SSH configuration changes
+          -w /etc/ssh/sshd_config -p wa -k cfg
+          -w /etc/ssh/sshd_config.d/ -p wa -k cfg
+
+          ## MAC policy (SELinux) changes
+          -w /etc/selinux/ -p wa -k MAC-policy
+
+          ## Mount operations
+          -a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=unset -k mounts
+          -a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=unset -k mounts
+
+          ## File permission modifications
+          -a always,exit -F arch=b64 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown,setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -k perm_mod
+          -a always,exit -F arch=b32 -S chmod,fchmod,fchmodat,chown,fchown,fchownat,lchown,setxattr,lsetxattr,fsetxattr,removexattr,lremovexattr,fremovexattr -F auid>=1000 -F auid!=unset -k perm_mod
+
+          ## Unsuccessful file access attempts
+          -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=unset -k access
+          -a always,exit -F arch=b32 -S creat,open,openat,truncate,ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=unset -k access
+          -a always,exit -F arch=b64 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=unset -k access
+          -a always,exit -F arch=b32 -S creat,open,openat,truncate,ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=unset -k access
+
+          ## File deletions by users
+          -a always,exit -F arch=b64 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -k delete
+          -a always,exit -F arch=b32 -S unlink,unlinkat,rename,renameat -F auid>=1000 -F auid!=unset -k delete
+          -a always,exit -F arch=b64 -S truncate,ftruncate -F auid>=1000 -F auid!=unset -k delete
+          -a always,exit -F arch=b32 -S truncate,ftruncate -F auid>=1000 -F auid!=unset -k delete
+
+          ## Kernel module loading/unloading
+          -w /sbin/insmod -p x -k modules
+          -w /sbin/rmmod -p x -k modules
+          -w /sbin/modprobe -p x -k modules
+          -a always,exit -F arch=b64 -S init_module,finit_module,delete_module -k modules
+      notify: Load audit rules
+
+  handlers:
+    - name: Validate and reload sshd
+      listen: Validate and reload sshd
+      block:
+        - name: Validate sshd configuration
+          command: /usr/sbin/sshd -t
+        - name: Reload sshd
+          systemd:
+            name: sshd
+            state: reloaded
+
+    - name: Restart fail2ban
+      listen: Restart fail2ban
+      systemd:
+        name: fail2ban
+        state: restarted
+
+    - name: Load audit rules
+      listen: Load audit rules
+      command: augenrules --load
+
+    - name: Reload auditd
+      listen: Reload auditd
+      systemd:
+        name: auditd
+        state: reloaded
+
+    - name: Apply authselect changes
+      listen: Apply authselect changes
+      command: authselect apply-changes -b

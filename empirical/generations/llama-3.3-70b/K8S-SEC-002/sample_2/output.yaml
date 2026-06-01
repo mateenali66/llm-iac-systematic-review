@@ -1,0 +1,43 @@
+apiVersion: podsecurity.admission.config/v1
+kind: PodSecurityConfiguration
+metadata:
+  name: restricted
+spec:
+  defaultEnforce: restricted
+  exemptions:
+    - qualified: true
+      namespaces:
+        - kube-system
+  namespaceSelector:
+    matchLabels:
+      environment: production
+  enforce:
+    restricted:
+      levels:
+        - restricted
+  audit:
+    restricted:
+      levels:
+        - restricted
+  warn:
+    restricted:
+      levels:
+        - restricted
+---
+apiVersion: podsecurity.admission.config/v1
+kind: PodSecurityConfiguration
+metadata:
+  name: default
+spec:
+  defaultEnforce: audit
+  exemptions:
+    - qualified: true
+      namespaces:
+        - kube-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    environment: production

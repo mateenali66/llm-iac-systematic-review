@@ -1,0 +1,163 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: nginx-reverse-proxy
+description: Production-grade NGINX reverse proxy Helm chart
+type: application
+version: 1.0.0
+appVersion: "1.25.3"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: nginx
+  tag: "1.25.3"
+  pullPolicy: IfNotPresent
+service:
+  type: LoadBalancer
+  port: 80
+  annotations: {}
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+config:
+  nginx.conf: |
+    worker_processes auto;
+    events { worker_connections 1024; }
+    http {
+      upstream backend {
+        server 10.0.0.10:8080;
+        server 10.0.0.11:8080;
+      }
+      server {
+        listen 80;
+        location / {
+          proxy_pass http://backend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+        }
+      }
+    }
+networkPolicy:
+  enabled: true
+  allowedEgressCidrs:
+    - 10.0.0.0/16
+---
+# FILE: templates/_helpers.tpl
+{{- define "nginx.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nginx-config
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+data:
+  nginx.conf: |
+{{ .Values.config.nginx.conf | indent 4 }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-nginx
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "nginx.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "nginx.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        fsGroup: 101
+      containers:
+        - name: nginx
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-nginx-config
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-nginx
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+      protocol: TCP
+  selector:
+    {{- include "nginx.labels" . | nindent 4 }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-nginx-egress
+  labels:
+    {{- include "nginx.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "nginx.labels" . | nindent 6 }}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: {{ (index .Values.networkPolicy.allowedEgressCidrs 0) }}
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- end }}

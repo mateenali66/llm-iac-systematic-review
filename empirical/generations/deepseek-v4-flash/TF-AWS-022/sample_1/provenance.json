@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "TF-AWS-022",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon ElastiCache Redis cluster (3 nodes, cache.t3.micro) for application caching.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name        = \"redis-cache-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"Redis access from VPC\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name        = \"redis-cache-sg\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-cache-subnet-group\"\n  subnet_ids = data.aws_subnets.private.ids\n\n  tags = {\n    Name        = \"redis-cache-subnet-group\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cache-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis7\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis.name\n  security_group_ids   = [aws_security_group.redis.id]\n\n  az_mode = \"cross-az\"\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-04:00\"\n  snapshot_retention_limit = 7\n\n  tags = {\n    Name        = \"redis-cache-cluster\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [false]\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name        = \"redis-cache-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"Redis access from VPC\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name        = \"redis-cache-sg\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-cache-subnet-group\"\n  subnet_ids = data.aws_subnets.private.ids\n\n  tags = {\n    Name        = \"redis-cache-subnet-group\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cache-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis7\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis.name\n  security_group_ids   = [aws_security_group.redis.id]\n\n  az_mode = \"cross-az\"\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-04:00\"\n  snapshot_retention_limit = 7\n\n  tags = {\n    Name        = \"redis-cache-cluster\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [false]\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_security_group\" \"redis\" {\n  name        = \"redis-cache-sg\"\n  description = \"Security group for ElastiCache Redis cluster\"\n  vpc_id      = data.aws_vpc.default.id\n\n  ingress {\n    from_port   = 6379\n    to_port     = 6379\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n    description = \"Redis access from VPC\"\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n    description = \"Allow all outbound traffic\"\n  }\n\n  tags = {\n    Name        = \"redis-cache-sg\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_subnet_group\" \"redis\" {\n  name       = \"redis-cache-subnet-group\"\n  subnet_ids = data.aws_subnets.private.ids\n\n  tags = {\n    Name        = \"redis-cache-subnet-group\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\nresource \"aws_elasticache_cluster\" \"redis\" {\n  cluster_id           = \"redis-cache-cluster\"\n  engine               = \"redis\"\n  node_type            = \"cache.t3.micro\"\n  num_cache_nodes      = 3\n  parameter_group_name = \"default.redis7\"\n  port                 = 6379\n  subnet_group_name    = aws_elasticache_subnet_group.redis.name\n  security_group_ids   = [aws_security_group.redis.id]\n\n  az_mode = \"cross-az\"\n\n  maintenance_window = \"sun:05:00-sun:06:00\"\n  snapshot_window    = \"03:00-04:00\"\n  snapshot_retention_limit = 7\n\n  tags = {\n    Name        = \"redis-cache-cluster\"\n    Environment = \"production\"\n    ManagedBy   = \"terraform\"\n  }\n}\n\ndata \"aws_vpc\" \"default\" {\n  default = true\n}\n\ndata \"aws_subnets\" \"private\" {\n  filter {\n    name   = \"vpc-id\"\n    values = [data.aws_vpc.default.id]\n  }\n\n  filter {\n    name   = \"map-public-ip-on-launch\"\n    values = [false]\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729390,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 128,
+      "output_tokens": 549,
+      "raw_input_tokens": 128
+    }
+  },
+  "started_at": "2026-05-25T17:16:25.845935+00:00",
+  "elapsed_seconds": 4.386
+}

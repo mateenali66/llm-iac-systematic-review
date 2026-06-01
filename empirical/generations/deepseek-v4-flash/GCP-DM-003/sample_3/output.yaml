@@ -1,0 +1,34 @@
+imports:
+  - path: templates/cloud_run.py
+    name: cloud_run.py
+
+resources:
+  - name: python-api-service
+    type: cloud_run.py
+    properties:
+      serviceName: python-api-service
+      region: us-central1
+      containerImage: gcr.io/cloudrun/placeholder
+      containerPort: 8080
+      cpu: "1"
+      memory: "512Mi"
+      minInstances: 0
+      maxInstances: 10
+      concurrency: 80
+      timeoutSeconds: 300
+      serviceAccountEmail: null
+      vpcConnector: null
+      vpcConnectorEgressSettings: private-ranges-only
+      ingressSettings: all
+      sessionAffinity: false
+      environmentVariables:
+        - name: PYTHON_VERSION
+          value: "3.12"
+      secrets: []
+      volumes: []
+      startupCpuBoost: false
+      binaryAuthorization: null
+      cloudSqlInstances: []
+      labels:
+        environment: production
+        managed-by: deployment-manager

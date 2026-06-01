@@ -1,0 +1,123 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+spec:
+  clusterIP: None
+  selector:
+    app: redis-cluster
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+  - name: gossip
+    port: 16379
+    targetPort: 16379
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  labels:
+    app: redis-cluster
+spec:
+  serviceName: redis-cluster
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - redis-server
+        args:
+        - /etc/redis/redis.conf
+        ports:
+        - containerPort: 6379
+          name: redis
+        - containerPort: 16379
+          name: gossip
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        - name: redis-config
+          mountPath: /etc/redis
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-cluster-config
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: standard
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  labels:
+    app: redis-cluster
+data:
+  redis.conf: |
+    port 6379
+    cluster-enabled yes
+    cluster-config-file /data/nodes.conf
+    cluster-node-timeout 5000
+    appendonly yes
+    appendfsync everysec
+    save 900 1
+    save 300 10
+    save 60 10000
+    bind 0.0.0.0
+    protected-mode no
+    dir /data
+    loglevel notice
+    maxmemory 256mb
+    maxmemory-policy allkeys-lru

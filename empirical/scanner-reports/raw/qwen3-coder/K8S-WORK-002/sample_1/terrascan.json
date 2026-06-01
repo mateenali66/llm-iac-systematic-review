@@ -1,0 +1,82 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "terraform",
+        "directory": "/in",
+        "errMsg": "directory '/in' has no terraform config files"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/output.yaml', err: failed to find valid Resources key in file: /in/output.yaml"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "secCompProfile",
+        "description": "Default seccomp profile not enabled will make the container to make non-essential system calls",
+        "rule_id": "AC_K8S_0080",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "api-deployment",
+        "resource_type": "kubernetes_deployment",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "imageWithoutDigest",
+        "description": "Image without digest affects the integrity principle of image security",
+        "rule_id": "AC_K8S_0069",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "api-deployment",
+        "resource_type": "kubernetes_deployment",
+        "file": "output.yaml",
+        "line": 1
+      },
+      {
+        "rule_name": "appArmorProfile",
+        "description": "AppArmor profile not set to default or custom profile will make the container vulnerable to kernel level threats",
+        "rule_id": "AC_K8S_0073",
+        "severity": "MEDIUM",
+        "category": "Identity and Access Management",
+        "resource_name": "api-deployment",
+        "resource_type": "kubernetes_deployment",
+        "file": "output.yaml",
+        "line": 1
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "k8s",
+      "scanned_at": "2026-05-26 06:31:26.320844423 +0000 UTC",
+      "policies_validated": 42,
+      "violated_policies": 3,
+      "low": 0,
+      "medium": 3,
+      "high": 0
+    }
+  }
+}

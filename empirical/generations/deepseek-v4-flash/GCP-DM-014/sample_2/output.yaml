@@ -1,0 +1,79 @@
+imports:
+  - path: templates/workload_identity_federation.py
+    name: workload_identity_federation.py
+
+resources:
+  - name: workload-identity-pool
+    type: gcp-types/iam.googleapis.com/WorkloadIdentityPool
+    properties:
+      workloadIdentityPoolId: github-actions-pool
+      displayName: GitHub Actions Pool
+      description: Pool for GitHub Actions workflows
+      disabled: false
+
+  - name: workload-identity-pool-provider
+    type: gcp-types/iam.googleapis.com/WorkloadIdentityPoolProvider
+    properties:
+      workloadIdentityPoolProviderId: github-actions-provider
+      workloadIdentityPoolId: $(ref.workload-identity-pool.name)
+      displayName: GitHub Actions Provider
+      description: OIDC provider for GitHub Actions
+      disabled: false
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.repository: assertion.repository
+        attribute.repository_owner: assertion.repository_owner
+        attribute.actor: assertion.actor
+        attribute.aud: assertion.aud
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+        allowedAudiences:
+          - https://github.com/octo-org/octo-repo
+
+  - name: cloud-run-deployer-service-account
+    type: iam.v1.serviceAccount
+    properties:
+      accountId: cloud-run-deployer
+      displayName: Cloud Run Deployer Service Account
+      description: Service account for GitHub Actions to deploy Cloud Run services
+
+  - name: workload-identity-federation-iam-binding
+    type: gcp-types/iam.googleapis.com/WorkloadIdentityPoolProvider.iam
+    properties:
+      workloadIdentityPoolProviderId: $(ref.workload-identity-pool-provider.name)
+      workloadIdentityPoolId: $(ref.workload-identity-pool.name)
+      policy:
+        bindings:
+          - role: roles/iam.workloadIdentityUser
+            members:
+              - serviceAccount:$(ref.cloud-run-deployer-service-account.email)
+
+  - name: cloud-run-deployer-iam-binding
+    type: iam.v1.serviceAccount.iam
+    properties:
+      serviceAccount: $(ref.cloud-run-deployer-service-account.email)
+      policy:
+        bindings:
+          - role: roles/iam.serviceAccountTokenCreator
+            members:
+              - principalSet://iam.googleapis.com/projects/${PROJECT_ID}/locations/global/workloadIdentityPools/github-actions-pools/attribute.repository/octo-org/octo-repo
+
+  - name: cloud-run-admin-role-binding
+    type: iam.v1.serviceAccount.iam
+    properties:
+      serviceAccount: $(ref.cloud-run-deployer-service-account.email)
+      policy:
+        bindings:
+          - role: roles/run.admin
+            members:
+              - serviceAccount:$(ref.cloud-run-deployer-service-account.email)
+
+  - name: cloud-run-service-account-user-role-binding
+    type: iam.v1.serviceAccount.iam
+    properties:
+      serviceAccount: $(ref.cloud-run-deployer-service-account.email)
+      policy:
+        bindings:
+          - role: roles/iam.serviceAccountUser
+            members:
+              - serviceAccount:$(ref.cloud-run-deployer-service-account.email)

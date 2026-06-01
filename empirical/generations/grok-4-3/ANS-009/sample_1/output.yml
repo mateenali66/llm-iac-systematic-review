@@ -1,0 +1,112 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_version: "0.88.0"
+    otelcol_arch: "linux_amd64"
+    remote_endpoint: "otel-collector.example.com:4317"
+    config_path: "/etc/otelcol/config.yaml"
+  tasks:
+    - name: Ensure required packages are installed
+      ansible.builtin.package:
+        name:
+          - curl
+          - tar
+        state: present
+
+    - name: Download OpenTelemetry Collector binary
+      ansible.builtin.get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/otelcol-contrib_{{ otelcol_version }}_{{ otelcol_arch }}.tar.gz"
+        dest: "/tmp/otelcol-contrib.tar.gz"
+        mode: "0644"
+        checksum: "sha256:https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/otelcol-contrib_{{ otelcol_version }}_{{ otelcol_arch }}.tar.gz.sha256sum"
+
+    - name: Extract OpenTelemetry Collector binary
+      ansible.builtin.unarchive:
+        src: "/tmp/otelcol-contrib.tar.gz"
+        dest: "/usr/local/bin"
+        remote_src: true
+        creates: "/usr/local/bin/otelcol-contrib"
+
+    - name: Set executable permissions on binary
+      ansible.builtin.file:
+        path: "/usr/local/bin/otelcol-contrib"
+        mode: "0755"
+        owner: root
+        group: root
+
+    - name: Create otelcol system group
+      ansible.builtin.group:
+        name: otelcol
+        system: true
+
+    - name: Create otelcol system user
+      ansible.builtin.user:
+        name: otelcol
+        system: true
+        group: otelcol
+        shell: /sbin/nologin
+        create_home: false
+
+    - name: Create configuration directory
+      ansible.builtin.file:
+        path: "/etc/otelcol"
+        state: directory
+        owner: root
+        group: otelcol
+        mode: "0750"
+
+    - name: Deploy OpenTelemetry Collector configuration
+      ansible.builtin.template:
+        src: "otelcol-config.yaml.j2"
+        dest: "{{ config_path }}"
+        owner: root
+        group: otelcol
+        mode: "0640"
+      notify: Restart otelcol
+
+    - name: Create systemd service unit file
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/otelcol.service"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=OpenTelemetry Collector
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=otelcol
+          Group=otelcol
+          ExecStart=/usr/local/bin/otelcol-contrib --config={{ config_path }}
+          Restart=always
+          RestartSec=5
+          LimitNOFILE=65536
+          NoNewPrivileges=true
+          ProtectSystem=strict
+          ProtectHome=true
+          PrivateTmp=true
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd
+
+    - name: Enable and start otelcol service
+      ansible.builtin.systemd:
+        name: otelcol
+        state: started
+        enabled: true
+        daemon_reload: true
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart otelcol
+      ansible.builtin.systemd:
+        name: otelcol
+        state: restarted

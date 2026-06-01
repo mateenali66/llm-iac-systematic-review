@@ -1,0 +1,26 @@
+---
+- name: Install and configure nginx
+  hosts: ubuntu
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Start and enable nginx service
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Open port 80 in ufw firewall
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+        state: enabled

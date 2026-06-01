@@ -1,0 +1,45 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: payments
+  labels:
+    app.kubernetes.io/name: default-deny-all
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: payments
+  annotations:
+    description: "Default deny-all ingress and egress traffic for all pods in the payments namespace. Explicit allow policies must be created for required flows."
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  namespace: payments
+  labels:
+    app.kubernetes.io/name: allow-dns-egress
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: payments
+  annotations:
+    description: "Allow egress DNS resolution to kube-dns/CoreDNS in kube-system. Required for in-cluster service discovery."
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

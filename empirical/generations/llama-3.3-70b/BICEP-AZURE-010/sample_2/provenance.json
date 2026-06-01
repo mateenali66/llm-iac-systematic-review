@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "BICEP-AZURE-010",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'storage${uniqueString(resourceGroup().id)}'\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\nparam cdnEndpointName string = 'endpoint${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/uploads'\n  properties: {\n    publicAccess: 'Blob'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/backups'\n  properties: {\n    publicAccess: 'None'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2021-06-01' = {\n  name: cdnProfileName\n  location: location\n  properties: {\n    sku: {\n      name: 'Standard_Microsoft'\n    }\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}'\n  properties: {\n    originHostHeader: storageAccountName\n    origins: [\n      {\n        name: 'storageOrigin'\n        properties: {\n          hostName: '${storageAccountName}.blob.core.windows.net'\n          httpsPort: 443\n        }\n      }\n    ]\n    contentTypesToCompress: [\n      'text/plain'\n      'text/css'\n      'application/javascript'\n      'text/html'\n      'application/xml'\n      'text/javascript'\n      'application/json'\n    ]\n  }\n  dependsOn: [\n    cdnProfile\n  ]\n}\n\nresource cdnOrigin 'Microsoft.Cdn/profiles/endpoints/origins@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/storageOrigin'\n  properties: {\n    hostName: '${storageAccountName}.blob.core.windows.net'\n    httpsPort: 443\n  }\n  dependsOn: [\n    cdnEndpoint\n  ]\n}\n\nresource cdnRoute 'Microsoft.Cdn/profiles/endpoints/routes@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/default'\n  properties: {\n    originGroup: {\n      id: cdnOrigin.id\n    }\n    supportedProtocols: [\n      'Http'\n      'Https'\n    ]\n    patternsToMatch: [\n      '/*'\n    ]\n  }\n  dependsOn: [\n    cdnOrigin\n  ]\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'storage${uniqueString(resourceGroup().id)}'\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\nparam cdnEndpointName string = 'endpoint${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/uploads'\n  properties: {\n    publicAccess: 'Blob'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/backups'\n  properties: {\n    publicAccess: 'None'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2021-06-01' = {\n  name: cdnProfileName\n  location: location\n  properties: {\n    sku: {\n      name: 'Standard_Microsoft'\n    }\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}'\n  properties: {\n    originHostHeader: storageAccountName\n    origins: [\n      {\n        name: 'storageOrigin'\n        properties: {\n          hostName: '${storageAccountName}.blob.core.windows.net'\n          httpsPort: 443\n        }\n      }\n    ]\n    contentTypesToCompress: [\n      'text/plain'\n      'text/css'\n      'application/javascript'\n      'text/html'\n      'application/xml'\n      'text/javascript'\n      'application/json'\n    ]\n  }\n  dependsOn: [\n    cdnProfile\n  ]\n}\n\nresource cdnOrigin 'Microsoft.Cdn/profiles/endpoints/origins@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/storageOrigin'\n  properties: {\n    hostName: '${storageAccountName}.blob.core.windows.net'\n    httpsPort: 443\n  }\n  dependsOn: [\n    cdnEndpoint\n  ]\n}\n\nresource cdnRoute 'Microsoft.Cdn/profiles/endpoints/routes@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/default'\n  properties: {\n    originGroup: {\n      id: cdnOrigin.id\n    }\n    supportedProtocols: [\n      'Http'\n      'Https'\n    ]\n    patternsToMatch: [\n      '/*'\n    ]\n  }\n  dependsOn: [\n    cdnOrigin\n  ]\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam storageAccountName string = 'storage${uniqueString(resourceGroup().id)}'\nparam cdnProfileName string = 'cdn${uniqueString(resourceGroup().id)}'\nparam cdnEndpointName string = 'endpoint${uniqueString(resourceGroup().id)}'\n\nresource storageAccountResource 'Microsoft.Storage/storageAccounts@2022-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: false\n    allowSharedKeyAccess: false\n    enableHttpsTrafficOnly: true\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/uploads'\n  properties: {\n    publicAccess: 'Blob'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2022-05-01' = {\n  name: '${storageAccountName}/default/backups'\n  properties: {\n    publicAccess: 'None'\n    defaultEncryptionScope: 'default'\n    denyEncryptionScopeOverride: false\n  }\n}\n\nresource cdnProfile 'Microsoft.Cdn/profiles@2021-06-01' = {\n  name: cdnProfileName\n  location: location\n  properties: {\n    sku: {\n      name: 'Standard_Microsoft'\n    }\n  }\n}\n\nresource cdnEndpoint 'Microsoft.Cdn/profiles/endpoints@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}'\n  properties: {\n    originHostHeader: storageAccountName\n    origins: [\n      {\n        name: 'storageOrigin'\n        properties: {\n          hostName: '${storageAccountName}.blob.core.windows.net'\n          httpsPort: 443\n        }\n      }\n    ]\n    contentTypesToCompress: [\n      'text/plain'\n      'text/css'\n      'application/javascript'\n      'text/html'\n      'application/xml'\n      'text/javascript'\n      'application/json'\n    ]\n  }\n  dependsOn: [\n    cdnProfile\n  ]\n}\n\nresource cdnOrigin 'Microsoft.Cdn/profiles/endpoints/origins@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/storageOrigin'\n  properties: {\n    hostName: '${storageAccountName}.blob.core.windows.net'\n    httpsPort: 443\n  }\n  dependsOn: [\n    cdnEndpoint\n  ]\n}\n\nresource cdnRoute 'Microsoft.Cdn/profiles/endpoints/routes@2021-06-01' = {\n  name: '${cdnProfileName}/${cdnEndpointName}/default'\n  properties: {\n    originGroup: {\n      id: cdnOrigin.id\n    }\n    supportedProtocols: [\n      'Http'\n      'Https'\n    ]\n    patternsToMatch: [\n      '/*'\n    ]\n  }\n  dependsOn: [\n    cdnOrigin\n  ]\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723595,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 163,
+      "output_tokens": 677,
+      "raw_input_tokens": 163
+    }
+  },
+  "started_at": "2026-05-25T15:39:52.833720+00:00",
+  "elapsed_seconds": 2.502
+}

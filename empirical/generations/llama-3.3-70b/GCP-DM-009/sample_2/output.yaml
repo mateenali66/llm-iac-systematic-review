@@ -1,0 +1,76 @@
+resources:
+  - name: logging-sink
+    type: logging.v2.sink
+    properties:
+      parent: projects/${PROJECT_ID}
+      sink: logging-sink
+      destination: bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${BIGQUERY_DATASET_ID}
+      filter: 'NOT LOG_ID("cloudaudit.googleapis.com/activity")'
+      uniqueWriterIdentity: true
+      includeChildren: false
+
+  - name: bigquery-dataset
+    type: bigquery.dataset
+    properties:
+      datasetId: ${BIGQUERY_DATASET_ID}
+      friendlyName: Logging Dataset
+      description: Dataset for logging data
+      location: US
+
+  - name: bigquery-table
+    type: bigquery.table
+    properties:
+      datasetId: ${BIGQUERY_DATASET_ID}
+      tableId: logs
+      friendlyName: Logs Table
+      description: Table for logging data
+      schema:
+        fields:
+          - name: timestamp
+            type: TIMESTAMP
+            mode: NULLABLE
+          - name: logName
+            type: STRING
+            mode: NULLABLE
+          - name: textPayload
+            type: STRING
+            mode: NULLABLE
+          - name: severity
+            type: STRING
+            mode: NULLABLE
+          - name: httpRequest
+            type: RECORD
+            mode: NULLABLE
+            fields:
+              - name: requestMethod
+                type: STRING
+                mode: NULLABLE
+              - name: requestUrl
+                type: STRING
+                mode: NULLABLE
+              - name: requestSize
+                type: INTEGER
+                mode: NULLABLE
+              - name: status
+                type: INTEGER
+                mode: NULLABLE
+              - name: responseSize
+                type: INTEGER
+                mode: NULLABLE
+              - name: latency
+                type: STRING
+                mode: NULLABLE
+              - name: cacheHit
+                type: BOOLEAN
+                mode: NULLABLE
+              - name: cacheValidatedWithOriginServer
+                type: BOOLEAN
+                mode: NULLABLE
+
+outputs:
+  - name: logging-sink-name
+    value: $(ref.logging-sink.name)
+  - name: bigquery-dataset-id
+    value: $(ref.bigquery-dataset.datasetId)
+  - name: bigquery-table-id
+    value: $(ref.bigquery-table.tableId)

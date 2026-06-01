@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-005",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_ec2 as ec2,\n    aws_iam as iam,\n    aws_s3 as s3,\n    aws_dynamodb as dynamodb\n)\n\nclass VPCStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self, 'VPC',\n            cidr='10.0.0.0/16',\n            max_azs=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name='public-subnet',\n                    subnet_type=ec2.SubnetType.PUBLIC\n                ),\n                ec2.SubnetConfiguration(\n                    name='private-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT\n                ),\n                ec2.SubnetConfiguration(\n                    name='isolated-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED\n                )\n            ]\n        )\n\n        self.nat_gateways = []\n        for i, subnet in enumerate(self.vpc.private_subnets):\n            nat_gateway = ec2.NatGateway(\n                self, f'NATGateway{i}',\n                subnet=subnet\n            )\n            self.nat_gateways.append(nat_gateway)\n\n        self.s3_vpc_endpoint = self.vpc.add_gateway_endpoint(\n            'S3Endpoint',\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT]\n        )\n\n        self.dynamodb_vpc_endpoint = self.vpc.add_interface_endpoint(\n            'DynamoDBEndpoint',\n            service=ec2.InterfaceVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT],\n            security_groups=[ec2.SecurityGroup(\n                self, 'DynamoDBEndpointSG',\n                vpc=self.vpc\n            )]\n        )\n\n        self.dynamodb_vpc_endpoint.node.add_dependency(self.nat_gateways)\n\n        cdk.CfnOutput(\n            self, 'VPCId',\n            value=self.vpc.vpc_id,\n            description='The ID of the VPC'\n        )\n\n        cdk.CfnOutput(\n            self, 'PrivateSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.private_subnets],\n            description='The IDs of the private subnets'\n        )\n\n        cdk.CfnOutput(\n            self, 'PublicSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.public_subnets],\n            description='The IDs of the public subnets'\n        )",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_ec2 as ec2,\n    aws_iam as iam,\n    aws_s3 as s3,\n    aws_dynamodb as dynamodb\n)\n\nclass VPCStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self, 'VPC',\n            cidr='10.0.0.0/16',\n            max_azs=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name='public-subnet',\n                    subnet_type=ec2.SubnetType.PUBLIC\n                ),\n                ec2.SubnetConfiguration(\n                    name='private-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT\n                ),\n                ec2.SubnetConfiguration(\n                    name='isolated-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED\n                )\n            ]\n        )\n\n        self.nat_gateways = []\n        for i, subnet in enumerate(self.vpc.private_subnets):\n            nat_gateway = ec2.NatGateway(\n                self, f'NATGateway{i}',\n                subnet=subnet\n            )\n            self.nat_gateways.append(nat_gateway)\n\n        self.s3_vpc_endpoint = self.vpc.add_gateway_endpoint(\n            'S3Endpoint',\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT]\n        )\n\n        self.dynamodb_vpc_endpoint = self.vpc.add_interface_endpoint(\n            'DynamoDBEndpoint',\n            service=ec2.InterfaceVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT],\n            security_groups=[ec2.SecurityGroup(\n                self, 'DynamoDBEndpointSG',\n                vpc=self.vpc\n            )]\n        )\n\n        self.dynamodb_vpc_endpoint.node.add_dependency(self.nat_gateways)\n\n        cdk.CfnOutput(\n            self, 'VPCId',\n            value=self.vpc.vpc_id,\n            description='The ID of the VPC'\n        )\n\n        cdk.CfnOutput(\n            self, 'PrivateSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.private_subnets],\n            description='The IDs of the private subnets'\n        )\n\n        cdk.CfnOutput(\n            self, 'PublicSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.public_subnets],\n            description='The IDs of the public subnets'\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import (\n    aws_ec2 as ec2,\n    aws_iam as iam,\n    aws_s3 as s3,\n    aws_dynamodb as dynamodb\n)\n\nclass VPCStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        self.vpc = ec2.Vpc(\n            self, 'VPC',\n            cidr='10.0.0.0/16',\n            max_azs=2,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name='public-subnet',\n                    subnet_type=ec2.SubnetType.PUBLIC\n                ),\n                ec2.SubnetConfiguration(\n                    name='private-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT\n                ),\n                ec2.SubnetConfiguration(\n                    name='isolated-subnet',\n                    subnet_type=ec2.SubnetType.PRIVATE_ISOLATED\n                )\n            ]\n        )\n\n        self.nat_gateways = []\n        for i, subnet in enumerate(self.vpc.private_subnets):\n            nat_gateway = ec2.NatGateway(\n                self, f'NATGateway{i}',\n                subnet=subnet\n            )\n            self.nat_gateways.append(nat_gateway)\n\n        self.s3_vpc_endpoint = self.vpc.add_gateway_endpoint(\n            'S3Endpoint',\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT]\n        )\n\n        self.dynamodb_vpc_endpoint = self.vpc.add_interface_endpoint(\n            'DynamoDBEndpoint',\n            service=ec2.InterfaceVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetType.PRIVATE_WITH_NAT],\n            security_groups=[ec2.SecurityGroup(\n                self, 'DynamoDBEndpointSG',\n                vpc=self.vpc\n            )]\n        )\n\n        self.dynamodb_vpc_endpoint.node.add_dependency(self.nat_gateways)\n\n        cdk.CfnOutput(\n            self, 'VPCId',\n            value=self.vpc.vpc_id,\n            description='The ID of the VPC'\n        )\n\n        cdk.CfnOutput(\n            self, 'PrivateSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.private_subnets],\n            description='The IDs of the private subnets'\n        )\n\n        cdk.CfnOutput(\n            self, 'PublicSubnetIds',\n            value=[subnet.subnet_id for subnet in self.vpc.public_subnets],\n            description='The IDs of the public subnets'\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723654,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 171,
+      "output_tokens": 567,
+      "raw_input_tokens": 171
+    }
+  },
+  "started_at": "2026-05-25T15:40:52.812925+00:00",
+  "elapsed_seconds": 1.65
+}

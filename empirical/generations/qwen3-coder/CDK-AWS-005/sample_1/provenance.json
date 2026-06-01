@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "CDK-AWS-005",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass VpcStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create VPC with public and private subnets across 2 AZs\n        vpc = ec2.Vpc(\n            self, \"ProductionVPC\",\n            max_azs=2,\n            cidr=\"10.0.0.0/16\",\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True\n        )\n\n        # Add S3 Gateway endpoint\n        s3_endpoint = vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add DynamoDB Gateway endpoint\n        dynamodb_endpoint = vpc.add_gateway_endpoint(\n            \"DynamoDBEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB\n        )\n\n        # Apply secure default policies to endpoints\n        s3_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"],\n                resources=[\"arn:aws:s3:::*/*\"]\n            )\n        )\n\n        dynamodb_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"dynamodb:Query\", \"dynamodb:Scan\", \"dynamodb:GetItem\", \n                        \"dynamodb:PutItem\", \"dynamodb:UpdateItem\", \"dynamodb:DeleteItem\"],\n                resources=[\"arn:aws:dynamodb:*:*:table/*\"]\n            )\n        )",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass VpcStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create VPC with public and private subnets across 2 AZs\n        vpc = ec2.Vpc(\n            self, \"ProductionVPC\",\n            max_azs=2,\n            cidr=\"10.0.0.0/16\",\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True\n        )\n\n        # Add S3 Gateway endpoint\n        s3_endpoint = vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add DynamoDB Gateway endpoint\n        dynamodb_endpoint = vpc.add_gateway_endpoint(\n            \"DynamoDBEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB\n        )\n\n        # Apply secure default policies to endpoints\n        s3_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"],\n                resources=[\"arn:aws:s3:::*/*\"]\n            )\n        )\n\n        dynamodb_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"dynamodb:Query\", \"dynamodb:Scan\", \"dynamodb:GetItem\", \n                        \"dynamodb:PutItem\", \"dynamodb:UpdateItem\", \"dynamodb:DeleteItem\"],\n                resources=[\"arn:aws:dynamodb:*:*:table/*\"]\n            )\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    aws_ec2 as ec2,\n    RemovalPolicy\n)\nfrom constructs import Construct\n\nclass VpcStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        # Create VPC with public and private subnets across 2 AZs\n        vpc = ec2.Vpc(\n            self, \"ProductionVPC\",\n            max_azs=2,\n            cidr=\"10.0.0.0/16\",\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24\n                )\n            ],\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True\n        )\n\n        # Add S3 Gateway endpoint\n        s3_endpoint = vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3\n        )\n\n        # Add DynamoDB Gateway endpoint\n        dynamodb_endpoint = vpc.add_gateway_endpoint(\n            \"DynamoDBEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB\n        )\n\n        # Apply secure default policies to endpoints\n        s3_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"s3:GetObject\", \"s3:PutObject\", \"s3:DeleteObject\"],\n                resources=[\"arn:aws:s3:::*/*\"]\n            )\n        )\n\n        dynamodb_endpoint.add_to_policy(\n            ec2.GatewayVpcEndpointPolicyStatement(\n                principals=[ec2.AnyPrincipal()],\n                actions=[\"dynamodb:Query\", \"dynamodb:Scan\", \"dynamodb:GetItem\", \n                        \"dynamodb:PutItem\", \"dynamodb:UpdateItem\", \"dynamodb:DeleteItem\"],\n                resources=[\"arn:aws:dynamodb:*:*:table/*\"]\n            )\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724396,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 149,
+      "output_tokens": 472,
+      "raw_input_tokens": 149
+    }
+  },
+  "started_at": "2026-05-25T15:53:10.431161+00:00",
+  "elapsed_seconds": 5.989
+}

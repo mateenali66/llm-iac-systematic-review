@@ -1,0 +1,65 @@
+resources:
+- name: custom-vpc
+  type: compute.v1.network
+  properties:
+    name: custom-vpc
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: GLOBAL
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: public-subnet
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.0.0/24
+    privateIpGoogleAccess: true
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: private-subnet
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.1.0/24
+    privateIpGoogleAccess: true
+- name: nat-router
+  type: compute.v1.router
+  properties:
+    name: nat-router
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    nats:
+    - name: nat-gateway
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.private-subnet.selfLink)
+        sourceIpRangesToNat:
+        - PRIMARY_IP_RANGE
+- name: allow-internal
+  type: compute.v1.firewall
+  properties:
+    name: allow-internal
+    network: $(ref.custom-vpc.selfLink)
+    priority: 1000
+    direction: INGRESS
+    sourceRanges:
+    - 10.0.0.0/16
+    allowed:
+    - IPProtocol: TCP
+    - IPProtocol: UDP
+    - IPProtocol: ICMP
+- name: allow-nat-egress
+  type: compute.v1.firewall
+  properties:
+    name: allow-nat-egress
+    network: $(ref.custom-vpc.selfLink)
+    priority: 1000
+    direction: EGRESS
+    destinationRanges:
+    - 0.0.0.0/0
+    allowed:
+    - IPProtocol: TCP
+    - IPProtocol: UDP
+    targetTags:
+    - private-subnet

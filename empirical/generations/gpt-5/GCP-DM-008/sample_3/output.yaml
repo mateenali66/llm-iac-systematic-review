@@ -1,0 +1,26 @@
+resources:
+- name: gcs-cmek-keyring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/$(project)/locations/us
+    keyRingId: gcs-cmek-ring
+
+- name: gcs-cmek-cryptokey
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.gcs-cmek-keyring.name)
+    cryptoKeyId: gcs-default-key
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 7776000s
+    nextRotationTime: 2026-12-01T00:00:00Z
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+      protectionLevel: SOFTWARE
+
+outputs:
+- name: keyRingName
+  value: $(ref.gcs-cmek-keyring.name)
+- name: cryptoKeyName
+  value: $(ref.gcs-cmek-cryptokey.name)
+- name: cryptoKeyResourceId
+  value: $(ref.gcs-cmek-cryptokey.name)

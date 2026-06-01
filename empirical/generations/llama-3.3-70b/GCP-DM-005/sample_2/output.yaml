@@ -1,0 +1,44 @@
+resources:
+  - name: saas-postgres-instance
+    type: sql.v1beta4.instance
+    properties:
+      region: us-central1
+      databaseVersion: POSTGRES_15
+      settings:
+        tier: db-custom-2-7680
+        availabilityType: REGIONAL
+        diskSize: 50
+        diskType: PD_SSD
+        backupConfiguration:
+          enabled: true
+          binaryLogEnabled: true
+          pointInTimeRecoveryEnabled: true
+        ipConfiguration:
+          ipv4Enabled: true
+          requireSsl: true
+        locationPreference:
+          zone: us-central1-a
+        maintenanceWindow:
+          day: 7
+          hour: 0
+          updateTrack: stable
+        databaseFlags:
+          - name: log_statement
+            value: all
+        dataDiskSizeGb: 50
+        dataDiskType: PD_SSD
+      databases:
+        - name: saasdb
+          charset: UTF8
+          collation: en_US.UTF8
+      users:
+        - name: saasuser
+          host: '%'
+          password: 'saaspassword'
+      sqlServerAuditConfig:
+        enable: true
+        bucket: gs://saas-audit-logs
+      denyMaintenancePeriod:
+        end_date: '2025-01-01'
+        start_date: '2024-12-31'
+        time: '00:00'

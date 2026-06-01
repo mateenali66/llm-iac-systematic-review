@@ -1,0 +1,130 @@
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+  vars:
+    otel_collector_version: "0.102.1"
+    otel_collector_arch: "amd64"
+    otel_collector_platform: "linux"
+    otel_collector_endpoint: "https://your-otel-backend.example.com:4317"
+    otel_collector_config_dir: "/etc/otelcol"
+    otel_collector_binary_path: "/usr/local/bin/otelcol"
+    otel_collector_user: "otel"
+    otel_collector_group: "otel"
+
+  tasks:
+    - name: Create otel system group
+      group:
+        name: "{{ otel_collector_group }}"
+        system: yes
+        state: present
+
+    - name: Create otel system user
+      user:
+        name: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        system: yes
+        shell: /sbin/nologin
+        create_home: no
+        state: present
+
+    - name: Create configuration directory
+      file:
+        path: "{{ otel_collector_config_dir }}"
+        state: directory
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: 0750
+
+    - name: Download OpenTelemetry Collector binary
+      get_url:
+        url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_version }}_{{ otel_collector_platform }}_{{ otel_collector_arch }}.tar.gz"
+        dest: "/tmp/otelcol.tar.gz"
+        checksum: "sha256:https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol_{{ otel_collector_version }}_{{ otel_collector_platform }}_{{ otel_collector_arch }}.tar.gz.sha256sum"
+        mode: 0640
+
+    - name: Extract OpenTelemetry Collector binary
+      unarchive:
+        src: "/tmp/otelcol.tar.gz"
+        dest: "/tmp/"
+        remote_src: yes
+        creates: "/tmp/otelcol"
+        mode: 0755
+
+    - name: Install OpenTelemetry Collector binary
+      copy:
+        src: "/tmp/otelcol"
+        dest: "{{ otel_collector_binary_path }}"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: 0755
+
+    - name: Clean up temporary files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/otelcol.tar.gz"
+        - "/tmp/otelcol"
+
+    - name: Deploy OpenTelemetry Collector configuration
+      copy:
+        dest: "{{ otel_collector_config_dir }}/config.yaml"
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: 0640
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+          exporters:
+            otlp:
+              endpoint: "{{ otel_collector_endpoint }}"
+              tls:
+                insecure: true
+          service:
+            pipelines:
+              traces:
+                receivers: [otlp]
+                exporters: [otlp]
+              metrics:
+                receivers: [otlp]
+                exporters: [otlp]
+              logs:
+                receivers: [otlp]
+                exporters: [otlp]
+
+    - name: Deploy systemd service unit
+      copy:
+        dest: /etc/systemd/system/otelcol.service
+        owner: root
+        group: root
+        mode: 0644
+        content: |
+          [Unit]
+          Description=OpenTelemetry Collector
+          After=network.target
+
+          [Service]
+          Type=simple
+          User={{ otel_collector_user }}
+          Group={{ otel_collector_group }}
+          ExecStart={{ otel_collector_binary_path }} --config={{ otel_collector_config_dir }}/config.yaml
+          Restart=on-failure
+          RestartSec=10
+          LimitNOFILE=65536
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start OpenTelemetry Collector service
+      systemd:
+        name: otelcol
+        enabled: yes
+        state: started

@@ -1,0 +1,241 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 43,
+	"files_parsed": 1,
+	"lines_parsed": 43,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 3,
+		"LOW": 1,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 8,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:33:05.832033345Z",
+	"end": "2026-05-26T06:33:29.776102217Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Sensitive Port Is Exposed To Entire Network",
+			"query_id": "381c3f2a-ef6f-4eff-99f7-b169cda3422c",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "A sensitive port, such as port 23 or port 110, is open for the whole network in either TCP or UDP protocol",
+			"description_id": "5be78364",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "08dbcda4d485f96431c8b507271e0452f87c166fca85cdd3cef51b3eeecab0be",
+					"line": 6,
+					"resource_type": "aws_security_group",
+					"resource_name": "web-server-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[web_server_sg].ingress",
+					"search_line": -1,
+					"search_value": "TCP,443",
+					"expected_value": "HTTPS (TCP:443) should not be allowed",
+					"actual_value": "HTTPS (TCP:443) is allowed"
+				}
+			]
+		},
+		{
+			"query_name": "Unrestricted Security Group Ingress",
+			"query_id": "4728cd65-a20c-49da-8b31-9c08b423e4db",
+			"query_url": "https://www.terraform.io/docs/providers/aws/r/security_group.html",
+			"severity": "HIGH",
+			"platform": "Terraform",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "Security groups allow ingress from 0.0.0.0:0 and/or ::/0",
+			"description_id": "ce3ee5e0",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fd14283bb07d1f0435c3d2517fbd0b14b43a27af50747bed9bea90d8c0517dd5",
+					"line": 11,
+					"resource_type": "aws_security_group",
+					"resource_name": "web-server-sg",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_security_group[web_server_sg]",
+					"search_line": 11,
+					"search_value": "",
+					"expected_value": "One of 'ingress.cidr_blocks' not equal '0.0.0.0/0'",
+					"actual_value": "One of 'ingress.cidr_blocks' equal '0.0.0.0/0'"
+				}
+			]
+		},
+		{
+			"query_name": "EC2 Instance Has Public IP",
+			"query_id": "5a2486aa-facf-477d-a5c1-b010789459ce",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#associate_public_ip_address",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "200",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "EC2 Instance should not have a public IP address.",
+			"description_id": "c6f1d1f4",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "2906f3d04597d8ac1712609c056aa90f1337a020e286e4c9c2fa6304180f94c2",
+					"line": 34,
+					"resource_type": "aws_instance",
+					"resource_name": "web-server",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance.web_server",
+					"search_line": 34,
+					"search_value": "",
+					"expected_value": "'associate_public_ip_address' should be defined and not null",
+					"actual_value": "'associate_public_ip_address' is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "EC2 Instance Monitoring Disabled",
+			"query_id": "23b70e32-032e-4fa6-ba5c-82f56b9980e6",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance#monitoring",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "EC2 Instance should have detailed monitoring enabled. With detailed monitoring enabled data is available in 1-minute periods",
+			"description_id": "0d5413e6",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "6992c156633ea5a7093005a73b81152ff63248f5027494f309d47e52fbb8e6fa",
+					"line": 34,
+					"resource_type": "aws_instance",
+					"resource_name": "web-server",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance.{{web_server}}",
+					"search_line": 34,
+					"search_value": "",
+					"expected_value": "'monitoring' should be defined and not null",
+					"actual_value": "'monitoring' is undefined or null",
+					"remediation": "monitoring = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "b56e9a21ecb6559d1ee0e52ddb4a14dd8f8dcfe109fec79cf1dca85cf271df57",
+					"line": 40,
+					"resource_type": "aws_instance",
+					"resource_name": "web-server",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_instance[{{web_server}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_instance[{{web_server}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_instance[{{web_server}}].tags does not have additional tags defined other than 'Name'"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5d1842accfb13f4e746a121d737870002e8f419f2937ed32598ca81d4ae0386c",
+					"line": 29,
+					"resource_type": "aws_security_group",
+					"resource_name": "web-server-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{web_server_sg}}].tags",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{web_server_sg}}].tags has additional tags defined other than 'Name'",
+					"actual_value": "aws_security_group[{{web_server_sg}}].tags does not have additional tags defined other than 'Name'"
+				}
+			]
+		},
+		{
+			"query_name": "Security Group Rule Without Description",
+			"query_id": "68eb4bf3-f9bf-463d-b5cf-e029bb446d2e",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group#description",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "It's considered a best practice for all rules in AWS Security Group to have a description",
+			"description_id": "cee242dd",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "85759a0d191e470da2ed39c00ecb361395f494c36f6bb12fcc1698f404c9d86b",
+					"line": 22,
+					"resource_type": "aws_security_group",
+					"resource_name": "web-server-sg",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_security_group[{{web_server_sg}}].egress",
+					"search_line": 22,
+					"search_value": "",
+					"expected_value": "aws_security_group[{{web_server_sg}}].egress description should be defined and not null",
+					"actual_value": "aws_security_group[{{web_server_sg}}].egress description is undefined or null"
+				}
+			]
+		}
+	]
+}

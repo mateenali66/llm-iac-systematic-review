@@ -1,0 +1,17 @@
+resources:
+- name: my-multi-region-bucket-abc123
+  type: storage.v1.bucket
+  deletionPolicy: ABANDON
+  properties:
+    location: US
+    storageClass: STANDARD
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: enforced
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          age: 365

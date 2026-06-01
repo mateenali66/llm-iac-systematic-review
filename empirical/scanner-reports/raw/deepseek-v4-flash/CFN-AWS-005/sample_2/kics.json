@@ -1,0 +1,168 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 281,
+	"files_parsed": 2,
+	"lines_parsed": 278,
+	"lines_ignored": 3,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 5,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:37:48.197689555Z",
+	"end": "2026-05-26T04:37:54.712366044Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "EC2 Instance Subnet Has Public IP Mapping On Launch",
+			"query_id": "b3de4e4c-14be-4159-b99d-9ad194365e4c",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-subnet.html#cfn-ec2-subnet-mappubliciponlaunch",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "668",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "EC2 Instance Subnet should not have MapPublicIpOnLaunch set to true",
+			"description_id": "22e3d598",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "16f4a9e7621d28793bc4d98ddae2b01b7a578638a1676f01e1ad6b77383eb5e7",
+					"line": 109,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "${EnvironmentName}-public-subnet-az1",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet1.Properties.MapPublicIpOnLaunch' is true"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1f0d80b61af6527880848b08b4a4487a851e781aaadcc6ed821ec40f9fcdad0e",
+					"line": 124,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "${EnvironmentName}-public-subnet-az2",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet2.Properties.MapPublicIpOnLaunch' is true"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "95fe8a50c063064b488e8faa95cd1b8651c4011b4c01797cd66c1dcebd7bc8b8",
+					"line": 139,
+					"resource_type": "AWS::EC2::Subnet",
+					"resource_name": "${EnvironmentName}-public-subnet-az3",
+					"issue_type": "IncorrectValue",
+					"search_key": "Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch' should be false",
+					"actual_value": "'Resources.PublicSubnet3.Properties.MapPublicIpOnLaunch' is true"
+				}
+			]
+		},
+		{
+			"query_name": "VPC FlowLogs Disabled",
+			"query_id": "f6d299d2-21eb-41cc-b1e1-fe12d857500b",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-flowlog.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "Every VPC resource should have an associated Flow Log",
+			"description_id": "0fb02ca5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "75fb687b81ac3e73e8a390303bb6a678d74b1ef25a96f24ccc2027d7dfca1efc",
+					"line": 75,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "${EnvironmentName}-vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.VPC has a FlowLogs resource associated",
+					"actual_value": "Resources.VPC doesn't have a FlowLogs resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "VPC Without Network Firewall",
+			"query_id": "3e293410-d5b8-411f-85fd-7d26294f20c9",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-networkfirewall-firewall.html#cfn-networkfirewall-firewall-vpcid",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Networking and Firewall",
+			"experimental": false,
+			"description": "VPC should have a Network Firewall associated",
+			"description_id": "f090ffd2",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3129d97ead5e9389934398e8073e80fbb002ddd9fe9ca43480d9e9ad928a0604",
+					"line": 75,
+					"resource_type": "AWS::EC2::VPC",
+					"resource_name": "${EnvironmentName}-vpc",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.VPC",
+					"search_line": 75,
+					"search_value": "",
+					"expected_value": "'Resources.VPC' should be associated with a AWS Network Firewall",
+					"actual_value": "'Resources.VPC' is not associated with a AWS Network Firewall"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 74,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		}
+	]
+}

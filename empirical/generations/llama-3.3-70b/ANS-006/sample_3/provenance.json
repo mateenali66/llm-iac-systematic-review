@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "ANS-006",
+  "language": "ansible",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook that creates a non-root user 'deploy' with passwordless sudo, installs the user's public SSH key from a vault-encrypted variable, and disables password-based SSH login.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Configure deploy user and SSH\n  become: yes\n  tasks:\n  - name: Create deploy user\n    user:\n      name: deploy\n      group: deploy\n      create_home: yes\n      system: no\n      append: yes\n      groups: sudo\n      shell: /bin/bash\n\n  - name: Set deploy user password\n    user:\n      name: deploy\n      password: $6$rounds=656000$4pZzXK6ZL8$.XWQ5z3xW4u8zj6j4zj6j4zj6j4zj6j4zj6\n\n  - name: Install deploy user public SSH key\n    authorized_key:\n      user: deploy\n      state: present\n      key: \"{{ lookup('ansible_vault', 'deploy_public_ssh_key') }}\"\n\n  - name: Configure sudoers for deploy user\n    lineinfile:\n      dest: /etc/sudoers\n      state: present\n      regexp: '^deploy'\n      line: 'deploy ALL=(ALL) NOPASSWD:ALL'\n      validate: 'visudo -cf %s'\n\n  - name: Disable password-based SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      state: present\n      regexp: '^PasswordAuthentication'\n      line: 'PasswordAuthentication no'\n\n  - name: Restart SSH service\n    service:\n      name: sshd\n      state: restarted\n      enabled: yes\n      masked: no\n\n  - name: Set correct permissions for .ssh directory\n    file:\n      path: /home/deploy/.ssh\n      state: directory\n      mode: '0700'\n      owner: deploy\n      group: deploy\n\n  - name: Set correct permissions for authorized_keys file\n    file:\n      path: /home/deploy/.ssh/authorized_keys\n      state: file\n      mode: '0600'\n      owner: deploy\n      group: deploy",
+  "cleaned_response": "---\n- name: Configure deploy user and SSH\n  become: yes\n  tasks:\n  - name: Create deploy user\n    user:\n      name: deploy\n      group: deploy\n      create_home: yes\n      system: no\n      append: yes\n      groups: sudo\n      shell: /bin/bash\n\n  - name: Set deploy user password\n    user:\n      name: deploy\n      password: $6$rounds=656000$4pZzXK6ZL8$.XWQ5z3xW4u8zj6j4zj6j4zj6j4zj6j4zj6\n\n  - name: Install deploy user public SSH key\n    authorized_key:\n      user: deploy\n      state: present\n      key: \"{{ lookup('ansible_vault', 'deploy_public_ssh_key') }}\"\n\n  - name: Configure sudoers for deploy user\n    lineinfile:\n      dest: /etc/sudoers\n      state: present\n      regexp: '^deploy'\n      line: 'deploy ALL=(ALL) NOPASSWD:ALL'\n      validate: 'visudo -cf %s'\n\n  - name: Disable password-based SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      state: present\n      regexp: '^PasswordAuthentication'\n      line: 'PasswordAuthentication no'\n\n  - name: Restart SSH service\n    service:\n      name: sshd\n      state: restarted\n      enabled: yes\n      masked: no\n\n  - name: Set correct permissions for .ssh directory\n    file:\n      path: /home/deploy/.ssh\n      state: directory\n      mode: '0700'\n      owner: deploy\n      group: deploy\n\n  - name: Set correct permissions for authorized_keys file\n    file:\n      path: /home/deploy/.ssh/authorized_keys\n      state: file\n      mode: '0600'\n      owner: deploy\n      group: deploy",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Configure deploy user and SSH\n  become: yes\n  tasks:\n  - name: Create deploy user\n    user:\n      name: deploy\n      group: deploy\n      create_home: yes\n      system: no\n      append: yes\n      groups: sudo\n      shell: /bin/bash\n\n  - name: Set deploy user password\n    user:\n      name: deploy\n      password: $6$rounds=656000$4pZzXK6ZL8$.XWQ5z3xW4u8zj6j4zj6j4zj6j4zj6j4zj6\n\n  - name: Install deploy user public SSH key\n    authorized_key:\n      user: deploy\n      state: present\n      key: \"{{ lookup('ansible_vault', 'deploy_public_ssh_key') }}\"\n\n  - name: Configure sudoers for deploy user\n    lineinfile:\n      dest: /etc/sudoers\n      state: present\n      regexp: '^deploy'\n      line: 'deploy ALL=(ALL) NOPASSWD:ALL'\n      validate: 'visudo -cf %s'\n\n  - name: Disable password-based SSH login\n    lineinfile:\n      dest: /etc/ssh/sshd_config\n      state: present\n      regexp: '^PasswordAuthentication'\n      line: 'PasswordAuthentication no'\n\n  - name: Restart SSH service\n    service:\n      name: sshd\n      state: restarted\n      enabled: yes\n      masked: no\n\n  - name: Set correct permissions for .ssh directory\n    file:\n      path: /home/deploy/.ssh\n      state: directory\n      mode: '0700'\n      owner: deploy\n      group: deploy\n\n  - name: Set correct permissions for authorized_keys file\n    file:\n      path: /home/deploy/.ssh/authorized_keys\n      state: file\n      mode: '0600'\n      owner: deploy\n      group: deploy",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723528,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 175,
+      "output_tokens": 420,
+      "raw_input_tokens": 175
+    }
+  },
+  "started_at": "2026-05-25T15:38:46.951176+00:00",
+  "elapsed_seconds": 1.861
+}

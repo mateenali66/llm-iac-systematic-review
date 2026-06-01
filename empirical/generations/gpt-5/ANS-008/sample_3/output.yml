@@ -1,0 +1,255 @@
+---
+- name: Install and configure PostgreSQL 15
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    postgres_version: 15
+    postgres_port: 5432
+    postgres_listen_addresses: 'localhost'
+    postgres_allowed_cidrs: []
+    postgres_db_name: appdb
+    postgres_db_owner: appuser
+    postgres_db_password: "CHANGE_ME_USE_VAULT"
+    postgres_auth_method: "scram-sha-256"
+
+    postgres_max_connections: 200
+    postgres_shared_buffers: "1GB"
+    postgres_effective_cache_size: "3GB"
+    postgres_maintenance_work_mem: "256MB"
+    postgres_checkpoint_completion_target: 0.9
+    postgres_wal_buffers: "-1"
+    postgres_default_statistics_target: 100
+    postgres_random_page_cost: 1.1
+    postgres_effective_io_concurrency: 200
+    postgres_work_mem: "16MB"
+    postgres_log_min_duration_statement: 1000
+    postgres_ssl: "off"
+    postgres_autovacuum: "on"
+    postgres_autovacuum_naptime: "10s"
+    postgres_autovacuum_vacuum_scale_factor: 0.01
+    postgres_autovacuum_analyze_scale_factor: 0.02
+    postgres_max_wal_size: "8GB"
+    postgres_min_wal_size: "1GB"
+
+  tasks:
+    - name: Set PostgreSQL paths and service name for Debian family
+      ansible.builtin.set_fact:
+        postgres_service_name: "postgresql"
+        postgres_conf_path: "/etc/postgresql/{{ postgres_version }}/main/postgresql.conf"
+        postgres_hba_path: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+        postgres_conf_d_dir: "/etc/postgresql/{{ postgres_version }}/main/conf.d"
+        postgres_data_dir: "/var/lib/postgresql/{{ postgres_version }}/main"
+        postgres_conf_owner: "root"
+        postgres_conf_group: "root"
+        postgres_conf_dir_mode: "0755"
+      when: ansible_os_family == "Debian"
+
+    - name: Set PostgreSQL paths and service name for RedHat family
+      ansible.builtin.set_fact:
+        postgres_service_name: "postgresql-{{ postgres_version }}"
+        postgres_conf_path: "/var/lib/pgsql/{{ postgres_version }}/data/postgresql.conf"
+        postgres_hba_path: "/var/lib/pgsql/{{ postgres_version }}/data/pg_hba.conf"
+        postgres_conf_d_dir: "/var/lib/pgsql/{{ postgres_version }}/data/conf.d"
+        postgres_data_dir: "/var/lib/pgsql/{{ postgres_version }}/data"
+        postgres_conf_owner: "postgres"
+        postgres_conf_group: "postgres"
+        postgres_conf_dir_mode: "0750"
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure prerequisites and repositories are configured (Debian/Ubuntu)
+      when: ansible_os_family == "Debian"
+      block:
+        - name: Install prerequisite packages
+            # Needed for keyrings and HTTPS APT
+          ansible.builtin.apt:
+            name:
+              - ca-certificates
+              - gnupg
+            state: present
+            update_cache: true
+
+        - name: Ensure APT keyrings directory exists
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Add PostgreSQL APT repository key
+          ansible.builtin.get_url:
+            url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+            dest: /etc/apt/keyrings/pgdg.asc
+            mode: "0644"
+            force: true
+
+        - name: Add PostgreSQL APT repository
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/pgdg.asc] https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+            filename: "pgdg"
+            state: present
+            update_cache: true
+
+        - name: Install PostgreSQL 15 packages (Debian/Ubuntu)
+          ansible.builtin.apt:
+            name:
+              - "postgresql-{{ postgres_version }}"
+              - "postgresql-client-{{ postgres_version }}"
+              - postgresql-contrib
+              - python3-psycopg2
+            state: present
+            update_cache: true
+
+    - name: Ensure repositories and packages are configured (RHEL/CentOS/Alma/Rocky)
+      when: ansible_os_family == "RedHat"
+      block:
+        - name: Disable built-in PostgreSQL module on DNF-based systems
+          ansible.builtin.command: "dnf -qy module disable postgresql"
+          when: ansible_distribution_major_version | int >= 8
+          changed_when: "'Nothing to do' not in result.stdout"
+          register: result
+
+        - name: Install PGDG repository RPM
+          ansible.builtin.dnf:
+            name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+            state: present
+
+        - name: Install PostgreSQL 15 packages (RHEL family)
+          ansible.builtin.dnf:
+            name:
+              - "postgresql{{ postgres_version }}"
+              - "postgresql{{ postgres_version }}-server"
+              - "postgresql{{ postgres_version }}-contrib"
+              - python3-psycopg2
+            state: present
+
+        - name: Initialize PostgreSQL database if not initialized
+          ansible.builtin.command: "postgresql-{{ postgres_version }}-setup initdb"
+          args:
+            creates: "{{ postgres_data_dir }}/PG_VERSION"
+
+    - name: Ensure conf.d directory exists
+      ansible.builtin.file:
+        path: "{{ postgres_conf_d_dir }}"
+        state: directory
+        owner: "{{ postgres_conf_owner }}"
+        group: "{{ postgres_conf_group }}"
+        mode: "{{ postgres_conf_dir_mode }}"
+
+    - name: Ensure include_dir is enabled in postgresql.conf
+      ansible.builtin.lineinfile:
+        path: "{{ postgres_conf_path }}"
+        regexp: "^#?\\s*include_dir\\s*=\\s*'.*'"
+        line: "include_dir = 'conf.d'"
+        state: present
+        owner: "{{ postgres_conf_owner }}"
+        group: "{{ postgres_conf_group }}"
+        mode: "0644"
+        backup: true
+      notify: Restart PostgreSQL
+
+    - name: Deploy production tuning configuration
+      ansible.builtin.copy:
+        dest: "{{ postgres_conf_d_dir }}/99-tuning.conf"
+        owner: "{{ postgres_conf_owner }}"
+        group: "{{ postgres_conf_group }}"
+        mode: "0644"
+        content: |
+          # Managed by Ansible - production tuning
+          # Network
+          listen_addresses = '{{ postgres_listen_addresses }}'
+          port = {{ postgres_port }}
+
+          # Connections and Memory
+          max_connections = {{ postgres_max_connections }}
+          shared_buffers = {{ postgres_shared_buffers }}
+          effective_cache_size = {{ postgres_effective_cache_size }}
+          work_mem = {{ postgres_work_mem }}
+          maintenance_work_mem = {{ postgres_maintenance_work_mem }}
+
+          # WAL and Checkpointing
+          wal_buffers = {{ postgres_wal_buffers }}
+          checkpoint_completion_target = {{ postgres_checkpoint_completion_target }}
+          max_wal_size = {{ postgres_max_wal_size }}
+          min_wal_size = {{ postgres_min_wal_size }}
+
+          # Query Planning and IO
+          default_statistics_target = {{ postgres_default_statistics_target }}
+          random_page_cost = {{ postgres_random_page_cost }}
+          effective_io_concurrency = {{ postgres_effective_io_concurrency }}
+
+          # Authentication and Security
+          password_encryption = {{ postgres_auth_method }}
+          ssl = {{ postgres_ssl }}
+
+          # Autovacuum
+          autovacuum = {{ postgres_autovacuum }}
+          autovacuum_naptime = {{ postgres_autovacuum_naptime }}
+          autovacuum_vacuum_scale_factor = {{ postgres_autovacuum_vacuum_scale_factor }}
+          autovacuum_analyze_scale_factor = {{ postgres_autovacuum_analyze_scale_factor }}
+
+          # Logging
+          logging_collector = on
+          log_directory = 'log'
+          log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+          log_line_prefix = '%m [%p] %q%u@%d '
+          log_connections = off
+          log_disconnections = off
+          log_min_duration_statement = {{ postgres_log_min_duration_statement }}
+          log_lock_waits = on
+      notify: Restart PostgreSQL
+
+    - name: Render pg_hba.conf with allowed CIDRs and secure defaults
+      ansible.builtin.copy:
+        dest: "{{ postgres_hba_path }}"
+        owner: "{{ postgres_conf_owner if ansible_os_family == 'Debian' else 'postgres' }}"
+        group: "{{ postgres_conf_group if ansible_os_family == 'Debian' else 'postgres' }}"
+        mode: "0640"
+        backup: true
+        content: |
+          # Managed by Ansible - pg_hba.conf
+          # TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+          # Local connections
+          local   all             postgres                                peer
+          local   all             all                                     {{ postgres_auth_method }}
+
+          # Loopback
+          host    all             all             127.0.0.1/32            {{ postgres_auth_method }}
+          host    all             all             ::1/128                 {{ postgres_auth_method }}
+
+          # Allowed CIDRs
+          {% for cidr in postgres_allowed_cidrs %}
+          host    all             all             {{ cidr }}              {{ postgres_auth_method }}
+          {% endfor %}
+      notify: Restart PostgreSQL
+
+    - name: Ensure PostgreSQL service is enabled and started
+      ansible.builtin.service:
+        name: "{{ postgres_service_name }}"
+        state: started
+        enabled: true
+
+    - name: Create application database user
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: "{{ postgres_db_owner }}"
+        password: "{{ postgres_db_password }}"
+        role_attr_flags: "LOGIN"
+        state: present
+      no_log: true
+
+    - name: Create application database
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db_name }}"
+        owner: "{{ postgres_db_owner }}"
+        state: present
+
+  handlers:
+    - name: Restart PostgreSQL
+      ansible.builtin.service:
+        name: "{{ postgres_service_name }}"
+        state: restarted

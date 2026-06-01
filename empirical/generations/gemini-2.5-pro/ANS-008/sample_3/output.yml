@@ -1,0 +1,26 @@
+---
+- name: Install and Configure PostgreSQL
+  hosts: all
+  become: true
+  vars:
+    pg_version: "15"
+    pg_db_name: "app_db"
+    pg_db_user: "app_user"
+    pg_db_password: "CHANGEME_IN_VAULT"
+    pg_allowed_cidrs:
+      - "10.0.0.0/8"
+      - "192.168.1.0/24"
+    pg_conf_dir_debian: "/etc/postgresql/{{ pg_version }}/main"
+    pg_conf_dir_redhat: "/var/lib/pgsql/{{ pg_version }}/data"
+    pg_conf_dir: "{{ pg_conf_dir_debian if ansible_os_family == 'Debian' else pg_conf_dir_redhat }}"
+    pg_bin_dir_redhat: "/usr/pgsql-{{ pg_version }}/bin"
+    pg_shared_buffers: "{{ (ansible_memtotal_mb * 0.25) | int }}MB"
+    pg_effective_cache_size: "{{ (ansible_memtotal_mb * 0.75) | int }}MB"
+    pg_maintenance_work_mem: "{{ (ansible_memtotal_mb * 0.05) | int | max(64) }}MB"
+    pg_work_mem: "16MB"
+
+  handlers:
+    - name: Restart postgresql
+      ansible.builtin.service:
+        name: "{{ 'postgresql' if ansible_os_family == 'RedHat' else 'postgresql@' + pg_version + '-main' }}"
+        state:

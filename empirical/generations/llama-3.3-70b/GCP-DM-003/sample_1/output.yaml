@@ -1,0 +1,73 @@
+resources:
+  - name: cloud-run-service
+    type: cloudrun.v1.service
+    properties:
+      service:
+        metadata:
+          name: python-api-service
+        spec:
+          template:
+            spec:
+              containers:
+              - image: gcr.io/[PROJECT_ID]/python-api-image
+                ports:
+                - containerPort: 8080
+              service:
+                ports:
+                - containerPort: 8080
+                protocol: HTTP1
+          traffic:
+          - percent: 100
+            latestRevision: true
+      location: us-central1
+
+  - name: python-api-image
+    action: gcr.io/cloud-builders/docker
+    properties:
+      docker:
+        dockerfile: |
+          FROM python:3.12-slim
+          WORKDIR /app
+          COPY requirements.txt .
+          RUN pip install -r requirements.txt
+          COPY . .
+          CMD ["python", "app.py"]
+      images:
+      - gcr.io/[PROJECT_ID]/python-api-image
+
+  - name: cloud-run-service-iam
+    type: cloudrun.v1.service.iamMember
+    properties:
+      service: python-api-service
+      location: us-central1
+      member: allUsers
+      role: roles/run.invoker
+
+  - name: artifact-repo
+    type: artifactregistry.v1.repository
+    properties:
+      repository:
+        projectId: [PROJECT_ID]
+        location: us-central1
+        repositoryId: python-api-repo
+        format: DOCKER
+
+  - name: python-api-image-registry
+    type: artifactregistry.v1.package
+    properties:
+      parent: $(ref artifact-repo.name)
+      packageId: python-api-package
+
+  - name: python-api-image-version
+    type: artifactregistry.v1.version
+    properties:
+      parent: $(ref python-api-image-registry.name)
+      versionId: python-api-version
+      location: us-central1
+    metadata:
+      dependsOn:
+      - python-api-image-registry
+
+outputs:
+  - name: serviceUrl
+    value: $(ref cloud-run-service.service.status.url)

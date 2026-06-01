@@ -1,0 +1,125 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 112,
+	"files_parsed": 1,
+	"lines_parsed": 112,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 4,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 5,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:37:34.483008052Z",
+	"end": "2026-05-26T06:37:58.414184299Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 1,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5af1e15377fb6a4d7564da7ab09285914dd84c9f301d717f0d9234c2b34324bc",
+					"line": 1,
+					"resource_type": "aws_elastic_beanstalk_application",
+					"resource_name": "nodejs-application",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_application[{{nodejs_app}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_application[{{nodejs_app}}].tags should be defined and not null",
+					"actual_value": "aws_elastic_beanstalk_application[{{nodejs_app}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a07826772913d1a12828ce19e78f53ae8853c0c392146b3a78151ce118d6e1d4",
+					"line": 6,
+					"resource_type": "aws_elastic_beanstalk_environment",
+					"resource_name": "nodejs-environment",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_elastic_beanstalk_environment[{{nodejs_env}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_elastic_beanstalk_environment[{{nodejs_env}}].tags should be defined and not null",
+					"actual_value": "aws_elastic_beanstalk_environment[{{nodejs_env}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "854b80e91b97bb310442243f99acee7b208e2bba92bd5142d1d150eac6116df7",
+					"line": 99,
+					"resource_type": "aws_iam_instance_profile",
+					"resource_name": "eb-instance-profile",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_instance_profile[{{eb_instance_profile}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_instance_profile[{{eb_instance_profile}}].tags should be defined and not null",
+					"actual_value": "aws_iam_instance_profile[{{eb_instance_profile}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "61e10979efcf7ab9b03abcf05c451d095e3958dfbf3455a0b487cfbd2698e8e8",
+					"line": 67,
+					"resource_type": "aws_iam_role",
+					"resource_name": "eb-instance-role",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{eb_instance_role}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{eb_instance_role}}].tags should be defined and not null",
+					"actual_value": "aws_iam_role[{{eb_instance_role}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,117 @@
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: yes
+  vars:
+    otel_collector_version: "0.102.1"
+    otel_collector_arch: "amd64"
+    otel_collector_platform: "linux"
+    otel_collector_download_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol-contrib_{{ otel_collector_version }}_{{ otel_collector_platform }}_{{ otel_collector_arch }}.tar.gz"
+    otel_collector_install_dir: "/opt/otelcol-contrib"
+    otel_collector_config_dir: "/etc/otelcol-contrib"
+    otel_collector_user: "otelcol"
+    otel_collector_group: "otelcol"
+    otel_collector_service_name: "otelcol-contrib"
+    otel_collector_binary: "otelcol-contrib"
+    otel_collector_endpoint: "https://your-otel-endpoint.example.com:4317"
+    otel_collector_headers:
+      "X-API-Key": "your-api-key-here"
+    otel_collector_insecure: false
+    otel_collector_timeout: "10s"
+
+  tasks:
+    - name: Create otelcol user and group
+      ansible.builtin.group:
+        name: "{{ otel_collector_group }}"
+        state: present
+      when: ansible_os_family != "Windows"
+
+    - name: Create otelcol user
+      ansible.builtin.user:
+        name: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        system: yes
+        shell: /sbin/nologin
+        create_home: no
+      when: ansible_os_family != "Windows"
+
+    - name: Create install directory
+      ansible.builtin.file:
+        path: "{{ otel_collector_install_dir }}"
+        state: directory
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: "0755"
+
+    - name: Create config directory
+      ansible.builtin.file:
+        path: "{{ otel_collector_config_dir }}"
+        state: directory
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: "0755"
+
+    - name: Download OpenTelemetry Collector binary
+      ansible.builtin.get_url:
+        url: "{{ otel_collector_download_url }}"
+        dest: "/tmp/otelcol-contrib.tar.gz"
+        mode: "0644"
+        checksum: "sha256:{{ otel_collector_download_url }}.sha256"
+      register: download_result
+      until: download_result is success
+      retries: 3
+      delay: 5
+
+    - name: Extract OpenTelemetry Collector
+      ansible.builtin.unarchive:
+        src: "/tmp/otelcol-contrib.tar.gz"
+        dest: "{{ otel_collector_install_dir }}"
+        remote_src: yes
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: "0755"
+        creates: "{{ otel_collector_install_dir }}/{{ otel_collector_binary }}"
+
+    - name: Set binary permissions
+      ansible.builtin.file:
+        path: "{{ otel_collector_install_dir }}/{{ otel_collector_binary }}"
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: "0755"
+
+    - name: Create OpenTelemetry Collector configuration
+      ansible.builtin.template:
+        src: otelcol-config.yaml.j2
+        dest: "{{ otel_collector_config_dir }}/config.yaml"
+        owner: "{{ otel_collector_user }}"
+        group: "{{ otel_collector_group }}"
+        mode: "0644"
+      notify: restart otelcol
+
+    - name: Create systemd service file
+      ansible.builtin.template:
+        src: otelcol.service.j2
+        dest: "/etc/systemd/system/{{ otel_collector_service_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: reload systemd and restart otelcol
+
+    - name: Enable and start OpenTelemetry Collector service
+      ansible.builtin.systemd:
+        name: "{{ otel_collector_service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+  handlers:
+    - name: restart otelcol
+      ansible.builtin.systemd:
+        name: "{{ otel_collector_service_name }}"
+        state: restarted
+        daemon_reload: no
+
+    - name: reload systemd and restart otelcol
+      ansible.builtin.systemd:
+        name: "{{ otel_collector_service_name }}"
+        state: restarted
+        daemon_reload: yes

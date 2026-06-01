@@ -1,0 +1,294 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_version: "0.99.0"
+    otelcol_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      armv7l: armv7
+    otelcol_arch: "{{ otelcol_arch_map.get(ansible_architecture, 'amd64') }}"
+    otelcol_download_base: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}"
+    otelcol_tarball: "otelcol_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+    otelcol_checksums_file: "otelcol_{{ otelcol_version }}_checksums.txt"
+    otelcol_install_dir: "/opt/otelcol-{{ otelcol_version }}"
+    otelcol_binary_path: "/usr/local/bin/otelcol"
+    otelcol_user: "otelcol"
+    otelcol_group: "otelcol"
+    otelcol_config_dir: "/etc/otelcol"
+    otelcol_env_file: "/etc/otelcol/otelcol.env"
+    # Required: remote OTLP gRPC endpoint, e.g. "otlp.example.com:4317"
+    otlp_exporter_endpoint: ""
+    # Optional security and headers
+    otlp_exporter_insecure: false
+    # Additional static headers (non-sensitive). Example: {"x-tenant": "prod"}
+    otlp_exporter_headers: {}
+    # Sensitive Authorization header value (e.g., "Bearer <token>") stored in env file
+    otlp_exporter_authorization: ""
+    otlp_exporter_timeout: "10s"
+    manage_firewall: false
+
+  pre_tasks:
+    - name: Validate required exporter endpoint
+      ansible.builtin.assert:
+        that:
+          - otlp_exporter_endpoint is string
+          - otlp_exporter_endpoint | length > 0
+        fail_msg: "You must set 'otlp_exporter_endpoint' to the remote OTLP endpoint (e.g., otlp.example.com:4317)."
+
+    - name: Ensure required packages are present (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - tar
+          - gzip
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+
+    - name: Ensure required packages are present (RedHat/CentOS/Amazon Linux)
+      ansible.builtin.yum:
+        name:
+          - ca-certificates
+          - tar
+          - gzip
+        state: present
+      when: ansible_os_family == "RedHat"
+
+  tasks:
+    - name: Create otelcol group
+      ansible.builtin.group:
+        name: "{{ otelcol_group }}"
+        system: true
+
+    - name: Create otelcol user
+      ansible.builtin.user:
+        name: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create configuration and data directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        mode: "{{ item.mode | default('0750') }}"
+      loop:
+        - { path: "{{ otelcol_config_dir }}", mode: "0750" }
+        - { path: "/var/lib/otelcol", mode: "0750" }
+        - { path: "/var/log/otelcol", mode: "0750" }
+
+    - name: Download checksums file
+      ansible.builtin.get_url:
+        url: "{{ otelcol_download_base }}/{{ otelcol_checksums_file }}"
+        dest: "/tmp/{{ otelcol_checksums_file }}"
+        mode: '0644'
+        force: true
+        timeout: 60
+
+    - name: Derive checksum for tarball
+      ansible.builtin.shell: "grep ' {{ otelcol_tarball }}$' /tmp/{{ otelcol_checksums_file }} | awk '{print $1}'"
+      args:
+        executable: /bin/bash
+      register: otelcol_sha256
+      changed_when: false
+      check_mode: false
+
+    - name: Fail if checksum not found
+      ansible.builtin.assert:
+        that:
+          - otelcol_sha256.stdout is match('^[a-f0-9]{64}$')
+        fail_msg: "Could not find SHA256 for {{ otelcol_tarball }} in checksums file."
+
+    - name: Download OpenTelemetry Collector tarball
+      ansible.builtin.get_url:
+        url: "{{ otelcol_download_base }}/{{ otelcol_tarball }}"
+        dest: "/tmp/{{ otelcol_tarball }}"
+        mode: '0644'
+        checksum: "sha256:{{ otelcol_sha256.stdout }}"
+        timeout: 120
+
+    - name: Create install directory
+      ansible.builtin.file:
+        path: "{{ otelcol_install_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Unarchive otelcol tarball
+      ansible.builtin.unarchive:
+        src: "/tmp/{{ otelcol_tarball }}"
+        dest: "{{ otelcol_install_dir }}"
+        remote_src: true
+        creates: "{{ otelcol_install_dir }}/otelcol"
+
+    - name: Symlink otelcol binary to /usr/local/bin
+      ansible.builtin.file:
+        src: "{{ otelcol_install_dir }}/otelcol"
+        dest: "{{ otelcol_binary_path }}"
+        state: link
+        owner: root
+        group: root
+        mode: '0755'
+      notify:
+        - Restart otelcol
+
+    - name: Write environment file
+      ansible.builtin.copy:
+        dest: "{{ otelcol_env_file }}"
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: '0640'
+        content: |
+          {% if otlp_exporter_authorization is string %}
+          OTLP_EXPORTER_AUTHORIZATION={{ otlp_exporter_authorization }}
+          {% else %}
+          OTLP_EXPORTER_AUTHORIZATION=
+          {% endif %}
+      notify:
+        - Restart otelcol
+
+    - name: Deploy otelcol configuration
+      ansible.builtin.copy:
+        dest: "{{ otelcol_config_dir }}/config.yaml"
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: '0640'
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+
+          processors:
+            batch:
+              timeout: 5s
+              send_batch_size: 8192
+
+          exporters:
+            otlp:
+              endpoint: "{{ otlp_exporter_endpoint }}"
+              tls:
+                insecure: {{ otlp_exporter_insecure | bool }}
+              headers:
+                {% if otlp_exporter_authorization | length > 0 %}
+                authorization: ${env:OTLP_EXPORTER_AUTHORIZATION}
+                {% endif %}
+                {% for item in otlp_exporter_headers | dict2items %}
+                {{ item.key }}: "{{ item.value }}"
+                {% endfor %}
+              timeout: "{{ otlp_exporter_timeout }}"
+            logging:
+              loglevel: warn
+
+          extensions:
+            health_check: {}
+
+          service:
+            extensions: [health_check]
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [otlp]
+              metrics:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [otlp]
+              logs:
+                receivers: [otlp]
+                processors: [batch]
+                exporters: [otlp]
+      notify:
+        - Restart otelcol
+
+    - name: Create systemd unit for otelcol
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/otelcol.service
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=OpenTelemetry Collector
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ otelcol_user }}
+          Group={{ otelcol_group }}
+          EnvironmentFile=-{{ otelcol_env_file }}
+          ExecStart={{ otelcol_binary_path }} --config={{ otelcol_config_dir }}/config.yaml
+          Restart=on-failure
+          RestartSec=5
+          LimitNOFILE=65536
+
+          # Hardening
+          NoNewPrivileges=true
+          PrivateTmp=true
+          PrivateDevices=true
+          ProtectSystem=full
+          ProtectHome=true
+          ProtectControlGroups=true
+          ProtectKernelModules=true
+          ProtectKernelTunables=true
+          LockPersonality=true
+          MemoryDenyWriteExecute=true
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+          RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+          SystemCallArchitectures=native
+          SystemCallFilter=@system-service
+
+          RuntimeDirectory=otelcol
+          StateDirectory=otelcol
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - Reload systemd
+        - Restart otelcol
+
+    - name: Open firewall port 4317/tcp with firewalld (optional)
+      ansible.posix.firewalld:
+        port: 4317/tcp
+        permanent: true
+        state: enabled
+        immediate: true
+      when:
+        - manage_firewall | bool
+        - ansible_os_family == "RedHat"
+
+    - name: Open firewall port 4317/tcp with UFW (optional)
+      community.general.ufw:
+        rule: allow
+        port: '4317'
+        proto: tcp
+      when:
+        - manage_firewall | bool
+        - ansible_os_family == "Debian"
+
+    - name: Enable and start otelcol
+      ansible.builtin.systemd:
+        name: otelcol
+        enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Restart otelcol
+      ansible.builtin.systemd:
+        name: otelcol
+        state: restarted
+        enabled: true

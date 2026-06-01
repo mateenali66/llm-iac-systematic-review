@@ -1,0 +1,41 @@
+resources:
+  - name: cloud-armor-policy
+    type: compute.v1.securityPolicy
+    properties:
+      description: Cloud Armor security policy
+      rules:
+        - action: deny
+          preview: false
+          priority: 1000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Block traffic from specific countries
+          ipBlock:
+            destinations:
+              - '*'
+            sources:
+              - 'country_code:CN'
+              - 'country_code:RU'
+        - action: rateBasedBan
+          preview: false
+          priority: 2000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Rate limit requests per IP
+          rateLimit:
+            allIp: true
+            count: 100
+            intervalSec: 60
+            banThreshold:
+              count: 1000
+              intervalSec: 3600
+            banDurationSec: 3600
+      enabled: true
+
+outputs:
+  - name: cloud-armor-policy-name
+    value: $(ref.cloud-armor-policy.name)

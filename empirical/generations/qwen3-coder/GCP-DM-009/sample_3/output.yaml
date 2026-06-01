@@ -1,0 +1,85 @@
+resources:
+- name: logging-sink-bigquery-dataset
+  type: gcp-types/bigquery-v2:datasets
+  properties:
+    datasetReference:
+      datasetId: logging_sink_dataset
+    location: US
+    description: "Dataset for storing exported Cloud Logging data"
+    defaultTableExpirationMs: 2592000000
+    access:
+    - role: OWNER
+      members:
+      - "projectEditor:$(ref.logging-sink-service-account.email)"
+    - role: READER
+      members:
+      - "projectViewer:$(ref.logging-sink-service-account.email)"
+
+- name: logging-sink-service-account
+  type: iam.v1.serviceAccount
+  properties:
+    accountId: logging-sink-sa
+    displayName: "Service account for Cloud Logging sink to BigQuery"
+
+- name: logging-sink-bigquery-table
+  type: gcp-types/bigquery-v2:tables
+  properties:
+    datasetId: $(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    tableReference:
+      tableId: log_entries
+    schema:
+      fields:
+      - name: timestamp
+        type: TIMESTAMP
+      - name: logName
+        type: STRING
+      - name: resource
+        type: RECORD
+        fields:
+        - name: type
+          type: STRING
+        - name: labels
+          type: RECORD
+          mode: REPEATED
+          fields:
+          - name: key
+            type: STRING
+          - name: value
+            type: STRING
+      - name: severity
+        type: STRING
+      - name: textPayload
+        type: STRING
+      - name: jsonPayload
+        type: STRING
+      - name: protoPayload
+        type: STRING
+    timePartitioning:
+      type: DAY
+      expirationMs: 2592000000
+
+- name: logging-sink-project
+  type: gcp-types/logging-v2:projects.sinks
+  properties:
+    sink: logging-sink-to-bigquery
+    destination: bigquery.googleapis.com/projects/$(project)/datasets/$(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    filter: "resource.type=\"gce_instance\" OR resource.type=\"k8s_container\""
+    writerIdentity: $(ref.logging-sink-service-account.email)
+
+- name: logging-sink-set-iam-policy
+  type: gcp-types/bigquery-v2:datasets/setIamPolicy
+  properties:
+    datasetId: $(ref.logging-sink-bigquery-dataset.datasetReference.datasetId)
+    policy:
+      bindings:
+      - role: roles/bigquery.dataEditor
+        members:
+        - $(ref.logging-sink-project.writerIdentity)
+      - role: roles/bigquery.user
+        members:
+        - "serviceAccount:$(ref.logging-sink-service-account.email)"
+  metadata:
+    dependsOn:
+    - logging-sink-bigquery-dataset
+    - logging-sink-project
+    - logging-sink-service-account

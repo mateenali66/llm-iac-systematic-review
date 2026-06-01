@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-006",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate an Azure Bicep template provisioning a Managed Identity and assigning it the 'Storage Blob Data Reader' role on a specific Storage Account.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Generate an Azure Bicep template provisioning a Managed Identity and assigning it the 'Storage Blob Data Reader' role on a specific Storage Account.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam identityName string\nparam storageAccountName string\nparam storageAccountResourceGroupName string = resourceGroup().name\nparam tags object = {}\n\nvar roleDefinitionId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b6535-1f72-4c46-9c2b-527b4f80fa02')\n\nresource uai 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: identityName\n  location: location\n  tags: tags\n}\n\nresource targetRg 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {\n  name: storageAccountResourceGroupName\n}\n\nresource sa 'Microsoft.Storage/storageAccounts@2023-04-01' existing = {\n  scope: targetRg\n  name: storageAccountName\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(sa.id, uai.properties.principalId, roleDefinitionId)\n  scope: sa\n  properties: {\n    roleDefinitionId: roleDefinitionId\n    principalId: uai.properties.principalId\n    principalType: 'ServicePrincipal'\n  }\n}",
+  "cleaned_response": "param location string = resourceGroup().location\nparam identityName string\nparam storageAccountName string\nparam storageAccountResourceGroupName string = resourceGroup().name\nparam tags object = {}\n\nvar roleDefinitionId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b6535-1f72-4c46-9c2b-527b4f80fa02')\n\nresource uai 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: identityName\n  location: location\n  tags: tags\n}\n\nresource targetRg 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {\n  name: storageAccountResourceGroupName\n}\n\nresource sa 'Microsoft.Storage/storageAccounts@2023-04-01' existing = {\n  scope: targetRg\n  name: storageAccountName\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(sa.id, uai.properties.principalId, roleDefinitionId)\n  scope: sa\n  properties: {\n    roleDefinitionId: roleDefinitionId\n    principalId: uai.properties.principalId\n    principalType: 'ServicePrincipal'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam identityName string\nparam storageAccountName string\nparam storageAccountResourceGroupName string = resourceGroup().name\nparam tags object = {}\n\nvar roleDefinitionId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b6535-1f72-4c46-9c2b-527b4f80fa02')\n\nresource uai 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {\n  name: identityName\n  location: location\n  tags: tags\n}\n\nresource targetRg 'Microsoft.Resources/resourceGroups@2022-09-01' existing = {\n  name: storageAccountResourceGroupName\n}\n\nresource sa 'Microsoft.Storage/storageAccounts@2023-04-01' existing = {\n  scope: targetRg\n  name: storageAccountName\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(sa.id, uai.properties.principalId, roleDefinitionId)\n  scope: sa\n  properties: {\n    roleDefinitionId: roleDefinitionId\n    principalId: uai.properties.principalId\n    principalType: 'ServicePrincipal'\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779708775,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 129,
+      "output_tokens": 4033,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T11:31:46.885929+00:00",
+  "elapsed_seconds": 68.295
+}

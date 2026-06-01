@@ -1,0 +1,309 @@
+resources:
+- name: cloud-run-api-service
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+- name: cloud-run-api-sa
+  type: gcp-types/iam:v1
+  properties:
+    accountId: cloud-run-api-sa
+    displayName: Cloud Run API Service Account
+- name: cloud-run-api-iam-policy
+  type: gcp-types/cloudresourcemanager:v1
+  properties:
+    resource: projects/{{ env["project"] }}
+    policy:
+      bindings:
+      - role: roles/run.invoker
+        members:
+        - allUsers
+      - role: roles/iam.serviceAccountUser
+        members:
+        - serviceAccount:cloud-run-api-sa@{{ env["project"] }}.iam.gserviceaccount.com
+- name: cloud-run-api-service-iam
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-2
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-3
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-4
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-5
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-6
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-7
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-8
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-9
+  type: gcp-types/run:v1
+  properties:
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: default
+    spec:
+      template:
+        spec:
+          containers:
+          - image: gcr.io/cloudrun/hello
+            ports:
+            - containerPort: 8080
+            env:
+            - name: PYTHON_VERSION
+              value: "3.12"
+          containerConcurrency: 80
+          timeoutSeconds: 300
+          serviceAccountName: cloud-run-api-sa
+  metadata:
+    dependsOn:
+    - cloud-run-api-sa
+    - cloud-run-api-iam-policy
+- name: cloud-run-api-service-iam-policy-binding-10
+  type: gcp-types/run:v1
+  properties:
+    apiVersion

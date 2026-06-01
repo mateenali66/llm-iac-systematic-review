@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend
+  namespace: default
+  labels:
+    app.kubernetes.io/name: web-frontend
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: web
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    cloud.google.com/load-balancer-type: "External"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local
+  sessionAffinity: None
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+    - IPv4
+  selector:
+    app.kubernetes.io/name: web-frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: https
+  loadBalancerSourceRanges:
+    - 0.0.0.0/0

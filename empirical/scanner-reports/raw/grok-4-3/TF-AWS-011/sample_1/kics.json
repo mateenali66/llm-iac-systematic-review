@@ -1,0 +1,129 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 34,
+	"files_parsed": 1,
+	"lines_parsed": 34,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 2,
+		"LOW": 2,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 4,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T05:39:17.849732968Z",
+	"end": "2026-05-26T05:39:29.211919876Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 7,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Functions Without X-Ray Tracing",
+			"query_id": "8152e0cf-d2f0-47ad-96d5-d003a76eabd1",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function#tracing_config",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "AWS Lambda functions should have TracingConfig enabled. For this, property 'tracing_Config.mode' should have the value 'Active'",
+			"description_id": "2f90e1e9",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "efc726979f0e5f9270f09dd2e5c8931aed53067ffeb70723be125acb5de3bc81",
+					"line": 24,
+					"resource_type": "aws_lambda_function",
+					"resource_name": "webhook_handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lambda_function[webhook_handler]",
+					"search_line": 24,
+					"search_value": "",
+					"expected_value": "aws_lambda_function[webhook_handler].tracing_config should be defined and not null",
+					"actual_value": "aws_lambda_function[webhook_handler].tracing_config is undefined or null",
+					"remediation": "tracing_config {\n\t\tmode = Active\n\t}",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0dc862834663feb6452d48cfef15887577d88eaa3ebf6deb73cad2bfbfdfb34e",
+					"line": 7,
+					"resource_type": "aws_iam_role",
+					"resource_name": "webhook-handler-lambda-exec",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{lambda_exec}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{lambda_exec}}].tags should be defined and not null",
+					"actual_value": "aws_iam_role[{{lambda_exec}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5a3b3cfd67e985485960d73b5a2449ad8c10c4d7f4ac2fe36e26d1dc9320753f",
+					"line": 24,
+					"resource_type": "aws_lambda_function",
+					"resource_name": "webhook_handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lambda_function[{{webhook_handler}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_lambda_function[{{webhook_handler}}].tags should be defined and not null",
+					"actual_value": "aws_lambda_function[{{webhook_handler}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,54 @@
+resources:
+- name: custom-vpc
+  type: compute.v1.network
+  properties:
+    name: custom-vpc
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: public-subnet
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.1.0/24
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: private-subnet
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.2.0/24
+    privateIpGoogleAccess: true
+- name: nat-router
+  type: compute.v1.router
+  properties:
+    name: nat-router
+    network: $(ref.custom-vpc.selfLink)
+    region: us-central1
+- name: cloud-nat
+  type: compute.v1.routerNat
+  properties:
+    name: cloud-nat
+    router: $(ref.nat-router.name)
+    region: us-central1
+    natIpAllocateOption: AUTO_ONLY
+    sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+    subnetworks:
+    - name: $(ref.private-subnet.selfLink)
+      sourceIpRangesToNat:
+      - PRIMARY_IP_RANGE
+- name: allow-internal
+  type: compute.v1.firewall
+  properties:
+    name: allow-internal
+    network: $(ref.custom-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 10.0.0.0/16
+    allowed:
+    - IPProtocol: tcp
+    - IPProtocol: udp
+    - IPProtocol: icmp

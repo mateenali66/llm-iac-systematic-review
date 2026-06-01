@@ -1,0 +1,53 @@
+resources:
+  - name: static-website-bucket
+    type: storage.v1.bucket
+    properties:
+      bucketName: static-website-bucket
+      storageClass: STANDARD
+      location: US
+      versioning:
+        enabled: true
+      website:
+        mainPageSuffix: index.html
+        NotFoundPage: 404.html
+      cors:
+        - method: ['GET', 'HEAD']
+          origin: ['*']
+          responseHeader: ['Content-Type']
+          maxAgeSeconds: 3600
+      iamPolicy:
+        bindings:
+          - role: roles/storage.objectViewer
+            members:
+              - allUsers
+          - role: roles/storage.legacyObjectReader
+            members:
+              - allUsers
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 365
+              isLive: false
+          - action:
+              type: SetStorageClass
+            condition:
+              age: 30
+              matchesStorageClass: STANDARD
+            storageClass: NEARLINE
+          - action:
+              type: SetStorageClass
+            condition:
+              age: 365
+              matchesStorageClass: NEARLINE
+            storageClass: COLDLINE
+          - action:
+              type: SetStorageClass
+            condition:
+              age: 730
+              matchesStorageClass: COLDLINE
+            storageClass: ARCHIVE
+outputs:
+  - name: bucketName
+    value: $(ref.static-website-bucket.name)

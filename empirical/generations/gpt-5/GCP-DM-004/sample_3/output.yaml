@@ -1,0 +1,78 @@
+resources:
+- name: prod-vpc
+  type: compute.v1.network
+  properties:
+    name: prod-vpc
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: prod-public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: prod-public-subnet
+    region: us-central1
+    network: $(ref.prod-vpc.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: false
+    enableFlowLogs: true
+
+- name: prod-private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    name: prod-private-subnet
+    region: us-central1
+    network: $(ref.prod-vpc.selfLink)
+    ipCidrRange: 10.10.1.0/24
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+
+- name: prod-nat-router
+  type: compute.v1.router
+  properties:
+    name: prod-nat-router
+    region: us-central1
+    network: $(ref.prod-vpc.selfLink)
+    nats:
+    - name: prod-nat
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.prod-private-subnet.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+      minPortsPerVm: 128
+      enableEndpointIndependentMapping: true
+      udpIdleTimeoutSec: 30
+      icmpIdleTimeoutSec: 30
+      tcpEstablishedIdleTimeoutSec: 1200
+      tcpTransitoryIdleTimeoutSec: 30
+      logConfig:
+        enable: true
+        filter: ALL
+
+- name: allow-internal
+  type: compute.v1.firewall
+  properties:
+    name: allow-internal
+    network: $(ref.prod-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 10.10.0.0/24
+    - 10.10.1.0/24
+    allowed:
+    - IPProtocol: tcp
+    - IPProtocol: udp
+    - IPProtocol: icmp
+    description: Allow internal traffic within VPC subnets
+
+outputs:
+- name: network
+  value: $(ref.prod-vpc.selfLink)
+- name: publicSubnet
+  value: $(ref.prod-public-subnet.selfLink)
+- name: privateSubnet
+  value: $(ref.prod-private-subnet.selfLink)
+- name: natRouter
+  value: $(ref.prod-nat-router.selfLink)

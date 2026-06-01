@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-007",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import Stack, aws_dynamodb as dynamodb\nfrom constructs import Construct\n\nclass DynamoDbStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self,\n            \"CustomerTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"id\", type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=Stack.of(self).termination_protection,\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"CustomerIdIndex\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\", type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL,\n        )",
+  "cleaned_response": "from aws_cdk import Stack, aws_dynamodb as dynamodb\nfrom constructs import Construct\n\nclass DynamoDbStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self,\n            \"CustomerTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"id\", type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=Stack.of(self).termination_protection,\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"CustomerIdIndex\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\", type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL,\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import Stack, aws_dynamodb as dynamodb\nfrom constructs import Construct\n\nclass DynamoDbStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self,\n            \"CustomerTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"id\", type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=Stack.of(self).termination_protection,\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"CustomerIdIndex\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\", type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL,\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724347,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 92,
+      "output_tokens": 198,
+      "reasoning_tokens": 516,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 62
+    }
+  },
+  "started_at": "2026-05-25T15:52:22.395873+00:00",
+  "elapsed_seconds": 4.903
+}

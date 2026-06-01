@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Fargate cluster with internal NLB'
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+
+  Subnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.1.0/24'
+      AvailabilityZone: 'us-east-1a'
+
+  Subnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: '10.0.2.0/24'
+      AvailabilityZone: 'us-east-1b'
+
+  ECS Cluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName: 'my-ecs-cluster'
+
+  TaskDefinition1:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: 'my-task-definition-1'
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+        - 'FARGATE'
+      ExecutionRoleArn: !GetAtt 'ECSTaskExecutionRole.Arn'
+      ContainerDefinitions:
+        - Name: 'my-container-1'
+          Image: 'amazonlinux'
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: 'tcp'
+
+  TaskDefinition2:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family: 'my-task-definition-2'
+      Cpu: '256'
+      Memory: '512'
+      NetworkMode: 'awsvpc'
+      RequiresCompatibilities:
+        - 'FARGATE'
+      ExecutionRoleArn: !GetAtt 'ECSTaskExecutionRole.Arn'
+      ContainerDefinitions:
+        - Name: 'my-container-2'
+          Image: 'amazonlinux'
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: 'tcp'
+
+  ECSTaskExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ecs-tasks.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'ECSTaskExecutionPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'ecr:GetAuthorizationToken'
+                  - 'ecr:BatchGetImage'
+                  - 'ecr:GetDownloadUrlForLayer'
+                  - 'ecr:BatchCheckLayerAvailability'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+
+  Service1:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      ServiceName: 'my-service-1'
+      Cluster: !Ref 'ECS Cluster'
+      TaskDefinition: !Ref 'TaskDefinition1'
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref Subnet1
+          SecurityGroups:
+            - !Ref SecurityGroup
+          AssignPublicIp: 'DISABLED'
+
+  Service2:
+    Type: 'AWS::ECS::Service'
+    Properties:
+      ServiceName: 'my-service-2'
+      Cluster: !Ref 'ECS Cluster'
+      TaskDefinition: !Ref 'TaskDefinition2'
+      DesiredCount: 1
+      LaunchType: 'FARGATE'
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref Subnet2
+          SecurityGroups:
+            - !Ref SecurityGroup
+          AssignPublicIp: 'DISABLED'
+
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: 'Allow inbound traffic on port 80'
+      SecurityGroupIngress:
+        - CidrIp: '10.0.0.0/16'
+          IpProtocol: 'tcp'
+          FromPort: 80
+          ToPort: 80
+
+  LoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: 'my-internal-nlb'
+      Type: 'network'
+      Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      Scheme: 'internal'
+
+  TargetGroup1:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: 'my-target-group-1'
+      Port: 80
+      Protocol: 'TCP'
+      VpcId: !Ref VPC
+      TargetType: 'ip'
+
+  TargetGroup2:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: 'my-target-group-2'
+      Port: 80
+      Protocol: 'TCP'
+      VpcId: !Ref VPC
+      TargetType: 'ip'
+
+  Listener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: 'TCP'
+      DefaultActions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref TargetGroup1
+
+  ListenerRule1:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 1
+      Conditions:
+        - Field: 'path-pattern'
+          Values:
+            - '/service1*'
+      Actions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref TargetGroup1
+
+  ListenerRule2:
+    Type: 'AWS::ElasticLoadBalancingV2::ListenerRule'
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 2
+      Conditions:
+        - Field: 'path-pattern'
+          Values:
+            - '/service2*'
+      Actions:
+        - Type: 'forward'
+          TargetGroupArn: !Ref TargetGroup2
+
+Outputs:
+  LoadBalancerDNSName:
+    Value: !GetAtt 'LoadBalancer.DNSName'
+    Description: 'The DNS name of the load balancer'

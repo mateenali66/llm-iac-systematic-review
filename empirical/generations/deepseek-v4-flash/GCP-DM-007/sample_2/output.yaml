@@ -1,0 +1,82 @@
+imports:
+  - path: gke-cluster.jinja
+
+resources:
+  - name: production-gke-cluster
+    type: gke-cluster.jinja
+    properties:
+      clusterName: production-cluster
+      clusterLocation: us-central1
+      initialNodeCount: 3
+      nodeMachineType: e2-standard-4
+      nodeDiskSizeGb: 100
+      nodeDiskType: pd-standard
+      nodeImageType: COS_CONTAINERD
+      nodeServiceAccount: default
+      nodeOauthScopes:
+        - https://www.googleapis.com/auth/devstorage.read_only
+        - https://www.googleapis.com/auth/logging.write
+        - https://www.googleapis.com/auth/monitoring
+        - https://www.googleapis.com/auth/service.management.readonly
+        - https://www.googleapis.com/auth/servicecontrol
+        - https://www.googleapis.com/auth/trace.append
+      network: default
+      subnetwork: default
+      clusterIpv4Cidr: /14
+      servicesIpv4Cidr: /20
+      enablePrivateNodes: false
+      enablePrivateEndpoint: false
+      masterIpv4CidrBlock: 172.16.0.0/28
+      enableNetworkPolicy: true
+      enableIntranodeVisibility: true
+      enableVerticalPodAutoscaling: true
+      enableAutoscaling: true
+      minNodeCount: 3
+      maxNodeCount: 10
+      enableAutoRepair: true
+      enableAutoUpgrade: true
+      enableMasterAuthorizedNetworks: false
+      masterAuthorizedNetworksConfig:
+        - cidrBlock: 0.0.0.0/0
+          displayName: Allow all (not recommended)
+      enableLegacyAbac: false
+      enableShieldedNodes: true
+      enableBinaryAuthorization: false
+      enablePodSecurityPolicy: false
+      enableResourceUsageExport: true
+      enableStackdriverKubernetes: true
+      enableWorkloadIdentity: false
+      workloadIdentityConfig:
+        identityNamespace: ""
+      nodePoolName: production-pool
+      nodePoolInitialNodeCount: 3
+      nodePoolAutoscaling:
+        enabled: true
+        minNodeCount: 3
+        maxNodeCount: 10
+      nodePoolManagement:
+        autoRepair: true
+        autoUpgrade: true
+      nodePoolConfig:
+        machineType: e2-standard-4
+        diskSizeGb: 100
+        diskType: pd-standard
+        imageType: COS_CONTAINERD
+        serviceAccount: default
+        oauthScopes:
+          - https://www.googleapis.com/auth/devstorage.read_only
+          - https://www.googleapis.com/auth/logging.write
+          - https://www.googleapis.com/auth/monitoring
+          - https://www.googleapis.com/auth/service.management.readonly
+          - https://www.googleapis.com/auth/servicecontrol
+          - https://www.googleapis.com/auth/trace.append
+        labels:
+          environment: production
+        tags:
+          - production
+          - gke-node
+        shieldedInstanceConfig:
+          enableSecureBoot: true
+          enableIntegrityMonitoring: true
+        reservationAffinity:
+          consumeReservationType: NO_RESERVATION

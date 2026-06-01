@@ -1,0 +1,45 @@
+- name: Configure static network interface on Debian 12
+  hosts: all
+  become: yes
+  vars:
+    netplan_config:
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          eth0:
+            addresses:
+              - "{{ static_ip }}/24"
+            gateway4: "{{ gateway }}"
+            nameservers:
+              addresses:
+                - "{{ dns_servers }}"
+    netplan_config_file: /etc/netplan/01-netcfg.yaml
+
+  tasks:
+    - name: Ensure netplan is installed
+      apt:
+        name: netplan.io
+        state: present
+        update_cache: yes
+
+    - name: Create netplan configuration
+      copy:
+        content: "{{ netplan_config | to_nice_yaml }}"
+        dest: "{{ netplan_config_file }}"
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Apply netplan configuration
+      command: netplan apply
+      args:
+        creates: /run/netplan/apply.lock
+      notify: Verify network connectivity
+
+  handlers:
+    - name: Verify network connectivity
+      command: ping -c 3 {{ gateway }}
+      register: ping_result
+      failed_when: ping_result.rc != 0
+      changed_when: false

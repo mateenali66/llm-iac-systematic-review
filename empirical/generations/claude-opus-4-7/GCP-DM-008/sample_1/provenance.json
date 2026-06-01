@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-008",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud KMS key ring and a key for encrypting Cloud Storage objects.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n- path: kms.jinja\n\nresources:\n- name: storage-encryption-kms\n  type: kms.jinja\n  properties:\n    project: my-project-id\n    location: us-central1\n    keyRingName: storage-encryption-keyring\n    cryptoKeyName: storage-encryption-key\n    rotationPeriodSeconds: 7776000s\n    nextRotationOffsetSeconds: 86400\n    purpose: ENCRYPT_DECRYPT\n    algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    protectionLevel: SOFTWARE\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: gcs-encryption\n\n---\n# kms.jinja\n{% set project = properties['project'] %}\n{% set location = properties['location'] %}\n{% set keyRingName = properties['keyRingName'] %}\n{% set cryptoKeyName = properties['cryptoKeyName'] %}\n{% set rotationPeriod = properties['rotationPeriodSeconds'] %}\n{% set nextRotationOffset = properties['nextRotationOffsetSeconds'] %}\n{% set purpose = properties['purpose'] %}\n{% set algorithm = properties['algorithm'] %}\n{% set protectionLevel = properties['protectionLevel'] %}\n{% set labels = properties['labels'] %}\n\nresources:\n- name: {{ keyRingName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/{{ project }}/locations/{{ location }}\n    keyRingId: {{ keyRingName }}\n\n- name: {{ cryptoKeyName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - {{ keyRingName }}\n  properties:\n    parent: $(ref.{{ keyRingName }}.name)\n    cryptoKeyId: {{ cryptoKeyName }}\n    purpose: {{ purpose }}\n    rotationPeriod: {{ rotationPeriod }}\n    nextRotationTime: $(ref.{{ keyRingName }}.createTime)\n    versionTemplate:\n      algorithm: {{ algorithm }}\n      protectionLevel: {{ protectionLevel }}\n    labels:\n      {% for key, value in labels.items() %}\n      {{ key }}: {{ value }}\n      {% endfor %}\n\n- name: {{ cryptoKeyName }}-iam-policy\n  type: gcp-types/cloudkms-v1:virtual.projects.locations.keyRings.cryptoKeys.iamMemberBinding\n  properties:\n    resource: $(ref.{{ cryptoKeyName }}.name)\n    role: roles/cloudkms.cryptoKeyEncrypterDecrypter\n    member: serviceAccount:service-$(ref.{{ keyRingName }}.projectNumber)@gs-project-accounts.iam.gserviceaccount.com\n\noutputs:\n- name: keyRingName\n  value: $(ref.{{ keyRingName }}.name)\n- name: cryptoKeyName\n  value: $(ref.{{ cryptoKeyName }}.name)\n- name: cryptoKeySelfLink\n  value: $(ref.{{ cryptoKeyName }}.selfLink)",
+  "cleaned_response": "imports:\n- path: kms.jinja\n\nresources:\n- name: storage-encryption-kms\n  type: kms.jinja\n  properties:\n    project: my-project-id\n    location: us-central1\n    keyRingName: storage-encryption-keyring\n    cryptoKeyName: storage-encryption-key\n    rotationPeriodSeconds: 7776000s\n    nextRotationOffsetSeconds: 86400\n    purpose: ENCRYPT_DECRYPT\n    algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    protectionLevel: SOFTWARE\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: gcs-encryption\n\n---\n# kms.jinja\n{% set project = properties['project'] %}\n{% set location = properties['location'] %}\n{% set keyRingName = properties['keyRingName'] %}\n{% set cryptoKeyName = properties['cryptoKeyName'] %}\n{% set rotationPeriod = properties['rotationPeriodSeconds'] %}\n{% set nextRotationOffset = properties['nextRotationOffsetSeconds'] %}\n{% set purpose = properties['purpose'] %}\n{% set algorithm = properties['algorithm'] %}\n{% set protectionLevel = properties['protectionLevel'] %}\n{% set labels = properties['labels'] %}\n\nresources:\n- name: {{ keyRingName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/{{ project }}/locations/{{ location }}\n    keyRingId: {{ keyRingName }}\n\n- name: {{ cryptoKeyName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - {{ keyRingName }}\n  properties:\n    parent: $(ref.{{ keyRingName }}.name)\n    cryptoKeyId: {{ cryptoKeyName }}\n    purpose: {{ purpose }}\n    rotationPeriod: {{ rotationPeriod }}\n    nextRotationTime: $(ref.{{ keyRingName }}.createTime)\n    versionTemplate:\n      algorithm: {{ algorithm }}\n      protectionLevel: {{ protectionLevel }}\n    labels:\n      {% for key, value in labels.items() %}\n      {{ key }}: {{ value }}\n      {% endfor %}\n\n- name: {{ cryptoKeyName }}-iam-policy\n  type: gcp-types/cloudkms-v1:virtual.projects.locations.keyRings.cryptoKeys.iamMemberBinding\n  properties:\n    resource: $(ref.{{ cryptoKeyName }}.name)\n    role: roles/cloudkms.cryptoKeyEncrypterDecrypter\n    member: serviceAccount:service-$(ref.{{ keyRingName }}.projectNumber)@gs-project-accounts.iam.gserviceaccount.com\n\noutputs:\n- name: keyRingName\n  value: $(ref.{{ keyRingName }}.name)\n- name: cryptoKeyName\n  value: $(ref.{{ cryptoKeyName }}.name)\n- name: cryptoKeySelfLink\n  value: $(ref.{{ cryptoKeyName }}.selfLink)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n- path: kms.jinja\n\nresources:\n- name: storage-encryption-kms\n  type: kms.jinja\n  properties:\n    project: my-project-id\n    location: us-central1\n    keyRingName: storage-encryption-keyring\n    cryptoKeyName: storage-encryption-key\n    rotationPeriodSeconds: 7776000s\n    nextRotationOffsetSeconds: 86400\n    purpose: ENCRYPT_DECRYPT\n    algorithm: GOOGLE_SYMMETRIC_ENCRYPTION\n    protectionLevel: SOFTWARE\n    labels:\n      environment: production\n      managed-by: deployment-manager\n      purpose: gcs-encryption\n\n---\n# kms.jinja\n{% set project = properties['project'] %}\n{% set location = properties['location'] %}\n{% set keyRingName = properties['keyRingName'] %}\n{% set cryptoKeyName = properties['cryptoKeyName'] %}\n{% set rotationPeriod = properties['rotationPeriodSeconds'] %}\n{% set nextRotationOffset = properties['nextRotationOffsetSeconds'] %}\n{% set purpose = properties['purpose'] %}\n{% set algorithm = properties['algorithm'] %}\n{% set protectionLevel = properties['protectionLevel'] %}\n{% set labels = properties['labels'] %}\n\nresources:\n- name: {{ keyRingName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings\n  properties:\n    parent: projects/{{ project }}/locations/{{ location }}\n    keyRingId: {{ keyRingName }}\n\n- name: {{ cryptoKeyName }}\n  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys\n  metadata:\n    dependsOn:\n    - {{ keyRingName }}\n  properties:\n    parent: $(ref.{{ keyRingName }}.name)\n    cryptoKeyId: {{ cryptoKeyName }}\n    purpose: {{ purpose }}\n    rotationPeriod: {{ rotationPeriod }}\n    nextRotationTime: $(ref.{{ keyRingName }}.createTime)\n    versionTemplate:\n      algorithm: {{ algorithm }}\n      protectionLevel: {{ protectionLevel }}\n    labels:\n      {% for key, value in labels.items() %}\n      {{ key }}: {{ value }}\n      {% endfor %}\n\n- name: {{ cryptoKeyName }}-iam-policy\n  type: gcp-types/cloudkms-v1:virtual.projects.locations.keyRings.cryptoKeys.iamMemberBinding\n  properties:\n    resource: $(ref.{{ cryptoKeyName }}.name)\n    role: roles/cloudkms.cryptoKeyEncrypterDecrypter\n    member: serviceAccount:service-$(ref.{{ keyRingName }}.projectNumber)@gs-project-accounts.iam.gserviceaccount.com\n\noutputs:\n- name: keyRingName\n  value: $(ref.{{ keyRingName }}.name)\n- name: cryptoKeyName\n  value: $(ref.{{ cryptoKeyName }}.name)\n- name: cryptoKeySelfLink\n  value: $(ref.{{ cryptoKeyName }}.selfLink)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726635,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 255,
+      "output_tokens": 1164,
+      "raw_input_tokens": 255
+    }
+  },
+  "started_at": "2026-05-25T16:30:20.911837+00:00",
+  "elapsed_seconds": 14.285
+}

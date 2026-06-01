@@ -1,0 +1,134 @@
+imports:
+- path: cloud-armor-policy.jinja
+
+resources:
+- name: cloud-armor-security-policy
+  type: cloud-armor-policy.jinja
+  properties:
+    policyName: prod-cloud-armor-policy
+    description: "Production Cloud Armor security policy with geo-blocking and rate limiting"
+    blockedCountries:
+      - CN
+      - RU
+      - KP
+      - IR
+    rateLimitThresholdCount: 100
+    rateLimitIntervalSec: 60
+    rateLimitBanDurationSec: 600
+    enforceOnKey: IP
+    adaptiveProtection: true
+    logLevel: VERBOSE
+
+---
+# cloud-armor-policy.jinja
+{% set policyName = properties['policyName'] %}
+{% set description = properties['description'] %}
+{% set blockedCountries = properties['blockedCountries'] %}
+{% set rateLimitThresholdCount = properties['rateLimitThresholdCount'] %}
+{% set rateLimitIntervalSec = properties['rateLimitIntervalSec'] %}
+{% set rateLimitBanDurationSec = properties['rateLimitBanDurationSec'] %}
+{% set enforceOnKey = properties['enforceOnKey'] %}
+{% set adaptiveProtection = properties['adaptiveProtection'] %}
+{% set logLevel = properties['logLevel'] %}
+
+resources:
+- name: {{ policyName }}
+  type: gcp-types/compute-v1:securityPolicies
+  properties:
+    name: {{ policyName }}
+    description: {{ description }}
+    type: CLOUD_ARMOR
+    adaptiveProtectionConfig:
+      layer7DdosDefenseConfig:
+        enable: {{ adaptiveProtection }}
+        ruleVisibility: STANDARD
+    advancedOptionsConfig:
+      jsonParsing: STANDARD
+      logLevel: {{ logLevel }}
+    rules:
+    - priority: 1000
+      description: "Block traffic from restricted countries"
+      action: deny(403)
+      match:
+        expr:
+          expression: "origin.region_code in [{% for country in blockedCountries %}'{{ country }}'{% if not loop.last %}, {% endif %}{% endfor %}]"
+      preview: false
+
+    - priority: 2000
+      description: "Rate limit requests per IP address"
+      action: rate_based_ban
+      rateLimitOptions:
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: {{ enforceOnKey }}
+        rateLimitThreshold:
+          count: {{ rateLimitThresholdCount }}
+          intervalSec: {{ rateLimitIntervalSec }}
+        banDurationSec: {{ rateLimitBanDurationSec }}
+        banThreshold:
+          count: {{ rateLimitThresholdCount * 2 }}
+          intervalSec: {{ rateLimitIntervalSec }}
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      preview: false
+
+    - priority: 3000
+      description: "Block known malicious IPs via preconfigured WAF rule - SQLi"
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('sqli-v33-stable')"
+      preview: false
+
+    - priority: 3100
+      description: "Block XSS attacks via preconfigured WAF rule"
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('xss-v33-stable')"
+      preview: false
+
+    - priority: 3200
+      description: "Block Local File Inclusion attacks"
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('lfi-v33-stable')"
+      preview: false
+
+    - priority: 3300
+      description: "Block Remote File Inclusion attacks"
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('rfi-v33-stable')"
+      preview: false
+
+    - priority: 3400
+      description: "Block Remote Code Execution attempts"
+      action: deny(403)
+      match:
+        expr:
+          expression: "evaluatePreconfiguredExpr('rce-v33-stable')"
+      preview: false
+
+    - priority: 2147483647
+      description: "Default rule - allow all other traffic"
+      action: allow
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges:
+          - "*"
+      preview: false
+
+outputs:
+- name: securityPolicyName
+  value: $(ref.{{ policyName }}.name)
+- name: securityPolicySelfLink
+  value: $(ref.{{ policyName }}.selfLink)
+- name: securityPolicyId
+  value: $(ref.{{ policyName }}.id)

@@ -1,0 +1,41 @@
+resources:
+- name: static-website-bucket
+  type: storage.v1.bucket
+  properties:
+    name: my-static-website-bucket-123456
+    location: US
+    storageClass: STANDARD
+    versioning:
+      enabled: true
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+      publicAccessPrevention: inherited
+    website:
+      mainPageSuffix: index.html
+      notFoundPage: 404.html
+    lifecycle:
+      rule:
+      - action:
+          type: Delete
+        condition:
+          isLive: false
+          age: 30
+    labels:
+      purpose: static-website
+      environment: production
+
+- name: static-website-bucket-public-iam
+  type: gcp-types/storage-v1:storage.buckets.iamMemberBinding
+  properties:
+    bucket: $(ref.static-website-bucket.name)
+    role: roles/storage.objectViewer
+    member: allUsers
+
+outputs:
+- name: bucketName
+  value: $(ref.static-website-bucket.name)
+- name: websiteIndexUrl
+  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/index.html
+- name: websiteBaseUrl
+  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: api-metrics
+  endpoints:
+  - port: "9090"
+    interval: 30s
+  namespaceSelector:
+    any: true

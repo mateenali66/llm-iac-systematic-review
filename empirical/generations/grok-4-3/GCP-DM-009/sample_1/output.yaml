@@ -1,0 +1,20 @@
+resources:
+- name: logs-dataset
+  type: bigquery.v2.dataset
+  properties:
+    datasetReference:
+      datasetId: project_logs_export
+    location: US
+    description: "Long-term log storage for analysis"
+    labels:
+      environment: production
+      purpose: logging
+    defaultTableExpirationMs: 31536000000
+- name: project-logs-sink
+  type: logging.v2.sink
+  properties:
+    name: project-logs-to-bigquery
+    destination: bigquery.googleapis.com/projects/$(project)/datasets/project_logs_export
+    filter: ""
+    description: "Exports all project logs to BigQuery for long-term retention and analysis"
+    uniqueWriterIdentity: true

@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: KMS CMK for encrypting database backups with key rotation enabled
+
+Parameters:
+  KeyAlias:
+    Type: String
+    Default: alias/db-backup-kms-key
+    Description: Alias for the KMS key (must start with 'alias/')
+    AllowedPattern: ^alias\/[a-zA-Z0-9/_-]+$
+    ConstraintDescription: must start with 'alias/' and contain alphanumeric, '/', '_', or '-' characters.
+  KeyDescription:
+    Type: String
+    Default: KMS customer managed key for encrypting database backups.
+    MaxLength: 8192
+  MultiRegion:
+    Type: String
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Description: Whether to create a multi-Region primary KMS key.
+  PendingWindowInDays:
+    Type: Number
+    Default: 30
+    MinValue: 7
+    MaxValue: 30
+    Description: Waiting period for scheduled key deletion (in days).
+
+Conditions:
+  IsMultiRegion: !Equals [!Ref MultiRegion, 'true']
+
+Resources:
+  DatabaseBackupKmsKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Ref KeyDescription
+      Enabled: true
+      EnableKeyRotation: true
+      KeySpec: SYMMETRIC_DEFAULT
+      KeyUsage: ENCRYPT_DECRYPT
+      MultiRegion: !If [IsMultiRegion, true, false]
+      PendingWindowInDays: !Ref PendingWindowInDays
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:root
+            Action: kms:*
+            Resource: "*"
+          - Sid: AllowRDSServiceGrant
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:DescribeKey
+            Resource: "*"
+            Condition:
+              Bool:
+                kms:GrantIsForAWSResource: 'true'
+              StringEquals:
+                kms:ViaService: !Sub rds.${AWS::Region}.amazonaws.com
+          - Sid: AllowAWSBackupServiceGrant
+            Effect: Allow
+            Principal:
+              Service: backup.amazonaws.com
+            Action:
+              - kms:CreateGrant
+              - kms:ListGrants
+              - kms:DescribeKey
+            Resource: "*"
+            Condition:
+              Bool:
+                kms:GrantIsForAWSResource: 'true'
+              StringEquals:
+                kms:ViaService: !Sub backup.${AWS::Region}.amazonaws.com
+      Tags:
+        - Key: Name
+          Value: !Ref KeyAlias
+        - Key: Purpose
+          Value: DatabaseBackups
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: SecurityLevel
+          Value: High
+
+  DatabaseBackupKmsAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Ref KeyAlias
+      TargetKeyId: !Ref DatabaseBackupKmsKey
+
+Outputs:
+  KmsKeyId:
+    Description: KMS Key ID
+    Value: !Ref DatabaseBackupKmsKey
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyId
+  KmsKeyArn:
+    Description: KMS Key ARN
+    Value: !GetAtt DatabaseBackupKmsKey.Arn
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyArn
+  KmsKeyAlias:
+    Description: KMS Key Alias
+    Value: !Ref KeyAlias
+    Export:
+      Name: !Sub ${AWS::StackName}-KmsKeyAlias

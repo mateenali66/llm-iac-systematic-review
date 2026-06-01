@@ -1,0 +1,37 @@
+imports:
+  - path: templates/workload_identity_federation.py
+    name: workload_identity_federation.py
+
+resources:
+  - name: github-actions-pool
+    type: workload_identity_federation.py
+    properties:
+      poolId: github-actions-pool
+      displayName: GitHub Actions Pool
+      description: Workload Identity Pool for GitHub Actions
+      providers:
+        - providerId: github-provider
+          displayName: GitHub Provider
+          description: GitHub Actions OIDC provider
+          attributeMapping:
+            google.subject: assertion.sub
+            attribute.repository: assertion.repository
+            attribute.repository_owner: assertion.repository_owner
+            attribute.workflow: assertion.workflow
+            attribute.ref: assertion.ref
+          oidc:
+            issuerUri: https://token.actions.githubusercontent.com
+            allowedAudiences:
+              - https://github.com/octo-org
+            attributeCondition: assertion.repository_owner == "octo-org"
+      serviceAccounts:
+        - name: cloud-run-deployer
+          projectId: YOUR_PROJECT_ID
+          displayName: Cloud Run Deployer SA
+          description: Service account for deploying Cloud Run services
+          roles:
+            - roles/run.admin
+            - roles/iam.serviceAccountUser
+            - roles/iam.serviceAccountTokenCreator
+          members:
+            - principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/octo-org/cloud-run-service

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-002",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning a Storage Account for hosting application static assets.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning a Storage Account for hosting application static assets.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'appstatic${uniqueString(resourceGroup().id)}'\nparam sku string = 'Standard_ZRS'\nparam allowBlobPublicAccess bool = false\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: toLower(storageAccountName)\n  location: location\n  sku: {\n    name: sku\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: allowBlobPublicAccess\n    minimumTlsVersion: 'TLS1_2'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Allow'\n      ipRules: []\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  name: 'default'\n  parent: storageAccount\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n    containerDeleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource staticAssetsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  name: 'static-assets'\n  parent: blobService\n  properties: {\n    publicAccess: allowBlobPublicAccess ? 'Blob' : 'None'\n    metadata: {\n      purpose: 'Application static assets'\n    }\n  }\n}\n\noutput storageAccountId string = storageAccount.id\noutput storageAccountName string = storageAccount.name\noutput staticAssetsContainerName string = staticAssetsContainer.name\noutput primaryEndpoints object = storageAccount.properties.primaryEndpoints",
+  "cleaned_response": "param location string = resourceGroup().location\nparam storageAccountName string = 'appstatic${uniqueString(resourceGroup().id)}'\nparam sku string = 'Standard_ZRS'\nparam allowBlobPublicAccess bool = false\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: toLower(storageAccountName)\n  location: location\n  sku: {\n    name: sku\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: allowBlobPublicAccess\n    minimumTlsVersion: 'TLS1_2'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Allow'\n      ipRules: []\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  name: 'default'\n  parent: storageAccount\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n    containerDeleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource staticAssetsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  name: 'static-assets'\n  parent: blobService\n  properties: {\n    publicAccess: allowBlobPublicAccess ? 'Blob' : 'None'\n    metadata: {\n      purpose: 'Application static assets'\n    }\n  }\n}\n\noutput storageAccountId string = storageAccount.id\noutput storageAccountName string = storageAccount.name\noutput staticAssetsContainerName string = staticAssetsContainer.name\noutput primaryEndpoints object = storageAccount.properties.primaryEndpoints",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam storageAccountName string = 'appstatic${uniqueString(resourceGroup().id)}'\nparam sku string = 'Standard_ZRS'\nparam allowBlobPublicAccess bool = false\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: toLower(storageAccountName)\n  location: location\n  sku: {\n    name: sku\n  }\n  kind: 'StorageV2'\n  properties: {\n    accessTier: 'Hot'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: allowBlobPublicAccess\n    minimumTlsVersion: 'TLS1_2'\n    networkAcls: {\n      bypass: 'AzureServices'\n      defaultAction: 'Allow'\n      ipRules: []\n    }\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  name: 'default'\n  parent: storageAccount\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n    containerDeleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource staticAssetsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  name: 'static-assets'\n  parent: blobService\n  properties: {\n    publicAccess: allowBlobPublicAccess ? 'Blob' : 'None'\n    metadata: {\n      purpose: 'Application static assets'\n    }\n  }\n}\n\noutput storageAccountId string = storageAccount.id\noutput storageAccountName string = storageAccount.name\noutput staticAssetsContainerName string = staticAssetsContainer.name\noutput primaryEndpoints object = storageAccount.properties.primaryEndpoints",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723883,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 125,
+      "output_tokens": 372,
+      "raw_input_tokens": 125
+    }
+  },
+  "started_at": "2026-05-25T15:44:37.143380+00:00",
+  "elapsed_seconds": 6.286
+}

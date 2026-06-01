@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend-svc
+  labels:
+    app.kubernetes.io/name: web-frontend
+    app.kubernetes.io/instance: web-frontend
+  annotations:
+    # This annotation is an example for AWS to specify the health check path.
+    # Replace with the appropriate annotation for your cloud provider.
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: /healthz
+spec:
+  type: LoadBalancer
+  # For production, consider setting externalTrafficPolicy to "Local"
+  # to preserve the client source IP and avoid a second network hop,
+  # but this may result in uneven traffic distribution.
+  # externalTrafficPolicy: Local
+  selector:
+    app.kubernetes.io/name: web-frontend
+    app.kubernetes.io/instance: web-frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: https

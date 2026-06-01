@@ -1,0 +1,180 @@
+- name: Install and configure Docker
+  hosts: all
+  become: true
+  vars:
+    docker_user: "{{ docker_user | default(omit) }}"
+
+  pre_tasks:
+    - name: Ensure docker_user variable is defined
+      ansible.builtin.assert:
+        that:
+          - docker_user is defined
+          - docker_user | length > 0
+        fail_msg: "Set 'docker_user' variable to the username to add to the docker group."
+
+    - name: Verify the specified docker_user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ docker_user }}"
+      register: user_getent
+
+    - name: Fail if user does not exist
+      ansible.builtin.assert:
+        that:
+          - user_getent.found
+        fail_msg: "User {{ docker_user }} does not exist on the target host."
+
+  tasks:
+    - name: Remove old Docker packages on Debian/Ubuntu
+      ansible.builtin.apt:
+        name:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+        purge: yes
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Install prerequisites on Debian/Ubuntu
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Ensure APT keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Download Docker GPG key (ASCII) for Debian/Ubuntu
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/{{ (ansible_facts.distribution | lower == 'ubuntu') | ternary('ubuntu', 'debian') }}/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Convert Docker GPG key to dearmored format
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.asc
+        creates: /etc/apt/keyrings/docker.gpg
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Set permissions on Docker GPG key
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/docker.gpg
+        mode: '0644'
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Determine APT architecture mapping
+      ansible.builtin.set_fact:
+        docker_apt_arch: >-
+          {{ 'amd64' if ansible_facts.architecture in ['x86_64'] else
+             'arm64' if ansible_facts.architecture in ['aarch64','arm64'] else
+             'armhf' if ansible_facts.architecture in ['armv7l','armv6l'] else
+             ansible_facts.architecture }}
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Add Docker APT repository
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.gpg]
+          https://download.docker.com/linux/{{ (ansible_facts.distribution | lower == 'ubuntu') | ternary('ubuntu', 'debian') }}
+          {{ ansible_facts.distribution_release | lower }} stable
+        filename: docker
+        state: present
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Update APT cache after adding Docker repo
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Install Docker packages on Debian/Ubuntu
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      when: ansible_facts.os_family == "Debian"
+
+    - name: Remove old Docker packages on RHEL/CentOS/Rocky/Alma
+      ansible.builtin.yum:
+        name:
+          - docker
+          - docker-client
+          - docker-client-latest
+          - docker-common
+          - docker-latest
+          - docker-latest-logrotate
+          - docker-logrotate
+          - docker-engine
+        state: absent
+      when: ansible_facts.os_family == "RedHat"
+
+    - name: Install prerequisites on RHEL/CentOS/Rocky/Alma
+      ansible.builtin.yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+          - ca-certificates
+          - curl
+        state: present
+      when: ansible_facts.os_family == "RedHat"
+
+    - name: Add Docker YUM repository
+      ansible.builtin.yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+      when: ansible_facts.os_family == "RedHat"
+
+    - name: Make cache after adding Docker repo
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        update_cache: yes
+      when: ansible_facts.os_family == "RedHat"
+
+    - name: Install Docker packages on RHEL/CentOS/Rocky/Alma
+      ansible.builtin.yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+      when: ansible_facts.os_family == "RedHat"
+
+    - name: Ensure docker group exists
+      ansible.builtin.group:
+        name: docker
+        state: present
+
+    - name: Add specified user to docker group
+      ansible.builtin.user:
+        name: "{{ docker_user }}"
+        groups: docker
+        append: yes
+
+    - name: Ensure Docker service is enabled and running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes

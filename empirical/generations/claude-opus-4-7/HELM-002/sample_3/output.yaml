@@ -1,0 +1,200 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: redis-cache
+description: A production-grade Helm chart for deploying Redis as a cache with persistence
+type: application
+version: 1.0.0
+appVersion: "7.2.4"
+keywords:
+  - redis
+  - cache
+  - key-value
+  - database
+maintainers:
+  - name: platform-team
+    email: platform@example.com
+home: https://redis.io
+sources:
+  - https://github.com/redis/redis
+icon: https://redis.io/images/redis-white.png
+---
+# FILE: values.yaml
+# Default values for redis-cache.
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: redis
+  tag: "7.2.4-alpine"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+# Redis authentication
+auth:
+  enabled: true
+  # If empty, a random 32-character password will be generated on first install.
+  password: ""
+  # Use an existing secret instead of creating one. Must contain key 'redis-password'.
+  existingSecret: ""
+
+service:
+  type: ClusterIP
+  port: 6379
+  annotations: {}
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+
+# Redis configuration tuned for cache use-case
+config:
+  maxmemory: "256mb"
+  maxmemoryPolicy: "allkeys-lru"
+  appendonly: "no"
+  save: ""
+  timeout: "300"
+  tcpKeepalive: "60"
+  databases: 16
+  # Additional raw redis.conf directives
+  extraConfig: |
+    tcp-backlog 511
+    loglevel notice
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  successThreshold: 1
+  failureThreshold: 5
+
+startupProbe:
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+podAnnotations: {}
+podLabels: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+networkPolicy:
+  enabled: false
+  ingressNamespaceSelector: {}
+  ingressPodSelector: {}
+
+updateStrategy:
+  type: RollingUpdate
+
+terminationGracePeriodSeconds: 30
+---
+# FILE: templates/_helpers.tpl
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "redis-cache.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "redis-cache.fullname" -}}
+{{- if .Values.fullnameOverride }}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- if contains $name .Release.Name }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- else }}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Chart name and version label.
+*/}}
+{{- define "redis-cache.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "redis-cache.labels" -}}
+helm.sh/chart: {{ include "redis-cache.chart" . }}
+{{ include "redis-cache.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/component: cache
+app.kubernetes.io/part-of: {{ include "redis-cache.name" . }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "redis-cache.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis-cache.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Headless service name
+*/}}
+{{- define "redis-cache.headlessServiceName" -}}
+{{- printf "%s-headless" (include "redis-cache.fullname" .) | trunc 63 | trimSuffix "-" }}

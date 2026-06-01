@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-003",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Run service running a containerized Python 3.12 API.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: enable-serviceusage\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: serviceusage.googleapis.com\n\n- name: enable-run\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: run.googleapis.com\n\n- name: enable-artifactregistry\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: artifactregistry.googleapis.com\n\n- name: enable-iam\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: iam.googleapis.com\n\n- name: enable-secretmanager\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: secretmanager.googleapis.com\n\n- name: enable-cloudbuild\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: cloudbuild.googleapis.com\n\n- name: cr-python-api-sa\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    parent: projects/$(project)\n    accountId: cr-python-api-sa\n    serviceAccount:\n      displayName: Cloud Run Python 3.12 API Service Account\n\n- name: python312-api\n  type: gcp-types/run-v1:projects.locations.services\n  metadata:\n    dependsOn:\n    - enable-run\n    - cr-python-api-sa\n  properties:\n    parent: projects/$(project)/locations/us-central1\n    serviceId: python312-api\n    metadata:\n      annotations:\n        run.googleapis.com/ingress: internal-and-cloud-load-balancing\n        run.googleapis.com/client-name: deployment-manager\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: '0'\n            autoscaling.knative.dev/maxScale: '10'\n            run.googleapis.com/cpu-throttling: 'true'\n            run.googleapis.com/execution-environment: gen2\n            run.googleapis.com/startup-cpu-boost: 'true'\n        spec:\n          serviceAccountName: $(ref.cr-python-api-sa.email)\n          containerConcurrency: 80\n          timeoutSeconds: 60\n          containers:\n          - image: us-docker.pkg.dev/$(project)/cloud-run/python312-api:latest\n            ports:\n            - containerPort: 8080\n            env:\n            - name: PORT\n              value: '8080'\n            - name: PYTHONUNBUFFERED\n              value: '1'\n            resources:\n              limits:\n                cpu: '1'\n                memory: 512Mi\n\noutputs:\n- name: serviceName\n  value: $(ref.python312-api.metadata.name)\n- name: serviceRegion\n  value: us-central1\n- name: serviceUrl\n  value: $(ref.python312-api.status.url)",
+  "cleaned_response": "resources:\n- name: enable-serviceusage\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: serviceusage.googleapis.com\n\n- name: enable-run\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: run.googleapis.com\n\n- name: enable-artifactregistry\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: artifactregistry.googleapis.com\n\n- name: enable-iam\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: iam.googleapis.com\n\n- name: enable-secretmanager\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: secretmanager.googleapis.com\n\n- name: enable-cloudbuild\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: cloudbuild.googleapis.com\n\n- name: cr-python-api-sa\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    parent: projects/$(project)\n    accountId: cr-python-api-sa\n    serviceAccount:\n      displayName: Cloud Run Python 3.12 API Service Account\n\n- name: python312-api\n  type: gcp-types/run-v1:projects.locations.services\n  metadata:\n    dependsOn:\n    - enable-run\n    - cr-python-api-sa\n  properties:\n    parent: projects/$(project)/locations/us-central1\n    serviceId: python312-api\n    metadata:\n      annotations:\n        run.googleapis.com/ingress: internal-and-cloud-load-balancing\n        run.googleapis.com/client-name: deployment-manager\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: '0'\n            autoscaling.knative.dev/maxScale: '10'\n            run.googleapis.com/cpu-throttling: 'true'\n            run.googleapis.com/execution-environment: gen2\n            run.googleapis.com/startup-cpu-boost: 'true'\n        spec:\n          serviceAccountName: $(ref.cr-python-api-sa.email)\n          containerConcurrency: 80\n          timeoutSeconds: 60\n          containers:\n          - image: us-docker.pkg.dev/$(project)/cloud-run/python312-api:latest\n            ports:\n            - containerPort: 8080\n            env:\n            - name: PORT\n              value: '8080'\n            - name: PYTHONUNBUFFERED\n              value: '1'\n            resources:\n              limits:\n                cpu: '1'\n                memory: 512Mi\n\noutputs:\n- name: serviceName\n  value: $(ref.python312-api.metadata.name)\n- name: serviceRegion\n  value: us-central1\n- name: serviceUrl\n  value: $(ref.python312-api.status.url)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: enable-serviceusage\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: serviceusage.googleapis.com\n\n- name: enable-run\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: run.googleapis.com\n\n- name: enable-artifactregistry\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: artifactregistry.googleapis.com\n\n- name: enable-iam\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: iam.googleapis.com\n\n- name: enable-secretmanager\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: secretmanager.googleapis.com\n\n- name: enable-cloudbuild\n  type: gcp-types/serviceusage-v1:projects.services\n  properties:\n    parent: projects/$(project)\n    serviceId: cloudbuild.googleapis.com\n\n- name: cr-python-api-sa\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    parent: projects/$(project)\n    accountId: cr-python-api-sa\n    serviceAccount:\n      displayName: Cloud Run Python 3.12 API Service Account\n\n- name: python312-api\n  type: gcp-types/run-v1:projects.locations.services\n  metadata:\n    dependsOn:\n    - enable-run\n    - cr-python-api-sa\n  properties:\n    parent: projects/$(project)/locations/us-central1\n    serviceId: python312-api\n    metadata:\n      annotations:\n        run.googleapis.com/ingress: internal-and-cloud-load-balancing\n        run.googleapis.com/client-name: deployment-manager\n    spec:\n      template:\n        metadata:\n          annotations:\n            autoscaling.knative.dev/minScale: '0'\n            autoscaling.knative.dev/maxScale: '10'\n            run.googleapis.com/cpu-throttling: 'true'\n            run.googleapis.com/execution-environment: gen2\n            run.googleapis.com/startup-cpu-boost: 'true'\n        spec:\n          serviceAccountName: $(ref.cr-python-api-sa.email)\n          containerConcurrency: 80\n          timeoutSeconds: 60\n          containers:\n          - image: us-docker.pkg.dev/$(project)/cloud-run/python312-api:latest\n            ports:\n            - containerPort: 8080\n            env:\n            - name: PORT\n              value: '8080'\n            - name: PYTHONUNBUFFERED\n              value: '1'\n            resources:\n              limits:\n                cpu: '1'\n                memory: 512Mi\n\noutputs:\n- name: serviceName\n  value: $(ref.python312-api.metadata.name)\n- name: serviceRegion\n  value: us-central1\n- name: serviceUrl\n  value: $(ref.python312-api.status.url)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779718863,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 133,
+      "output_tokens": 5564,
+      "raw_input_tokens": 133
+    }
+  },
+  "started_at": "2026-05-25T14:20:11.698254+00:00",
+  "elapsed_seconds": 52.205
+}

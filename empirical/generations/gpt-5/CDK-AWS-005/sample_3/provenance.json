@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-005",
+  "language": "cdk_python",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Create a CDK Python stack that builds a VPC with public/private subnets across two AZs, two NAT gateways for HA, and VPC endpoints for S3 and DynamoDB.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import os\nimport aws_cdk as cdk\nfrom aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_ec2 as ec2,\n    aws_logs as logs,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        vpc = ec2.Vpc(\n            self,\n            \"AppVpc\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        log_group = logs.LogGroup(\n            self,\n            \"VpcFlowLogs\",\n            retention=logs.RetentionDays.SIX_MONTHS,\n            removal_policy=RemovalPolicy.RETAIN,\n        )\n\n        ec2.FlowLog(\n            self,\n            \"VpcFlowLog\",\n            resource_type=ec2.FlowLogResourceType.from_vpc(vpc),\n            destination=ec2.FlowLogDestination.to_cloud_watch_logs(log_group),\n        )\n\n        vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n        vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n\napp = cdk.App()\nenv = cdk.Environment(\n    account=os.getenv(\"CDK_DEFAULT_ACCOUNT\"),\n    region=os.getenv(\"CDK_DEFAULT_REGION\"),\n)\nNetworkStack(app, \"NetworkStack\", env=env)\napp.synth()",
+  "cleaned_response": "import os\nimport aws_cdk as cdk\nfrom aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_ec2 as ec2,\n    aws_logs as logs,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        vpc = ec2.Vpc(\n            self,\n            \"AppVpc\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        log_group = logs.LogGroup(\n            self,\n            \"VpcFlowLogs\",\n            retention=logs.RetentionDays.SIX_MONTHS,\n            removal_policy=RemovalPolicy.RETAIN,\n        )\n\n        ec2.FlowLog(\n            self,\n            \"VpcFlowLog\",\n            resource_type=ec2.FlowLogResourceType.from_vpc(vpc),\n            destination=ec2.FlowLogDestination.to_cloud_watch_logs(log_group),\n        )\n\n        vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n        vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n\napp = cdk.App()\nenv = cdk.Environment(\n    account=os.getenv(\"CDK_DEFAULT_ACCOUNT\"),\n    region=os.getenv(\"CDK_DEFAULT_REGION\"),\n)\nNetworkStack(app, \"NetworkStack\", env=env)\napp.synth()",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import os\nimport aws_cdk as cdk\nfrom aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_ec2 as ec2,\n    aws_logs as logs,\n)\nfrom constructs import Construct\n\n\nclass NetworkStack(Stack):\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        vpc = ec2.Vpc(\n            self,\n            \"AppVpc\",\n            ip_addresses=ec2.IpAddresses.cidr(\"10.0.0.0/16\"),\n            max_azs=2,\n            nat_gateways=2,\n            enable_dns_hostnames=True,\n            enable_dns_support=True,\n            subnet_configuration=[\n                ec2.SubnetConfiguration(\n                    name=\"Public\",\n                    subnet_type=ec2.SubnetType.PUBLIC,\n                    cidr_mask=24,\n                ),\n                ec2.SubnetConfiguration(\n                    name=\"Private\",\n                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,\n                    cidr_mask=24,\n                ),\n            ],\n        )\n\n        log_group = logs.LogGroup(\n            self,\n            \"VpcFlowLogs\",\n            retention=logs.RetentionDays.SIX_MONTHS,\n            removal_policy=RemovalPolicy.RETAIN,\n        )\n\n        ec2.FlowLog(\n            self,\n            \"VpcFlowLog\",\n            resource_type=ec2.FlowLogResourceType.from_vpc(vpc),\n            destination=ec2.FlowLogDestination.to_cloud_watch_logs(log_group),\n        )\n\n        vpc.add_gateway_endpoint(\n            \"S3Endpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.S3,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n        vpc.add_gateway_endpoint(\n            \"DynamoDbEndpoint\",\n            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB,\n            subnets=[ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS)],\n        )\n\n\napp = cdk.App()\nenv = cdk.Environment(\n    account=os.getenv(\"CDK_DEFAULT_ACCOUNT\"),\n    region=os.getenv(\"CDK_DEFAULT_REGION\"),\n)\nNetworkStack(app, \"NetworkStack\", env=env)\napp.synth()",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779706073,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 141,
+      "output_tokens": 2930,
+      "raw_input_tokens": 141
+    }
+  },
+  "started_at": "2026-05-25T10:47:03.824345+00:00",
+  "elapsed_seconds": 49.758
+}

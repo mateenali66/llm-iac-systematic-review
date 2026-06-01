@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-013",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "@description('Specifies the prefix for the Cosmos DB account name, which must be globally unique.')\n@minLength(3)\n@maxLength(30)\nparam accountNamePrefix string\n\n@description('Specifies the primary Azure region for the Cosmos DB account.')\nparam primaryRegion string = resourceGroup().location\n\n@description('Specifies the secondary Azure region for geo-replication.')\nparam secondaryRegion string\n\n@description('Tags to apply to the resources.')\nparam tags object = {}\n\nvar cosmosDbAccountName = '${accountNamePrefix}-${uniqueString(resourceGroup().id)}'\nvar locations = [\n  {\n    locationName: primaryRegion\n    failoverPriority: 0\n    isZoneRedundant: false\n  }\n  {\n    locationName: secondaryRegion\n    failoverPriority: 1\n    isZoneRedundant: false\n  }\n]\n\nresource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosDbAccountName\n  location: primaryRegion\n  tags: tags\n  kind: 'GlobalDocumentDB'\n  properties: {\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    locations: locations\n    databaseAccountOfferType: 'Standard'\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    publicNetworkAccess: 'Disabled'\n    disableKeyBasedMetadataWriteAccess: true\n    disableLocalAuth: true\n    minimalTlsVersion: 'Tls12'\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n  }\n}\n\noutput accountId string = cosmosDbAccount.id\noutput accountName string = cosmosDbAccount.name\noutput documentEndpoint string = cosmosDbAccount.properties.documentEndpoint",
+  "cleaned_response": "@description('Specifies the prefix for the Cosmos DB account name, which must be globally unique.')\n@minLength(3)\n@maxLength(30)\nparam accountNamePrefix string\n\n@description('Specifies the primary Azure region for the Cosmos DB account.')\nparam primaryRegion string = resourceGroup().location\n\n@description('Specifies the secondary Azure region for geo-replication.')\nparam secondaryRegion string\n\n@description('Tags to apply to the resources.')\nparam tags object = {}\n\nvar cosmosDbAccountName = '${accountNamePrefix}-${uniqueString(resourceGroup().id)}'\nvar locations = [\n  {\n    locationName: primaryRegion\n    failoverPriority: 0\n    isZoneRedundant: false\n  }\n  {\n    locationName: secondaryRegion\n    failoverPriority: 1\n    isZoneRedundant: false\n  }\n]\n\nresource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosDbAccountName\n  location: primaryRegion\n  tags: tags\n  kind: 'GlobalDocumentDB'\n  properties: {\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    locations: locations\n    databaseAccountOfferType: 'Standard'\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    publicNetworkAccess: 'Disabled'\n    disableKeyBasedMetadataWriteAccess: true\n    disableLocalAuth: true\n    minimalTlsVersion: 'Tls12'\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n  }\n}\n\noutput accountId string = cosmosDbAccount.id\noutput accountName string = cosmosDbAccount.name\noutput documentEndpoint string = cosmosDbAccount.properties.documentEndpoint",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "@description('Specifies the prefix for the Cosmos DB account name, which must be globally unique.')\n@minLength(3)\n@maxLength(30)\nparam accountNamePrefix string\n\n@description('Specifies the primary Azure region for the Cosmos DB account.')\nparam primaryRegion string = resourceGroup().location\n\n@description('Specifies the secondary Azure region for geo-replication.')\nparam secondaryRegion string\n\n@description('Tags to apply to the resources.')\nparam tags object = {}\n\nvar cosmosDbAccountName = '${accountNamePrefix}-${uniqueString(resourceGroup().id)}'\nvar locations = [\n  {\n    locationName: primaryRegion\n    failoverPriority: 0\n    isZoneRedundant: false\n  }\n  {\n    locationName: secondaryRegion\n    failoverPriority: 1\n    isZoneRedundant: false\n  }\n]\n\nresource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosDbAccountName\n  location: primaryRegion\n  tags: tags\n  kind: 'GlobalDocumentDB'\n  properties: {\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n    }\n    locations: locations\n    databaseAccountOfferType: 'Standard'\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    publicNetworkAccess: 'Disabled'\n    disableKeyBasedMetadataWriteAccess: true\n    disableLocalAuth: true\n    minimalTlsVersion: 'Tls12'\n    backupPolicy: {\n      type: 'Periodic'\n      periodicModeProperties: {\n        backupIntervalInMinutes: 240\n        backupRetentionIntervalInHours: 720\n        backupStorageRedundancy: 'Geo'\n      }\n    }\n  }\n}\n\noutput accountId string = cosmosDbAccount.id\noutput accountName string = cosmosDbAccount.name\noutput documentEndpoint string = cosmosDbAccount.properties.documentEndpoint",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779725194,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 123,
+      "output_tokens": 1488,
+      "raw_input_tokens": 123
+    }
+  },
+  "started_at": "2026-05-25T16:06:15.235667+00:00",
+  "elapsed_seconds": 19.344
+}

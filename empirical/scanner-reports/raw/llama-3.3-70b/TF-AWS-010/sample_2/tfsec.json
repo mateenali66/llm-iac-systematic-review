@@ -1,0 +1,73 @@
+{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0023",
+			"long_id": "aws-dynamodb-enable-at-rest-encryption",
+			"rule_description": "DAX Cluster and tables should always encrypt data at rest",
+			"rule_provider": "aws",
+			"rule_service": "dynamodb",
+			"impact": "Data can be freely read if compromised",
+			"resolution": "Enable encryption at rest for DAX Cluster",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/dynamodb/enable-at-rest-encryption/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dax_cluster#server_side_encryption"
+			],
+			"description": "Table encryption is not enabled.",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_dynamodb_table.user_sessions",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 1,
+				"end_line": 15
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0024",
+			"long_id": "aws-dynamodb-enable-recovery",
+			"rule_description": "Point in time recovery should be enabled to protect DynamoDB table",
+			"rule_provider": "aws",
+			"rule_service": "dynamodb",
+			"impact": "Accidental or malicious writes and deletes can't be rolled back",
+			"resolution": "Enable point in time recovery",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/dynamodb/enable-recovery/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table#point_in_time_recovery"
+			],
+			"description": "Point-in-time recovery is not enabled.",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_dynamodb_table.user_sessions",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 1,
+				"end_line": 15
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0025",
+			"long_id": "aws-dynamodb-table-customer-key",
+			"rule_description": "DynamoDB tables should use at rest encryption with a Customer Managed Key",
+			"rule_provider": "aws",
+			"rule_service": "dynamodb",
+			"impact": "Using AWS managed keys does not allow for fine grained control",
+			"resolution": "Enable server side encryption with a customer managed key",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/dynamodb/table-customer-key/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table#server_side_encryption"
+			],
+			"description": "Table encryption does not use a customer-managed KMS key.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_dynamodb_table.user_sessions",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 1,
+				"end_line": 15
+			}
+		}
+	]
+}

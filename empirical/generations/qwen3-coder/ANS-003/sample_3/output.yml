@@ -1,0 +1,182 @@
+---
+- name: Harden CentOS 9 Server
+  hosts: centos9_servers
+  become: yes
+  vars:
+    ssh_port: 22
+    fail2ban_loglevel: INFO
+    fail2ban_logtarget: /var/log/fail2ban.log
+    auditd_max_log_file: 100
+    auditd_max_log_file_action: keep_logs
+    auditd_num_logs: 50
+    auditd_disk_full_action: syslog
+    auditd_disk_error_action: syslog
+  tasks:
+    - name: Update system packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+
+    - name: Install required security packages
+      ansible.builtin.dnf:
+        name:
+          - policycoreutils-python-utils
+          - libselinux-python3
+          - audit
+          - fail2ban
+          - fail2ban-firewalld
+        state: present
+
+    - name: Configure SSH daemon for security
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication yes' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
+        - { regexp: '^#?ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication no' }
+        - { regexp: '^#?UsePAM', line: 'UsePAM yes' }
+        - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+        - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+        - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
+        - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
+        - { regexp: '^#?AllowTcpForwarding', line: 'AllowTcpForwarding no' }
+        - { regexp: '^#?AllowAgentForwarding', line: 'AllowAgentForwarding no' }
+        - { regexp: '^#?PermitTunnel', line: 'PermitTunnel no' }
+      notify: Restart sshd
+
+    - name: Set password complexity requirements
+      ansible.builtin.lineinfile:
+        path: /etc/security/pwquality.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: '^#?minlen', line: 'minlen = 14' }
+        - { regexp: '^#?minclass', line: 'minclass = 4' }
+        - { regexp: '^#?maxrepeat', line: 'maxrepeat = 2' }
+        - { regexp: '^#?dcredit', line: 'dcredit = -1' }
+        - { regexp: '^#?ucredit', line: 'ucredit = -1' }
+        - { regexp: '^#?lcredit', line: 'lcredit = -1' }
+        - { regexp: '^#?ocredit', line: 'ocredit = -1' }
+
+    - name: Configure account lockout settings
+      ansible.builtin.lineinfile:
+        path: /etc/security/faillock.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: '^#?deny', line: 'deny = 5' }
+        - { regexp: '^#?unlock_time', line: 'unlock_time = 600' }
+        - { regexp: '^#?fail_interval', line: 'fail_interval = 900' }
+
+    - name: Configure fail2ban jail.local
+      ansible.builtin.template:
+        src: jail.local.j2
+        dest: /etc/fail2ban/jail.local
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart fail2ban
+
+    - name: Create fail2ban custom sshd jail
+      ansible.builtin.blockinfile:
+        path: /etc/fail2ban/jail.local
+        block: |
+          [sshd]
+          enabled = true
+          port = {{ ssh_port }}
+          filter = sshd
+          logpath = /var/log/auth.log
+          maxretry = 3
+          bantime = 3600
+          findtime = 600
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - SSHD JAIL"
+      notify: Restart fail2ban
+
+    - name: Ensure fail2ban service is running and enabled
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    - name: Configure auditd rules
+      ansible.builtin.copy:
+        content: |
+          # Audit rules for system security
+          -w /etc/passwd -p wa -k passwd_changes
+          -w /etc/shadow -p wa -k shadow_changes
+          -w /etc/group -p wa -k group_changes
+          -w /etc/sudoers -p wa -k sudoers_changes
+          -w /etc/ssh/sshd_config -p wa -k sshd_config
+          -w /var/log/fail2ban.log -p wa -k fail2ban_logs
+          -w /usr/bin/passwd -p x -k passwd_exec
+          -w /usr/sbin/useradd -p x -k user_mgmt
+          -w /usr/sbin/userdel -p x -k user_mgmt
+          -w /usr/sbin/usermod -p x -k user_mgmt
+          -a always,exit -F arch=b64 -S execve -k command_execution
+        dest: /etc/audit/rules.d/hardening.rules
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Configure auditd main configuration
+      ansible.builtin.lineinfile:
+        path: /etc/audit/auditd.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backup: yes
+      loop:
+        - { regexp: '^#?max_log_file =', line: 'max_log_file = {{ auditd_max_log_file }}' }
+        - { regexp: '^#?max_log_file_action =', line: 'max_log_file_action = {{ auditd_max_log_file_action }}' }
+        - { regexp: '^#?num_logs =', line: 'num_logs = {{ auditd_num_logs }}' }
+        - { regexp: '^#?disk_full_action =', line: 'disk_full_action = {{ auditd_disk_full_action }}' }
+        - { regexp: '^#?disk_error_action =', line: 'disk_error_action = {{ auditd_disk_error_action }}' }
+        - { regexp: '^#?log_format =', line: 'log_format = RAW' }
+        - { regexp: '^#?flush =', line: 'flush = INCREMENTAL_ASYNC' }
+        - { regexp: '^#?freq =', line: 'freq = 50' }
+
+    - name: Ensure auditd service is running and enabled
+      ansible.builtin.systemd:
+        name: auditd
+        state: started
+        enabled: yes
+
+    - name: Reload auditd rules
+      ansible.builtin.command: /sbin/augenrules --load
+      changed_when: false
+
+    - name: Set restrictive umask
+      ansible.builtin.lineinfile:
+        path: /etc/profile
+        regexp: '^umask'
+        line: 'umask 027'
+        backup: yes
+
+    - name: Disable unnecessary services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - avahi-daemon
+        - cups
+        - rpcbind
+      failed_when: false
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted
+
+    - name: Restart fail2ban
+      ansible.builtin.systemd:
+        name: fail2ban
+        state: restarted

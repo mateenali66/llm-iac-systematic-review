@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-014",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/workload_identity_federation.py\n    name: workload_identity_federation.py\n\nresources:\n  - name: github-actions-pool\n    type: workload_identity_federation.py\n    properties:\n      poolId: github-actions-pool\n      displayName: GitHub Actions Pool\n      description: Workload Identity Pool for GitHub Actions\n      providers:\n        - providerId: github-provider\n          displayName: GitHub Provider\n          description: GitHub Actions OIDC provider\n          attributeMapping:\n            google.subject: assertion.sub\n            attribute.repository: assertion.repository\n            attribute.repository_owner: assertion.repository_owner\n            attribute.workflow: assertion.workflow\n            attribute.ref: assertion.ref\n          oidc:\n            issuerUri: https://token.actions.githubusercontent.com\n            allowedAudiences:\n              - https://github.com/octo-org\n            attributeCondition: assertion.repository_owner == \"octo-org\"\n      serviceAccounts:\n        - name: cloud-run-deployer\n          projectId: YOUR_PROJECT_ID\n          displayName: Cloud Run Deployer SA\n          description: Service account for deploying Cloud Run services\n          roles:\n            - roles/run.admin\n            - roles/iam.serviceAccountUser\n            - roles/iam.serviceAccountTokenCreator\n          members:\n            - principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/octo-org/cloud-run-service",
+  "cleaned_response": "imports:\n  - path: templates/workload_identity_federation.py\n    name: workload_identity_federation.py\n\nresources:\n  - name: github-actions-pool\n    type: workload_identity_federation.py\n    properties:\n      poolId: github-actions-pool\n      displayName: GitHub Actions Pool\n      description: Workload Identity Pool for GitHub Actions\n      providers:\n        - providerId: github-provider\n          displayName: GitHub Provider\n          description: GitHub Actions OIDC provider\n          attributeMapping:\n            google.subject: assertion.sub\n            attribute.repository: assertion.repository\n            attribute.repository_owner: assertion.repository_owner\n            attribute.workflow: assertion.workflow\n            attribute.ref: assertion.ref\n          oidc:\n            issuerUri: https://token.actions.githubusercontent.com\n            allowedAudiences:\n              - https://github.com/octo-org\n            attributeCondition: assertion.repository_owner == \"octo-org\"\n      serviceAccounts:\n        - name: cloud-run-deployer\n          projectId: YOUR_PROJECT_ID\n          displayName: Cloud Run Deployer SA\n          description: Service account for deploying Cloud Run services\n          roles:\n            - roles/run.admin\n            - roles/iam.serviceAccountUser\n            - roles/iam.serviceAccountTokenCreator\n          members:\n            - principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/octo-org/cloud-run-service",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/workload_identity_federation.py\n    name: workload_identity_federation.py\n\nresources:\n  - name: github-actions-pool\n    type: workload_identity_federation.py\n    properties:\n      poolId: github-actions-pool\n      displayName: GitHub Actions Pool\n      description: Workload Identity Pool for GitHub Actions\n      providers:\n        - providerId: github-provider\n          displayName: GitHub Provider\n          description: GitHub Actions OIDC provider\n          attributeMapping:\n            google.subject: assertion.sub\n            attribute.repository: assertion.repository\n            attribute.repository_owner: assertion.repository_owner\n            attribute.workflow: assertion.workflow\n            attribute.ref: assertion.ref\n          oidc:\n            issuerUri: https://token.actions.githubusercontent.com\n            allowedAudiences:\n              - https://github.com/octo-org\n            attributeCondition: assertion.repository_owner == \"octo-org\"\n      serviceAccounts:\n        - name: cloud-run-deployer\n          projectId: YOUR_PROJECT_ID\n          displayName: Cloud Run Deployer SA\n          description: Service account for deploying Cloud Run services\n          roles:\n            - roles/run.admin\n            - roles/iam.serviceAccountUser\n            - roles/iam.serviceAccountTokenCreator\n          members:\n            - principalSet://iam.googleapis.com/projects/YOUR_PROJECT_NUMBER/locations/global/workloadIdentityPools/github-actions-pool/attribute.repository/octo-org/cloud-run-service",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728615,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 67,
+      "output_tokens": 325,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 3
+    }
+  },
+  "started_at": "2026-05-25T17:03:31.398608+00:00",
+  "elapsed_seconds": 3.939
+}

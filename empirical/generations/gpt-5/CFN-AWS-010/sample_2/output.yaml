@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda order-processor triggered by SQS with best-practice security and reliability.
+
+Parameters:
+  CodeS3Bucket:
+    Type: String
+    Description: S3 bucket containing the Lambda deployment package.
+  CodeS3Key:
+    Type: String
+    Description: S3 key for the Lambda deployment package.
+  CodeS3ObjectVersion:
+    Type: String
+    Default: ''
+    Description: Optional S3 object version for the Lambda deployment package.
+  LambdaMemorySize:
+    Type: Number
+    Default: 256
+    Description: Memory size (MB) for the Lambda function.
+  LambdaTimeout:
+    Type: Number
+    Default: 30
+    Description: Timeout (seconds) for the Lambda function.
+  LambdaReservedConcurrency:
+    Type: Number
+    Default: 10
+    Description: Reserved concurrency for the Lambda function.
+  ESMMaxConcurrency:
+    Type: Number
+    Default: 5
+    Description: Maximum concurrent batches for the SQS event source mapping.
+  LogRetentionDays:
+    Type: Number
+    Default: 30
+    Description: CloudWatch Logs retention in days.
+  QueueVisibilityTimeout:
+    Type: Number
+    Default: 180
+    Description: Visibility timeout (seconds) for the SQS queue.
+
+Conditions:
+  HasCodeObjectVersion: !Not [!Equals [!Ref CodeS3ObjectVersion, '']]
+
+Resources:
+  OrdersDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      SqsManagedSseEnabled: true
+      MessageRetentionPeriod: 1209600
+      RedriveAllowPolicy:
+        redrivePermission: byQueue
+        sourceQueueArns:
+          - !GetAtt OrdersQueue.Arn
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrdersQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      SqsManagedSseEnabled: true
+      VisibilityTimeout: !Ref QueueVisibilityTimeout
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrdersDLQ.Arn
+        maxReceiveCount: 5
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+        - PolicyName: LambdaLogsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: LogsWrite
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/order-processor:*
+        - PolicyName: SQSPollPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: SQSPollSpecificQueue
+                Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:ChangeMessageVisibility
+                  - sqs:GetQueueAttributes
+                Resource: !GetAtt OrdersQueue.Arn
+              - Sid: SQSGetQueueUrl
+                Effect: Allow
+                Action:
+                  - sqs:GetQueueUrl
+                Resource: "*"
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order-processor
+      Description: Processes order messages from SQS.
+      Runtime: python3.12
+      Handler: app.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref CodeS3Bucket
+        S3Key: !Ref CodeS3Key
+        S3ObjectVersion: !If [HasCodeObjectVersion, !Ref CodeS3ObjectVersion, !Ref AWS::NoValue]
+      MemorySize: !Ref LambdaMemorySize
+      Timeout: !Ref LambdaTimeout
+      TracingConfig:
+        Mode: Active
+      ReservedConcurrentExecutions: !Ref LambdaReservedConcurrency
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrderProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /aws/lambda/order-processor
+      RetentionInDays: !Ref LogRetentionDays
+      Tags:
+        - Key: Project
+          Value: order-processor
+
+  OrdersQueueEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !Ref OrderProcessorFunction
+      EventSourceArn: !GetAtt OrdersQueue.Arn
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      Enabled: true
+      ScalingConfig:
+        MaximumConcurrency: !Ref ESMMaxConcurrency
+      FunctionResponseTypes:
+        - ReportBatchItemFailures
+
+Outputs:
+  LambdaFunctionArn:
+    Description: ARN of the order-processor Lambda function.
+    Value: !GetAtt OrderProcessorFunction.Arn
+  OrdersQueueUrl:
+    Description: URL of the SQS queue that triggers the Lambda function.
+    Value: !Ref OrdersQueue
+  OrdersDLQUrl:
+    Description: URL of the Dead Letter Queue.
+    Value: !Ref OrdersDLQ

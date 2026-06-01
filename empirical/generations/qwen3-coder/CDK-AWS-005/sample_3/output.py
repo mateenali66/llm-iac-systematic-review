@@ -1,0 +1,52 @@
+from aws_cdk import (
+    Stack,
+    aws_ec2 as ec2,
+    RemovalPolicy
+)
+from constructs import Construct
+
+class VpcStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        # Create VPC with public and private subnets across 2 AZs
+        vpc = ec2.Vpc(
+            self, "ProductionVPC",
+            max_azs=2,
+            cidr="10.0.0.0/16",
+            subnet_configuration=[
+                ec2.SubnetConfiguration(
+                    name="Public",
+                    subnet_type=ec2.SubnetType.PUBLIC,
+                    cidr_mask=24
+                ),
+                ec2.SubnetConfiguration(
+                    name="Private",
+                    subnet_type=ec2.SubnetType.PRIVATE_WITH_NAT,
+                    cidr_mask=24
+                )
+            ],
+            nat_gateways=2,
+            nat_gateway_provider=ec2.NatProvider.gateway(),
+            enable_dns_hostnames=True,
+            enable_dns_support=True
+        )
+
+        # Add S3 Gateway VPC Endpoint
+        vpc.add_gateway_endpoint(
+            "S3Endpoint",
+            service=ec2.GatewayVpcEndpointAwsService.S3
+        )
+
+        # Add DynamoDB Gateway VPC Endpoint
+        vpc.add_gateway_endpoint(
+            "DynamoDBEndpoint",
+            service=ec2.GatewayVpcEndpointAwsService.DYNAMODB
+        )
+
+        # Apply security best practices
+        for subnet in vpc.public_subnets:
+            subnet.node.default_child.cfn_options.deletion_policy = RemovalPolicy.RETAIN
+            
+        for subnet in vpc.private_subnets:
+            subnet.node.default_child.cfn_options.deletion_policy = RemovalPolicy.RETAIN

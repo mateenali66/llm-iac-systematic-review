@@ -1,0 +1,122 @@
+resources:
+- name: prod-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.1.0/24
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+    logConfig:
+      enable: true
+      aggregationInterval: INTERVAL_5_SEC
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.2.0/24
+    privateIpGoogleAccess: true
+    enableFlowLogs: true
+    logConfig:
+      enable: true
+      aggregationInterval: INTERVAL_5_SEC
+      flowSampling: 0.5
+      metadata: INCLUDE_ALL_METADATA
+
+- name: nat-router
+  type: compute.v1.router
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    region: us-central1
+    bgp:
+      asn: 64514
+
+- name: nat-gateway
+  action: gcp-types/compute-v1:compute.routers.patch
+  properties:
+    router: $(ref.nat-router.name)
+    region: us-central1
+    nats:
+    - name: prod-nat-gateway
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.private-subnet.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+      logConfig:
+        enable: true
+        filter: ERRORS_ONLY
+      minPortsPerVm: 64
+      udpIdleTimeoutSec: 30
+      tcpEstablishedIdleTimeoutSec: 1200
+      tcpTransitoryIdleTimeoutSec: 30
+      icmpIdleTimeoutSec: 30
+
+- name: fw-allow-internal
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 10.0.0.0/16
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "0-65535"
+    - IPProtocol: udp
+      ports:
+      - "0-65535"
+    - IPProtocol: icmp
+    logConfig:
+      enable: true
+
+- name: fw-allow-iap-ssh
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    sourceRanges:
+    - 35.235.240.0/20
+    targetTags:
+    - ssh-allowed
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "22"
+    logConfig:
+      enable: true
+
+- name: fw-deny-all-ingress
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.prod-vpc.selfLink)
+    direction: INGRESS
+    priority: 65534
+    sourceRanges:
+    - 0.0.0.0/0
+    denied:
+    - IPProtocol: all
+    logConfig:
+      enable: true
+
+outputs:
+- name: networkSelfLink
+  value: $(ref.prod-vpc.selfLink)
+- name: publicSubnet
+  value: $(ref.public-subnet.selfLink)
+- name: privateSubnet
+  value: $(ref.private-subnet.selfLink)

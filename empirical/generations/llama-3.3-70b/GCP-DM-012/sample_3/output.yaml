@@ -1,0 +1,87 @@
+resources:
+  - name: cloud-armor-policy
+    type: compute.v1.securityPolicy
+    properties:
+      description: Cloud Armor security policy
+      rules:
+        - action: deny
+          preview: false
+          priority: 1000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Block traffic from specific countries
+          ipBlock:
+            destinations:
+              - '*'
+            sources:
+              - 'country_code:CN'
+              - 'country_code:RU'
+        - action: rateBasedBan
+          preview: false
+          priority: 2000
+          match:
+            config:
+              srcIpRanges:
+                - '*'
+          description: Rate limit requests per IP
+          rateLimitOptions:
+            banThreshold:
+              count: 100
+              intervalSec: 60
+            banDurationSec: 3600
+            rateLimitParameters:
+              maxRequestsPerSecond: 10
+              maxRequestsPerMinute: 600
+              maxRequestsPerHour: 36000
+              enforceOnKey: 'IP'
+          ipBlock:
+            destinations:
+              - '*'
+            sources:
+              - '*'
+      enabled: true
+
+  - name: backend-service
+    type: compute.v1.backendService
+    properties:
+      description: Backend service for Cloud Armor
+      backends:
+        - group: $(ref.example-instance-group.selfLink)
+      securityPolicy:
+        - $(ref.cloud-armor-policy.selfLink)
+
+  - name: example-instance-group
+    type: compute.v1.instanceGroupManager
+    properties:
+      description: Managed instance group
+      instanceTemplate: $(ref.example-instance-template.selfLink)
+      targetSize: 1
+
+  - name: example-instance-template
+    type: compute.v1.instanceTemplate
+    properties:
+      description: Instance template
+      properties:
+        machineType: f1-micro
+        disks:
+          - deviceName: boot
+            type: PERSISTENT
+            diskSizeGb: 10
+            sourceImage: projects/debian-cloud/global/images/debian-11-bullseye-v20230214
+        networkInterfaces:
+          - accessConfigs:
+              - name: External NAT
+                type: ONE_TO_ONE_NAT
+            network: $(ref.example-network.selfLink)
+
+  - name: example-network
+    type: compute.v1.network
+    properties:
+      description: Example network
+      autoCreateSubnetworks: true
+
+outputs:
+  - name: cloudArmorPolicyName
+    value: $(ref.cloud-armor-policy.name)

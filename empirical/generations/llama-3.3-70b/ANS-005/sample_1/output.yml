@@ -1,0 +1,75 @@
+---
+- name: Install and configure Docker
+  become: yes
+  tasks:
+  - name: Install dependencies
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Add Docker repository
+    apt_repository:
+      repo: https://download.docker.com/linux/{{ ansible_distribution|lower }}/docker-ce/repo
+      state: present
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install Docker
+    apt:
+      name: docker-ce
+      state: present
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install dependencies (RHEL-based)
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Add Docker repository (RHEL-based)
+    yum_repository:
+      name: docker
+      description: Docker repository
+      baseurl: https://download.docker.com/linux/{{ ansible_distribution|lower }}/7/x86_64/stable
+      gpgcheck: yes
+      gpgkey: https://download.docker.com/linux/{{ ansible_distribution|lower }}/gpg
+      state: present
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Install Docker (RHEL-based)
+    yum:
+      name: docker-ce
+      state: present
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Add user to docker group
+    user:
+      name: "{{ docker_user }}"
+      group: docker
+      append: yes
+    vars:
+      docker_user: your_username
+
+  - name: Ensure Docker daemon is running and enabled
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: Pull Docker image (optional)
+    docker_image:
+      name: your_image_name
+      source: pull
+    vars:
+      your_image_name: your_image_name
+    when: your_image_name is defined
+```

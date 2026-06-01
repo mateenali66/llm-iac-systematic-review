@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CDK-AWS-007",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_dynamodb as dynamodb\n\nclass DynamoDBStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        table = dynamodb.Table(\n            self, 'Table',\n            table_name='customer-table',\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            partition_key=dynamodb.Attribute(\n                name='id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        table.add_global_secondary_index(\n            index_name='customer_id_index',\n            partition_key=dynamodb.Attribute(\n                name='customer_id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        cdk.CfnOutput(\n            self, 'TableName',\n            value=table.table_name,\n            description='The name of the DynamoDB table'\n        )",
+  "cleaned_response": "import aws_cdk as cdk\nfrom aws_cdk import aws_dynamodb as dynamodb\n\nclass DynamoDBStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        table = dynamodb.Table(\n            self, 'Table',\n            table_name='customer-table',\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            partition_key=dynamodb.Attribute(\n                name='id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        table.add_global_secondary_index(\n            index_name='customer_id_index',\n            partition_key=dynamodb.Attribute(\n                name='customer_id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        cdk.CfnOutput(\n            self, 'TableName',\n            value=table.table_name,\n            description='The name of the DynamoDB table'\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "import aws_cdk as cdk\nfrom aws_cdk import aws_dynamodb as dynamodb\n\nclass DynamoDBStack(cdk.Stack):\n    def __init__(self, scope: cdk.Construct, id: str, **kwargs) -> None:\n        super().__init__(scope, id, **kwargs)\n\n        table = dynamodb.Table(\n            self, 'Table',\n            table_name='customer-table',\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            partition_key=dynamodb.Attribute(\n                name='id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        table.add_global_secondary_index(\n            index_name='customer_id_index',\n            partition_key=dynamodb.Attribute(\n                name='customer_id',\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name='sort_key',\n                type=dynamodb.AttributeType.STRING\n            )\n        )\n\n        cdk.CfnOutput(\n            self, 'TableName',\n            value=table.table_name,\n            description='The name of the DynamoDB table'\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723659,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 163,
+      "output_tokens": 248,
+      "raw_input_tokens": 163
+    }
+  },
+  "started_at": "2026-05-25T15:40:58.317511+00:00",
+  "elapsed_seconds": 0.79
+}

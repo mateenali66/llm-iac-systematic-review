@@ -1,0 +1,249 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:17:50.283476254Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": ".",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 56,
+        "Failures": 0
+      }
+    },
+    {
+      "Target": "output.tf",
+      "Class": "config",
+      "Type": "terraform",
+      "MisconfSummary": {
+        "Successes": 0,
+        "Failures": 2
+      },
+      "Misconfigurations": [
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0065",
+          "AVDID": "AVD-AWS-0065",
+          "Title": "A KMS key is not configured to auto-rotate.",
+          "Description": "You should configure your KMS keys to auto rotate to maintain security and defend against compromise.\n",
+          "Message": "Key does not have rotation enabled.",
+          "Namespace": "builtin.aws.kms.aws0065",
+          "Query": "data.builtin.aws.kms.aws0065.deny",
+          "Resolution": "Configure KMS key to auto rotate",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0065",
+          "References": [
+            "https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0065"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_kms_key.ebs",
+            "Provider": "AWS",
+            "Service": "kms",
+            "StartLine": 13,
+            "EndLine": 16,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 13,
+                  "Content": "resource \"aws_kms_key\" \"ebs\" {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_kms_key\"\u001b[0m \u001b[38;5;37m\"ebs\"\u001b[0m {",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 14,
+                  "Content": "  description             = \"EBS volume encryption key\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mdescription\u001b[0m             = \u001b[38;5;37m\"EBS volume encryption key\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 15,
+                  "Content": "  deletion_window_in_days = 10",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mdeletion_window_in_days\u001b[0m = \u001b[38;5;37m10",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 16,
+                  "Content": "}",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m}",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "Type": "Terraform Security Check",
+          "ID": "AVD-AWS-0342",
+          "AVDID": "AVD-AWS-0342",
+          "Title": "IAM Pass Role Filtering",
+          "Description": "Ensures any IAM pass role attached to roles are flagged and warned.",
+          "Message": "IAM policy allows 'iam:PassRole' action",
+          "Namespace": "builtin.aws.iam.aws0342",
+          "Query": "data.builtin.aws.iam.aws0342.deny",
+          "Resolution": "Resolve permission escalations by denying pass role'",
+          "Severity": "MEDIUM",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0342",
+          "References": [
+            "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0342"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "aws_iam_policy.backup",
+            "Provider": "AWS",
+            "Service": "iam",
+            "StartLine": 81,
+            "EndLine": 104,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 77,
+                  "Content": "resource \"aws_iam_policy\" \"backup\" {",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[38;5;33mresource\u001b[0m \u001b[38;5;37m\"aws_iam_policy\"\u001b[0m \u001b[38;5;37m\"backup\"\u001b[0m {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 78,
+                  "Content": "  name        = \"database-backup-policy\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mname\u001b[0m        = \u001b[38;5;37m\"database-backup-policy\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 79,
+                  "Content": "  description = \"IAM policy for database backup\"",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m  \u001b[38;5;245mdescription\u001b[0m = \u001b[38;5;37m\"IAM policy for database backup\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 80,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 81,
+                  "Content": "  policy = jsonencode({",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;245mpolicy\u001b[0m =\u001b[38;5;33m jsonencode\u001b[0m({",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 82,
+                  "Content": "    Version = \"2012-10-17\"",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;245mVersion\u001b[0m = \u001b[38;5;37m\"2012-10-17\"",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 83,
+                  "Content": "    Statement = [",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "\u001b[0m    \u001b[38;5;245mStatement\u001b[0m = [",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 84,
+                  "Content": "      {",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "      {",
+                  "FirstCause": false,
+                  "LastCause": false
+                },
+                {
+                  "Number": 85,
+                  "Content": "        Action = [",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "        \u001b[38;5;245mAction\u001b[0m = [",
+                  "FirstCause": false,
+                  "LastCause": true
+                },
+                {
+                  "Number": 86,
+                  "Content": "",
+                  "IsCause": false,
+                  "Annotation": "",
+                  "Truncated": true,
+                  "FirstCause": false,
+                  "LastCause": false
+                }
+              ]
+            },
+            "Occurrences": [
+              {
+                "Resource": "aws_iam_policy.backup",
+                "Filename": "output.tf",
+                "Location": {
+                  "StartLine": 77,
+                  "EndLine": 105
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

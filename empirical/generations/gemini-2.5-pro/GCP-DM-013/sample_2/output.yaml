@@ -1,0 +1,16 @@
+resources:
+- name: redis-cache-instance
+  type: gcp-types/redis-v1:projects.locations.instances
+  properties:
+    parent: projects/$(env.project)/locations/us-central1
+    instanceId: app-redis-cache
+    tier: BASIC
+    memorySizeGb: 1
+    locationId: us-central1-a
+    authorizedNetwork: projects/$(env.project)/global/networks/default
+    connectMode: DIRECT_PEERING
+    redisVersion: REDIS_6_X
+    displayName: Application Redis Cache
+    labels:
+      app: my-application
+      tier: cache

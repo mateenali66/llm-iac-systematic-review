@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS Lambda function triggered by SQS queue
+
+Resources:
+  OrderProcessorLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: order-processor
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt 'LambdaExecutionRole.Arn'
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+
+          def lambda_handler(event, context):
+            # Process the event
+            print(event)
+            return {
+              'statusCode': 200,
+              'statusMessage': 'OK'
+            }
+
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: execution-role-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+
+  OrderProcessorSQSQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName: order-processor-queue
+
+  OrderProcessorSQSQueuePolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      Queues:
+        - !Ref OrderProcessorSQSQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource: !GetAtt 'OrderProcessorSQSQueue.Arn'
+            Condition:
+              StringLike:
+                'aws:SourceArn': !GetAtt 'OrderProcessorLambdaFunction.Arn'
+
+  OrderProcessorLambdaEventSourceMapping:
+    Type: 'AWS::Lambda::EventSourceMapping'
+    Properties:
+      EventSourceArn: !GetAtt 'OrderProcessorSQSQueue.Arn'
+      FunctionName: !Ref OrderProcessorLambdaFunction
+      Enabled: true
+
+Outputs:
+  OrderProcessorLambdaFunctionArn:
+    Value: !GetAtt 'OrderProcessorLambdaFunction.Arn'
+    Description: The ARN of the Lambda function
+  OrderProcessorSQSQueueUrl:
+    Value: !GetAtt 'OrderProcessorSQSQueue.Url'
+    Description: The URL of the SQS queue

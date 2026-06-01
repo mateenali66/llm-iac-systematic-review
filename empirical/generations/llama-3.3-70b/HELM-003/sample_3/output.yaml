@@ -1,0 +1,148 @@
+# FILE: Chart.yaml
+name: postgres
+version: 1.0.0
+description: A Helm chart for deploying a Postgres database
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: postgres
+  tag: 14
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5432
+persistence:
+  enabled: true
+  size: 1Gi
+  accessMode: ReadWriteOnce
+  storageClass: ""
+secret:
+  postgresUser: "postgres"
+  postgresPassword: "postgres"
+  applicationUser: "appuser"
+  applicationPassword: "apppassword"
+  applicationDatabase: "appdatabase"
+initJob:
+  enabled: true
+
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgres.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres.labels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: {{ .Values.secret.postgresUser }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.secret.postgresPassword }}
+        - name: PGDATA
+          value: /var/lib/postgresql/data
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "postgres.fullname" . }}-pvc
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres.fullname" . }}-headless
+spec:
+  type: ClusterIP
+  ports:
+  - name: postgres
+    port: {{ .Values.service.port }}
+    targetPort: postgres
+  selector:
+    {{- include "postgres.labels" . | nindent 4 }}
+
+---
+# FILE: templates/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "postgres.fullname" . }}-pvc
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "postgres.fullname" . }}-secret
+type: Opaque
+data:
+  POSTGRES_USER: {{ .Values.secret.postgresUser | b64enc }}
+  POSTGRES_PASSWORD: {{ .Values.secret.postgresPassword | b64enc }}
+  APPLICATION_USER: {{ .Values.secret.applicationUser | b64enc }}
+  APPLICATION_PASSWORD: {{ .Values.secret.applicationPassword | b64enc }}
+  APPLICATION_DATABASE: {{ .Values.secret.applicationDatabase | b64enc }}
+
+---
+# FILE: templates/initjob.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.fullname" . }}-init
+spec:
+  template:
+    spec:
+      containers:
+      - name: init
+        image: postgres:14
+        command: ["psql", "-U", "{{ .Values.secret.postgresUser }}", "-c", "CREATE DATABASE {{ .Values.secret.applicationDatabase }}; CREATE ROLE {{ .Values.secret.applicationUser }} WITH PASSWORD '{{ .Values.secret.applicationPassword }}'; GRANT ALL PRIVILEGES ON DATABASE {{ .Values.secret.applicationDatabase }} TO {{ .Values.secret.applicationUser }};"]
+        env:
+        - name: PGPASSWORD
+          value: {{ .Values.secret.postgresPassword }}
+      restartPolicy: OnFailure
+  backoffLimit: 4
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "postgres.name" -}}
+{{ .Chart.Name }}
+{{- end -}}
+
+{{- define "postgres.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "postgres.labels" -}}
+app.kubernetes.io/name: {{ include "postgres.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}

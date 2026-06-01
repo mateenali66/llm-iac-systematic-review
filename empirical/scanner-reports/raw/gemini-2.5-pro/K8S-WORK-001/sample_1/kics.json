@@ -1,0 +1,562 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 121,
+	"files_parsed": 2,
+	"lines_parsed": 121,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 1,
+		"INFO": 0,
+		"LOW": 11,
+		"MEDIUM": 7,
+		"TRACE": 0
+	},
+	"total_counter": 19,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:59:43.305589052Z",
+	"end": "2026-05-26T04:59:45.328732845Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Privilege Escalation Allowed",
+			"query_id": "5572cc5e-1e4c-4113-92a6-7a8a3bd25e6d",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should not run with allowPrivilegeEscalation in order to prevent them from gaining more privileges than their parent process",
+			"description_id": "525fccf4",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "fcb61175ecc364ab73334573221eb5dc088e069291d0a90789c443c4f847219e",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.allowPrivilegeEscalation should be set and should be set to false",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.allowPrivilegeEscalation is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running As Root",
+			"query_id": "cf34805e-3872-4c08-bf92-6ff7bb0cfadb",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Containers should only run as non-root user. This limits the exploitability of security misconfigurations and restricts an attacker's possibilities in case of compromise",
+			"description_id": "9d5b1d16",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "aa10bab7ac9c969983c62eb9c12201ca8d1a390f3ffecbf4d8160391eeefffc1",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser is higher than 0 and/or 'runAsNonRoot' is true",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser is 0 and 'runAsNonRoot' is false"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "40726f3b9238ec0a83a6984ba45a195f2a66147c2c9bb6aaaf13877a97be6de6",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser should be defined",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Limits Not Defined",
+			"query_id": "b14d1bc4-a208-45db-92f0-e21f8e2588e9",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory limits should be defined for each container. This prevents potential resource exhaustion by ensuring that containers consume not more than the designated amount of memory",
+			"description_id": "e0ba95cc",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6637bd4a6f37e75968e861d45a79ef5c99503dea1e30ee80057b9b226f708be3",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources.limits.memory should be defined",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources.limits.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Memory Requests Not Defined",
+			"query_id": "229588ef-8fde-40c8-8756-f4f2b5825ded",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/assign-memory-resource/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Memory requests should be defined for each container. This allows the kubelet to reserve the requested amount of system resources and prevents over-provisioning on individual nodes",
+			"description_id": "3dcbd683",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "98dc17dc712ce2c974f6111f0d4562b2913c50bc03088a4a3b30dcbb213c57a2",
+					"line": 67,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": 67,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources.requests.memory should be defined",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources.requests.memory is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "NET_RAW Capabilities Not Being Dropped",
+			"query_id": "dbbc6705-d541-43b0-b166-dd4be8208b54",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "269",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should drop 'ALL' or at least 'NET_RAW' capabilities",
+			"description_id": "e9790956",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "0d73a7e68ebdd6d6ee820c04b08acac9f290f678bc3fe269977477c017fee8db",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.capabilities.drop should be defined",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.capabilities.drop is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Seccomp Profile Is Not Configured",
+			"query_id": "f377b83e-bd07-4f48-a591-60c82b14a78b",
+			"query_url": "https://kubernetes.io/docs/tutorials/security/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Containers should be configured with a secure Seccomp profile to restrict potentially dangerous syscalls",
+			"description_id": "d943c7e7",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ff0c56cc08075f5f07d3e28a529e939f43b62f1b6aef95af420e1f6545ed45fc",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.seccompProfile.type should be defined",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.seccompProfile.type is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{web-frontend}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Limits Not Set",
+			"query_id": "4ac0e2b7-d2d2-4af7-8799-e8de6721ccda",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU limits should be set because if the system has CPU time free, a container is guaranteed to be allocated as much CPU as it requests",
+			"description_id": "9a2ef763",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "3ad30a8a7c923a19d0923a5149255bf4cd68a8bccb6e21bbf70169208ca9cc8c",
+					"line": 66,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name=nginx has limits defined",
+					"actual_value": "spec.template.spec.containers.name=nginx doesn't have limits defined"
+				}
+			]
+		},
+		{
+			"query_name": "CPU Requests Not Set",
+			"query_id": "ca469dd4-c736-448f-8ac1-30a642705e0a",
+			"query_url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "CPU requests should be set to ensure the sum of the resource requests of the scheduled Containers is less than the capacity of the node",
+			"description_id": "ac7ad5df",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "772fc713fc19b9c6fca9a425a92674caae5344a30e32747de5189961260d2219",
+					"line": 67,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.resources.requests",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name={{nginx}}.resources.requests should have CPU requests",
+					"actual_value": "spec.template.spec.containers.name={{nginx}}.resources.requests doesn't have CPU requests"
+				}
+			]
+		},
+		{
+			"query_name": "Deployment Without PodDisruptionBudget",
+			"query_id": "b23e9b98-0cb6-4fc9-b257-1f3270442678",
+			"query_url": "https://kubernetes.io/docs/tasks/run-application/configure-pdb/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Availability",
+			"experimental": false,
+			"description": "Deployments should be assigned with a PodDisruptionBudget to ensure high availability",
+			"description_id": "df941cb9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "65b9f475c47b6faadf9b5ff4a41b160336146a9fe406659fe50acf3089ff2b1c",
+					"line": 15,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.selector.matchLabels",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name=web-frontend is targeted by a PodDisruptionBudget",
+					"actual_value": "metadata.name=web-frontend is not targeted by a PodDisruptionBudget"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d43d14895b4ef85c870170a5874a32ffae71b18a0bad6b77ab02af169b2a5cbb",
+					"line": 45,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "983ef9ff31f153ef5627c4f5c774d233e5288d716c7d1018b3f1424d3ee6f9e1",
+					"line": 44,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2ed872f39c0e6bc3589ecbc9e071e9308f1c947e690d74a00c6b1779bc6e8dcf",
+					"line": 24,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{nginx}}",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{nginx}}"
+				}
+			]
+		},
+		{
+			"query_name": "No Drop Capabilities for Containers",
+			"query_id": "268ca686-7fb7-4ae9-b129-955a2a89064e",
+			"query_url": "https://kubernetes.io/docs/concepts/workloads/pods/init-containers/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "754",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Sees if Kubernetes Drop Capabilities exists to ensure containers security context",
+			"description_id": "9d3ca6db",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "bbf570ec68b0ef11e0b8e1230a6b0636620cbff9b07dfda169bef932a597453a",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.containers.name=nginx",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.containers.name=nginx.securityContext should be set",
+					"actual_value": "metadata.name={{web-frontend}}.spec.containers.name=nginx.securityContext is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9e3b9cebae380da9c885b883583fcdb0144973c0f1f37c77ad7959aba6a51add",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{web-frontend}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "eaf66d27cfd34147f704e32cb517748f4a9bd2d8751ccc69bdda4d771aa80765",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{web-frontend}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without Security Context",
+			"query_id": "a97a340a-0063-418e-b3a1-3028941d0995",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "285",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "A security context defines privilege and access control settings for a Pod or Container",
+			"description_id": "68a1650b",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4d0d24884766ff8893db457f70a563ee965e51ef77a04b68a1e3f92a6713da18",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name=nginx",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "spec.template.spec.containers.name=nginx has a security context",
+					"actual_value": "spec.template.spec.containers.name=nginx does not have a security context"
+				}
+			]
+		},
+		{
+			"query_name": "Root Container Not Mounted Read-only",
+			"query_id": "a9c2f49d-0671-4fc9-9ece-f4e261e128d0",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "668",
+			"cloud_provider": "COMMON",
+			"category": "Build Process",
+			"experimental": false,
+			"description": "Check if the root container filesystem is not being mounted as read-only.",
+			"description_id": "0d2df1e5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "a3e18d592aed99c8d49e05efe5ed6f2f82479f4e38bb1e188be042c81a80d401",
+					"line": 43,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.readOnlyRootFilesystem should be set to true",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.readOnlyRootFilesystem is undefined"
+				}
+			]
+		}
+	]
+}

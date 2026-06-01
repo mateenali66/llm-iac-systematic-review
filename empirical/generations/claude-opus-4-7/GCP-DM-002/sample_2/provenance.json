@@ -1,0 +1,53 @@
+{
+  "model": "claude-opus-4-7",
+  "model_id": "claude-opus-4-7",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-002",
+  "language": "gcp_dm",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud Storage bucket for hosting a static website.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud Storage bucket for hosting a static website.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: static-website-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-bucket-prod\n    location: US\n    storageClass: STANDARD\n    website:\n      mainPageSuffix: index.html\n      notFoundPage: 404.html\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: inherited\n    versioning:\n      enabled: true\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          numNewerVersions: 5\n      - action:\n          type: SetStorageClass\n          storageClass: NEARLINE\n        condition:\n          age: 30\n          isLive: false\n    cors:\n    - origin:\n      - \"https://example.com\"\n      method:\n      - GET\n      - HEAD\n      responseHeader:\n      - Content-Type\n      maxAgeSeconds: 3600\n    logging:\n      logBucket: my-static-website-logs-prod\n      logObjectPrefix: access-logs/\n    labels:\n      environment: production\n      purpose: static-website\n      managed-by: deployment-manager\n\n- name: static-website-logs-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-logs-prod\n    location: US\n    storageClass: STANDARD\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: enforced\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          age: 90\n    labels:\n      environment: production\n      purpose: access-logs\n      managed-by: deployment-manager\n\n- name: static-website-bucket-public-read\n  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n  properties:\n    bucket: $(ref.static-website-bucket.name)\n    role: roles/storage.objectViewer\n    member: allUsers\n\noutputs:\n- name: bucketName\n  value: $(ref.static-website-bucket.name)\n- name: bucketSelfLink\n  value: $(ref.static-website-bucket.selfLink)\n- name: websiteUrl\n  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/index.html\n- name: logsBucketName\n  value: $(ref.static-website-logs-bucket.name)",
+  "cleaned_response": "resources:\n- name: static-website-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-bucket-prod\n    location: US\n    storageClass: STANDARD\n    website:\n      mainPageSuffix: index.html\n      notFoundPage: 404.html\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: inherited\n    versioning:\n      enabled: true\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          numNewerVersions: 5\n      - action:\n          type: SetStorageClass\n          storageClass: NEARLINE\n        condition:\n          age: 30\n          isLive: false\n    cors:\n    - origin:\n      - \"https://example.com\"\n      method:\n      - GET\n      - HEAD\n      responseHeader:\n      - Content-Type\n      maxAgeSeconds: 3600\n    logging:\n      logBucket: my-static-website-logs-prod\n      logObjectPrefix: access-logs/\n    labels:\n      environment: production\n      purpose: static-website\n      managed-by: deployment-manager\n\n- name: static-website-logs-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-logs-prod\n    location: US\n    storageClass: STANDARD\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: enforced\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          age: 90\n    labels:\n      environment: production\n      purpose: access-logs\n      managed-by: deployment-manager\n\n- name: static-website-bucket-public-read\n  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n  properties:\n    bucket: $(ref.static-website-bucket.name)\n    role: roles/storage.objectViewer\n    member: allUsers\n\noutputs:\n- name: bucketName\n  value: $(ref.static-website-bucket.name)\n- name: bucketSelfLink\n  value: $(ref.static-website-bucket.selfLink)\n- name: websiteUrl\n  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/index.html\n- name: logsBucketName\n  value: $(ref.static-website-logs-bucket.name)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: static-website-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-bucket-prod\n    location: US\n    storageClass: STANDARD\n    website:\n      mainPageSuffix: index.html\n      notFoundPage: 404.html\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: inherited\n    versioning:\n      enabled: true\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          numNewerVersions: 5\n      - action:\n          type: SetStorageClass\n          storageClass: NEARLINE\n        condition:\n          age: 30\n          isLive: false\n    cors:\n    - origin:\n      - \"https://example.com\"\n      method:\n      - GET\n      - HEAD\n      responseHeader:\n      - Content-Type\n      maxAgeSeconds: 3600\n    logging:\n      logBucket: my-static-website-logs-prod\n      logObjectPrefix: access-logs/\n    labels:\n      environment: production\n      purpose: static-website\n      managed-by: deployment-manager\n\n- name: static-website-logs-bucket\n  type: storage.v1.bucket\n  properties:\n    name: my-static-website-logs-prod\n    location: US\n    storageClass: STANDARD\n    iamConfiguration:\n      uniformBucketLevelAccess:\n        enabled: true\n      publicAccessPrevention: enforced\n    lifecycle:\n      rule:\n      - action:\n          type: Delete\n        condition:\n          age: 90\n    labels:\n      environment: production\n      purpose: access-logs\n      managed-by: deployment-manager\n\n- name: static-website-bucket-public-read\n  type: gcp-types/storage-v1:virtual.buckets.iamMemberBinding\n  properties:\n    bucket: $(ref.static-website-bucket.name)\n    role: roles/storage.objectViewer\n    member: allUsers\n\noutputs:\n- name: bucketName\n  value: $(ref.static-website-bucket.name)\n- name: bucketSelfLink\n  value: $(ref.static-website-bucket.selfLink)\n- name: websiteUrl\n  value: https://storage.googleapis.com/$(ref.static-website-bucket.name)/index.html\n- name: logsBucketName\n  value: $(ref.static-website-logs-bucket.name)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726342,
+    "model": "claude-opus-4-7",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 245,
+      "output_tokens": 809,
+      "raw_input_tokens": 245
+    }
+  },
+  "started_at": "2026-05-25T16:25:31.899767+00:00",
+  "elapsed_seconds": 10.747
+}

@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-003",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an EC2 t3.medium instance in us-east-1 running Amazon Linux 2023 for an internal jump host used by engineers to reach private subnets via SSH.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami           = \"ami-0c94855ba95c71c99\"\n  instance_type = \"t3.medium\"\n  vpc_security_group_ids = [aws_security_group.jump_host_sg.id]\n  key_name               = \"engineering_jump_host_key\"\n  tags = {\n    Name        = \"engineering_jump_host\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host\"\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name        = \"engineering_jump_host_sg\"\n  description = \"Security group for engineering jump host\"\n  vpc_id      = aws_vpc.jump_host_vpc.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_sg\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_sg\"\n  }\n}\n\nresource \"aws_vpc\" \"jump_host_vpc\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name        = \"engineering_jump_host_vpc\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"jump_host_subnet\" {\n  cidr_block = \"10.0.1.0/24\"\n  vpc_id     = aws_vpc.jump_host_vpc.id\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name        = \"engineering_jump_host_subnet\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_subnet\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"jump_host_igw\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n  tags = {\n    Name        = \"engineering_jump_host_igw\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_igw\"\n  }\n}\n\nresource \"aws_route_table\" \"jump_host_rt\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.jump_host_igw.id\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_rt\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"jump_host_rta\" {\n  subnet_id      = aws_subnet.jump_host_subnet.id\n  route_table_id = aws_route_table.jump_host_rt.id\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami           = \"ami-0c94855ba95c71c99\"\n  instance_type = \"t3.medium\"\n  vpc_security_group_ids = [aws_security_group.jump_host_sg.id]\n  key_name               = \"engineering_jump_host_key\"\n  tags = {\n    Name        = \"engineering_jump_host\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host\"\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name        = \"engineering_jump_host_sg\"\n  description = \"Security group for engineering jump host\"\n  vpc_id      = aws_vpc.jump_host_vpc.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_sg\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_sg\"\n  }\n}\n\nresource \"aws_vpc\" \"jump_host_vpc\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name        = \"engineering_jump_host_vpc\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"jump_host_subnet\" {\n  cidr_block = \"10.0.1.0/24\"\n  vpc_id     = aws_vpc.jump_host_vpc.id\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name        = \"engineering_jump_host_subnet\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_subnet\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"jump_host_igw\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n  tags = {\n    Name        = \"engineering_jump_host_igw\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_igw\"\n  }\n}\n\nresource \"aws_route_table\" \"jump_host_rt\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.jump_host_igw.id\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_rt\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"jump_host_rta\" {\n  subnet_id      = aws_subnet.jump_host_subnet.id\n  route_table_id = aws_route_table.jump_host_rt.id\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\nresource \"aws_instance\" \"jump_host\" {\n  ami           = \"ami-0c94855ba95c71c99\"\n  instance_type = \"t3.medium\"\n  vpc_security_group_ids = [aws_security_group.jump_host_sg.id]\n  key_name               = \"engineering_jump_host_key\"\n  tags = {\n    Name        = \"engineering_jump_host\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host\"\n  }\n}\n\nresource \"aws_security_group\" \"jump_host_sg\" {\n  name        = \"engineering_jump_host_sg\"\n  description = \"Security group for engineering jump host\"\n  vpc_id      = aws_vpc.jump_host_vpc.id\n\n  ingress {\n    from_port   = 22\n    to_port     = 22\n    protocol    = \"tcp\"\n    cidr_blocks = [\"10.0.0.0/8\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_sg\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_sg\"\n  }\n}\n\nresource \"aws_vpc\" \"jump_host_vpc\" {\n  cidr_block = \"10.0.0.0/16\"\n  tags = {\n    Name        = \"engineering_jump_host_vpc\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"jump_host_subnet\" {\n  cidr_block = \"10.0.1.0/24\"\n  vpc_id     = aws_vpc.jump_host_vpc.id\n  availability_zone = \"us-east-1a\"\n  tags = {\n    Name        = \"engineering_jump_host_subnet\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_subnet\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"jump_host_igw\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n  tags = {\n    Name        = \"engineering_jump_host_igw\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_igw\"\n  }\n}\n\nresource \"aws_route_table\" \"jump_host_rt\" {\n  vpc_id = aws_vpc.jump_host_vpc.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.jump_host_igw.id\n  }\n\n  tags = {\n    Name        = \"engineering_jump_host_rt\"\n    Environment = \"production\"\n    Purpose     = \"internal_jump_host_rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"jump_host_rta\" {\n  subnet_id      = aws_subnet.jump_host_subnet.id\n  route_table_id = aws_route_table.jump_host_rt.id\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723937,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 174,
+      "output_tokens": 633,
+      "raw_input_tokens": 174
+    }
+  },
+  "started_at": "2026-05-25T15:45:35.686382+00:00",
+  "elapsed_seconds": 1.427
+}

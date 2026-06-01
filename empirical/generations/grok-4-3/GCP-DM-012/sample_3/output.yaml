@@ -1,0 +1,34 @@
+resources:
+- name: armor-policy
+  type: compute.v1.securityPolicy
+  properties:
+    name: prod-cloud-armor-policy
+    description: "Production Cloud Armor policy with geo-blocking and per-IP rate limiting"
+    rules:
+    - priority: 1000
+      action: deny(403)
+      description: "Block traffic from high-risk countries"
+      match:
+        expr:
+          expression: "origin.region_code.matches('^(CN|RU|IR|KP|CU)$')"
+    - priority: 2000
+      action: throttle
+      description: "Rate limit 100 requests per minute per IP"
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges: ["*"]
+      rateLimitOptions:
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 60
+        conformAction: allow
+        exceedAction: deny(429)
+        enforceOnKey: IP
+    - priority: 2147483647
+      action: allow
+      description: "Default allow rule"
+      match:
+        versionedExpr: SRC_IPS_V1
+        config:
+          srcIpRanges: ["*"]

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "GCP-DM-014",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning Workload Identity Federation for a GitHub Actions workflow that needs to deploy Cloud Run services.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: github-actions-workload-identity-pool\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools\n  properties:\n    parent: projects/{{ env['project'] }}/locations/global\n    workloadIdentityPoolId: github-actions-pool\n    displayName: GitHub Actions Workload Identity Pool\n    description: Workload Identity Pool for GitHub Actions\n    state: ACTIVE\n\n- name: github-actions-workload-identity-provider\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers\n  properties:\n    parent: $(ref.github-actions-workload-identity-pool.name)\n    workloadIdentityProviderId: github-actions-provider\n    displayName: GitHub Actions Workload Identity Provider\n    description: Workload Identity Provider for GitHub Actions\n    state: ACTIVE\n    oidc:\n      issuerUri: https://token.actions.githubusercontent.com\n      allowedAudiences:\n      - projects/{{ env['project'] }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider\n    attributeMapping:\n      google.subject: assertion.sub\n      attribute.actor: assertion.actor\n      attribute.repository: assertion.repository\n      attribute.repository_owner: assertion.repository_owner\n      attribute.workflow: assertion.workflow\n      attribute.run_id: assertion.run_id\n      attribute.run_attempt: assertion.run_attempt\n\n- name: github-actions-service-account\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    accountId: github-actions-sa\n    displayName: GitHub Actions Service Account\n    description: Service account for GitHub Actions deployments\n\n- name: github-actions-service-account-binding\n  type: gcp-types/iam-v1:projects.serviceAccounts.iam\n  properties:\n    resource: projects/{{ env['project'] }}/serviceAccounts/$(ref.github-actions-service-account.email)\n    policy:\n      bindings:\n      - role: roles/iam.workloadIdentityUser\n        members:\n        - principalSet://iam.googleapis.com/$(ref.github-actions-workload-identity-pool.name)/attribute.repository/{{ properties['githubRepository'] }}\n      - role: roles/run.admin\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/iam.serviceAccountUser\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/storage.objectViewer\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n\noutputs:\n- name: workload_identity_pool_name\n  value: $(ref.github-actions-workload-identity-pool.name)\n- name: workload_identity_provider_name\n  value: $(ref.github-actions-workload-identity-provider.name)\n- name: service_account_email\n  value: $(ref.github-actions-service-account.email)",
+  "cleaned_response": "resources:\n- name: github-actions-workload-identity-pool\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools\n  properties:\n    parent: projects/{{ env['project'] }}/locations/global\n    workloadIdentityPoolId: github-actions-pool\n    displayName: GitHub Actions Workload Identity Pool\n    description: Workload Identity Pool for GitHub Actions\n    state: ACTIVE\n\n- name: github-actions-workload-identity-provider\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers\n  properties:\n    parent: $(ref.github-actions-workload-identity-pool.name)\n    workloadIdentityProviderId: github-actions-provider\n    displayName: GitHub Actions Workload Identity Provider\n    description: Workload Identity Provider for GitHub Actions\n    state: ACTIVE\n    oidc:\n      issuerUri: https://token.actions.githubusercontent.com\n      allowedAudiences:\n      - projects/{{ env['project'] }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider\n    attributeMapping:\n      google.subject: assertion.sub\n      attribute.actor: assertion.actor\n      attribute.repository: assertion.repository\n      attribute.repository_owner: assertion.repository_owner\n      attribute.workflow: assertion.workflow\n      attribute.run_id: assertion.run_id\n      attribute.run_attempt: assertion.run_attempt\n\n- name: github-actions-service-account\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    accountId: github-actions-sa\n    displayName: GitHub Actions Service Account\n    description: Service account for GitHub Actions deployments\n\n- name: github-actions-service-account-binding\n  type: gcp-types/iam-v1:projects.serviceAccounts.iam\n  properties:\n    resource: projects/{{ env['project'] }}/serviceAccounts/$(ref.github-actions-service-account.email)\n    policy:\n      bindings:\n      - role: roles/iam.workloadIdentityUser\n        members:\n        - principalSet://iam.googleapis.com/$(ref.github-actions-workload-identity-pool.name)/attribute.repository/{{ properties['githubRepository'] }}\n      - role: roles/run.admin\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/iam.serviceAccountUser\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/storage.objectViewer\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n\noutputs:\n- name: workload_identity_pool_name\n  value: $(ref.github-actions-workload-identity-pool.name)\n- name: workload_identity_provider_name\n  value: $(ref.github-actions-workload-identity-provider.name)\n- name: service_account_email\n  value: $(ref.github-actions-service-account.email)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: github-actions-workload-identity-pool\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools\n  properties:\n    parent: projects/{{ env['project'] }}/locations/global\n    workloadIdentityPoolId: github-actions-pool\n    displayName: GitHub Actions Workload Identity Pool\n    description: Workload Identity Pool for GitHub Actions\n    state: ACTIVE\n\n- name: github-actions-workload-identity-provider\n  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers\n  properties:\n    parent: $(ref.github-actions-workload-identity-pool.name)\n    workloadIdentityProviderId: github-actions-provider\n    displayName: GitHub Actions Workload Identity Provider\n    description: Workload Identity Provider for GitHub Actions\n    state: ACTIVE\n    oidc:\n      issuerUri: https://token.actions.githubusercontent.com\n      allowedAudiences:\n      - projects/{{ env['project'] }}/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider\n    attributeMapping:\n      google.subject: assertion.sub\n      attribute.actor: assertion.actor\n      attribute.repository: assertion.repository\n      attribute.repository_owner: assertion.repository_owner\n      attribute.workflow: assertion.workflow\n      attribute.run_id: assertion.run_id\n      attribute.run_attempt: assertion.run_attempt\n\n- name: github-actions-service-account\n  type: gcp-types/iam-v1:projects.serviceAccounts\n  properties:\n    accountId: github-actions-sa\n    displayName: GitHub Actions Service Account\n    description: Service account for GitHub Actions deployments\n\n- name: github-actions-service-account-binding\n  type: gcp-types/iam-v1:projects.serviceAccounts.iam\n  properties:\n    resource: projects/{{ env['project'] }}/serviceAccounts/$(ref.github-actions-service-account.email)\n    policy:\n      bindings:\n      - role: roles/iam.workloadIdentityUser\n        members:\n        - principalSet://iam.googleapis.com/$(ref.github-actions-workload-identity-pool.name)/attribute.repository/{{ properties['githubRepository'] }}\n      - role: roles/run.admin\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/iam.serviceAccountUser\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n      - role: roles/storage.objectViewer\n        members:\n        - serviceAccount:$(ref.github-actions-service-account.email)\n\noutputs:\n- name: workload_identity_pool_name\n  value: $(ref.github-actions-workload-identity-pool.name)\n- name: workload_identity_provider_name\n  value: $(ref.github-actions-workload-identity-provider.name)\n- name: service_account_email\n  value: $(ref.github-actions-service-account.email)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725255,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 142,
+      "output_tokens": 569,
+      "raw_input_tokens": 142
+    }
+  },
+  "started_at": "2026-05-25T16:07:28.115844+00:00",
+  "elapsed_seconds": 7.597
+}

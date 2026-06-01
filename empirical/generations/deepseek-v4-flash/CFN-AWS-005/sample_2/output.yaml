@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Three-tier VPC with public, application, and database subnets across three availability zones'
+
+Parameters:
+  VpcCIDR:
+    Type: String
+    Default: '10.0.0.0/16'
+    Description: 'CIDR block for the VPC'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  PublicSubnet1CIDR:
+    Type: String
+    Default: '10.0.1.0/24'
+    Description: 'CIDR block for public subnet in AZ1'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  PublicSubnet2CIDR:
+    Type: String
+    Default: '10.0.2.0/24'
+    Description: 'CIDR block for public subnet in AZ2'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  PublicSubnet3CIDR:
+    Type: String
+    Default: '10.0.3.0/24'
+    Description: 'CIDR block for public subnet in AZ3'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  AppSubnet1CIDR:
+    Type: String
+    Default: '10.0.11.0/24'
+    Description: 'CIDR block for application subnet in AZ1'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  AppSubnet2CIDR:
+    Type: String
+    Default: '10.0.12.0/24'
+    Description: 'CIDR block for application subnet in AZ2'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  AppSubnet3CIDR:
+    Type: String
+    Default: '10.0.13.0/24'
+    Description: 'CIDR block for application subnet in AZ3'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  DbSubnet1CIDR:
+    Type: String
+    Default: '10.0.21.0/24'
+    Description: 'CIDR block for database subnet in AZ1'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  DbSubnet2CIDR:
+    Type: String
+    Default: '10.0.22.0/24'
+    Description: 'CIDR block for database subnet in AZ2'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  DbSubnet3CIDR:
+    Type: String
+    Default: '10.0.23.0/24'
+    Description: 'CIDR block for database subnet in AZ3'
+    AllowedPattern: '^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$'
+
+  EnvironmentName:
+    Type: String
+    Default: 'production'
+    Description: 'Environment name for tagging'
+    AllowedValues:
+      - production
+      - staging
+      - development
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-vpc'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-igw'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # Public Subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1CIDR
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az1'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: public
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2CIDR
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az2'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: public
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3CIDR
+      AvailabilityZone: !Select [2, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-public-subnet-az3'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: public
+
+  # Application Subnets
+  AppSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref AppSubnet1CIDR
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-subnet-az1'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: application
+
+  AppSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref AppSubnet2CIDR
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-subnet-az2'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: application
+
+  AppSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref AppSubnet3CIDR
+      AvailabilityZone: !Select [2, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-app-subnet-az3'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: application
+
+  # Database Subnets
+  DbSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref DbSubnet1CIDR
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-db-subnet-az1'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: database
+
+  DbSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref DbSubnet2CIDR
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${EnvironmentName}-db-subnet-az2'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Tier
+          Value: database
+
+  DbSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId

@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-007",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_iam_role\" \"ec2_app_config_reader\" {\n  name               = \"ec2-app-config-reader\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"ec2.amazonaws.com\" }\n    }]\n  })\n  permissions_boundary = null\n  max_session_duration = 3600\n}\n\nresource \"aws_iam_policy\" \"s3_read_only\" {\n  name = \"app-config-bucket-read-only\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:GetObject\", \"s3:GetObjectVersion\"]\n        Resource = \"arn:aws:s3:::app-config-bucket/*\"\n      },\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:ListBucket\"]\n        Resource = \"arn:aws:s3:::app-config-bucket\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read_attach\" {\n  role       = aws_iam_role.ec2_app_config_reader.name\n  policy_arn = aws_iam_policy.s3_read_only.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_app_config_profile\" {\n  name = \"ec2-app-config-profile\"\n  role = aws_iam_role.ec2_app_config_reader.name\n}",
+  "cleaned_response": "resource \"aws_iam_role\" \"ec2_app_config_reader\" {\n  name               = \"ec2-app-config-reader\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"ec2.amazonaws.com\" }\n    }]\n  })\n  permissions_boundary = null\n  max_session_duration = 3600\n}\n\nresource \"aws_iam_policy\" \"s3_read_only\" {\n  name = \"app-config-bucket-read-only\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:GetObject\", \"s3:GetObjectVersion\"]\n        Resource = \"arn:aws:s3:::app-config-bucket/*\"\n      },\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:ListBucket\"]\n        Resource = \"arn:aws:s3:::app-config-bucket\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read_attach\" {\n  role       = aws_iam_role.ec2_app_config_reader.name\n  policy_arn = aws_iam_policy.s3_read_only.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_app_config_profile\" {\n  name = \"ec2-app-config-profile\"\n  role = aws_iam_role.ec2_app_config_reader.name\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_iam_role\" \"ec2_app_config_reader\" {\n  name               = \"ec2-app-config-reader\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"ec2.amazonaws.com\" }\n    }]\n  })\n  permissions_boundary = null\n  max_session_duration = 3600\n}\n\nresource \"aws_iam_policy\" \"s3_read_only\" {\n  name = \"app-config-bucket-read-only\"\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:GetObject\", \"s3:GetObjectVersion\"]\n        Resource = \"arn:aws:s3:::app-config-bucket/*\"\n      },\n      {\n        Effect   = \"Allow\"\n        Action   = [\"s3:ListBucket\"]\n        Resource = \"arn:aws:s3:::app-config-bucket\"\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"s3_read_attach\" {\n  role       = aws_iam_role.ec2_app_config_reader.name\n  policy_arn = aws_iam_policy.s3_read_only.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_app_config_profile\" {\n  name = \"ec2-app-config-profile\"\n  role = aws_iam_role.ec2_app_config_reader.name\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726566,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 42,
+      "output_tokens": 309,
+      "reasoning_tokens": 716,
+      "cache_read_input_tokens": 256,
+      "raw_input_tokens": 2
+    }
+  },
+  "started_at": "2026-05-25T16:29:18.327849+00:00",
+  "elapsed_seconds": 7.97
+}

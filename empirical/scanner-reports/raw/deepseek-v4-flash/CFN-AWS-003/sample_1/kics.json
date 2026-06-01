@@ -1,0 +1,198 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 275,
+	"files_parsed": 2,
+	"lines_parsed": 275,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 500,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 2,
+		"MEDIUM": 2,
+		"TRACE": 0
+	},
+	"total_counter": 6,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:37:27.022553461Z",
+	"end": "2026-05-26T04:37:30.879953255Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "CMK Unencrypted Storage",
+			"query_id": "ffee2785-c347-451e-89f3-11aeb08e5c84",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "Ensure that storage is encrypted.",
+			"description_id": "ba38e42e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "892dfbaa134433c5352a5d19665fa15d984ad880d130209df07840f8023ecf99",
+					"line": 175,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${AWS::StackName}-instance-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBInstance.Properties.StorageEncrypted should be defined",
+					"actual_value": "Resources.DBInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Storage Not Encrypted",
+			"query_id": "5beacce3-4020-4a3d-9e1d-a36f953df630",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "HIGH",
+			"platform": "CloudFormation",
+			"cwe": "312",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "RDS Storage should be encrypted, which means the attribute 'StorageEncrypted' should be set to 'true'",
+			"description_id": "f052de92",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ca0e70a4ba9ba5644da9fe06fdd6e68367eaae7a7559b591e08c65ec510e50f2",
+					"line": 175,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${AWS::StackName}-instance-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBInstance.Properties.StorageEncrypted should be defined and set to true",
+					"actual_value": "Resources.DBInstance.Properties.StorageEncrypted is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Database Auth Not Enabled",
+			"query_id": "9fcd0a0a-9b6f-4670-a215-d94e6bf3f184",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-enableiamdatabaseauthentication",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "311",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "IAM Database Auth Enabled should be configured to true when using compatible engine and version",
+			"description_id": "e4c2c085",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d73e03226382026875e4eb9e0e00c98c893dffe74fdddeb55bc911720693cbb9",
+					"line": 175,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${AWS::StackName}-instance-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBInstance.Properties.EnableIAMDatabaseAuthentication should be defined",
+					"actual_value": "Resources.DBInstance.Properties.EnableIAMDatabaseAuthentication is not defined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS Multi-AZ Deployment Disabled",
+			"query_id": "2b1d4935-9acf-48a7-8466-10d18bf51a69",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html",
+			"severity": "MEDIUM",
+			"platform": "CloudFormation",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Availability",
+			"experimental": false,
+			"description": "AWS RDS Instance should have a multi-az deployment",
+			"description_id": "4bdb6677",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ffa046d104dbb2e6b57b26a7a95e3cbba70a189432339f254e7151322915d146",
+					"line": 175,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${AWS::StackName}-instance-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "The RDS DBInstance 'DBInstance' should have Multi-Availability Zone enabled",
+					"actual_value": "The RDS DBInstance 'DBInstance' MultiAZ property is undefined and by default disabled"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "8d29754a-2a18-460d-a1ba-9509f8d359da",
+			"query_url": "https://docs.aws.amazon.com/en_us/AWSCloudFormation/latest/UserGuide/aws-resource-accessanalyzer-analyzer.html",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "24a6978e",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "4b6280bc7d7427a0316e08d0b43236a62e4c7f676e7139f19bcc097d3c776f44",
+					"line": 77,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'AWS::AccessAnalyzer::Analyzer' should be set",
+					"actual_value": "'AWS::AccessAnalyzer::Analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "RDS DB Instance With Deletion Protection Disabled",
+			"query_id": "2c161e58-cb52-454f-abea-6470c37b5e6e",
+			"query_url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-rds-database-instance.html#cfn-rds-dbinstance-deletionprotection",
+			"severity": "LOW",
+			"platform": "CloudFormation",
+			"cwe": "459",
+			"cloud_provider": "AWS",
+			"category": "Backup",
+			"experimental": false,
+			"description": "RDS DBInstance should have deletion protection set to true",
+			"description_id": "606a0602",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "1d2e86eb99c36f3c3733eba796cfb43a1f6cc9ec635ea7b36353984dcd2760a7",
+					"line": 175,
+					"resource_type": "AWS::RDS::DBInstance",
+					"resource_name": "${AWS::StackName}-instance-1",
+					"issue_type": "MissingAttribute",
+					"search_key": "Resources.DBInstance.Properties",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "Resources.DBInstance.Properties.DeletionProtection should be defined",
+					"actual_value": "Resources.DBInstance.Properties.DeletionProtection is undefined"
+				}
+			]
+		}
+	]
+}

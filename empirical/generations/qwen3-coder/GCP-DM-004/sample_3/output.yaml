@@ -1,0 +1,69 @@
+imports:
+- path: network.jinja
+
+resources:
+- name: custom-vpc-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: public-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc-network.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.1.0/24
+    privateIpGoogleAccess: false
+
+- name: private-subnet
+  type: compute.v1.subnetwork
+  properties:
+    network: $(ref.custom-vpc-network.selfLink)
+    region: us-central1
+    ipCidrRange: 10.0.2.0/24
+    privateIpGoogleAccess: true
+
+- name: cloud-nat-router
+  type: compute.v1.router
+  properties:
+    network: $(ref.custom-vpc-network.selfLink)
+    region: us-central1
+    nats:
+    - name: private-nat
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.private-subnet.selfLink)
+        sourceIpRangesToNat: ALL_IP_RANGES
+
+- name: allow-internal-firewall
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc-network.selfLink)
+    priority: 1000
+    sourceRanges:
+    - 10.0.0.0/16
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - 0-65535
+    - IPProtocol: udp
+      ports:
+      - 0-65535
+    - IPProtocol: icmp
+
+- name: allow-ssh-firewall
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.custom-vpc-network.selfLink)
+    priority: 1000
+    targetTags:
+    - ssh-allowed
+    sourceRanges:
+    - 0.0.0.0/0
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - 22

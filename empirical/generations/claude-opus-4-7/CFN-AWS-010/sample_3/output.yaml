@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Order processor Lambda function triggered by SQS queue
+
+Parameters:
+  FunctionName:
+    Type: String
+    Default: order-processor
+    Description: Name of the Lambda function
+  LogRetentionInDays:
+    Type: Number
+    Default: 30
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+  MessageRetentionPeriod:
+    Type: Number
+    Default: 345600
+    MinValue: 60
+    MaxValue: 1209600
+  VisibilityTimeoutSeconds:
+    Type: Number
+    Default: 180
+    MinValue: 0
+    MaxValue: 43200
+
+Resources:
+  OrderProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${FunctionName}-dlq'
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
+
+  OrderProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${FunctionName}-queue'
+      MessageRetentionPeriod: !Ref MessageRetentionPeriod
+      VisibilityTimeout: !Ref VisibilityTimeoutSeconds
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt OrderProcessorDLQ.Arn
+        maxReceiveCount: 5
+
+  OrderProcessorQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref OrderProcessorQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 'sqs:*'
+            Resource: !GetAtt OrderProcessorQueue.Arn
+            Condition:
+              Bool:
+                'aws:SecureTransport': 'false'
+
+  OrderProcessorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${FunctionName}-role-${AWS::Region}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SQSConsumeAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ChangeMessageVisibility
+                Resource: !GetAtt OrderProcessorQueue.Arn
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt OrderProcessorDLQ.Arn
+        - PolicyName: CloudWatchLogsAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt OrderProcessorLogGroup.Arn
+
+  OrderProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${FunctionName}'
+      RetentionInDays: !Ref LogRetentionInDays
+
+  OrderProcessorFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: OrderProcessorLogGroup
+    Properties:
+      FunctionName: !Ref FunctionName
+      Description: Processes order messages from SQS
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt OrderProcessorRole.Arn
+      MemorySize: 256
+      Timeout: 30
+      ReservedConcurrentExecutions: 10
+      Architectures:
+        - arm64
+      TracingConfig:
+        Mode: Active
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+          QUEUE_URL: !Ref OrderProcessorQueue
+      Code:
+        ZipFile: |
+          import json
+          import logging
+          import os
+
+          logger = logging.getLogger()
+          logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
+
+
+          def lambda_handler(event, context):
+              batch_item_failures = []
+              records = event.get("Records", [])
+              logger.info("Received %d messages", len(records))
+
+              for record in records:
+                  message_id = record.get("messageId")
+                  try:
+                      body = json.loads(record["body"])
+                      logger.info("Processing order %s", body.get("orderId"))
+                      # TODO: implement order processing logic
+                  except Exception as exc:
+                      logger.exception("Failed to process message %s: %s", message_id, exc)
+                      batch_item_failures.append({"itemIdentifier": message_id})
+
+              return {"batchItemFailures": batch_item_failures}
+
+  OrderProcessorEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderProcessorQueue.Arn
+      FunctionName: !GetAtt OrderProcessorFunction.Arn
+      BatchSize: 10
+      MaximumBatchingWindowInSeconds: 5
+      Enabled: true
+      FunctionResponseTypes:

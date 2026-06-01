@@ -1,0 +1,496 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: stateful-app
+description: A Helm chart for a stateful application with pre-install DB migration job, StatefulSet, headless Service, and PVC
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.22.0-0"
+home: https://example.com/stateful-app
+sources:
+  - https://example.com/stateful-app/repo
+maintainers:
+  - name: DevOps Team
+    email: devops@example.com
+icon: https://example.com/icon.png
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 3
+
+image:
+  repository: ghcr.io/example/stateful-app
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+  # - name: my-regcred
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  port: 8080
+  annotations: {}
+  headless:
+    annotations: {}
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  mountPath: /var/lib/stateful-app
+
+db:
+  host: "db"
+  port: 5432
+  name: "appdb"
+  user: "appuser"
+  sslMode: "disable"
+  existingSecret: ""
+  secretKeys:
+    password: "password"
+  # If existingSecret is empty and password is provided below, a Secret will be created
+  password: ""
+
+env: []
+# - name: APP_LOG_LEVEL
+#   value: info
+
+envFrom: []
+# - secretRef:
+#     name: another-secret
+# - configMapRef:
+#     name: my-config
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+migrate:
+  enabled: true
+  annotations: {}
+  image:
+    repository: ghcr.io/example/stateful-app
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  command: ["/bin/sh", "-c"]
+  args: ["stateful-app migrate up"]
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  activeDeadlineSeconds: 600
+  backoffLimit: 3
+  env: []
+  envFrom: []
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /healthz
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 20
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /readyz
+    port: http
+    scheme: HTTP
+  initialDelaySeconds: 10
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+updateStrategy:
+  type: RollingUpdate
+
+podManagementPolicy: OrderedReady
+
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+#   labelSelector:
+#     matchLabels: {}
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+priorityClassName: ""
+
+terminationGracePeriodSeconds: 30
+
+pdb:
+  enabled: true
+  minAvailable: 1
+
+extraVolumes: []
+extraVolumeMounts: []
+
+schedulerName: ""
+
+---
+# FILE: templates/_helpers.tpl
+{{- define "stateful-app.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "stateful-app.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.labels" -}}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | quote }}
+app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "stateful-app.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "stateful-app.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "stateful-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- if .Values.serviceAccount.name -}}
+{{- .Values.serviceAccount.name -}}
+{{- else -}}
+{{- include "stateful-app.fullname" . -}}
+{{- end -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.dbSecretName" -}}
+{{- if .Values.db.existingSecret -}}
+{{- .Values.db.existingSecret -}}
+{{- else -}}
+{{- printf "%s-db" (include "stateful-app.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "stateful-app.headlessServiceName" -}}
+{{- printf "%s-headless" (include "stateful-app.fullname" .) -}}
+{{- end -}}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "stateful-app.serviceAccountName" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+{{- end }}
+---
+# FILE: templates/secret-db.yaml
+{{- if and (not .Values.db.existingSecret) .Values.db.password }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "stateful-app.dbSecretName" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  {{ .Values.db.secretKeys.password }}: {{ .Values.db.password | quote }}
+{{- end }}
+---
+# FILE: templates/service-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "stateful-app.headlessServiceName" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.service.headless.annotations | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "stateful-app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "stateful-app.headlessServiceName" . }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    type: {{ .Values.updateStrategy.type }}
+  selector:
+    matchLabels:
+      {{- include "stateful-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "stateful-app.selectorLabels" . | nindent 8 }}
+      annotations:
+        {{- if or (and (not .Values.db.existingSecret) .Values.db.password) .Values.podAnnotations }}
+        {{- if and (not .Values.db.existingSecret) .Values.db.password }}
+        checksum/db-secret: {{ include (print $.Template.BasePath "/secret-db.yaml") . | sha256sum }}
+        {{- end }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "stateful-app.serviceAccountName" . }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.db.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: DB_SSLMODE
+              value: {{ .Values.db.sslMode | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "stateful-app.dbSecretName" . }}
+                  key: {{ .Values.db.secretKeys.password }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: tmp
+              mountPath: /tmp
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  volumeClaimTemplates:
+    {{- if .Values.persistence.enabled }}
+    - metadata:
+        name: data
+        labels:
+          {{- include "stateful-app.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+        {{- if .Values.persistence.storageClass }}
+        storageClassName: {{ .Values.persistence.storageClass }}
+        {{- end }}
+    {{- end }}
+---
+# FILE: templates/job-migrate.yaml
+{{- if .Values.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "stateful-app.fullname" . }}-migrate
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    {{- toYaml .Values.migrate.annotations | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit }}
+  {{- if .Values.migrate.activeDeadlineSeconds }}
+  activeDeadlineSeconds: {{ .Values.migrate.activeDeadlineSeconds }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "stateful-app.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "stateful-app.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: "{{ default .Values.image.repository .Values.migrate.image.repository }}:{{ default .Values.image.tag .Values.migrate.image.tag }}"
+          imagePullPolicy: {{ default .Values.image.pullPolicy .Values.migrate.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          command:
+            {{- toYaml .Values.migrate.command | nindent 12 }}
+          args:
+            {{- toYaml .Values.migrate.args | nindent 12 }}
+          env:
+            - name: DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: DB_PORT
+              value: {{ .Values.db.port | quote }}
+            - name: DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: DB_SSLMODE
+              value: {{ .Values.db.sslMode | quote }}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "stateful-app.dbSecretName" . }}
+                  key: {{ .Values.db.secretKeys.password }}
+            {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.migrate.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- $combinedEnvFrom := (concat .Values.envFrom .Values.migrate.envFrom) }}
+          {{- if $combinedEnvFrom }}
+          envFrom:
+            {{- toYaml $combinedEnvFrom | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.migrate.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "stateful-app.fullname" . }}
+  labels:
+    {{- include "stateful-app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "stateful-app.selectorLabels" . | nindent 6 }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+{{- end }}

@@ -1,0 +1,42 @@
+---
+- name: Configure deploy user and SSH
+  become: yes
+  tasks:
+  - name: Create deploy user
+    user:
+      name: deploy
+      group: deploy
+      create_home: yes
+      system: no
+      append: yes
+      groups: sudo
+      state: present
+
+  - name: Set up passwordless sudo for deploy user
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^deploy'
+      line: 'deploy ALL=(ALL) NOPASSWD:ALL'
+      validate: 'visudo -cf %s'
+
+  - name: Install deploy user's public SSH key
+    authorized_key:
+      user: deploy
+      state: present
+      key: "{{ lookup('ansible_vault', 'deploy_ssh_key') }}"
+
+  - name: Disable password-based SSH login
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      state: present
+      regexp: '^PasswordAuthentication'
+      line: 'PasswordAuthentication no'
+      validate: 'sshd -t -f %s'
+
+  - name: Restart SSH service
+    service:
+      name: ssh
+      state: restarted
+      enabled: yes
+...

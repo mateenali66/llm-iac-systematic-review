@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-crd-access
+  labels:
+    app.kubernetes.io/name: operator-crd-access
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: example-operator
+    app.kubernetes.io/managed-by: IaC
+rules:
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - operator.example.com
+    resources:
+      - widgets
+    verbs:
+      - create
+      - update
+      - patch
+      - delete

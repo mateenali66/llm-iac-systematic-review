@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myapp-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/<IAM_ROLE_NAME>
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+  labels:
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/instance: myapp
+    app.kubernetes.io/part-of: myapp
+    app.kubernetes.io/component: application
+    app.kubernetes.io/managed-by: iac
+automountServiceAccountToken: true

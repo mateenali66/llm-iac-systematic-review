@@ -1,0 +1,67 @@
+resources:
+- name: prod-gke-cluster
+  type: gcp-types/container-v1:projects.locations.clusters
+  properties:
+    parent: projects/{{ env["project"] }}/locations/us-central1
+    cluster:
+      name: prod-gke-cluster
+      description: Production GKE Standard cluster
+      releaseChannel:
+        channel: REGULAR
+      network: projects/{{ env["project"] }}/global/networks/default
+      subnetwork: projects/{{ env["project"] }}/regions/us-central1/subnetworks/default
+      ipAllocationPolicy:
+        useIpAliases: true
+        createSubnetwork: false
+      privateClusterConfig:
+        enablePrivateNodes: true
+        enablePrivateEndpoint: false
+        masterIpv4CidrBlock: 172.16.0.0/28
+      masterAuthorizedNetworksConfig:
+        enabled: true
+        cidrBlocks:
+        - displayName: corporate-vpn
+          cidrBlock: 10.0.0.0/8
+      loggingService: logging.googleapis.com/kubernetes
+      monitoringService: monitoring.googleapis.com/kubernetes
+      workloadIdentityConfig:
+        workloadPool: "{{ env['project'] }}.svc.id.goog"
+      shieldedNodes:
+        enabled: true
+      networkPolicy:
+        enabled: true
+        provider: CALICO
+      nodePools:
+      - name: prod-node-pool
+        config:
+          machineType: e2-standard-4
+          diskSizeGb: 100
+          diskType: pd-ssd
+          imageType: COS_CONTAINERD
+          preemptible: false
+          oauthScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+          serviceAccount: default
+          shieldedInstanceConfig:
+            enableSecureBoot: true
+            enableIntegrityMonitoring: true
+          workloadMetadataConfig:
+            mode: GKE_METADATA
+          labels:
+            environment: production
+            workload-type: standard
+          tags:
+          - gke-prod-nodes
+        initialNodeCount: 3
+        autoscaling:
+          enabled: true
+          minNodeCount: 3
+          maxNodeCount: 20
+        management:
+          autoUpgrade: true
+          autoRepair: true
+        maxPodsConstraint:
+          maxPodsPerNode: 64
+        upgradeSettings:
+          maxSurge: 1
+          maxUnavailable: 0

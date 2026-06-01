@@ -1,0 +1,53 @@
+{
+  "model": "gemini-2.5-pro",
+  "model_id": "gemini-2.5-pro",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "CDK-AWS-007",
+  "language": "cdk_python",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.",
+  "user_message_sent": "Target IaC language: AWS CDK in Python\n\nTask: Write a CDK Python stack provisioning a DynamoDB table with on-demand billing, point-in-time recovery, and a global secondary index on 'customer_id'.\n\nOutput only the AWS CDK in Python code, no commentary or markdown fences.",
+  "raw_response": "from aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_dynamodb as dynamodb\n)\nfrom constructs import Construct\n\nclass ProductionDynamoDbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self, \"DataTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"pk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name=\"sk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=RemovalPolicy.RETAIN,\n            time_to_live_attribute=\"ttl\"\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"customer-id-gsi\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL\n        )",
+  "cleaned_response": "from aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_dynamodb as dynamodb\n)\nfrom constructs import Construct\n\nclass ProductionDynamoDbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self, \"DataTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"pk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name=\"sk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=RemovalPolicy.RETAIN,\n            time_to_live_attribute=\"ttl\"\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"customer-id-gsi\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL\n        )",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "from aws_cdk import (\n    Stack,\n    RemovalPolicy,\n    aws_dynamodb as dynamodb\n)\nfrom constructs import Construct\n\nclass ProductionDynamoDbStack(Stack):\n\n    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:\n        super().__init__(scope, construct_id, **kwargs)\n\n        table = dynamodb.Table(\n            self, \"DataTable\",\n            partition_key=dynamodb.Attribute(\n                name=\"pk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            sort_key=dynamodb.Attribute(\n                name=\"sk\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,\n            point_in_time_recovery=True,\n            encryption=dynamodb.TableEncryption.AWS_MANAGED,\n            removal_policy=RemovalPolicy.RETAIN,\n            time_to_live_attribute=\"ttl\"\n        )\n\n        table.add_global_secondary_index(\n            index_name=\"customer-id-gsi\",\n            partition_key=dynamodb.Attribute(\n                name=\"customer_id\",\n                type=dynamodb.AttributeType.STRING\n            ),\n            projection_type=dynamodb.ProjectionType.ALL\n        )",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "STOP"
+      }
+    ],
+    "created": 1779725848,
+    "model": "gemini-2.5-pro",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 129,
+      "output_tokens": 1680,
+      "raw_input_tokens": 129
+    }
+  },
+  "started_at": "2026-05-25T16:17:07.647902+00:00",
+  "elapsed_seconds": 20.697
+}

@@ -1,0 +1,246 @@
+---
+- name: Install and configure OpenTelemetry Collector
+  hosts: all
+  become: true
+  vars:
+    otelcol_distribution: otelcol-contrib
+    otelcol_version: "0.99.0"
+    otelcol_exporter_endpoint: "otlp.example.com:4317"
+    otelcol_otlp_listen_address: "0.0.0.0:4317"
+    otelcol_user: otelcol
+    otelcol_group: otelcol
+    otelcol_config_dir: /etc/otelcol
+    otelcol_config_path: /etc/otelcol/config.yaml
+    otelcol_state_dir: /var/lib/otelcol
+    otelcol_log_dir: /var/log/otelcol
+    otelcol_install_base: /opt/otelcol
+    otelcol_bin_dir: /usr/local/bin
+    otelcol_service_name: otelcol
+    otelcol_service_unit_path: /etc/systemd/system/otelcol.service
+    otelcol_tls_insecure: false
+    otelcol_headers: {}
+    otelcol_queue_size: 5120
+    otelcol_retry_initial_interval: 1s
+    otelcol_retry_max_interval: 30s
+    otelcol_retry_max_elapsed_time: 300s
+    arch_map:
+      x86_64: amd64
+      aarch64: arm64
+      arm64: arm64
+      amd64: amd64
+
+  pre_tasks:
+    - name: Ensure exporter endpoint is specified
+      assert:
+        that:
+          - otelcol_exporter_endpoint is defined
+          - otelcol_exporter_endpoint | length > 0
+        fail_msg: "Variable 'otelcol_exporter_endpoint' must be defined and non-empty."
+
+    - name: Determine architecture
+      set_fact:
+        otelcol_arch: "{{ arch_map.get(ansible_architecture, 'amd64') }}"
+
+    - name: Set derived variables
+      set_fact:
+        otelcol_release_filename: "{{ otelcol_distribution }}_{{ otelcol_version }}_linux_{{ otelcol_arch }}.tar.gz"
+        otelcol_release_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/{{ otelcol_release_filename }}"
+        otelcol_checksums_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otelcol_version }}/checksums.txt"
+        otelcol_version_dir: "{{ otelcol_install_base }}/{{ otelcol_distribution }}-{{ otelcol_version }}-linux-{{ otelcol_arch }}"
+        otelcol_binary_path: "{{ otelcol_version_dir }}/{{ otelcol_distribution }}"
+        otelcol_symlink_path: "{{ otelcol_bin_dir }}/otelcol"
+
+  tasks:
+    - name: Create group
+      group:
+        name: "{{ otelcol_group }}"
+        system: true
+
+    - name: Create user
+      user:
+        name: "{{ otelcol_user }}"
+        group: "{{ otelcol_group }}"
+        system: true
+        shell: /usr/sbin/nologin
+        home: "{{ otelcol_state_dir }}"
+        create_home: false
+
+    - name: Create directories
+      file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+        mode: "{{ item.mode | default('0755') }}"
+      loop:
+        - { path: "{{ otelcol_install_base }}", mode: "0755" }
+        - { path: "{{ otelcol_version_dir }}", mode: "0755" }
+        - { path: "{{ otelcol_config_dir }}", mode: "0750", group: "{{ otelcol_group }}" }
+        - { path: "{{ otelcol_state_dir }}", owner: "{{ otelcol_user }}", group: "{{ otelcol_group }}", mode: "0750" }
+        - { path: "{{ otelcol_log_dir }}", owner: "{{ otelcol_user }}", group: "{{ otelcol_group }}", mode: "0750" }
+
+    - name: Fetch checksums manifest
+      uri:
+        url: "{{ otelcol_checksums_url }}"
+        return_content: true
+      register: otelcol_checksums
+
+    - name: Extract checksum for release file
+      set_fact:
+        otelcol_sha256_line: "{{ (otelcol_checksums.content.splitlines() | select('search', otelcol_release_filename) | list | first) | default('') }}"
+    - name: Fail if checksum not found
+      fail:
+        msg: "Could not find checksum for {{ otelcol_release_filename }} in checksums file."
+      when: otelcol_sha256_line | length == 0
+
+    - name: Derive SHA256 from checksum line
+      set_fact:
+        otelcol_sha256: "{{ otelcol_sha256_line.split()[0] | lower }}"
+
+    - name: Download OpenTelemetry Collector archive
+      get_url:
+        url: "{{ otelcol_release_url }}"
+        dest: "/tmp/{{ otelcol_release_filename }}"
+        mode: '0644'
+        checksum: "sha256:{{ otelcol_sha256 }}"
+
+    - name: Unarchive OpenTelemetry Collector
+      unarchive:
+        src: "/tmp/{{ otelcol_release_filename }}"
+        dest: "{{ otelcol_version_dir }}"
+        remote_src: true
+        creates: "{{ otelcol_binary_path }}"
+
+    - name: Ensure collector binary permissions
+      file:
+        path: "{{ otelcol_binary_path }}"
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Symlink collector to a stable path
+      file:
+        src: "{{ otelcol_binary_path }}"
+        dest: "{{ otelcol_symlink_path }}"
+        state: link
+        force: true
+      notify: restart otelcol
+
+    - name: Write OpenTelemetry Collector config
+      copy:
+        dest: "{{ otelcol_config_path }}"
+        owner: root
+        group: "{{ otelcol_group }}"
+        mode: '0640'
+        content: |
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: "{{ otelcol_otlp_listen_address }}"
+
+          processors:
+            memory_limiter:
+              check_interval: 5s
+              limit_percentage: 75
+              spike_limit_percentage: 15
+            batch: {}
+
+          exporters:
+            otlp:
+              endpoint: "{{ otelcol_exporter_endpoint }}"
+              tls:
+                insecure: {{ otelcol_tls_insecure | ternary('true', 'false') }}
+              {% if otelcol_headers is mapping and otelcol_headers|length > 0 %}
+              headers:
+              {% for k, v in otelcol_headers.items() %}
+                {{ k }}: "{{ v }}"
+              {% endfor %}
+              {% endif %}
+              compression: gzip
+              sending_queue:
+                enabled: true
+                queue_size: {{ otelcol_queue_size }}
+              retry_on_failure:
+                enabled: true
+                initial_interval: {{ otelcol_retry_initial_interval }}
+                max_interval: {{ otelcol_retry_max_interval }}
+                max_elapsed_time: {{ otelcol_retry_max_elapsed_time }}
+
+          service:
+            telemetry:
+              logs:
+                level: "info"
+            pipelines:
+              traces:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+              metrics:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+              logs:
+                receivers: [otlp]
+                processors: [memory_limiter, batch]
+                exporters: [otlp]
+      notify: restart otelcol
+
+    - name: Validate OpenTelemetry Collector configuration
+      command: "{{ otelcol_symlink_path }} --config {{ otelcol_config_path }} --dry-run"
+      register: otelcol_validate
+      changed_when: false
+
+    - name: Create systemd unit for OpenTelemetry Collector
+      copy:
+        dest: "{{ otelcol_service_unit_path }}"
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=OpenTelemetry Collector
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ otelcol_user }}
+          Group={{ otelcol_group }}
+          ExecStart={{ otelcol_symlink_path }} --config {{ otelcol_config_path }}
+          WorkingDirectory={{ otelcol_state_dir }}
+          Restart=always
+          RestartSec=2
+          LimitNOFILE=65536
+          NoNewPrivileges=true
+          PrivateTmp=true
+          ProtectSystem=strict
+          ProtectHome=true
+          ProtectControlGroups=true
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          LockPersonality=true
+          MemoryDenyWriteExecute=true
+          RestrictRealtime=true
+          RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+          ReadWritePaths={{ otelcol_state_dir }} {{ otelcol_log_dir }}
+          AmbientCapabilities=
+          CapabilityBoundingSet=
+          SystemCallFilter=@system-service
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: restart otelcol
+
+    - name: Reload systemd and enable/start OpenTelemetry Collector
+      systemd:
+        name: "{{ otelcol_service_name }}"
+        daemon_reload: true
+        enabled: true
+        state: started
+
+  handlers:
+    - name: restart otelcol
+      systemd:
+        name: "{{ otelcol_service_name }}"
+        state: restarted

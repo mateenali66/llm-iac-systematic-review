@@ -1,0 +1,53 @@
+{
+  "model": "gpt-5",
+  "model_id": "gpt-5",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-009",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: logs-analysis-dataset\n  type: gcp-types/bigquery-v2:datasets\n  properties:\n    datasetReference:\n      datasetId: logs_analysis\n    location: US\n    friendlyName: Logs Analysis\n    description: Dataset for long-term Cloud Logging exports\n    labels:\n      environment: prod\n      component: logging\n\n- name: logs-to-bq-sink\n  type: gcp-types/logging-v2:projects.sinks\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n  properties:\n    parent: projects/$(ref.logs-analysis-dataset.datasetReference.projectId)\n    uniqueWriterIdentity: true\n    sink:\n      name: logs_to_bigquery\n      destination: bigquery.googleapis.com/projects/$(ref.logs-analysis-dataset.datasetReference.projectId)/datasets/$(ref.logs-analysis-dataset.datasetReference.datasetId)\n      disabled: false\n\n- name: logs-analysis-dataset-access\n  type: gcp-types/bigquery-v2:datasets.patch\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n    - logs-to-bq-sink\n  properties:\n    projectId: $(ref.logs-analysis-dataset.datasetReference.projectId)\n    datasetId: $(ref.logs-analysis-dataset.datasetReference.datasetId)\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      iamMember: $(ref.logs-to-bq-sink.writerIdentity)",
+  "cleaned_response": "resources:\n- name: logs-analysis-dataset\n  type: gcp-types/bigquery-v2:datasets\n  properties:\n    datasetReference:\n      datasetId: logs_analysis\n    location: US\n    friendlyName: Logs Analysis\n    description: Dataset for long-term Cloud Logging exports\n    labels:\n      environment: prod\n      component: logging\n\n- name: logs-to-bq-sink\n  type: gcp-types/logging-v2:projects.sinks\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n  properties:\n    parent: projects/$(ref.logs-analysis-dataset.datasetReference.projectId)\n    uniqueWriterIdentity: true\n    sink:\n      name: logs_to_bigquery\n      destination: bigquery.googleapis.com/projects/$(ref.logs-analysis-dataset.datasetReference.projectId)/datasets/$(ref.logs-analysis-dataset.datasetReference.datasetId)\n      disabled: false\n\n- name: logs-analysis-dataset-access\n  type: gcp-types/bigquery-v2:datasets.patch\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n    - logs-to-bq-sink\n  properties:\n    projectId: $(ref.logs-analysis-dataset.datasetReference.projectId)\n    datasetId: $(ref.logs-analysis-dataset.datasetReference.datasetId)\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      iamMember: $(ref.logs-to-bq-sink.writerIdentity)",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: logs-analysis-dataset\n  type: gcp-types/bigquery-v2:datasets\n  properties:\n    datasetReference:\n      datasetId: logs_analysis\n    location: US\n    friendlyName: Logs Analysis\n    description: Dataset for long-term Cloud Logging exports\n    labels:\n      environment: prod\n      component: logging\n\n- name: logs-to-bq-sink\n  type: gcp-types/logging-v2:projects.sinks\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n  properties:\n    parent: projects/$(ref.logs-analysis-dataset.datasetReference.projectId)\n    uniqueWriterIdentity: true\n    sink:\n      name: logs_to_bigquery\n      destination: bigquery.googleapis.com/projects/$(ref.logs-analysis-dataset.datasetReference.projectId)/datasets/$(ref.logs-analysis-dataset.datasetReference.datasetId)\n      disabled: false\n\n- name: logs-analysis-dataset-access\n  type: gcp-types/bigquery-v2:datasets.patch\n  metadata:\n    dependsOn:\n    - logs-analysis-dataset\n    - logs-to-bq-sink\n  properties:\n    projectId: $(ref.logs-analysis-dataset.datasetReference.projectId)\n    datasetId: $(ref.logs-analysis-dataset.datasetReference.datasetId)\n    access:\n    - role: OWNER\n      specialGroup: projectOwners\n    - role: WRITER\n      specialGroup: projectWriters\n    - role: READER\n      specialGroup: projectReaders\n    - role: WRITER\n      iamMember: $(ref.logs-to-bq-sink.writerIdentity)",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779720359,
+    "model": "gpt-5",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 138,
+      "output_tokens": 6244,
+      "raw_input_tokens": 138
+    }
+  },
+  "started_at": "2026-05-25T14:44:47.857838+00:00",
+  "elapsed_seconds": 72.006
+}

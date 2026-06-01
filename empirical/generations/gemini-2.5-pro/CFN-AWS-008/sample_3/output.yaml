@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Provisions a KMS Customer-Managed Key (CMK) with rotation enabled for encrypting database backups.
+
+Resources:
+  DatabaseBackupKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: KMS key for encrypting database backups
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: key-default-1
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Action: kms:*
+            Resource: '*'
+      EnableKeyRotation: true
+      KeyUsage: ENCRYPT_DECRYPT
+      KeySpec: SYMMETRIC_DEFAULT
+      Tags:
+        - Key: Purpose
+          Value: DatabaseBackupEncryption
+
+  DatabaseBackupKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/database/backup-key
+      TargetKeyId: !Ref DatabaseBackupKey
+
+Outputs:
+  KeyId:
+    Description: The ID of the KMS key for database backups.
+    Value: !Ref DatabaseBackupKey
+    Export:
+      Name: !Sub "${AWS::StackName}-KeyId"
+
+  KeyArn:
+    Description: The ARN of the KMS key for database backups.
+    Value: !GetAtt DatabaseBackupKey.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-KeyArn"
+
+  KeyAliasName:
+    Description: The alias of the KMS key for database backups.
+    Value: !Ref DatabaseBackupKeyAlias
+    Export:
+      Name: !Sub "${AWS::StackName}-KeyAliasName"
+
+  KeyAliasArn:
+    Description: The ARN of the KMS key alias for database backups.
+    Value: !Sub "arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:${DatabaseBackupKeyAlias}"
+    Export:
+      Name: !Sub "${AWS::StackName}-KeyAliasArn"

@@ -1,0 +1,26 @@
+imports:
+  - path: https://raw.githubusercontent.com/GoogleCloudPlatform/deploymentmanager-samples/master/examples/v2/memorystore/redis_instance.py
+    name: redis_instance.py
+
+resources:
+  - name: app-cache-redis
+    type: redis_instance.py
+    properties:
+      tier: BASIC
+      memorySizeGb: 1
+      region: us-central1
+      redisVersion: REDIS_6_X
+      displayName: app-cache-redis
+      labels:
+        - key: environment
+          value: production
+        - key: application
+          value: app-cache
+      authorizedNetwork: projects/${PROJECT_ID}/global/networks/default
+      connectMode: DIRECT_PEERING
+      reservedIpRange: 10.0.0.0/29
+      persistenceConfig:
+        persistenceMode: DISABLED
+      transitEncryptionMode: DISABLED
+      replicaCount: 0
+      readReplicasMode: READ_REPLICAS_DISABLED

@@ -1,0 +1,98 @@
+# FILE: Chart.yaml
+name: redis-cache
+version: 1.0.0
+description: A Helm chart for deploying a Redis cache
+type: application
+
+---
+# FILE: values.yaml
+replicaCount: 1
+image:
+  repository: redis
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  port: 6379
+persistentVolumeClaim:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+secret:
+  password: changeme
+
+---
+# FILE: templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "redis-cache.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "redis-cache.name" . }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.port }}
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "redis-cache.fullname" . }}
+              key: password
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "redis-cache.fullname" . }}-pvc
+
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+spec:
+  clusterIP: None
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.port }}
+  selector:
+    app: {{ include "redis-cache.name" . }}
+
+---
+# FILE: templates/persistentvolumeclaim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "redis-cache.fullname" . }}-pvc
+spec:
+  accessModes:
+    {{- range .Values.persistentVolumeClaim.accessModes }}
+    - {{ . }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolumeClaim.resources.requests.storage }}
+
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "redis-cache.fullname" . }}
+type: Opaque
+data:
+  password: {{ .Values.secret.password | b64enc }}

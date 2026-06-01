@@ -1,0 +1,117 @@
+imports:
+- path: wif.jinja
+
+resources:
+- name: github-wif
+  type: wif.jinja
+  properties:
+    projectId: {{ env["project"] }}
+    projectNumber: {{ env["project_number"] }}
+    poolId: github-actions-pool
+    poolDisplayName: GitHub Actions Pool
+    providerId: github-provider
+    providerDisplayName: GitHub Provider
+    githubOrg: my-github-org
+    githubRepo: my-github-repo
+    serviceAccountId: github-cloud-run-deployer
+    serviceAccountDisplayName: GitHub Actions Cloud Run Deployer
+    region: us-central1
+
+---
+# wif.jinja
+resources:
+- name: {{ properties["poolId"] }}
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools
+  properties:
+    parent: projects/{{ properties["projectId"] }}/locations/global
+    workloadIdentityPoolId: {{ properties["poolId"] }}
+    workloadIdentityPool:
+      displayName: {{ properties["poolDisplayName"] }}
+      description: Workload Identity Pool for GitHub Actions CI/CD
+      disabled: false
+
+- name: {{ properties["providerId"] }}
+  type: gcp-types/iam-v1:projects.locations.workloadIdentityPools.providers
+  properties:
+    parent: projects/{{ properties["projectId"] }}/locations/global/workloadIdentityPools/{{ properties["poolId"] }}
+    workloadIdentityPoolProviderId: {{ properties["providerId"] }}
+    workloadIdentityPoolProvider:
+      displayName: {{ properties["providerDisplayName"] }}
+      description: OIDC provider for GitHub Actions
+      disabled: false
+      attributeCondition: |
+        assertion.repository_owner == '{{ properties["githubOrg"] }}'
+      attributeMapping:
+        google.subject: assertion.sub
+        attribute.actor: assertion.actor
+        attribute.repository: assertion.repository
+        attribute.repository_owner: assertion.repository_owner
+        attribute.ref: assertion.ref
+        attribute.event_name: assertion.event_name
+      oidc:
+        issuerUri: https://token.actions.githubusercontent.com
+        allowedAudiences:
+          - https://iam.googleapis.com/projects/{{ properties["projectNumber"] }}/locations/global/workloadIdentityPools/{{ properties["poolId"] }}/providers/{{ properties["providerId"] }}
+  metadata:
+    dependsOn:
+      - {{ properties["poolId"] }}
+
+- name: {{ properties["serviceAccountId"] }}
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    accountId: {{ properties["serviceAccountId"] }}
+    projectId: {{ properties["projectId"] }}
+    serviceAccount:
+      displayName: {{ properties["serviceAccountDisplayName"] }}
+      description: Service account impersonated by GitHub Actions to deploy Cloud Run services
+
+- name: sa-wif-binding
+  action: gcp-types/iam-v1:iam.projects.serviceAccounts.setIamPolicy
+  properties:
+    resource: projects/{{ properties["projectId"] }}/serviceAccounts/{{ properties["serviceAccountId"] }}@{{ properties["projectId"] }}.iam.gserviceaccount.com
+    policy:
+      bindings:
+        - role: roles/iam.workloadIdentityUser
+          members:
+            - principalSet://iam.googleapis.com/projects/{{ properties["projectNumber"] }}/locations/global/workloadIdentityPools/{{ properties["poolId"] }}/attribute.repository/{{ properties["githubOrg"] }}/{{ properties["githubRepo"] }}
+  metadata:
+    dependsOn:
+      - {{ properties["serviceAccountId"] }}
+      - {{ properties["providerId"] }}
+
+- name: project-iam-policy
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ properties["projectId"] }}
+    role: roles/run.admin
+    member: serviceAccount:{{ properties["serviceAccountId"] }}@{{ properties["projectId"] }}.iam.gserviceaccount.com
+  metadata:
+    dependsOn:
+      - {{ properties["serviceAccountId"] }}
+
+- name: project-iam-sa-user
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ properties["projectId"] }}
+    role: roles/iam.serviceAccountUser
+    member: serviceAccount:{{ properties["serviceAccountId"] }}@{{ properties["projectId"] }}.iam.gserviceaccount.com
+  metadata:
+    dependsOn:
+      - {{ properties["serviceAccountId"] }}
+
+- name: project-iam-artifact-writer
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ properties["projectId"] }}
+    role: roles/artifactregistry.writer
+    member: serviceAccount:{{ properties["serviceAccountId"] }}@{{ properties["projectId"] }}.iam.gserviceaccount.com
+  metadata:
+    dependsOn:
+      - {{ properties["serviceAccountId"] }}
+
+- name: project-iam-storage-admin
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: {{ properties["projectId"] }}
+    role: roles/storage.admin
+    member: serviceAccount:{{ properties["serviceAccountId"] }}@{{ properties["projectId"] }}.iam.g

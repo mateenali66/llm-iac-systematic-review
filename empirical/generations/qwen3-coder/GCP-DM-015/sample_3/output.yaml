@@ -1,0 +1,36 @@
+resources:
+- name: cloud-run-latency-alert-policy
+  type: gcp-types/monitoring-v3:projects.alertPolicies
+  properties:
+    project: {{ env['project'] }}
+    displayName: "Cloud Run Service Latency Alert"
+    documentation:
+      content: "Alert when Cloud Run service 95th percentile latency exceeds 500ms for 5 minutes. Paging on-call team."
+    conditions:
+    - conditionThreshold:
+        filter: resource.type = "cloud_run_revision" AND metric.type = "run.googleapis.com/request_latencies"
+        aggregations:
+        - alignmentPeriod: 60s
+          perSeriesAligner: ALIGN_PERCENTILE_95
+          crossSeriesReducer: REDUCE_NONE
+        comparison: COMPARISON_GT
+        thresholdValue: 500
+        duration: 300s
+      displayName: "Cloud Run Latency Threshold Exceeded"
+    enabled: true
+    notificationChannels:
+    - {{ $.ref('pagerduty-notification-channel') }}
+    combiner: OR
+
+- name: pagerduty-notification-channel
+  type: gcp-types/monitoring-v3:projects.notificationChannels
+  properties:
+    project: {{ env['project'] }}
+    displayName: "PagerDuty On-Call Channel"
+    type: pagerduty
+    labels:
+      service_key: {{ properties['pagerdutyServiceKey'] }}
+    enabled: true
+  metadata:
+    dependsOn: []
+```

@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template for S3 bucket to host application user uploads
+
+Resources:
+  UserUploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'user-uploads-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  UserUploadsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref UserUploadsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowGetAndPutFromSpecificIP
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub 'arn:aws:s3:::${UserUploadsBucket}/uploads/*'
+            Condition:
+              IpAddress:
+                aws:SourceIp: !Sub '192.0.2.0/24' # restrict access to specific IP range
+
+  UserUploadsBucketCorsConfiguration:
+    Type: AWS::S3::Bucket
+    DependsOn: UserUploadsBucket
+    Properties:
+      Bucket: !Ref UserUploadsBucket
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+            AllowedOrigins:
+              - '*'
+            ExposeHeaders:
+              - ETag
+              - x-amz-request-id
+              - x-amz-id-2
+            MaxAge: 3600
+
+Outputs:
+  UserUploadsBucketName:
+    Value: !Ref UserUploadsBucket
+    Description: Name of the S3 bucket for user uploads
+  UserUploadsBucketArn:
+    Value: !GetAtt UserUploadsBucket.Arn
+    Description: ARN of the S3 bucket for user uploads

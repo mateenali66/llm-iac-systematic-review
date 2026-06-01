@@ -1,0 +1,69 @@
+---
+- name: Install and configure Docker
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Install dependencies
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Add Docker repository
+    apt_repository:
+      repo: https://download.docker.com/linux/{{ ansible_distribution | lower }}/docker-ce/repo
+      state: present
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install Docker
+    apt:
+      name: docker-ce
+      state: present
+    when: ansible_distribution in ["Debian", "Ubuntu"]
+
+  - name: Install dependencies (RHEL-based)
+    yum:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - yum-utils
+      - device-mapper-persistent-data
+      - lvm2
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Add Docker repository (RHEL-based)
+    yum_repository:
+      name: docker-ce
+      description: Docker CE repository
+      baseurl: https://download.docker.com/linux/{{ ansible_distribution | lower }}/docker-ce/stable/$basearch
+      gpgcheck: yes
+      gpgkey: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+      state: present
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Install Docker (RHEL-based)
+    yum:
+      name: docker-ce
+      state: present
+    when: ansible_distribution in ["RedHat", "CentOS", "Fedora"]
+
+  - name: Add user to Docker group
+    user:
+      name: "{{ docker_user }}"
+      group: docker
+      append: yes
+
+  - name: Ensure Docker daemon is running and enabled
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  vars:
+    docker_user: your_username_here

@@ -1,0 +1,65 @@
+resources:
+  - name: custom-vpc
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: false
+      routingConfig:
+        routingMode: CUSTOM
+
+  - name: public-subnet
+    type: compute.v1.subnetwork
+    properties:
+      ipCidrRange: 10.10.0.0/20
+      network: $(ref. custom-vpc.selfLink)
+      region: us-central1
+
+  - name: private-subnet
+    type: compute.v1.subnetwork
+    properties:
+      ipCidrRange: 10.10.16.0/20
+      network: $(ref. custom-vpc.selfLink)
+      region: us-central1
+
+  - name: cloud-nat
+    type: compute.v1.router
+    properties:
+      network: $(ref. custom-vpc.selfLink)
+      region: us-central1
+      nats:
+        - name: nat-config
+          natIpAllocateOption: AUTO_ONLY
+          sourceSubnetworkIpRangesToNat: ALL_SUBNETWORKS_ALL_IP_RANGES
+          subnetworks:
+            - $(ref. private-subnet.selfLink)
+
+  - name: allow-internal-traffic
+    type: compute.v1.firewall
+    properties:
+      network: $(ref. custom-vpc.selfLink)
+      sourceRanges:
+        - 10.10.0.0/20
+        - 10.10.16.0/20
+      allowed:
+        - IPProtocol: ALL
+      targetTags:
+        - internal-traffic
+
+  - name: allow-outbound-traffic
+    type: compute.v1.firewall
+    properties:
+      network: $(ref. custom-vpc.selfLink)
+      sourceRanges:
+        - 10.10.16.0/20
+      allowed:
+        - IPProtocol: ALL
+      targetTags:
+        - outbound-traffic
+      direction: EGRESS
+
+outputs:
+  - name: vpc-self-link
+    value: $(ref. custom-vpc.selfLink)
+  - name: public-subnet-self-link
+    value: $(ref. public-subnet.selfLink)
+  - name: private-subnet-self-link
+    value: $(ref. private-subnet.selfLink)

@@ -1,0 +1,192 @@
+resources:
+- name: lb-vpc
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+    routingConfig:
+      routingMode: REGIONAL
+
+- name: lb-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.lb-vpc.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+
+- name: nat-router
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.lb-vpc.selfLink)
+
+- name: nat-config
+  type: compute.v1.routerNat
+  properties:
+    region: us-central1
+    router: $(ref.nat-router.name)
+    natIpAllocateOption: AUTO_ONLY
+    sourceSubnetworkIpRangesToNat: ALL_SUBNETWORKS_ALL_IP_RANGES
+    enableEndpointIndependentMapping: true
+    minPortsPerVm: 64
+
+- name: allow-lb-healthchecks
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.lb-vpc.selfLink)
+    direction: INGRESS
+    priority: 1000
+    targetTags:
+      - allow-lb
+    allowed:
+      - IPProtocol: tcp
+        ports: ["80"]
+    sourceRanges:
+      - 130.211.0.0/22
+      - 35.191.0.0/16
+    description: Allow GFE and health checks to reach backends on port 80
+
+- name: web-itpl
+  type: compute.v1.instanceTemplate
+  properties:
+    properties:
+      machineType: e2-medium
+      tags:
+        items:
+          - allow-lb
+      serviceAccounts:
+        - email: default
+          scopes:
+            - https://www.googleapis.com/auth/logging.write
+            - https://www.googleapis.com/auth/monitoring.write
+      shieldedInstanceConfig:
+        enableSecureBoot: true
+        enableVtpm: true
+        enableIntegrityMonitoring: true
+      disks:
+        - deviceName: boot
+          type: PERSISTENT
+          boot: true
+          autoDelete: true
+          initializeParams:
+            sourceImage: projects/debian-cloud/global/images/family/debian-12
+            diskType: pd-balanced
+            diskSizeGb: 20
+      networkInterfaces:
+        - subnetwork: $(ref.lb-subnet.selfLink)
+      metadata:
+        items:
+          - key: startup-script
+            value: |
+              #!/bin/bash
+              set -euxo pipefail
+              apt-get update
+              apt-get install -y --no-install-recommends nginx-light
+              cat > /var/www/html/index.html <<'EOF'
+              <!doctype html><html><body><h1>OK</h1></body></html>
+              EOF
+              systemctl enable nginx
+              systemctl restart nginx
+      scheduling:
+        automaticRestart: true
+        onHostMaintenance: MIGRATE
+        preemptible: false
+
+- name: web-hc
+  type: compute.v1.healthCheck
+  properties:
+    checkIntervalSec: 10
+    timeoutSec: 5
+    healthyThreshold: 2
+    unhealthyThreshold: 3
+    httpHealthCheck:
+      port: 80
+      requestPath: /
+      proxyHeader: NONE
+
+- name: web-mig
+  type: compute.v1.instanceGroupManager
+  properties:
+    baseInstanceName: web
+    zone: us-central1-a
+    targetSize: 1
+    instanceTemplate: $(ref.web-itpl.selfLink)
+    namedPorts:
+      - name: http
+        port: 80
+    updatePolicy:
+      type: PROACTIVE
+      minimalAction: RESTART
+      maxSurge:
+        fixed: 1
+      maxUnavailable:
+        fixed: 0
+      minReadySec: 30
+    autoHealingPolicies:
+      - healthCheck: $(ref.web-hc.selfLink)
+        initialDelaySec: 300
+
+- name: web-autoscaler
+  type: compute.v1.autoscaler
+  properties:
+    zone: us-central1-a
+    target: $(ref.web-mig.selfLink)
+    autoscalingPolicy:
+      minNumReplicas: 1
+      maxNumReplicas: 5
+      cooldownPeriodSec: 60
+      cpuUtilization:
+        utilizationTarget: 0.6
+
+- name: web-bes
+  type: compute.v1.backendService
+  properties:
+    loadBalancingScheme: EXTERNAL
+    protocol: HTTP
+    portName: http
+    timeoutSec: 30
+    healthChecks:
+      - $(ref.web-hc.selfLink)
+    backends:
+      - group: $(ref.web-mig.instanceGroup)
+    connectionDraining:
+      drainingTimeoutSec: 0
+    sessionAffinity: NONE
+    enableCDN: false
+    logConfig:
+      enable: true
+      sampleRate: 1.0
+
+- name: web-um
+  type: compute.v1.urlMap
+  properties:
+    defaultService: $(ref.web-bes.selfLink)
+
+- name: web-ssl-cert
+  type: compute.beta.sslCertificate
+  properties:
+    managed:
+      domains:
+        - example.com
+
+- name: web-https-proxy
+  type: compute.beta.targetHttpsProxy
+  properties:
+    urlMap: $(ref.web-um.selfLink)
+    sslCertificates:
+      - $(ref.web-ssl-cert.selfLink)
+
+- name: web-ipv4
+  type: compute.v1.globalAddress
+  properties:
+    addressType: EXTERNAL
+    ipVersion: IPV4
+
+- name: web-https-fr
+  type: compute.beta.globalForwardingRule
+  properties:
+    IPAddress: $(ref.web-ipv4.address)
+    IPProtocol: TCP
+    portRange: 443
+    target: $(ref.web-https-proxy.selfLink)
+    loadBalancingScheme: EXTERNAL

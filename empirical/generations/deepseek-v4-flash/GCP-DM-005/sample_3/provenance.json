@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "GCP-DM-005",
+  "language": "gcp_dm",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Write a GCP Deployment Manager template provisioning a Cloud SQL PostgreSQL 15 instance (db-custom-2-7680) for a SaaS application.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "imports:\n  - path: templates/cloudsql.py\n    name: cloudsql.py\n\nresources:\n  - name: saas-postgres-instance\n    type: cloudsql.py\n    properties:\n      tier: db-custom-2-7680\n      databaseVersion: POSTGRES_15\n      region: us-central1\n      settings:\n        tier: db-custom-2-7680\n        diskType: PD_SSD\n        diskSizeGb: 100\n        diskAutoresize: true\n        backupConfiguration:\n          enabled: true\n          startTime: \"03:00\"\n          pointInTimeRecoveryEnabled: true\n          transactionLogRetentionDays: 7\n        ipConfiguration:\n          ipv4Enabled: false\n          privateNetwork: projects/your-project-id/global/networks/default\n          requireSsl: true\n        databaseFlags:\n          - name: cloudsql.iam_authentication\n            value: \"on\"\n          - name: log_min_duration_statement\n            value: \"1000\"\n          - name: max_connections\n            value: \"100\"\n        maintenanceWindow:\n          day: 7\n          hour: 4\n        userLabels:\n          environment: production\n          application: saas-app\n      rootPassword: \"{{ env['deployment'] }}-root-password\"",
+  "cleaned_response": "imports:\n  - path: templates/cloudsql.py\n    name: cloudsql.py\n\nresources:\n  - name: saas-postgres-instance\n    type: cloudsql.py\n    properties:\n      tier: db-custom-2-7680\n      databaseVersion: POSTGRES_15\n      region: us-central1\n      settings:\n        tier: db-custom-2-7680\n        diskType: PD_SSD\n        diskSizeGb: 100\n        diskAutoresize: true\n        backupConfiguration:\n          enabled: true\n          startTime: \"03:00\"\n          pointInTimeRecoveryEnabled: true\n          transactionLogRetentionDays: 7\n        ipConfiguration:\n          ipv4Enabled: false\n          privateNetwork: projects/your-project-id/global/networks/default\n          requireSsl: true\n        databaseFlags:\n          - name: cloudsql.iam_authentication\n            value: \"on\"\n          - name: log_min_duration_statement\n            value: \"1000\"\n          - name: max_connections\n            value: \"100\"\n        maintenanceWindow:\n          day: 7\n          hour: 4\n        userLabels:\n          environment: production\n          application: saas-app\n      rootPassword: \"{{ env['deployment'] }}-root-password\"",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "imports:\n  - path: templates/cloudsql.py\n    name: cloudsql.py\n\nresources:\n  - name: saas-postgres-instance\n    type: cloudsql.py\n    properties:\n      tier: db-custom-2-7680\n      databaseVersion: POSTGRES_15\n      region: us-central1\n      settings:\n        tier: db-custom-2-7680\n        diskType: PD_SSD\n        diskSizeGb: 100\n        diskAutoresize: true\n        backupConfiguration:\n          enabled: true\n          startTime: \"03:00\"\n          pointInTimeRecoveryEnabled: true\n          transactionLogRetentionDays: 7\n        ipConfiguration:\n          ipv4Enabled: false\n          privateNetwork: projects/your-project-id/global/networks/default\n          requireSsl: true\n        databaseFlags:\n          - name: cloudsql.iam_authentication\n            value: \"on\"\n          - name: log_min_duration_statement\n            value: \"1000\"\n          - name: max_connections\n            value: \"100\"\n        maintenanceWindow:\n          day: 7\n          hour: 4\n        userLabels:\n          environment: production\n          application: saas-app\n      rootPassword: \"{{ env['deployment'] }}-root-password\"",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779728448,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 72,
+      "output_tokens": 288,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 8
+    }
+  },
+  "started_at": "2026-05-25T17:00:44.650429+00:00",
+  "elapsed_seconds": 4.009
+}

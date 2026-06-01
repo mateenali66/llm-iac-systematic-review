@@ -1,0 +1,293 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 2,
+	"lines_scanned": 209,
+	"files_parsed": 2,
+	"lines_parsed": 209,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 142,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 3,
+		"INFO": 0,
+		"LOW": 5,
+		"MEDIUM": 3,
+		"TRACE": 0
+	},
+	"total_counter": 11,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:25:10.734656343Z",
+	"end": "2026-05-26T04:25:12.803531927Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Volume Mount With OS Directory Write Permissions",
+			"query_id": "b7652612-de4e-4466-a0bf-1cd81f0c6063",
+			"query_url": "https://kubernetes.io/docs/concepts/storage/volumes/",
+			"severity": "HIGH",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Resource Management",
+			"experimental": false,
+			"description": "Containers can mount sensitive folders from the hosts, giving them potentially dangerous access to critical host configurations and binaries.",
+			"description_id": "e42b7901",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "eef0f01821afbe9366b674a5e1935733b8e35e1a24a75c6a7e40d0422b4bb7db",
+					"line": 116,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-config}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-config}}.readOnly should be defined and set to true",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-config}}.readOnly is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "149d26f9e5eac22e33fb4cee142fcea9bb8e57464015540fbdcc71bb870b5dca",
+					"line": 114,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-run}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-run}}.readOnly should be defined and set to true",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-run}}.readOnly is undefined"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "6200c234c6a22bc2cb97a585d024a747393f67a6081e3eaa63fa17748c6b2912",
+					"line": 112,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-cache}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-cache}}.readOnly should be defined and set to true",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.volumeMounts.name={{nginx-cache}}.readOnly is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Container Running With Low UID",
+			"query_id": "02323c00-cdc3-4fdc-a310-4f2b3e7a1660",
+			"query_url": "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "1188",
+			"cloud_provider": "COMMON",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "Check if containers are running with low UID, which might cause conflicts with the host's user table.",
+			"description_id": "fc2c11f9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2eec2e9d049d40351001ab44d1185f67fc057b878e2965a79f57ed109fa8a5b4",
+					"line": 79,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser=101",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser should be set to a UID \u003e= 10000",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.securityContext.runAsUser is set to a low UID"
+				}
+			]
+		},
+		{
+			"query_name": "Using Unrecommended Namespace",
+			"query_id": "611ab018-c4aa-4ba2-b0f6-a448337509a6",
+			"query_url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/",
+			"severity": "MEDIUM",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Namespaces like 'default', 'kube-system' or 'kube-public' should not be used",
+			"description_id": "29549ea9",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "ab96720b351da72bd03e1743010dd2d30f070f570ab92bbfc2c3d7c9317516f8",
+					"line": 131,
+					"resource_type": "Service",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Service}}.metadata.name={{web-frontend}}",
+					"search_line": 131,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "13a98a476c22ba775a86ecbb2bf6f06f66ee1e348dd1d0320eb24c60ef49aca3",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "kind={{Deployment}}.metadata.name={{web-frontend}}",
+					"search_line": 4,
+					"search_value": "",
+					"expected_value": "metadata.namespace should be defined and not null",
+					"actual_value": "metadata.namespace is undefined or null"
+				}
+			]
+		},
+		{
+			"query_name": "Image Pull Policy Of The Container Is Not Set To Always",
+			"query_id": "caa3479d-885d-4882-9aac-95e5e78ef5c2",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Image Pull Policy of the container must be defined and set to Always",
+			"description_id": "201e3c8d",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "d43d14895b4ef85c870170a5874a32ffae71b18a0bad6b77ab02af169b2a5cbb",
+					"line": 62,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy should be set to 'Always'",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.imagePullPolicy relies on mutable images in cache"
+				}
+			]
+		},
+		{
+			"query_name": "Image Without Digest",
+			"query_id": "7c81d34c-8e5a-402b-9798-9f442630e678",
+			"query_url": "https://kubernetes.io/docs/concepts/containers/images/#updating-images",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "665",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Images should be specified together with their digests to ensure integrity",
+			"description_id": "3f9f8d78",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "983ef9ff31f153ef5627c4f5c774d233e5288d716c7d1018b3f1424d3ee6f9e1",
+					"line": 61,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "IncorrectValue",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image should specify the image with a digest",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.spec.containers.name={{nginx}}.image does not include an image digest"
+				}
+			]
+		},
+		{
+			"query_name": "Missing AppArmor Profile",
+			"query_id": "8b36775e-183d-4d46-b0f7-96a6f34a723f",
+			"query_url": "https://kubernetes.io/docs/tutorials/clusters/apparmor/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "284",
+			"cloud_provider": "COMMON",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Containers should be configured with an AppArmor profile to enforce fine-grained access control over low-level system resources",
+			"description_id": "59c17c0a",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "2ed872f39c0e6bc3589ecbc9e071e9308f1c947e690d74a00c6b1779bc6e8dcf",
+					"line": 22,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}.spec.template.metadata",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}}.spec.template.metadata.annotations should specify an AppArmor profile for container {{nginx}}",
+					"actual_value": "metadata.name={{web-frontend}}.spec.template.metadata.annotations does not specify an AppArmor profile for container {{nginx}}"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without LimitRange",
+			"query_id": "4a20ebac-1060-4c81-95d1-1f7f620e983b",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/limit-range/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a LimitRange policy associated to ensure that resource allocations of Pods, Containers and PersistentVolumeClaims do not exceed the defined boundaries",
+			"description_id": "142ed21f",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "9e3b9cebae380da9c885b883583fcdb0144973c0f1f37c77ad7959aba6a51add",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}} has a 'LimitRange' policy associated",
+					"actual_value": "metadata.name={{web-frontend}} does not have a 'LimitRange' policy associated"
+				}
+			]
+		},
+		{
+			"query_name": "Pod or Container Without ResourceQuota",
+			"query_id": "48a5beba-e4c0-4584-a2aa-e6894e4cf424",
+			"query_url": "https://kubernetes.io/docs/concepts/policy/resource-quotas/",
+			"severity": "LOW",
+			"platform": "Kubernetes",
+			"cwe": "400",
+			"cloud_provider": "COMMON",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "Each namespace should have a ResourceQuota policy associated to limit the total amount of resources Pods, Containers and PersistentVolumeClaims can consume",
+			"description_id": "86499ed5",
+			"files": [
+				{
+					"file_name": "../../in/output.yaml",
+					"similarity_id": "eaf66d27cfd34147f704e32cb517748f4a9bd2d8751ccc69bdda4d771aa80765",
+					"line": 4,
+					"resource_type": "Deployment",
+					"resource_name": "web-frontend",
+					"issue_type": "MissingAttribute",
+					"search_key": "metadata.name={{web-frontend}}",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "metadata.name={{web-frontend}} has a 'ResourceQuota' policy associated",
+					"actual_value": "metadata.name={{web-frontend}} does not have a 'ResourceQuota' policy associated"
+				}
+			]
+		}
+	]
+}

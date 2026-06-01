@@ -1,0 +1,70 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-clusterrole
+  labels:
+    app.kubernetes.io/name: operator
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: operator
+rules:
+  # Cluster-wide read access to CustomResourceDefinitions
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - watch
+
+  # Full management of the operator's own CRD instances
+  # NOTE: Replace 'example.com' with the actual API group of your operator's CRD
+  # and 'mycustomresources' with the plural name of your custom resource.
+  - apiGroups:
+      - example.com
+    resources:
+      - mycustomresources
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+
+  # Manage status subresource for the operator's custom resources
+  - apiGroups:
+      - example.com
+    resources:
+      - mycustomresources/status
+    verbs:
+      - get
+      - update
+      - patch
+
+  # Manage finalizers on the operator's custom resources
+  - apiGroups:
+      - example.com
+    resources:
+      - mycustomresources/finalizers
+    verbs:
+      - update
+
+  # Emit events for observability and troubleshooting
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+
+  - apiGroups:
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - create
+      - patch

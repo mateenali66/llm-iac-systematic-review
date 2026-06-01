@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "BICEP-AZURE-010",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Storage Account with two blob containers ('uploads' and 'backups'), with the uploads container readable by a CDN endpoint.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "```bicep\ntargetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account. Must be globally unique.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('SKU for the storage account.')\nparam storageSku string = 'Standard_LRS'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: storageSku\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: true\n    accessTier: 'Hot'\n    allowSharedKeyAccess: false\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  parent: storageAccount\n  name: 'default'\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}\n```",
+  "cleaned_response": "targetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account. Must be globally unique.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('SKU for the storage account.')\nparam storageSku string = 'Standard_LRS'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: storageSku\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: true\n    accessTier: 'Hot'\n    allowSharedKeyAccess: false\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  parent: storageAccount\n  name: 'default'\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```bicep\ntargetScope = 'resourceGroup'\n\n@description('Location for all resources.')\nparam location string = resourceGroup().location\n\n@description('Name of the storage account. Must be globally unique.')\nparam storageAccountName string = 'st${uniqueString(resourceGroup().id)}'\n\n@description('SKU for the storage account.')\nparam storageSku string = 'Standard_LRS'\n\nresource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: storageSku\n  }\n  kind: 'StorageV2'\n  properties: {\n    supportsHttpsTrafficOnly: true\n    minimumTlsVersion: 'TLS1_2'\n    allowBlobPublicAccess: true\n    accessTier: 'Hot'\n    allowSharedKeyAccess: false\n  }\n}\n\nresource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {\n  parent: storageAccount\n  name: 'default'\n  properties: {\n    deleteRetentionPolicy: {\n      enabled: true\n      days: 7\n    }\n  }\n}\n\nresource uploadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'uploads'\n  properties: {\n    publicAccess: 'Blob'\n  }\n}\n\nresource backupsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {\n  parent: blobService\n  name: 'backups'\n  properties: {\n    publicAccess: 'None'\n  }\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723989,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 92,
+      "output_tokens": 331,
+      "reasoning_tokens": 685,
+      "cache_read_input_tokens": 192,
+      "raw_input_tokens": 62
+    }
+  },
+  "started_at": "2026-05-25T15:46:20.222211+00:00",
+  "elapsed_seconds": 9.727
+}

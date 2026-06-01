@@ -1,0 +1,135 @@
+---
+- name: Install and configure PostgreSQL 15 for production
+  hosts: postgres_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    pg_version: "15"
+    pg_port: 5432
+    pg_listen_addresses: "*"
+    pg_data_dir: "/var/lib/pgsql/{{ pg_version }}/data"
+    pg_conf_dir: "/var/lib/pgsql/{{ pg_version }}/data"
+    pg_bin_dir: "/usr/pgsql-{{ pg_version }}/bin"
+    pg_service_name: "postgresql-{{ pg_version }}"
+
+    pg_allowed_cidrs:
+      - { cidr: "10.0.0.0/8", method: "scram-sha-256" }
+      - { cidr: "192.168.0.0/16", method: "scram-sha-256" }
+
+    pg_databases:
+      - name: appdb
+        owner: appuser
+        encoding: UTF8
+        lc_collate: en_US.UTF-8
+        lc_ctype: en_US.UTF-8
+
+    pg_users:
+      - name: appuser
+        password: "{{ vault_appuser_password | default('ChangeMe_UseVault!') }}"
+        priv: "ALL"
+        db: appdb
+        role_attr_flags: "LOGIN,NOSUPERUSER,NOCREATEDB,NOCREATEROLE"
+
+    # Production tuning - adjust per host resources
+    pg_max_connections: 200
+    pg_shared_buffers: "2GB"
+    pg_effective_cache_size: "6GB"
+    pg_work_mem: "16MB"
+    pg_maintenance_work_mem: "512MB"
+    pg_wal_buffers: "16MB"
+    pg_checkpoint_completion_target: 0.9
+    pg_random_page_cost: 1.1
+    pg_effective_io_concurrency: 200
+    pg_min_wal_size: "1GB"
+    pg_max_wal_size: "4GB"
+
+  pre_tasks:
+    - name: Validate OS family
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family in ['RedHat', 'Debian']
+        fail_msg: "This playbook supports RedHat/Debian families only."
+
+  tasks:
+    # --- RedHat-family installation ---
+    - name: Install PGDG repository (RHEL family)
+      ansible.builtin.dnf:
+        name: "https://download.postgresql.org/pub/repos/yum/reporpms/EL-{{ ansible_distribution_major_version }}-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+        state: present
+        disable_gpg_check: true
+      when: ansible_os_family == 'RedHat'
+
+    - name: Disable built-in PostgreSQL module (RHEL 8/9)
+      ansible.builtin.command: dnf -qy module disable postgresql
+      args:
+        creates: /etc/dnf/modules.d/postgresql.module
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int >= 8
+
+    - name: Install PostgreSQL packages (RHEL family)
+      ansible.builtin.dnf:
+        name:
+          - "postgresql{{ pg_version }}-server"
+          - "postgresql{{ pg_version }}-contrib"
+          - "postgresql{{ pg_version }}"
+          - python3-psycopg2
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    # --- Debian-family installation ---
+    - name: Install prerequisites (Debian family)
+      ansible.builtin.apt:
+        name:
+          - curl
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - python3-psycopg2
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Add PostgreSQL GPG key (Debian family)
+      ansible.builtin.get_url:
+        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+        dest: /etc/apt/trusted.gpg.d/postgresql.asc
+        mode: '0644'
+      when: ansible_os_family == 'Debian'
+
+    - name: Add PGDG apt repository (Debian family)
+      ansible.builtin.apt_repository:
+        repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+        state: present
+        filename: pgdg
+      when: ansible_os_family == 'Debian'
+
+    - name: Install PostgreSQL packages (Debian family)
+      ansible.builtin.apt:
+        name:
+          - "postgresql-{{ pg_version }}"
+          - "postgresql-contrib-{{ pg_version }}"
+        state: present
+        update_cache: true
+      when: ansible_os_family == 'Debian'
+
+    - name: Set Debian-specific paths
+      ansible.builtin.set_fact:
+        pg_data_dir: "/var/lib/postgresql/{{ pg_version }}/main"
+        pg_conf_dir: "/etc/postgresql/{{ pg_version }}/main"
+        pg_bin_dir: "/usr/lib/postgresql/{{ pg_version }}/bin"
+        pg_service_name: "postgresql@{{ pg_version }}-main"
+      when: ansible_os_family == 'Debian'
+
+    # --- Initialization (RHEL only; Debian auto-inits) ---
+    - name: Check if PostgreSQL data is initialized (RHEL)
+      ansible.builtin.stat:
+        path: "{{ pg_data_dir }}/PG_VERSION"
+      register: pg_data_check
+      when: ansible_os_family == 'RedHat'
+
+    - name: Initialize PostgreSQL database (RHEL)
+      ansible.builtin.command: "{{ pg_bin_dir }}/postgresql-{{ pg_version }}-setup initdb"
+      when:
+        - ans

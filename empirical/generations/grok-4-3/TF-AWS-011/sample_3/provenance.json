@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "TF-AWS-011",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS Lambda function named 'webhook-handler' running Python 3.12 that processes incoming webhook events. The function code is at ./lambda/handler.py.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS Lambda function named 'webhook-handler' running Python 3.12 that processes incoming webhook events. The function code is at ./lambda/handler.py.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "```hcl\nterraform {\n  required_version = \">= 1.6\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.4\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"lambda_zip_path\" {\n  description = \"Path to the Lambda deployment package\"\n  type        = string\n  default     = \"${path.module}/lambda.zip\"\n}\n\ndata \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = var.lambda_zip_path\n}\n\nresource \"aws_iam_role\" \"lambda_exec\" {\n  name = \"webhook-handler-lambda-exec\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"lambda.amazonaws.com\" }\n    }]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic\" {\n  role       = aws_iam_role.lambda_exec.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_logs\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 30\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name    = \"webhook-handler\"\n  role             = aws_iam_role.lambda_exec.arn\n  handler          = \"handler.lambda_handler\"\n  runtime          = \"python3.12\"\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n  timeout          = 30\n  memory_size      = 256\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  depends_on = [aws_cloudwatch_log_group.lambda_logs]\n}\n```",
+  "cleaned_response": "terraform {\n  required_version = \">= 1.6\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.4\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"lambda_zip_path\" {\n  description = \"Path to the Lambda deployment package\"\n  type        = string\n  default     = \"${path.module}/lambda.zip\"\n}\n\ndata \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = var.lambda_zip_path\n}\n\nresource \"aws_iam_role\" \"lambda_exec\" {\n  name = \"webhook-handler-lambda-exec\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"lambda.amazonaws.com\" }\n    }]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic\" {\n  role       = aws_iam_role.lambda_exec.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_logs\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 30\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name    = \"webhook-handler\"\n  role             = aws_iam_role.lambda_exec.arn\n  handler          = \"handler.lambda_handler\"\n  runtime          = \"python3.12\"\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n  timeout          = 30\n  memory_size      = 256\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  depends_on = [aws_cloudwatch_log_group.lambda_logs]\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "```hcl\nterraform {\n  required_version = \">= 1.6\"\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 5.0\"\n    }\n    archive = {\n      source  = \"hashicorp/archive\"\n      version = \"~> 2.4\"\n    }\n  }\n}\n\nprovider \"aws\" {\n  region = var.aws_region\n}\n\nvariable \"aws_region\" {\n  description = \"AWS region\"\n  type        = string\n  default     = \"us-east-1\"\n}\n\nvariable \"lambda_zip_path\" {\n  description = \"Path to the Lambda deployment package\"\n  type        = string\n  default     = \"${path.module}/lambda.zip\"\n}\n\ndata \"archive_file\" \"lambda_zip\" {\n  type        = \"zip\"\n  source_file = \"${path.module}/lambda/handler.py\"\n  output_path = var.lambda_zip_path\n}\n\nresource \"aws_iam_role\" \"lambda_exec\" {\n  name = \"webhook-handler-lambda-exec\"\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [{\n      Action    = \"sts:AssumeRole\"\n      Effect    = \"Allow\"\n      Principal = { Service = \"lambda.amazonaws.com\" }\n    }]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"lambda_basic\" {\n  role       = aws_iam_role.lambda_exec.name\n  policy_arn = \"arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole\"\n}\n\nresource \"aws_cloudwatch_log_group\" \"lambda_logs\" {\n  name              = \"/aws/lambda/webhook-handler\"\n  retention_in_days = 30\n}\n\nresource \"aws_lambda_function\" \"webhook_handler\" {\n  function_name    = \"webhook-handler\"\n  role             = aws_iam_role.lambda_exec.arn\n  handler          = \"handler.lambda_handler\"\n  runtime          = \"python3.12\"\n  filename         = data.archive_file.lambda_zip.output_path\n  source_code_hash = data.archive_file.lambda_zip.output_base64sha256\n  timeout          = 30\n  memory_size      = 256\n\n  tracing_config {\n    mode = \"Active\"\n  }\n\n  environment {\n    variables = {\n      LOG_LEVEL = \"INFO\"\n    }\n  }\n\n  depends_on = [aws_cloudwatch_log_group.lambda_logs]\n}\n```",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726704,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 48,
+      "output_tokens": 493,
+      "reasoning_tokens": 569,
+      "cache_read_input_tokens": 256,
+      "raw_input_tokens": 8
+    }
+  },
+  "started_at": "2026-05-25T16:31:36.178286+00:00",
+  "elapsed_seconds": 8.838
+}

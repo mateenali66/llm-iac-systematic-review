@@ -1,0 +1,44 @@
+resources:
+  - name: multi-region-bucket
+    type: storage.v1.bucket
+    properties:
+      location: multi-region
+      storageClass: STANDARD
+      uniformBucketLevelAccess:
+        enabled: true
+      lifecycle:
+        rule:
+          - action:
+              type: Delete
+            condition:
+              age: 365
+              isLive: true
+      locationPolicy:
+        locationRestriction: MULTI_REGION
+      versioning:
+        enabled: true
+      retentionPolicy:
+        retentionPeriod: 365
+        isLocked: false
+      iamPolicy:
+        bindings:
+          - role: roles/storage.objectViewer
+            members:
+              - allUsers
+          - role: roles/storage.objectCreator
+            members:
+              - serviceAccount:$(ref.service-account-email)
+          - role: roles/storage.admin
+            members:
+              - user: $(ref.admin-email)
+      labels:
+        env: prod
+        team: storage-admins
+      bucketPolicyOnly:
+        enabled: true
+      autoclass:
+        enabled: false
+
+outputs:
+  - name: bucket-name
+    value: $(ref.multi-region-bucket.name)

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-013",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Cosmos DB account with the SQL API for a globally distributed application requiring single-region writes initially.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam cosmosAccountName string\nparam primaryRegion string\nparam secondaryRegion string\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosAccountName\n  location: location\n  tags: {\n    Environment: 'Production'\n  }\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxIntervalInSeconds: 5\n      maxStalenessPrefix: 100\n    }\n    locations: [\n      {\n        locationName: primaryRegion\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryRegion\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    backupPolicy: {\n      type: 'Continuous'\n      continuousModeProperties: {\n        tier: 'Continuous7Days'\n      }\n    }\n    networkAclBypass: 'None'\n    disableKeyBasedMetadataWriteAccess: true\n    enableFreeTier: false\n    apiProperties: {\n      serverVersion: '4.0'\n    }\n  }\n}\n\noutput cosmosAccountEndpoint string = cosmosAccount.properties.documentEndpoint\noutput cosmosAccountKey string = listKeys(cosmosAccount.id, cosmosAccount.apiVersion).primaryMasterKey",
+  "cleaned_response": "param location string = resourceGroup().location\nparam cosmosAccountName string\nparam primaryRegion string\nparam secondaryRegion string\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosAccountName\n  location: location\n  tags: {\n    Environment: 'Production'\n  }\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxIntervalInSeconds: 5\n      maxStalenessPrefix: 100\n    }\n    locations: [\n      {\n        locationName: primaryRegion\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryRegion\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    backupPolicy: {\n      type: 'Continuous'\n      continuousModeProperties: {\n        tier: 'Continuous7Days'\n      }\n    }\n    networkAclBypass: 'None'\n    disableKeyBasedMetadataWriteAccess: true\n    enableFreeTier: false\n    apiProperties: {\n      serverVersion: '4.0'\n    }\n  }\n}\n\noutput cosmosAccountEndpoint string = cosmosAccount.properties.documentEndpoint\noutput cosmosAccountKey string = listKeys(cosmosAccount.id, cosmosAccount.apiVersion).primaryMasterKey",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam cosmosAccountName string\nparam primaryRegion string\nparam secondaryRegion string\n\nresource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {\n  name: cosmosAccountName\n  location: location\n  tags: {\n    Environment: 'Production'\n  }\n  properties: {\n    databaseAccountOfferType: 'Standard'\n    consistencyPolicy: {\n      defaultConsistencyLevel: 'Session'\n      maxIntervalInSeconds: 5\n      maxStalenessPrefix: 100\n    }\n    locations: [\n      {\n        locationName: primaryRegion\n        failoverPriority: 0\n        isZoneRedundant: true\n      }\n      {\n        locationName: secondaryRegion\n        failoverPriority: 1\n        isZoneRedundant: true\n      }\n    ]\n    enableMultipleWriteLocations: false\n    enableAutomaticFailover: true\n    backupPolicy: {\n      type: 'Continuous'\n      continuousModeProperties: {\n        tier: 'Continuous7Days'\n      }\n    }\n    networkAclBypass: 'None'\n    disableKeyBasedMetadataWriteAccess: true\n    enableFreeTier: false\n    apiProperties: {\n      serverVersion: '4.0'\n    }\n  }\n}\n\noutput cosmosAccountEndpoint string = cosmosAccount.properties.documentEndpoint\noutput cosmosAccountKey string = listKeys(cosmosAccount.id, cosmosAccount.apiVersion).primaryMasterKey",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724218,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 135,
+      "output_tokens": 308,
+      "raw_input_tokens": 135
+    }
+  },
+  "started_at": "2026-05-25T15:50:12.350426+00:00",
+  "elapsed_seconds": 6.516
+}

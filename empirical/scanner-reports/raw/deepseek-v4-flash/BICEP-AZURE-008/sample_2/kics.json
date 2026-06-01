@@ -1,0 +1,71 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 44,
+	"files_parsed": 1,
+	"lines_parsed": 44,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 43,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 2,
+		"INFO": 0,
+		"LOW": 0,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 2,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T04:35:06.058864841Z",
+	"end": "2026-05-26T04:35:06.843905674Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Key Vault Not Recoverable",
+			"query_id": "7c25f361-7c66-44bf-9b69-022acd5eb4bd",
+			"query_url": "https://docs.microsoft.com/en-us/azure/templates/microsoft.keyvault/2019-09-01/vaults?tabs=json#vaultproperties-object",
+			"severity": "HIGH",
+			"platform": "AzureResourceManager",
+			"cwe": "530",
+			"cloud_provider": "AZURE",
+			"category": "Backup",
+			"experimental": false,
+			"description": "Key Vault should have 'enableSoftDelete' and 'enablePurgeProtection' set to true",
+			"description_id": "8e3ca202",
+			"files": [
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "87e5bfd2b4e70536776c43e882151a73fd446f909774e38b61f094a1a17091ed",
+					"line": 21,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('keyVaultName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('keyVaultName')]}}.properties",
+					"search_line": 21,
+					"search_value": "enablePurgeProtection",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enablePurgeProtection' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enablePurgeProtection' property defined"
+				},
+				{
+					"file_name": "../../in/output.bicep",
+					"similarity_id": "5d66b074062b63901ca3f60a9c5b801a985e66479080f0d0d5502dd6fb41fd9f",
+					"line": 21,
+					"resource_type": "Microsoft.KeyVault/vaults",
+					"resource_name": "[parameters('keyVaultName')]",
+					"issue_type": "MissingAttribute",
+					"search_key": "resources.name={{[parameters('keyVaultName')]}}.properties",
+					"search_line": 21,
+					"search_value": "enableSoftDelete",
+					"expected_value": "resource with type 'Microsoft.KeyVault/vaults' should have 'enableSoftDelete' property defined",
+					"actual_value": "resource with type 'Microsoft.KeyVault/vaults' doesn't have 'enableSoftDelete' property defined"
+				}
+			]
+		}
+	]
+}

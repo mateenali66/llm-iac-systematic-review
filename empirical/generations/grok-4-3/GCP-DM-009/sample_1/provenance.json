@@ -1,0 +1,55 @@
+{
+  "model": "grok-4-3",
+  "model_id": "grok-4.3",
+  "provider": "abacus-routellm",
+  "family": "closed-source",
+  "prompt_id": "GCP-DM-009",
+  "language": "gcp_dm",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.",
+  "user_message_sent": "Target IaC language: GCP Deployment Manager (YAML config)\n\nTask: Generate a GCP Deployment Manager template provisioning a Cloud Logging sink that exports logs from a project to a BigQuery dataset for long-term analysis.\n\nOutput only the GCP Deployment Manager (YAML config) code, no commentary or markdown fences.",
+  "raw_response": "resources:\n- name: logs-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: project_logs_export\n    location: US\n    description: \"Long-term log storage for analysis\"\n    labels:\n      environment: production\n      purpose: logging\n    defaultTableExpirationMs: 31536000000\n- name: project-logs-sink\n  type: logging.v2.sink\n  properties:\n    name: project-logs-to-bigquery\n    destination: bigquery.googleapis.com/projects/$(project)/datasets/project_logs_export\n    filter: \"\"\n    description: \"Exports all project logs to BigQuery for long-term retention and analysis\"\n    uniqueWriterIdentity: true",
+  "cleaned_response": "resources:\n- name: logs-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: project_logs_export\n    location: US\n    description: \"Long-term log storage for analysis\"\n    labels:\n      environment: production\n      purpose: logging\n    defaultTableExpirationMs: 31536000000\n- name: project-logs-sink\n  type: logging.v2.sink\n  properties:\n    name: project-logs-to-bigquery\n    destination: bigquery.googleapis.com/projects/$(project)/datasets/project_logs_export\n    filter: \"\"\n    description: \"Exports all project logs to BigQuery for long-term retention and analysis\"\n    uniqueWriterIdentity: true",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resources:\n- name: logs-dataset\n  type: bigquery.v2.dataset\n  properties:\n    datasetReference:\n      datasetId: project_logs_export\n    location: US\n    description: \"Long-term log storage for analysis\"\n    labels:\n      environment: production\n      purpose: logging\n    defaultTableExpirationMs: 31536000000\n- name: project-logs-sink\n  type: logging.v2.sink\n  properties:\n    name: project-logs-to-bigquery\n    destination: bigquery.googleapis.com/projects/$(project)/datasets/project_logs_export\n    filter: \"\"\n    description: \"Exports all project logs to BigQuery for long-term retention and analysis\"\n    uniqueWriterIdentity: true",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779725122,
+    "model": "grok-4.3",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 148,
+      "output_tokens": 148,
+      "reasoning_tokens": 1121,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 128
+    }
+  },
+  "started_at": "2026-05-25T16:05:04.421301+00:00",
+  "elapsed_seconds": 18.335
+}

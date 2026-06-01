@@ -1,0 +1,81 @@
+{
+  "SchemaVersion": 2,
+  "CreatedAt": "2026-05-26T06:07:00.922008842Z",
+  "ArtifactName": "/in",
+  "ArtifactType": "filesystem",
+  "Metadata": {
+    "ImageConfig": {
+      "architecture": "",
+      "created": "0001-01-01T00:00:00Z",
+      "os": "",
+      "rootfs": {
+        "type": "",
+        "diff_ids": null
+      },
+      "config": {}
+    }
+  },
+  "Results": [
+    {
+      "Target": "output.yaml",
+      "Class": "config",
+      "Type": "cloudformation",
+      "MisconfSummary": {
+        "Successes": 49,
+        "Failures": 1
+      },
+      "Misconfigurations": [
+        {
+          "Type": "CloudFormation Security Check",
+          "ID": "AVD-AWS-0034",
+          "AVDID": "AVD-AWS-0034",
+          "Title": "ECS clusters should have container insights enabled",
+          "Description": "Cloudwatch Container Insights provide more metrics and logs for container based applications and micro services.\n",
+          "Message": "Cluster does not have container insights enabled.",
+          "Namespace": "builtin.aws.ecs.aws0034",
+          "Query": "data.builtin.aws.ecs.aws0034.deny",
+          "Resolution": "Enable Container Insights",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/avd-aws-0034",
+          "References": [
+            "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights.html",
+            "https://avd.aquasec.com/misconfig/avd-aws-0034"
+          ],
+          "Status": "FAIL",
+          "Layer": {},
+          "CauseMetadata": {
+            "Resource": "output.yaml:24-25",
+            "Provider": "AWS",
+            "Service": "ecs",
+            "StartLine": 24,
+            "EndLine": 25,
+            "Code": {
+              "Lines": [
+                {
+                  "Number": 24,
+                  "Content": "  ECSCluster:",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "  \u001b[38;5;33mECSCluster\u001b[0m:",
+                  "FirstCause": true,
+                  "LastCause": false
+                },
+                {
+                  "Number": 25,
+                  "Content": "    Type: 'AWS::ECS::Cluster'",
+                  "IsCause": true,
+                  "Annotation": "",
+                  "Truncated": false,
+                  "Highlighted": "    \u001b[38;5;33mType\u001b[0m: \u001b[38;5;37m'AWS::ECS::Cluster'\u001b[0m",
+                  "FirstCause": false,
+                  "LastCause": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+- name: Deploy Java application as a systemd service
+  hosts: all
+  become: true
+  gather_facts: true
+
+  vars:
+    app_name: myapp
+    service_description: "My Java Application Service"
+    app_user: myapp
+    app_group: myapp
+    app_home: "/opt/{{ app_name }}"
+    data_dir: "/var/lib/{{ app_name }}"
+    log_dir: "/var/log/{{ app_name }}"
+    jar_name: "{{ app_name }}.jar"
+    jar_source: "./{{ jar_name }}"  # Path on the control node
+    java_opts: "-Xms512m -Xmx512m -XX:+UseG1GC"
+    app_opts: ""
+    env_file: "{{ (ansible_facts.os_family == 'Debian') | ternary('/etc/default/' + app_name, '/etc/sysconfig/' + app_name) }}"
+    nologin_shell: "{{ (ansible_facts.os_family == 'Debian') | ternary('/usr/sbin/nologin', '/sbin/nologin') }}"
+    java_pkg: "{{ (ansible_facts.os_family == 'Debian') | ternary('openjdk-21-jre-headless', 'java-21-openjdk-headless') }}"
+
+  tasks:
+    - name: Ensure apt cache is up to date (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_facts.os_family == 'Debian'
+
+    - name: Install OpenJDK 21 and CA certificates
+      ansible.builtin.package:
+        name:
+          - "{{ java_pkg }}"
+          - ca-certificates
+        state: present
+
+    - name: Ensure application group exists
+      ansible.builtin.group:
+        name: "{{ app_group }}"
+        system: true
+
+    - name: Ensure application user exists
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        comment: "Service account for {{ app_name }}"
+        group: "{{ app_group }}"
+        system: true
+        shell: "{{ nologin_shell }}"
+        home: "/nonexistent"
+        create_home: false
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner }}"
+        group: "{{ item.group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ app_home }}", owner: "root", group: "root", mode: "0755" }
+        - { path: "{{ data_dir }}", owner: "{{ app_user }}", group: "{{ app_group }}", mode: "0750" }
+        - { path: "{{ log_dir }}", owner: "{{ app_user }}", group: "{{ app_group }}", mode: "0750" }
+
+    - name: Copy application JAR
+      ansible.builtin.copy:
+        src: "{{ jar_source }}"
+        dest: "{{ app_home }}/{{ jar_name }}"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      notify:
+        - restart {{ app_name }}
+
+    - name: Write environment file
+      ansible.builtin.blockinfile:
+        path: "{{ env_file }}"
+        create: true
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        marker: "# {mark} Ansible managed block for {{ app_name }}"
+        block: |
+          # Environment configuration for {{ app_name }}
+          JAVA_OPTS="{{ java_opts }}"
+          APP_OPTS="{{ app_opts }}"
+          # Example extra variables:
+          # PORT=8080
+      notify:
+        - restart {{ app_name }}
+
+    - name: Write systemd unit file
+      ansible.builtin.blockinfile:
+        path: "/etc/systemd/system/{{ app_name }}.service"
+        create: true
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        marker: "# {mark} Ansible managed unit for {{ app_name }}"
+        block: |
+          [Unit]
+          Description={{ service_description }}
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=simple
+          User={{ app_user }}
+          Group={{ app_group }}
+          WorkingDirectory={{ data_dir }}
+          EnvironmentFile=-{{ env_file }}
+          ExecStart=/usr/bin/java $JAVA_OPTS -jar {{ app_home }}/{{ jar_name }} $APP_OPTS
+          SuccessExitStatus=143
+          Restart=on-failure
+          RestartSec=5s
+          TimeoutStopSec=30s
+          UMask=0027
+          LimitNOFILE=65536
+          StandardOutput=journal
+          StandardError=journal
+
+          # Runtime directory under /run
+          RuntimeDirectory={{ app_name }}
+          RuntimeDirectoryMode=0750
+
+          # Security hardening
+          NoNewPrivileges=true
+          PrivateTmp=true
+          PrivateDevices=true
+          ProtectSystem=strict
+          ProtectHome=read-only
+          ReadWritePaths={{ data_dir }} {{ log_dir }}
+          ProtectKernelTunables=true
+          ProtectKernelModules=true
+          ProtectControlGroups=true
+          RestrictSUIDSGID=true
+          LockPersonality=true
+          RemoveIPC=true
+          RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+          CapabilityBoundingSet=
+          AmbientCapabilities=
+
+          [Install]
+          WantedBy=multi-user.target
+      notify:
+        - systemd daemon-reload
+        - restart {{ app_name }}
+
+    - name: Ensure service is enabled and started
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        state: started
+        enabled: true
+
+  handlers:
+    - name: systemd daemon-reload
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: restart {{ app_name }}
+      ansible.builtin.systemd:
+        name: "{{ app_name }}"
+        state: restarted
+        enabled: true

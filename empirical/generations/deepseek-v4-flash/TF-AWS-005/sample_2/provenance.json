@@ -1,0 +1,53 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "TF-AWS-005",
+  "language": "terraform",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a VPC with CIDR 10.0.0.0/16 containing two public subnets and two private subnets across two availability zones, with appropriate route tables, an internet gateway, and a NAT gateway for outbound private subnet traffic.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create a VPC with CIDR 10.0.0.0/16 containing two public subnets and two private subnets across two availability zones, with appropriate route tables, an internet gateway, and a NAT gateway for outbound private subnet traffic.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\nlocals {\n  azs = slice(data.aws_availability_zones.available.names, 0, 2)\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = {\n    Name = \"main-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"public\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)\n  availability_zone = local.azs[count.index]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name = \"public-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_subnet\" \"private\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 2)\n  availability_zone = local.azs[count.index]\n\n  tags = {\n    Name = \"private-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.main.id\n\n  tags = {\n    Name = \"main-igw\"\n  }\n}\n\nresource \"aws_eip\" \"nat\" {\n  domain = \"vpc\"\n\n  tags = {\n    Name = \"nat-eip\"\n  }\n}\n\nresource \"aws_nat_gateway\" \"nat\" {\n  allocation_id = aws_eip.nat.id\n  subnet_id     = aws_subnet.public[0].id\n\n  tags = {\n    Name = \"main-nat\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\nresource \"aws_route_table\" \"public\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name = \"public-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"public\" {\n  count          = 2\n  subnet_id      = aws_subnet.public[count.index].id\n  route_table_id = aws_route_table.public.id\n}\n\nresource \"aws_route_table\" \"private\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat.id\n  }\n\n  tags = {\n    Name = \"private-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"private\" {\n  count          = 2\n  subnet_id      = aws_subnet.private[count.index].id\n  route_table_id = aws_route_table.private.id\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\nlocals {\n  azs = slice(data.aws_availability_zones.available.names, 0, 2)\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = {\n    Name = \"main-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"public\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)\n  availability_zone = local.azs[count.index]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name = \"public-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_subnet\" \"private\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 2)\n  availability_zone = local.azs[count.index]\n\n  tags = {\n    Name = \"private-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.main.id\n\n  tags = {\n    Name = \"main-igw\"\n  }\n}\n\nresource \"aws_eip\" \"nat\" {\n  domain = \"vpc\"\n\n  tags = {\n    Name = \"nat-eip\"\n  }\n}\n\nresource \"aws_nat_gateway\" \"nat\" {\n  allocation_id = aws_eip.nat.id\n  subnet_id     = aws_subnet.public[0].id\n\n  tags = {\n    Name = \"main-nat\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\nresource \"aws_route_table\" \"public\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name = \"public-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"public\" {\n  count          = 2\n  subnet_id      = aws_subnet.public[count.index].id\n  route_table_id = aws_route_table.public.id\n}\n\nresource \"aws_route_table\" \"private\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat.id\n  }\n\n  tags = {\n    Name = \"private-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"private\" {\n  count          = 2\n  subnet_id      = aws_subnet.private[count.index].id\n  route_table_id = aws_route_table.private.id\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-east-1\"\n}\n\ndata \"aws_availability_zones\" \"available\" {\n  state = \"available\"\n}\n\nlocals {\n  azs = slice(data.aws_availability_zones.available.names, 0, 2)\n}\n\nresource \"aws_vpc\" \"main\" {\n  cidr_block           = \"10.0.0.0/16\"\n  enable_dns_support   = true\n  enable_dns_hostnames = true\n\n  tags = {\n    Name = \"main-vpc\"\n  }\n}\n\nresource \"aws_subnet\" \"public\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index)\n  availability_zone = local.azs[count.index]\n  map_public_ip_on_launch = true\n\n  tags = {\n    Name = \"public-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_subnet\" \"private\" {\n  count             = 2\n  vpc_id            = aws_vpc.main.id\n  cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 2)\n  availability_zone = local.azs[count.index]\n\n  tags = {\n    Name = \"private-subnet-${count.index + 1}\"\n  }\n}\n\nresource \"aws_internet_gateway\" \"igw\" {\n  vpc_id = aws_vpc.main.id\n\n  tags = {\n    Name = \"main-igw\"\n  }\n}\n\nresource \"aws_eip\" \"nat\" {\n  domain = \"vpc\"\n\n  tags = {\n    Name = \"nat-eip\"\n  }\n}\n\nresource \"aws_nat_gateway\" \"nat\" {\n  allocation_id = aws_eip.nat.id\n  subnet_id     = aws_subnet.public[0].id\n\n  tags = {\n    Name = \"main-nat\"\n  }\n\n  depends_on = [aws_internet_gateway.igw]\n}\n\nresource \"aws_route_table\" \"public\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block = \"0.0.0.0/0\"\n    gateway_id = aws_internet_gateway.igw.id\n  }\n\n  tags = {\n    Name = \"public-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"public\" {\n  count          = 2\n  subnet_id      = aws_subnet.public[count.index].id\n  route_table_id = aws_route_table.public.id\n}\n\nresource \"aws_route_table\" \"private\" {\n  vpc_id = aws_vpc.main.id\n\n  route {\n    cidr_block     = \"0.0.0.0/0\"\n    nat_gateway_id = aws_nat_gateway.nat.id\n  }\n\n  tags = {\n    Name = \"private-rt\"\n  }\n}\n\nresource \"aws_route_table_association\" \"private\" {\n  count          = 2\n  subnet_id      = aws_subnet.private[count.index].id\n  route_table_id = aws_route_table.private.id\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729164,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 158,
+      "output_tokens": 730,
+      "raw_input_tokens": 158
+    }
+  },
+  "started_at": "2026-05-25T17:12:39.667959+00:00",
+  "elapsed_seconds": 4.51
+}

@@ -1,0 +1,35 @@
+---
+- name: Configure Linux firewall
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure firewalld is installed and running
+      ansible.builtin.package:
+        name: firewalld
+        state: present
+    - name: Start and enable firewalld service
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+    - name: Allow SSH (port 22)
+      ansible.builtin.firewalld:
+        zone: public
+        service: ssh
+        permanent: true
+        state: enabled
+        immediate: true
+    - name: Allow HTTPS (port 443)
+      ansible.builtin.firewalld:
+        zone: public
+        service: https
+        permanent: true
+        state: enabled
+        immediate: true
+    - name: Set default policy to deny all other inbound traffic
+      ansible.builtin.firewalld:
+        zone: public
+        target: DROP
+        permanent: true
+        state: enabled
+        immediate: true

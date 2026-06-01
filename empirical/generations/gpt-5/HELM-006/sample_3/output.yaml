@@ -1,0 +1,481 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: worker
+description: Generic worker service that consumes messages from a Redis queue
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.23.0-0"
+keywords:
+  - worker
+  - redis
+  - queue
+  - background-jobs
+---
+# FILE: values.yaml
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/example/worker
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: my-registry-secret
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+priorityClassName: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+  labels: {}
+
+env:
+  QUEUE_NAME: "jobs"
+  WORKER_CONCURRENCY: "4"
+  LOG_LEVEL: "info"
+  REDIS_HOST: "redis-master"
+  REDIS_PORT: "6379"
+  REDIS_TLS: "false"
+  HEALTH_PATH: "/healthz"
+  METRICS_PATH: "/metrics"
+  GRACEFUL_SHUTDOWN_TIMEOUT_SECONDS: "30"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+pdb:
+  enabled: true
+  minAvailable: "50%"
+
+networkPolicy:
+  enabled: false
+  allowIngressFromNamespaces: []
+  # - kube-system
+  additionalEgress: []
+  # - to:
+  #   - ipBlock:
+  #       cidr: 10.0.0.0/8
+
+topologySpreadConstraints: []
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: ScheduleAnyway
+#   labelSelectorOverride: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+terminationGracePeriodSeconds: 30
+
+redis:
+  auth:
+    create: true
+    secretName: ""
+    existingSecretName: ""
+    passwordKey: "redis-password"
+    password: ""
+
+secret:
+  annotations: {}
+
+configmap:
+  annotations: {}
+---
+# FILE: templates/_helpers.tpl
+{{- define "worker.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end }}
+
+{{- define "worker.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+
+{{- define "worker.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" -}}
+{{- end }}
+
+{{- define "worker.labels" -}}
+helm.sh/chart: {{ include "worker.chart" . }}
+app.kubernetes.io/name: {{ include "worker.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Chart.Annotations }}
+{{- range $k, $v := .Chart.Annotations }}
+{{ $k }}: {{ $v | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- define "worker.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "worker.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "worker.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "worker.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end }}
+
+{{- define "worker.redisSecretName" -}}
+{{- if .Values.redis.auth.existingSecretName -}}
+{{- .Values.redis.auth.existingSecretName -}}
+{{- else -}}
+{{- if .Values.redis.auth.secretName -}}
+{{- .Values.redis.auth.secretName -}}
+{{- else -}}
+{{- printf "%s-redis" (include "worker.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+{{- end }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "worker.fullname" . }}-env
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.configmap.annotations | nindent 4 }}
+data:
+  {{- range $k, $v := .Values.env }}
+  {{ $k }}: {{ $v | quote }}
+  {{- end }}
+---
+# FILE: templates/secret.yaml
+{{- if and (not .Values.redis.auth.existingSecretName) .Values.redis.auth.create }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "worker.redisSecretName" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.secret.annotations | nindent 4 }}
+type: Opaque
+immutable: true
+stringData:
+  {{ .Values.redis.auth.passwordKey }}: {{ default "" .Values.redis.auth.password | quote }}
+{{- end }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "worker.selectorLabels" . | nindent 4 }}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      {{- include "worker.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if and (not .Values.redis.auth.existingSecretName) .Values.redis.auth.create }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "worker.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "worker.redisSecretName" . }}
+                  key: {{ .Values.redis.auth.passwordKey }}
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: {{ include "worker.fullname" . }}-env
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.env.HEALTH_PATH }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.env.HEALTH_PATH }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.env.HEALTH_PATH }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- range $c := .Values.topologySpreadConstraints }}
+        - maxSkew: {{ $c.maxSkew }}
+          topologyKey: {{ $c.topologyKey | quote }}
+          whenUnsatisfiable: {{ $c.whenUnsatisfiable | default "ScheduleAnyway" }}
+          labelSelector:
+            matchLabels:
+              {{- include "worker.selectorLabels" $ | nindent 14 }}
+          {{- if $c.labelSelectorOverride }}
+          labelSelector:
+            {{- toYaml $c.labelSelectorOverride | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+# FILE: templates/serviceaccount.yaml
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "worker.serviceAccountName" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
+automountServiceAccountToken: false
+{{- end }}
+---
+# FILE: templates/pdb.yaml
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "worker.selectorLabels" . | nindent 6 }}
+  minAvailable: {{ .Values.pdb.minAvailable | quote }}
+{{- end }}
+---
+# FILE: templates/hpa.yaml
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "worker.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if or .Values.autoscaling.targetCPUUtilizationPercentage .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+    {{- else }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+    {{- end }}
+{{- end }}
+---
+# FILE: templates/networkpolicy.yaml
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "worker.fullname" . }}
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "worker.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        {{- if .Values.networkPolicy.allowIngressFromNamespaces }}
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  {{- toYaml .Values.networkPolicy.allowIngressFromNamespaces | nindent 18 }}
+        {{- else }}
+        - podSelector: {}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.port }}
+  egress:
+    - to:
+        - podSelector: {}
+        - namespaceSelector: {}
+        {{- with .Values.networkPolicy.additionalEgress }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.env.REDIS_PORT | int }}
+{{- end }}

@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-005",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param sqlServerName string\nparam databaseName string\nparam administratorLogin string\nparam administratorLoginPassword string\nparam location string = resourceGroup().location\n\nresource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Enabled'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {\n  name: '${sqlServer.name}/${databaseName}'\n  location: location\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    licenseType: 'LicenseIncluded'\n    readScale: 'Disabled'\n    requestedBackupStorageRedundancy: 'Local'\n  }\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = {\n  name: '${sqlServer.name}/AllowAllWindowsAzureIps'\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n}\n\noutput sqlServerFQDN string = reference(sqlServer.id).fullyQualifiedDomainName\noutput sqlDatabaseId string = sqlDatabase.id",
+  "cleaned_response": "param sqlServerName string\nparam databaseName string\nparam administratorLogin string\nparam administratorLoginPassword string\nparam location string = resourceGroup().location\n\nresource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Enabled'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {\n  name: '${sqlServer.name}/${databaseName}'\n  location: location\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    licenseType: 'LicenseIncluded'\n    readScale: 'Disabled'\n    requestedBackupStorageRedundancy: 'Local'\n  }\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = {\n  name: '${sqlServer.name}/AllowAllWindowsAzureIps'\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n}\n\noutput sqlServerFQDN string = reference(sqlServer.id).fullyQualifiedDomainName\noutput sqlDatabaseId string = sqlDatabase.id",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param sqlServerName string\nparam databaseName string\nparam administratorLogin string\nparam administratorLoginPassword string\nparam location string = resourceGroup().location\n\nresource sqlServer 'Microsoft.Sql/servers@2023-05-01-preview' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n    version: '12.0'\n    publicNetworkAccess: 'Enabled'\n  }\n}\n\nresource sqlDatabase 'Microsoft.Sql/servers/databases@2023-05-01-preview' = {\n  name: '${sqlServer.name}/${databaseName}'\n  location: location\n  sku: {\n    name: 'S2'\n    tier: 'Standard'\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: 268435456000\n    zoneRedundant: false\n    licenseType: 'LicenseIncluded'\n    readScale: 'Disabled'\n    requestedBackupStorageRedundancy: 'Local'\n  }\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2023-05-01-preview' = {\n  name: '${sqlServer.name}/AllowAllWindowsAzureIps'\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n}\n\noutput sqlServerFQDN string = reference(sqlServer.id).fullyQualifiedDomainName\noutput sqlDatabaseId string = sqlDatabase.id",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723950,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 134,
+      "output_tokens": 344,
+      "raw_input_tokens": 134
+    }
+  },
+  "started_at": "2026-05-25T15:45:44.650248+00:00",
+  "elapsed_seconds": 5.499
+}

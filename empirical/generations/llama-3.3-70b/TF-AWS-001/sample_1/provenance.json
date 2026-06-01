@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-001",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an AWS S3 bucket named 'company-prod-data' for storing production application logs and configuration backups. Ensure the bucket is suitable for a production environment handling sensitive customer data.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an AWS S3 bucket named 'company-prod-data' for storing production application logs and configuration backups. Ensure the bucket is suitable for a production environment handling sensitive customer data.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"prod_data\" {\n  bucket = \"company-prod-data\"\n  acl    = \"private\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  block_public_acls   = true\n  block_public_policy  = true\n  ignore_public_acls  = true\n  restrict_public_buckets = true\n}\n\nresource \"aws_s3_bucket_policy\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"DenyIncorrectEncryptionHeader\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          StringNotEquals = {\n            \"s3:x-amz-server-side-encryption\" = \"AES256\"\n          }\n        }\n      },\n      {\n        Sid       = \"DenyUnencryptedObjectUploads\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          Null = {\n            \"s3:x-amz-server-side-encryption\" = \"true\"\n          }\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_s3_bucket_logging\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  target_bucket = aws_s3_bucket.prod_data.id\n  target_prefix  = \"log/\"\n}\n\nresource \"aws_s3_bucket_ownership_controls\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  rule {\n    object_ownership = \"BucketOwnerPreferred\"\n  }\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"prod_data\" {\n  bucket = \"company-prod-data\"\n  acl    = \"private\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  block_public_acls   = true\n  block_public_policy  = true\n  ignore_public_acls  = true\n  restrict_public_buckets = true\n}\n\nresource \"aws_s3_bucket_policy\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"DenyIncorrectEncryptionHeader\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          StringNotEquals = {\n            \"s3:x-amz-server-side-encryption\" = \"AES256\"\n          }\n        }\n      },\n      {\n        Sid       = \"DenyUnencryptedObjectUploads\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          Null = {\n            \"s3:x-amz-server-side-encryption\" = \"true\"\n          }\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_s3_bucket_logging\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  target_bucket = aws_s3_bucket.prod_data.id\n  target_prefix  = \"log/\"\n}\n\nresource \"aws_s3_bucket_ownership_controls\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  rule {\n    object_ownership = \"BucketOwnerPreferred\"\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_s3_bucket\" \"prod_data\" {\n  bucket = \"company-prod-data\"\n  acl    = \"private\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  block_public_acls   = true\n  block_public_policy  = true\n  ignore_public_acls  = true\n  restrict_public_buckets = true\n}\n\nresource \"aws_s3_bucket_policy\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Sid       = \"DenyIncorrectEncryptionHeader\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          StringNotEquals = {\n            \"s3:x-amz-server-side-encryption\" = \"AES256\"\n          }\n        }\n      },\n      {\n        Sid       = \"DenyUnencryptedObjectUploads\"\n        Effect    = \"Deny\"\n        Principal = \"*\"\n        Action     = \"s3:PutObject\"\n        Resource = aws_s3_bucket.prod_data.arn + \"/*\"\n        Condition = {\n          Null = {\n            \"s3:x-amz-server-side-encryption\" = \"true\"\n          }\n        }\n      },\n    ]\n  })\n}\n\nresource \"aws_s3_bucket_logging\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  target_bucket = aws_s3_bucket.prod_data.id\n  target_prefix  = \"log/\"\n}\n\nresource \"aws_s3_bucket_ownership_controls\" \"prod_data\" {\n  bucket = aws_s3_bucket.prod_data.id\n\n  rule {\n    object_ownership = \"BucketOwnerPreferred\"\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723930,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 175,
+      "output_tokens": 456,
+      "raw_input_tokens": 175
+    }
+  },
+  "started_at": "2026-05-25T15:45:29.182061+00:00",
+  "elapsed_seconds": 1.188
+}

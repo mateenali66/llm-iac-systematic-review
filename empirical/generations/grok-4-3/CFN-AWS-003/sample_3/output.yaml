@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Production-grade Aurora PostgreSQL Serverless v2 cluster for SaaS multi-tenant application
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID for the Aurora cluster
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet IDs across multiple AZs
+  AppSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group ID of the application layer
+  DBName:
+    Type: String
+    Default: saas_tenant_db
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9_]*'
+  MasterUsername:
+    Type: String
+    Default: saasadmin
+    NoEcho: true
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+  MinACU:
+    Type: Number
+    Default: 1
+    MinValue: 0.5
+    MaxValue: 128
+  MaxACU:
+    Type: Number
+    Default: 32
+    MinValue: 1
+    MaxValue: 128
+  KmsKeyArn:
+    Type: String
+    Description: ARN of KMS key for encryption (leave blank for AWS managed)
+    Default: ''
+Conditions:
+  HasKmsKey: !Not [!Equals [!Ref KmsKeyArn, '']]
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Private subnets for Aurora Serverless v2
+      SubnetIds: !Ref PrivateSubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-db-subnet-group
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow PostgreSQL access from application layer
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref AppSecurityGroupId
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-aurora-sg
+  DBClusterParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Family: aurora-postgresql15
+      Description: Custom parameter group for SaaS multi-tenant workload
+      Parameters:
+        shared_preload_libraries: pg_stat_statements,pg_hint_plan
+        max_connections: '5000'
+        log_min_duration_statement: '1000'
+        log_statement: 'ddl'
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-cluster-params
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      DBClusterIdentifier: !Sub ${AWS::StackName}-cluster
+      DatabaseName: !Ref DBName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref AuroraSecurityGroup
+      StorageEncrypted: true
+      KmsKeyId: !If [HasKmsKey, !Ref KmsKeyArn, !Ref AWS::NoValue]
+      EnableIAMDatabaseAuthentication: true
+      BackupRetentionPeriod: 14
+      PreferredBackupWindow: '03:00-04:00'
+      PreferredMaintenanceWindow: 'sun:04:00-sun:05:00'
+      DeletionProtection: true
+      CopyTagsToSnapshot: true
+      EnableCloudwatchLogsExports:
+        - postgresql
+      DBClusterParameterGroupName: !Ref DBClusterParameterGroup
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinACU
+        MaxCapacity: !Ref MaxACU
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-cluster
+          - Key: Environment
+            Value: production
+          - Key: Application
+            Value: saas-multi-tenant
+  AuroraInstanceWriter:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceIdentifier: !Sub ${AWS::StackName}-writer
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-writer
+  AuroraInstanceReader:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceIdentifier: !Sub ${AWS::StackName}-reader
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-reader
+Outputs:
+  ClusterEndpoint:
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+  ReaderEndpoint:
+    Value: !GetAtt AuroraCluster.ReaderEndpoint.Address
+  ClusterArn:
+    Value: !Sub arn:${AWS::Partition}:rds:${AWS::Region}:${AWS::AccountId}:cluster:${AuroraCluster}

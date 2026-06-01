@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "BICEP-AZURE-014",
+  "language": "azure_bicep",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template defining a custom Azure RBAC role for read-only access to virtual machines and assigning it to a security group.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param roleName string = 'VM Reader'\nparam roleDescription string = 'Read-only access to virtual machines'\nparam securityGroupName string\nparam securityGroupEmail string\n\nresource customRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: guid(subscription().id, roleName)\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/extensions/*/read'\n          'Microsoft.Compute/virtualMachines/login/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Storage/storageAccounts/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n        ]\n        notActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource securityGroup 'Microsoft.AzureActiveDirectory/b2cDirectories/guestUsages/invitations@2021-04-01-preview' = {\n  name: securityGroupName\n  properties: {\n    displayName: securityGroupName\n    mailNickname: securityGroupName\n    mail: securityGroupEmail\n    securityEnabled: true\n    groupTypes: []\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, customRole.name, securityGroup.name)\n  properties: {\n    roleDefinitionId: customRole.id\n    principalId: securityGroup.id\n    principalType: 'Group'\n  }\n  scope: subscription()\n}",
+  "cleaned_response": "param roleName string = 'VM Reader'\nparam roleDescription string = 'Read-only access to virtual machines'\nparam securityGroupName string\nparam securityGroupEmail string\n\nresource customRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: guid(subscription().id, roleName)\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/extensions/*/read'\n          'Microsoft.Compute/virtualMachines/login/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Storage/storageAccounts/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n        ]\n        notActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource securityGroup 'Microsoft.AzureActiveDirectory/b2cDirectories/guestUsages/invitations@2021-04-01-preview' = {\n  name: securityGroupName\n  properties: {\n    displayName: securityGroupName\n    mailNickname: securityGroupName\n    mail: securityGroupEmail\n    securityEnabled: true\n    groupTypes: []\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, customRole.name, securityGroup.name)\n  properties: {\n    roleDefinitionId: customRole.id\n    principalId: securityGroup.id\n    principalType: 'Group'\n  }\n  scope: subscription()\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param roleName string = 'VM Reader'\nparam roleDescription string = 'Read-only access to virtual machines'\nparam securityGroupName string\nparam securityGroupEmail string\n\nresource customRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = {\n  name: guid(subscription().id, roleName)\n  properties: {\n    roleName: roleName\n    description: roleDescription\n    type: 'CustomRole'\n    permissions: [\n      {\n        actions: [\n          'Microsoft.Compute/virtualMachines/read'\n          'Microsoft.Compute/virtualMachines/extensions/read'\n          'Microsoft.Compute/virtualMachines/extensions/*/read'\n          'Microsoft.Compute/virtualMachines/login/read'\n          'Microsoft.Network/networkInterfaces/read'\n          'Microsoft.Network/virtualNetworks/read'\n          'Microsoft.Network/networkSecurityGroups/read'\n          'Microsoft.Storage/storageAccounts/read'\n          'Microsoft.Resources/subscriptions/resourceGroups/read'\n        ]\n        notActions: []\n      }\n    ]\n    assignableScopes: [\n      subscription().id\n    ]\n  }\n}\n\nresource securityGroup 'Microsoft.AzureActiveDirectory/b2cDirectories/guestUsages/invitations@2021-04-01-preview' = {\n  name: securityGroupName\n  properties: {\n    displayName: securityGroupName\n    mailNickname: securityGroupName\n    mail: securityGroupEmail\n    securityEnabled: true\n    groupTypes: []\n  }\n}\n\nresource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {\n  name: guid(resourceGroup().id, customRole.name, securityGroup.name)\n  properties: {\n    roleDefinitionId: customRole.id\n    principalId: securityGroup.id\n    principalType: 'Group'\n  }\n  scope: subscription()\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779724232,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 137,
+      "output_tokens": 370,
+      "raw_input_tokens": 137
+    }
+  },
+  "started_at": "2026-05-25T15:50:25.519105+00:00",
+  "elapsed_seconds": 7.079
+}

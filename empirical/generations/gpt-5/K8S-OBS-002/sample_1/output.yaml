@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-metrics
+  labels:
+    app.kubernetes.io/name: api-metrics
+spec:
+  jobLabel: app.kubernetes.io/name
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-metrics
+  namespaceSelector:
+    any: true
+  endpoints:
+    - targetPort: 9090
+      interval: 30s
+      path: /metrics
+      scheme: http

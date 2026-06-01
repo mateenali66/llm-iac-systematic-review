@@ -1,0 +1,124 @@
+resources:
+- name: dev-network
+  type: compute.v1.network
+  properties:
+    autoCreateSubnetworks: false
+
+- name: dev-subnet
+  type: compute.v1.subnetwork
+  properties:
+    region: us-central1
+    network: $(ref.dev-network.selfLink)
+    ipCidrRange: 10.10.0.0/24
+    privateIpGoogleAccess: true
+
+- name: fw-allow-iap-ssh
+  type: compute.v1.firewall
+  properties:
+    network: $(ref.dev-network.selfLink)
+    direction: INGRESS
+    priority: 1000
+    targetTags:
+    - allow-iap-ssh
+    sourceRanges:
+    - 35.235.240.0/20
+    allowed:
+    - IPProtocol: tcp
+      ports:
+      - "22"
+    logConfig:
+      enable: true
+      metadata: INCLUDE_ALL_METADATA
+
+- name: nat-router-us-central1
+  type: compute.v1.router
+  properties:
+    region: us-central1
+    network: $(ref.dev-network.selfLink)
+    bgp:
+      asn: 64514
+    nats:
+    - name: nat-us-central1
+      natIpAllocateOption: AUTO_ONLY
+      sourceSubnetworkIpRangesToNat: LIST_OF_SUBNETWORKS
+      subnetworks:
+      - name: $(ref.dev-subnet.selfLink)
+        sourceIpRangesToNat:
+        - ALL_IP_RANGES
+
+- name: dev-vm-sa
+  type: gcp-types/iam-v1:projects.serviceAccounts
+  properties:
+    parent: projects/$(project)
+    accountId: dev-vm-sa
+    serviceAccount:
+      displayName: Dev VM Service Account
+
+- name: sa-log-writer-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/logging.logWriter
+    member: serviceAccount:$(ref.dev-vm-sa.email)
+
+- name: sa-metric-writer-binding
+  type: gcp-types/cloudresourcemanager-v1:virtual.projects.iamMemberBinding
+  properties:
+    resource: $(project)
+    role: roles/monitoring.metricWriter
+    member: serviceAccount:$(ref.dev-vm-sa.email)
+
+- name: dev-vm
+  type: compute.v1.instance
+  properties:
+    zone: us-central1-a
+    machineType: zones/us-central1-a/machineTypes/e2-medium
+    canIpForward: false
+    deletionProtection: false
+    labels:
+      env: dev
+    tags:
+      items:
+      - allow-iap-ssh
+    shieldedInstanceConfig:
+      enableSecureBoot: true
+      enableVtpm: true
+      enableIntegrityMonitoring: true
+    scheduling:
+      automaticRestart: true
+      onHostMaintenance: MIGRATE
+      provisioningModel: STANDARD
+    serviceAccounts:
+    - email: $(ref.dev-vm-sa.email)
+      scopes:
+      - https://www.googleapis.com/auth/logging.write
+      - https://www.googleapis.com/auth/monitoring.write
+    disks:
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        diskSizeGb: 50
+        diskType: pd-balanced
+        sourceImage: projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts
+    networkInterfaces:
+    - subnetwork: $(ref.dev-subnet.selfLink)
+    metadata:
+      items:
+      - key: enable-oslogin
+        value: "TRUE"
+      - key: block-project-ssh-keys
+        value: "TRUE"
+      - key: serial-port-enable
+        value: "0"
+
+outputs:
+- name: instanceSelfLink
+  value: $(ref.dev-vm.selfLink)
+- name: instanceInternalIP
+  value: $(ref.dev-vm.networkInterfaces[0].networkIP)
+- name: subnetworkSelfLink
+  value: $(ref.dev-subnet.selfLink)
+- name: natRouterSelfLink
+  value: $(ref.nat-router-us-central1.selfLink)

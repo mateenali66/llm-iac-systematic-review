@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora PostgreSQL Serverless v2 cluster for SaaS multi-tenant application
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: production
+    AllowedValues: [development, staging, production]
+    Description: Environment name for tagging and naming
+
+  ApplicationName:
+    Type: String
+    Default: saas-app
+    Description: Application name used for resource naming
+    AllowedPattern: '^[a-z][a-z0-9-]*$'
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where the Aurora cluster will be deployed
+
+  PrivateSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Private subnet IDs (minimum 2 in different AZs) for the DB subnet group
+
+  AllowedSecurityGroupIds:
+    Type: List<AWS::EC2::SecurityGroup::Id>
+    Description: Security group IDs allowed to connect to the database (application tier)
+
+  DatabaseName:
+    Type: String
+    Default: saasapp
+    Description: Initial database name
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9_]{0,62}$'
+
+  MasterUsername:
+    Type: String
+    Default: dbadmin
+    Description: Master database username
+    NoEcho: true
+    AllowedPattern: '^[a-zA-Z][a-zA-Z0-9_]{0,62}$'
+
+  EngineVersion:
+    Type: String
+    Default: '15.4'
+    Description: Aurora PostgreSQL engine version
+
+  MinCapacity:
+    Type: Number
+    Default: 0.5
+    MinValue: 0.5
+    MaxValue: 128
+    Description: Minimum Aurora Serverless v2 capacity (ACUs)
+
+  MaxCapacity:
+    Type: Number
+    Default: 16
+    MinValue: 1
+    MaxValue: 128
+    Description: Maximum Aurora Serverless v2 capacity (ACUs)
+
+  BackupRetentionPeriod:
+    Type: Number
+    Default: 14
+    MinValue: 1
+    MaxValue: 35
+    Description: Backup retention period in days
+
+  PreferredBackupWindow:
+    Type: String
+    Default: '03:00-04:00'
+    Description: Preferred daily backup window (UTC)
+
+  PreferredMaintenanceWindow:
+    Type: String
+    Default: 'sun:04:30-sun:05:30'
+    Description: Preferred weekly maintenance window (UTC)
+
+  DeletionProtection:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Enable deletion protection
+
+  EnablePerformanceInsights:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+
+  CreateReadReplica:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Whether to create a read replica instance
+
+Conditions:
+  IsProduction: !Equals [!Ref EnvironmentName, production]
+  EnablePI: !Equals [!Ref EnablePerformanceInsights, 'true']
+  CreateReader: !Equals [!Ref CreateReadReplica, 'true']
+
+Resources:
+
+  DatabaseKMSKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub 'KMS key for ${ApplicationName}-${EnvironmentName} Aurora cluster encryption'
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: EnableRootAccess
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+          - Sid: AllowRDSService
+            Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+              - kms:DescribeKey
+              - kms:CreateGrant
+            Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub '${ApplicationName}-${EnvironmentName}-aurora-kms'
+        - Key: Environment
+          Value: !Ref EnvironmentName
+
+  DatabaseKMSKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub 'alias/${ApplicationName}-${EnvironmentName}-aurora'
+      TargetKeyId: !Ref DatabaseKMSKey
+
+  DatabaseMasterSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: !Sub '${ApplicationName}/${EnvironmentName}/aurora/master-credentials'
+      Description: !Sub 'Master credentials for ${ApplicationName}-${EnvironmentName} Aurora cluster'
+      KmsKeyId: !Ref DatabaseKMSKey
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username": "${MasterUsername}"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        ExcludeCharacters: '"@/\$`'":;{}[]()'
+        ExcludePunctuation: false
+        IncludeSpace: false
+      Tags:
+        - Key: Environment
+          Value: !Ref EnvironmentName
+        - Key: Application

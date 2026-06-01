@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgresql-password
+type: Opaque
+data:
+  POSTGRESQL_PASSWORD: <base64 encoded password>
+---
+# Example usage in a Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: example-deployment
+spec:
+  selector:
+    matchLabels:
+      app: example
+  template:
+    metadata:
+      labels:
+        app: example
+    spec:
+      containers:
+      - name: example
+        image: example/image
+        env:
+        - name: POSTGRESQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-password
+              key: POSTGRESQL_PASSWORD

@@ -1,0 +1,91 @@
+{
+  "results": {
+    "scan_errors": [
+      {
+        "iac_type": "docker",
+        "directory": "/in",
+        "errMsg": "Dockerfile not found in the directory /in"
+      },
+      {
+        "iac_type": "cft",
+        "directory": "/in",
+        "errMsg": "error while loading iac file '/in/provenance.json', err: failed to find valid Resources key in file: /in/provenance.json"
+      },
+      {
+        "iac_type": "kustomize",
+        "directory": "/in",
+        "errMsg": "kustomization.y(a)ml file not found in the directory /in"
+      },
+      {
+        "iac_type": "helm",
+        "directory": "/in",
+        "errMsg": "no helm charts found in directory /in"
+      }
+    ],
+    "violations": [
+      {
+        "rule_name": "listenerNotHttps",
+        "description": "Ensure there is a listener configured on HTTPs or with a port 443",
+        "rule_id": "AC_AWS_0491",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "http_redirect",
+        "resource_type": "aws_lb_listener",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 185
+      },
+      {
+        "rule_name": "port443OpenToInternet",
+        "description": "Security Groups - Unrestricted Specific Ports - (HTTPS,443)",
+        "rule_id": "AC_AWS_0229",
+        "severity": "LOW",
+        "category": "Infrastructure Security",
+        "resource_name": "alb",
+        "resource_type": "aws_security_group",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 91
+      },
+      {
+        "rule_name": "targetGroupUsingHttp",
+        "description": "Ensure Target Group use HTTPs to ensure end to end encryption",
+        "rule_id": "AC_AWS_0492",
+        "severity": "MEDIUM",
+        "category": "Infrastructure Security",
+        "resource_name": "api",
+        "resource_type": "aws_lb_target_group",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 152
+      },
+      {
+        "rule_name": "port80OpenToInternet",
+        "description": "Security Groups - Unrestricted Specific Ports - (HTTP,80)",
+        "rule_id": "AC_AWS_0228",
+        "severity": "HIGH",
+        "category": "Infrastructure Security",
+        "resource_name": "alb",
+        "resource_type": "aws_security_group",
+        "module_name": "root",
+        "file": "output.tf",
+        "plan_root": "./",
+        "line": 91
+      }
+    ],
+    "skipped_violations": null,
+    "scan_summary": {
+      "file/folder": "/in",
+      "iac_type": "terraform",
+      "scanned_at": "2026-05-26 05:40:33.418192503 +0000 UTC",
+      "policies_validated": 144,
+      "violated_policies": 4,
+      "low": 1,
+      "medium": 2,
+      "high": 1
+    }
+  }
+}

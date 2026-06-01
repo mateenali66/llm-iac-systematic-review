@@ -1,0 +1,107 @@
+resources:
+  - name: saas-vpc
+    type: compute.v1.network
+    properties:
+      autoCreateSubnetworks: false
+      routingConfig:
+        routingMode: REGIONAL
+
+  - name: saas-app-subnet
+    type: compute.v1.subnetwork
+    properties:
+      description: Subnet for application services
+      ipCidrRange: 10.10.0.0/24
+      region: us-central1
+      network: $(ref.saas-vpc.selfLink)
+      privateIpGoogleAccess: true
+
+  - name: saas-sql-psc-range
+    type: compute.v1.globalAddress
+    properties:
+      purpose: VPC_PEERING
+      addressType: INTERNAL
+      prefixLength: 24
+      network: $(ref.saas-vpc.selfLink)
+
+  - name: saas-servicenetworking-connection
+    type: gcp-types/servicenetworking-v1:services.connections
+    properties:
+      parent: services/servicenetworking.googleapis.com
+      network: $(ref.saas-vpc.selfLink)
+      reservedPeeringRanges:
+        - $(ref.saas-sql-psc-range.name)
+      service: servicenetworking.googleapis.com
+
+  - name: saas-sql-pg15
+    type: gcp-types/sqladmin-v1beta4:instances
+    metadata:
+      dependsOn:
+        - saas-servicenetworking-connection
+    properties:
+      name: saas-sql-pg15
+      databaseVersion: POSTGRES_15
+      region: us-central1
+      deletionProtectionEnabled: true
+      settings:
+        tier: db-custom-2-7680
+        availabilityType: REGIONAL
+        dataDiskSizeGb: 100
+        dataDiskType: PD_SSD
+        storageAutoResize: true
+        activationPolicy: ALWAYS
+        backupLocation: us
+        backupConfiguration:
+          enabled: true
+          startTime: 03:00
+          pointInTimeRecoveryEnabled: true
+          backupRetentionSettings:
+            retainedBackups: 7
+            retentionUnit: COUNT
+        ipConfiguration:
+          ipv4Enabled: false
+          privateNetwork: $(ref.saas-vpc.selfLink)
+        maintenanceWindow:
+          day: 7
+          hour: 3
+          updateTrack: stable
+        databaseFlags:
+          - name: cloudsql.iam_authentication
+            value: "on"
+          - name: log_min_duration_statement
+            value: "200"
+          - name: log_connections
+            value: "on"
+          - name: log_disconnections
+            value: "on"
+          - name: log_statement
+            value: "ddl"
+        insightsConfig:
+          queryInsightsEnabled: true
+          queryStringLength: 1024
+          recordApplicationTags: true
+          recordClientAddress: true
+        userLabels:
+          env: prod
+          app: saas-platform
+          managed-by: deployment-manager
+
+  - name: saas-db
+    type: gcp-types/sqladmin-v1beta4:databases
+    metadata:
+      dependsOn:
+        - saas-sql-pg15
+    properties:
+      name: app
+      instance: $(ref.saas-sql-pg15.name)
+
+outputs:
+  - name: instanceConnectionName
+    value: $(ref.saas-sql-pg15.connectionName)
+  - name: instanceSelfLink
+    value: $(ref.saas-sql-pg15.selfLink)
+  - name: privateIpAddress
+    value: $(ref.saas-sql-pg15.ipAddresses[0].ipAddress)
+  - name: vpcSelfLink
+    value: $(ref.saas-vpc.selfLink)
+  - name: serviceNetworkingConnection
+    value: $(ref.saas-servicenetworking-connection.name)

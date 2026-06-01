@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "TF-AWS-007",
+  "language": "terraform",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an IAM role for an EC2 instance that needs to read objects from a specific S3 bucket named 'app-config-bucket'.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_iam_role\" \"ec2_s3_reader\" {\n  name        = \"ec2-s3-reader-role\"\n  description = \"IAM role for EC2 instance to read from S3 bucket\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"s3_reader_policy\" {\n  name        = \"s3-reader-policy\"\n  description = \"Policy to allow reading from S3 bucket\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ec2_s3_reader_attach\" {\n  role       = aws_iam_role.ec2_s3_reader.name\n  policy_arn = aws_iam_policy.s3_reader_policy.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_reader_profile\" {\n  name = \"ec2-s3-reader-profile\"\n  role = aws_iam_role.ec2_s3_reader.name\n}",
+  "cleaned_response": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_iam_role\" \"ec2_s3_reader\" {\n  name        = \"ec2-s3-reader-role\"\n  description = \"IAM role for EC2 instance to read from S3 bucket\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"s3_reader_policy\" {\n  name        = \"s3-reader-policy\"\n  description = \"Policy to allow reading from S3 bucket\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ec2_s3_reader_attach\" {\n  role       = aws_iam_role.ec2_s3_reader.name\n  policy_arn = aws_iam_policy.s3_reader_policy.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_reader_profile\" {\n  name = \"ec2-s3-reader-profile\"\n  role = aws_iam_role.ec2_s3_reader.name\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "provider \"aws\" {\n  region = \"us-west-2\"\n}\n\nresource \"aws_iam_role\" \"ec2_s3_reader\" {\n  name        = \"ec2-s3-reader-role\"\n  description = \"IAM role for EC2 instance to read from S3 bucket\"\n\n  assume_role_policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = \"sts:AssumeRole\"\n        Effect = \"Allow\"\n        Principal = {\n          Service = \"ec2.amazonaws.com\"\n        }\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_policy\" \"s3_reader_policy\" {\n  name        = \"s3-reader-policy\"\n  description = \"Policy to allow reading from S3 bucket\"\n\n  policy = jsonencode({\n    Version = \"2012-10-17\"\n    Statement = [\n      {\n        Action = [\n          \"s3:GetObject\",\n          \"s3:ListBucket\"\n        ]\n        Effect = \"Allow\"\n        Resource = [\n          \"arn:aws:s3:::app-config-bucket\",\n          \"arn:aws:s3:::app-config-bucket/*\"\n        ]\n      }\n    ]\n  })\n}\n\nresource \"aws_iam_role_policy_attachment\" \"ec2_s3_reader_attach\" {\n  role       = aws_iam_role.ec2_s3_reader.name\n  policy_arn = aws_iam_policy.s3_reader_policy.arn\n}\n\nresource \"aws_iam_instance_profile\" \"ec2_s3_reader_profile\" {\n  name = \"ec2-s3-reader-profile\"\n  role = aws_iam_role.ec2_s3_reader.name\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723960,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 166,
+      "output_tokens": 343,
+      "raw_input_tokens": 166
+    }
+  },
+  "started_at": "2026-05-25T15:45:59.882893+00:00",
+  "elapsed_seconds": 0.958
+}

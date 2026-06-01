@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CFN-AWS-010",
+  "language": "cloudformation",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Create a CloudFormation template provisioning an AWS Lambda function named 'order-processor' triggered by an SQS queue, written in Python 3.12.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: AWS Lambda function triggered by SQS queue\n\nResources:\n  OrderProcessorLambdaFunction:\n    Type: 'AWS::Lambda::Function'\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt 'LambdaExecutionRole.Arn'\n      Code:\n        ZipFile: |\n          import boto3\n          import json\n\n          def lambda_handler(event, context):\n            # Process the event\n            print(event)\n            return {\n              'statusCode': 200,\n              'statusMessage': 'OK'\n            }\n\n  LambdaExecutionRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: execution-role-policy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n\n  OrderProcessorSQSQueue:\n    Type: 'AWS::SQS::Queue'\n    Properties:\n      QueueName: order-processor-queue\n\n  OrderProcessorSQSQueuePolicy:\n    Type: 'AWS::SQS::QueuePolicy'\n    Properties:\n      Queues:\n        - !Ref OrderProcessorSQSQueue\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sqs:ReceiveMessage'\n              - 'sqs:DeleteMessage'\n              - 'sqs:GetQueueAttributes'\n            Resource: !GetAtt 'OrderProcessorSQSQueue.Arn'\n            Condition:\n              StringLike:\n                'aws:SourceArn': !GetAtt 'OrderProcessorLambdaFunction.Arn'\n\n  OrderProcessorLambdaEventSourceMapping:\n    Type: 'AWS::Lambda::EventSourceMapping'\n    Properties:\n      EventSourceArn: !GetAtt 'OrderProcessorSQSQueue.Arn'\n      FunctionName: !Ref OrderProcessorLambdaFunction\n      Enabled: true\n\nOutputs:\n  OrderProcessorLambdaFunctionArn:\n    Value: !GetAtt 'OrderProcessorLambdaFunction.Arn'\n    Description: The ARN of the Lambda function\n  OrderProcessorSQSQueueUrl:\n    Value: !GetAtt 'OrderProcessorSQSQueue.Url'\n    Description: The URL of the SQS queue",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: AWS Lambda function triggered by SQS queue\n\nResources:\n  OrderProcessorLambdaFunction:\n    Type: 'AWS::Lambda::Function'\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt 'LambdaExecutionRole.Arn'\n      Code:\n        ZipFile: |\n          import boto3\n          import json\n\n          def lambda_handler(event, context):\n            # Process the event\n            print(event)\n            return {\n              'statusCode': 200,\n              'statusMessage': 'OK'\n            }\n\n  LambdaExecutionRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: execution-role-policy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n\n  OrderProcessorSQSQueue:\n    Type: 'AWS::SQS::Queue'\n    Properties:\n      QueueName: order-processor-queue\n\n  OrderProcessorSQSQueuePolicy:\n    Type: 'AWS::SQS::QueuePolicy'\n    Properties:\n      Queues:\n        - !Ref OrderProcessorSQSQueue\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sqs:ReceiveMessage'\n              - 'sqs:DeleteMessage'\n              - 'sqs:GetQueueAttributes'\n            Resource: !GetAtt 'OrderProcessorSQSQueue.Arn'\n            Condition:\n              StringLike:\n                'aws:SourceArn': !GetAtt 'OrderProcessorLambdaFunction.Arn'\n\n  OrderProcessorLambdaEventSourceMapping:\n    Type: 'AWS::Lambda::EventSourceMapping'\n    Properties:\n      EventSourceArn: !GetAtt 'OrderProcessorSQSQueue.Arn'\n      FunctionName: !Ref OrderProcessorLambdaFunction\n      Enabled: true\n\nOutputs:\n  OrderProcessorLambdaFunctionArn:\n    Value: !GetAtt 'OrderProcessorLambdaFunction.Arn'\n    Description: The ARN of the Lambda function\n  OrderProcessorSQSQueueUrl:\n    Value: !GetAtt 'OrderProcessorSQSQueue.Url'\n    Description: The URL of the SQS queue",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: AWS Lambda function triggered by SQS queue\n\nResources:\n  OrderProcessorLambdaFunction:\n    Type: 'AWS::Lambda::Function'\n    Properties:\n      FunctionName: order-processor\n      Runtime: python3.12\n      Handler: index.lambda_handler\n      Role: !GetAtt 'LambdaExecutionRole.Arn'\n      Code:\n        ZipFile: |\n          import boto3\n          import json\n\n          def lambda_handler(event, context):\n            # Process the event\n            print(event)\n            return {\n              'statusCode': 200,\n              'statusMessage': 'OK'\n            }\n\n  LambdaExecutionRole:\n    Type: 'AWS::IAM::Role'\n    Properties:\n      AssumeRolePolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sts:AssumeRole'\n      Policies:\n        - PolicyName: execution-role-policy\n          PolicyDocument:\n            Version: '2012-10-17'\n            Statement:\n              - Effect: Allow\n                Action:\n                  - 'logs:CreateLogGroup'\n                  - 'logs:CreateLogStream'\n                  - 'logs:PutLogEvents'\n                Resource: 'arn:aws:logs:*:*:*'\n\n  OrderProcessorSQSQueue:\n    Type: 'AWS::SQS::Queue'\n    Properties:\n      QueueName: order-processor-queue\n\n  OrderProcessorSQSQueuePolicy:\n    Type: 'AWS::SQS::QueuePolicy'\n    Properties:\n      Queues:\n        - !Ref OrderProcessorSQSQueue\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Effect: Allow\n            Principal:\n              Service:\n                - lambda.amazonaws.com\n            Action:\n              - 'sqs:ReceiveMessage'\n              - 'sqs:DeleteMessage'\n              - 'sqs:GetQueueAttributes'\n            Resource: !GetAtt 'OrderProcessorSQSQueue.Arn'\n            Condition:\n              StringLike:\n                'aws:SourceArn': !GetAtt 'OrderProcessorLambdaFunction.Arn'\n\n  OrderProcessorLambdaEventSourceMapping:\n    Type: 'AWS::Lambda::EventSourceMapping'\n    Properties:\n      EventSourceArn: !GetAtt 'OrderProcessorSQSQueue.Arn'\n      FunctionName: !Ref OrderProcessorLambdaFunction\n      Enabled: true\n\nOutputs:\n  OrderProcessorLambdaFunctionArn:\n    Value: !GetAtt 'OrderProcessorLambdaFunction.Arn'\n    Description: The ARN of the Lambda function\n  OrderProcessorSQSQueueUrl:\n    Value: !GetAtt 'OrderProcessorSQSQueue.Url'\n    Description: The URL of the SQS queue",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723737,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 166,
+      "output_tokens": 581,
+      "raw_input_tokens": 166
+    }
+  },
+  "started_at": "2026-05-25T15:42:15.780331+00:00",
+  "elapsed_seconds": 1.988
+}

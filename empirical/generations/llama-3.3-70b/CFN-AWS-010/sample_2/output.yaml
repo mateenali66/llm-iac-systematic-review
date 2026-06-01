@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template for order-processor Lambda function
+
+Resources:
+  OrderProcessorLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order-processor
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt OrderProcessorLambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import json
+
+          def lambda_handler(event, context):
+            # Process order logic here
+            print(event)
+            return {
+              'statusCode': 200,
+              'statusMessage': 'OK'
+            }
+      Description: Order processor Lambda function
+      Timeout: 300
+      MemorySize: 128
+
+  OrderProcessorLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: execution-role-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+
+  OrderProcessorSQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: order-processor-queue
+
+  OrderProcessorSQSQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref OrderProcessorSQSQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt OrderProcessorSQSQueue.Arn
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Sub '${AWS::AccountId}'
+
+  OrderProcessorLambdaEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      EventSourceArn: !GetAtt OrderProcessorSQSQueue.Arn
+      FunctionName: !Ref OrderProcessorLambdaFunction
+      Enabled: true
+
+Outputs:
+  OrderProcessorLambdaFunctionArn:
+    Value: !GetAtt OrderProcessorLambdaFunction.Arn
+    Description: ARN of the order-processor Lambda function
+  OrderProcessorSQSQueueUrl:
+    Value: !GetAtt OrderProcessorSQSQueue.Url
+    Description: URL of the order-processor SQS queue

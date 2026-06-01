@@ -1,0 +1,33 @@
+resources:
+- name: rate-and-geo-policy
+  type: compute.v1.securityPolicy
+  properties:
+    description: "Policy to block specific countries and rate limit requests."
+    rules:
+    - priority: 1000
+      action: deny(403)
+      description: "Block traffic from specified countries"
+      match:
+        expr:
+          expression: "origin.region_code in ['CN', 'RU', 'KP']"
+    - priority: 1500
+      action: throttle
+      description: "Rate limit requests per source IP to 100 reqs / 5 mins"
+      match:
+        expr:
+          expression: "true"
+      rateLimitOptions:
+        rateLimitThreshold:
+          count: 100
+          intervalSec: 300
+        conformAction: allow
+        exceedAction: deny(404)
+        enforceOnKey: IP
+    - priority: 2147483647
+      action: allow
+      description: "Default rule to allow all other traffic"
+      match:
+        expr:
+          expression: "true"
+      preconfiguredWafConfig:
+        disabled: true

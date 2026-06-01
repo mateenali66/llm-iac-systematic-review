@@ -1,0 +1,76 @@
+resources:
+- name: storage-keyring
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings
+  properties:
+    parent: projects/[PROJECT_ID]/locations/us-central1
+    keyRingId: storage-encryption-keyring
+
+- name: storage-encryption-key
+  type: gcp-types/cloudkms-v1:projects.locations.keyRings.cryptoKeys
+  properties:
+    parent: $(ref.storage-keyring.name)
+    cryptoKeyId: storage-encryption-key
+    purpose: ENCRYPT_DECRYPT
+    rotationPeriod: 7776000s
+    nextRotationTime: '2025-01-01T00:00:00.000Z'
+    versionTemplate:
+      algorithm: GOOGLE_SYMMETRIC_ENCRYPTION
+      protectionLevel: SOFTWARE
+
+- name: kms-encrypter-binding
+  action: gcp-types/cloudkms-v1:cloudkms.projects.locations.keyRings.cryptoKeys.setIamPolicy
+  properties:
+    resource: $(ref.storage-encryption-key.name)
+    policy:
+      bindings:
+      - role: roles/cloudkms.cryptoKeyEncrypterDecrypter
+        members:
+        - serviceAccount:service-[PROJECT_NUMBER]@gs-project-accounts.iam.gserviceaccount.com
+
+- name: encrypted-storage-bucket
+  type: storage.v1.bucket
+  properties:
+    name: [PROJECT_ID]-encrypted-data
+    location: US-CENTRAL1
+    storageClass: STANDARD
+    uniformBucketLevelAccess:
+      enabled: true
+    publicAccessPrevention: enforced
+    versioning:
+      enabled: true
+    encryption:
+      defaultKmsKeyName: $(ref.storage-encryption-key.name)
+    iamConfiguration:
+      uniformBucketLevelAccess:
+        enabled: true
+    lifecycle:
+      rule:
+      - action:
+          type: SetStorageClass
+          storageClass: NEARLINE
+        condition:
+          age: 30
+      - action:
+          type: SetStorageClass
+          storageClass: COLDLINE
+        condition:
+          age: 90
+      - action:
+          type: Delete
+        condition:
+          age: 365
+          isLive: false
+    logging:
+      logBucket: [PROJECT_ID]-access-logs
+      logObjectPrefix: encrypted-data-access
+  metadata:
+    dependsOn:
+    - kms-encrypter-binding
+
+outputs:
+- name: keyRingName
+  value: $(ref.storage-keyring.name)
+- name: cryptoKeyName
+  value: $(ref.storage-encryption-key.name)
+- name: bucketName
+  value: $(ref.encrypted-storage-bucket.name)

@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'IAM role for EC2 instances to write CloudWatch logs and read Parameter Store'
+
+Parameters:
+  RoleName:
+    Type: String
+    Default: EC2CloudWatchParameterStoreRole
+    Description: Name of the IAM role
+
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: CloudWatchLogsAndParameterStoreAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: CloudWatchLogsWriteAccess
+                Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: 
+                  - arn:aws:logs:*:*:*
+              - Sid: ParameterStoreReadAccess
+                Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                  - ssm:GetParametersByPath
+                Resource: 
+                  - arn:aws:ssm:*:*:parameter/*
+              - Sid: KMSDecryptForSecureStringParams
+                Effect: Allow
+                Action:
+                  - kms:Decrypt
+                Resource: 
+                  - '*'
+                Condition:
+                  StringEquals:
+                    kms:ViaService: ssm.*.amazonaws.com
+
+Outputs:
+  RoleArn:
+    Description: ARN of the created IAM role
+    Value: !GetAtt EC2InstanceRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EC2RoleArn'
+  RoleName:
+    Description: Name of the created IAM role
+    Value: !Ref EC2InstanceRole
+    Export:
+      Name: !Sub '${AWS::StackName}-EC2RoleName'

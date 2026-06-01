@@ -1,0 +1,357 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 103,
+	"files_parsed": 1,
+	"lines_parsed": 103,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 1088,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 4,
+		"LOW": 4,
+		"MEDIUM": 5,
+		"TRACE": 0
+	},
+	"total_counter": 13,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:15:52.741591755Z",
+	"end": "2026-05-26T06:16:12.518842209Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "API Gateway Deployment Without Access Log Setting",
+			"query_id": "625abc0e-f980-4ac9-a775-f7519ee34296",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "API Gateway Deployment should have access log setting defined when connected to an API Gateway Stage.",
+			"description_id": "e28c5797",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5c095dd84f46cef0604d83f22a90f5d0809f765a86a4be0095522c4608cb90f2",
+					"line": 99,
+					"resource_type": "aws_api_gateway_deployment",
+					"resource_name": "webhook_deployment",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_api_gateway_deployment[webhook_deployment]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_api_gateway_deployment[webhook_deployment] has a 'aws_api_gateway_stage' resource associated",
+					"actual_value": "aws_api_gateway_deployment[webhook_deployment] doesn't have a 'aws_api_gateway_stage' resource associated"
+				}
+			]
+		},
+		{
+			"query_name": "API Gateway Method Does Not Contains An API Key",
+			"query_id": "671211c5-5d2a-4e97-8867-30fc28b02216",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_method",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "An API Key should be required on a method request.",
+			"description_id": "f133fed2",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "e730869b80e659abd60ac2165ae97a084947556d9c604d7459d0b0d522873919",
+					"line": 83,
+					"resource_type": "aws_api_gateway_method",
+					"resource_name": "webhook_post",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource.aws_api_gateway_method[webhook_post]",
+					"search_line": 83,
+					"search_value": "",
+					"expected_value": "resource.aws_api_gateway_method[webhook_post].api_key_required should be defined",
+					"actual_value": "resource.aws_api_gateway_method[webhook_post].api_key_required is undefined",
+					"remediation": "api_key_required = true",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "API Gateway With Open Access",
+			"query_id": "15ccec05-5476-4890-ad19-53991eba1db8",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_method",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Insecure Configurations",
+			"experimental": false,
+			"description": "API Gateway Method should restrict the authorization type, except for the HTTP OPTIONS method.",
+			"description_id": "1a1dc17c",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "96257c331c1c348be685a7d539e78ec49061cc9b04b21304d1a45759afe73210",
+					"line": 86,
+					"resource_type": "aws_api_gateway_method",
+					"resource_name": "webhook_post",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_api_gateway_method[webhook_post].http_method",
+					"search_line": 86,
+					"search_value": "",
+					"expected_value": "aws_api_gateway_method.authorization should only be 'NONE' if http_method is 'OPTIONS'",
+					"actual_value": "aws_api_gateway_method[webhook_post].authorization type is 'NONE' and http_method is not ''OPTIONS'",
+					"remediation": "{\"after\":\"OPTIONS\",\"before\":\"POST\"}",
+					"remediation_type": "replacement"
+				}
+			]
+		},
+		{
+			"query_name": "API Gateway Without Configured Authorizer",
+			"query_id": "0a96ce49-4163-4ee6-8169-eb3b0797d694",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_authorizer",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "API Gateway REST API should have an API Gateway Authorizer",
+			"description_id": "c1eed330",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "8c7f82c959afbd65d6006eabc6e47b379e76cecb6fd015e2a604bb1051eae0e7",
+					"line": 72,
+					"resource_type": "aws_api_gateway_rest_api",
+					"resource_name": "webhook-api",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_api_gateway_rest_api[webhook_api]",
+					"search_line": 72,
+					"search_value": "",
+					"expected_value": "API Gateway REST API should be associated with an API Gateway Authorizer",
+					"actual_value": "API Gateway REST API is not associated with an API Gateway Authorizer"
+				}
+			]
+		},
+		{
+			"query_name": "Public Lambda via API Gateway",
+			"query_id": "3ef8696c-e4ae-4872-92c7-520bb44dfe77",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_permission",
+			"severity": "MEDIUM",
+			"platform": "Terraform",
+			"cwe": "284",
+			"cloud_provider": "AWS",
+			"category": "Access Control",
+			"experimental": false,
+			"description": "Allowing to run lambda function using public API Gateway",
+			"description_id": "1f20399a",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "fabcd69ced40cec76f6b68aafb4fd9a08b1d22c6e30ae0b484b17dfa83b2c1fd",
+					"line": 69,
+					"resource_type": "aws_lambda_permission",
+					"resource_name": "webhook_handler",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_lambda_permission[allow_api_gateway].source_arn",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'source_arn' should not equal '/*/*'",
+					"actual_value": "'source_arn' is equal '/*/*'"
+				}
+			]
+		},
+		{
+			"query_name": "API Gateway Deployment Without API Gateway UsagePlan Associated",
+			"query_id": "b3a59b8e-94a3-403e-b6e2-527abaf12034",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_deployment",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "285",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "API Gateway Deployment should have API Gateway UsagePlan defined and associated.",
+			"description_id": "a5480b6e",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5b62717858b3256c6fea51cd3bd2364f9cdd034f60bbcfaf2227f9182941b01e",
+					"line": 99,
+					"resource_type": "aws_api_gateway_deployment",
+					"resource_name": "webhook_deployment",
+					"issue_type": "IncorrectValue",
+					"search_key": "aws_api_gateway_deployment[webhook_deployment]",
+					"search_line": 99,
+					"search_value": "",
+					"expected_value": "aws_api_gateway_deployment[webhook_deployment] has a 'aws_api_gateway_usage_plan' resource associated. ",
+					"actual_value": "aws_api_gateway_deployment[webhook_deployment] doesn't have a 'aws_api_gateway_usage_plan' resource associated."
+				}
+			]
+		},
+		{
+			"query_name": "API Gateway With Invalid Compression",
+			"query_id": "ed35928e-195c-4405-a252-98ccb664ab7b",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/api_gateway_rest_api",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "326",
+			"cloud_provider": "AWS",
+			"category": "Encryption",
+			"experimental": false,
+			"description": "API Gateway should have valid compression, which means attribute 'minimum_compression_size' should be set and its value should be greater than -1 and smaller than 10485760.",
+			"description_id": "fc02b8db",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ef7044fea6a3fbd43f89dae1f1b638fb85d93c1000fed466f79ae8e70de59890",
+					"line": 72,
+					"resource_type": "aws_api_gateway_rest_api",
+					"resource_name": "webhook-api",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_api_gateway_rest_api[webhook_api]",
+					"search_line": 72,
+					"search_value": "",
+					"expected_value": "Attribute 'minimum_compression_size' should be set and have a value greater than -1 and smaller than 10485760",
+					"actual_value": "Attribute 'minimum_compression_size' is undefined",
+					"remediation": "minimum_compression_size = 0",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "IAM Access Analyzer Not Enabled",
+			"query_id": "e592a0c5-5bdb-414c-9066-5dba7cdea370",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/accessanalyzer_analyzer",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "710",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "IAM Access Analyzer should be enabled and configured to continuously monitor resource permissions",
+			"description_id": "d03e85ae",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "ae3cf7d27e4cdecfb7058133250310a2a04c4f06da0992692d29e42c4ab724b3",
+					"line": 7,
+					"resource_type": "n/a",
+					"resource_name": "n/a",
+					"issue_type": "MissingAttribute",
+					"search_key": "resource",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "'aws_accessanalyzer_analyzer' should be set",
+					"actual_value": "'aws_accessanalyzer_analyzer' is undefined"
+				}
+			]
+		},
+		{
+			"query_name": "Lambda Functions Without X-Ray Tracing",
+			"query_id": "8152e0cf-d2f0-47ad-96d5-d003a76eabd1",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function#tracing_config",
+			"severity": "LOW",
+			"platform": "Terraform",
+			"cwe": "778",
+			"cloud_provider": "AWS",
+			"category": "Observability",
+			"experimental": false,
+			"description": "AWS Lambda functions should have TracingConfig enabled. For this, property 'tracing_Config.mode' should have the value 'Active'",
+			"description_id": "2f90e1e9",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "a1d43563ccb4433b9ed8f40490ff119206390d49fc18483aabf132c51643d9f6",
+					"line": 56,
+					"resource_type": "aws_lambda_function",
+					"resource_name": "webhook_handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lambda_function[webhook_handler]",
+					"search_line": 56,
+					"search_value": "",
+					"expected_value": "aws_lambda_function[webhook_handler].tracing_config should be defined and not null",
+					"actual_value": "aws_lambda_function[webhook_handler].tracing_config is undefined or null",
+					"remediation": "tracing_config {\n\t\tmode = Active\n\t}",
+					"remediation_type": "addition"
+				}
+			]
+		},
+		{
+			"query_name": "Resource Not Using Tags",
+			"query_id": "e38a8e0a-b88b-4902-b3fe-b0fcb17d5c10",
+			"query_url": "https://registry.terraform.io/providers/hashicorp/aws/latest/docs/guides/resource-tagging",
+			"severity": "INFO",
+			"platform": "Terraform",
+			"cwe": "665",
+			"cloud_provider": "AWS",
+			"category": "Best Practices",
+			"experimental": false,
+			"description": "AWS services resource tags are an essential part of managing components. As a best practice, the field 'tags' should have additional tags defined other than 'Name'",
+			"description_id": "09db2d52",
+			"files": [
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "7ae314c0c462695d0b93e07d21837342bf619adb79d55395e551d06e92f45fe7",
+					"line": 72,
+					"resource_type": "aws_api_gateway_rest_api",
+					"resource_name": "webhook-api",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_api_gateway_rest_api[{{webhook_api}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_api_gateway_rest_api[{{webhook_api}}].tags should be defined and not null",
+					"actual_value": "aws_api_gateway_rest_api[{{webhook_api}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "f5052febb2b7ecbf980f6bd0b4efc7b4631a0761f8a233e09864fcd8d2dd9213",
+					"line": 25,
+					"resource_type": "aws_iam_policy",
+					"resource_name": "webhook-handler-policy",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_policy[{{lambda_policy}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_policy[{{lambda_policy}}].tags should be defined and not null",
+					"actual_value": "aws_iam_policy[{{lambda_policy}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "0dc862834663feb6452d48cfef15887577d88eaa3ebf6deb73cad2bfbfdfb34e",
+					"line": 7,
+					"resource_type": "aws_iam_role",
+					"resource_name": "webhook-handler-exec",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_iam_role[{{lambda_exec}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_iam_role[{{lambda_exec}}].tags should be defined and not null",
+					"actual_value": "aws_iam_role[{{lambda_exec}}].tags is undefined or null"
+				},
+				{
+					"file_name": "../../in/output.tf",
+					"similarity_id": "5a3b3cfd67e985485960d73b5a2449ad8c10c4d7f4ac2fe36e26d1dc9320753f",
+					"line": 56,
+					"resource_type": "aws_lambda_function",
+					"resource_name": "webhook_handler",
+					"issue_type": "MissingAttribute",
+					"search_key": "aws_lambda_function[{{webhook_handler}}]",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "aws_lambda_function[{{webhook_handler}}].tags should be defined and not null",
+					"actual_value": "aws_lambda_function[{{webhook_handler}}].tags is undefined or null"
+				}
+			]
+		}
+	]
+}

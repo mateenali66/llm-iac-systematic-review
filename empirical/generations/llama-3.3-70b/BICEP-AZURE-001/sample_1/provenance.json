@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "BICEP-AZURE-001",
+  "language": "azure_bicep",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Azure Bicep template provisioning a Linux virtual machine (Standard_B2s, Ubuntu 22.04) in the 'East US' region for a developer test workload.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Create an Azure Bicep template provisioning a Linux virtual machine (Standard_B2s, Ubuntu 22.04) in the 'East US' region for a developer test workload.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = 'eastus'\nparam vmName string = 'devtestvm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234'\n\nresource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {\n  name: 'devtestrg'\n}\n\nresource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {\n  name: 'devtestvnet'\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: 'devtestsubnet'\n        properties: {\n          addressPrefix: '10.0.1.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {\n  name: 'devtestnsg'\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'allow-ssh'\n        properties: {\n          priority: 100\n          access: 'Allow'\n          direction: 'Inbound'\n          protocol: 'Tcp'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource networkInterface 'Microsoft.Network/networkInterfaces@2021-08-01' = {\n  name: 'devtestnic'\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          subnet: {\n            id: virtualNetwork.properties.subnets[0].id\n          }\n          privateIPAllocationMethod: 'Dynamic'\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: networkSecurityGroup.id\n    }\n  }\n}\n\nresource virtualMachine 'Microsoft.Compute/virtualMachines@2021-11-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n      linuxConfiguration: {\n        disablePasswordAuthentication: false\n        ssh: {\n          publicKeys: []\n        }\n      }\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: 'UbuntuServer'\n        sku: '22_04-lts'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n      }\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: networkInterface.id\n        }\n      ]\n    }\n  }\n}",
+  "cleaned_response": "param location string = 'eastus'\nparam vmName string = 'devtestvm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234'\n\nresource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {\n  name: 'devtestrg'\n}\n\nresource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {\n  name: 'devtestvnet'\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: 'devtestsubnet'\n        properties: {\n          addressPrefix: '10.0.1.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {\n  name: 'devtestnsg'\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'allow-ssh'\n        properties: {\n          priority: 100\n          access: 'Allow'\n          direction: 'Inbound'\n          protocol: 'Tcp'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource networkInterface 'Microsoft.Network/networkInterfaces@2021-08-01' = {\n  name: 'devtestnic'\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          subnet: {\n            id: virtualNetwork.properties.subnets[0].id\n          }\n          privateIPAllocationMethod: 'Dynamic'\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: networkSecurityGroup.id\n    }\n  }\n}\n\nresource virtualMachine 'Microsoft.Compute/virtualMachines@2021-11-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n      linuxConfiguration: {\n        disablePasswordAuthentication: false\n        ssh: {\n          publicKeys: []\n        }\n      }\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: 'UbuntuServer'\n        sku: '22_04-lts'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n      }\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: networkInterface.id\n        }\n      ]\n    }\n  }\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = 'eastus'\nparam vmName string = 'devtestvm'\nparam adminUsername string = 'azureuser'\nparam adminPassword string = 'P@ssw0rd1234'\n\nresource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = {\n  name: 'devtestrg'\n}\n\nresource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-08-01' = {\n  name: 'devtestvnet'\n  location: location\n  properties: {\n    addressSpace: {\n      addressPrefixes: [\n        '10.0.0.0/16'\n      ]\n    }\n    subnets: [\n      {\n        name: 'devtestsubnet'\n        properties: {\n          addressPrefix: '10.0.1.0/24'\n        }\n      }\n    ]\n  }\n}\n\nresource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2021-08-01' = {\n  name: 'devtestnsg'\n  location: location\n  properties: {\n    securityRules: [\n      {\n        name: 'allow-ssh'\n        properties: {\n          priority: 100\n          access: 'Allow'\n          direction: 'Inbound'\n          protocol: 'Tcp'\n          sourceAddressPrefix: '*'\n          sourcePortRange: '*'\n          destinationAddressPrefix: '*'\n          destinationPortRange: '22'\n        }\n      }\n    ]\n  }\n}\n\nresource networkInterface 'Microsoft.Network/networkInterfaces@2021-08-01' = {\n  name: 'devtestnic'\n  location: location\n  properties: {\n    ipConfigurations: [\n      {\n        name: 'ipconfig1'\n        properties: {\n          subnet: {\n            id: virtualNetwork.properties.subnets[0].id\n          }\n          privateIPAllocationMethod: 'Dynamic'\n        }\n      }\n    ]\n    networkSecurityGroup: {\n      id: networkSecurityGroup.id\n    }\n  }\n}\n\nresource virtualMachine 'Microsoft.Compute/virtualMachines@2021-11-01' = {\n  name: vmName\n  location: location\n  properties: {\n    hardwareProfile: {\n      vmSize: 'Standard_B2s'\n    }\n    osProfile: {\n      computerName: vmName\n      adminUsername: adminUsername\n      adminPassword: adminPassword\n      linuxConfiguration: {\n        disablePasswordAuthentication: false\n        ssh: {\n          publicKeys: []\n        }\n      }\n    }\n    storageProfile: {\n      imageReference: {\n        publisher: 'Canonical'\n        offer: 'UbuntuServer'\n        sku: '22_04-lts'\n        version: 'latest'\n      }\n      osDisk: {\n        createOption: 'FromImage'\n        managedDisk: {\n          storageAccountType: 'Standard_LRS'\n        }\n      }\n    }\n    networkProfile: {\n      networkInterfaces: [\n        {\n          id: networkInterface.id\n        }\n      ]\n    }\n  }\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723546,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 167,
+      "output_tokens": 615,
+      "raw_input_tokens": 167
+    }
+  },
+  "started_at": "2026-05-25T15:39:04.352698+00:00",
+  "elapsed_seconds": 2.462
+}

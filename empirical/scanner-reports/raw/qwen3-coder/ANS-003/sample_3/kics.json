@@ -1,0 +1,58 @@
+{
+	"kics_version": "v2.1.7",
+	"files_scanned": 1,
+	"lines_scanned": 182,
+	"files_parsed": 1,
+	"lines_parsed": 182,
+	"lines_ignored": 0,
+	"files_failed_to_scan": 0,
+	"queries_total": 285,
+	"queries_failed_to_execute": 0,
+	"queries_failed_to_compute_similarity_id": 0,
+	"scan_id": "console",
+	"severity_counters": {
+		"CRITICAL": 0,
+		"HIGH": 0,
+		"INFO": 0,
+		"LOW": 1,
+		"MEDIUM": 0,
+		"TRACE": 0
+	},
+	"total_counter": 1,
+	"total_bom_resources": 0,
+	"start": "2026-05-26T06:20:32.95758476Z",
+	"end": "2026-05-26T06:20:43.239658334Z",
+	"paths": [
+		"/in"
+	],
+	"queries": [
+		{
+			"query_name": "Unpinned Package Version",
+			"query_id": "c05e2c20-0a2c-4686-b1f8-5f0a5612d4e8",
+			"query_url": "https://ansible.readthedocs.io/projects/lint/rules/package-latest/",
+			"severity": "LOW",
+			"platform": "Ansible",
+			"cwe": "706",
+			"cloud_provider": "COMMON",
+			"category": "Supply-Chain",
+			"experimental": false,
+			"description": "Setting state to latest performs an update and installs additional packages possibly resulting in performance degradation or loss of service",
+			"description_id": "43e877b3",
+			"files": [
+				{
+					"file_name": "../../in/output.yml",
+					"similarity_id": "138fe3acbc913d5e3260c3d774acf732d938fafe43d81c41792e5b54833c3d40",
+					"line": 18,
+					"resource_type": "ansible.builtin.dnf",
+					"resource_name": "Update system packages",
+					"issue_type": "IncorrectValue",
+					"search_key": "name={{Update system packages}}.{{ansible.builtin.dnf}}.state",
+					"search_line": -1,
+					"search_value": "",
+					"expected_value": "State's task when installing a package should not be defined as 'latest' or should have set 'update_only' to 'true'",
+					"actual_value": "State's task is set to 'latest'"
+				}
+			]
+		}
+	]
+}

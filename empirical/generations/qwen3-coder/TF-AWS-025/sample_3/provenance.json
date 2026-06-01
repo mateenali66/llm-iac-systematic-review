@@ -1,0 +1,53 @@
+{
+  "model": "qwen3-coder",
+  "model_id": "qwen/qwen3-coder-480b-a35b-instruct",
+  "provider": "abacus-routellm",
+  "family": "code-specialist",
+  "prompt_id": "TF-AWS-025",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an S3 bucket for log delivery from CloudFront access logs and ELB access logs. Apply a 90-day lifecycle policy to transition logs to Glacier.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Create an S3 bucket for log delivery from CloudFront access logs and ELB access logs. Apply a 90-day lifecycle policy to transition logs to Glacier.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_s3_bucket\" \"log_bucket\" {\n  bucket = \"prod-log-delivery-bucket-${random_string.suffix.result}\"\n  acl    = \"log-delivery-write\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n\n  lifecycle_rule {\n    id      = \"transition_to_glacier\"\n    enabled = true\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    expiration {\n      days = 365\n    }\n  }\n\n  tags = {\n    Name        = \"LogDeliveryBucket\"\n    Environment = \"production\"\n    Purpose     = \"CloudFront and ELB access logs\"\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"log_bucket_block\" {\n  bucket = aws_s3_bucket.log_bucket.id\n\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 8\n  special = false\n  upper   = false\n}",
+  "cleaned_response": "resource \"aws_s3_bucket\" \"log_bucket\" {\n  bucket = \"prod-log-delivery-bucket-${random_string.suffix.result}\"\n  acl    = \"log-delivery-write\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n\n  lifecycle_rule {\n    id      = \"transition_to_glacier\"\n    enabled = true\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    expiration {\n      days = 365\n    }\n  }\n\n  tags = {\n    Name        = \"LogDeliveryBucket\"\n    Environment = \"production\"\n    Purpose     = \"CloudFront and ELB access logs\"\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"log_bucket_block\" {\n  bucket = aws_s3_bucket.log_bucket.id\n\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 8\n  special = false\n  upper   = false\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_s3_bucket\" \"log_bucket\" {\n  bucket = \"prod-log-delivery-bucket-${random_string.suffix.result}\"\n  acl    = \"log-delivery-write\"\n\n  versioning {\n    enabled = true\n  }\n\n  server_side_encryption_configuration {\n    rule {\n      apply_server_side_encryption_by_default {\n        sse_algorithm = \"AES256\"\n      }\n    }\n  }\n\n  lifecycle_rule {\n    id      = \"transition_to_glacier\"\n    enabled = true\n\n    transition {\n      days          = 90\n      storage_class = \"GLACIER\"\n    }\n\n    expiration {\n      days = 365\n    }\n  }\n\n  tags = {\n    Name        = \"LogDeliveryBucket\"\n    Environment = \"production\"\n    Purpose     = \"CloudFront and ELB access logs\"\n  }\n}\n\nresource \"aws_s3_bucket_public_access_block\" \"log_bucket_block\" {\n  bucket = aws_s3_bucket.log_bucket.id\n\n  block_public_acls       = true\n  block_public_policy     = true\n  ignore_public_acls      = true\n  restrict_public_buckets = true\n}\n\nresource \"random_string\" \"suffix\" {\n  length  = 8\n  special = false\n  upper   = false\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779726862,
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 150,
+      "output_tokens": 267,
+      "raw_input_tokens": 150
+    }
+  },
+  "started_at": "2026-05-25T16:34:16.925702+00:00",
+  "elapsed_seconds": 5.346
+}

@@ -1,0 +1,99 @@
+# FILE: Chart.yaml
+apiVersion: v2
+name: worker-service
+description: Helm chart for generic Redis queue worker
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+---
+# FILE: values.yaml
+replicaCount: 3
+image:
+  repository: example/worker
+  tag: "latest"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+redis:
+  host: redis
+  port: "6379"
+  password: ""
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+---
+# FILE: templates/_helpers.tpl
+{{- define "worker.labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+---
+# FILE: templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worker.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: worker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+            - secretRef:
+                name: {{ .Release.Name }}-secret
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+---
+# FILE: templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    {{- include "worker.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+  selector:
+    {{- include "worker.labels" . | nindent 4 }}
+---
+# FILE: templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  REDIS_HOST: {{ .Values.redis.host }}
+  REDIS_PORT: "{{ .Values.redis.port }}"
+---
+# FILE: templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-secret
+type: Opaque
+stringData:
+  REDIS_PASSWORD: {{ .Values.redis.password | quote }}

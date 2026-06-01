@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "ANS-005",
+  "language": "ansible",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Create an Ansible playbook that installs Docker (apt or yum source), adds a specified user to the docker group, and ensures the docker daemon is running and enabled at boot.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Create an Ansible playbook that installs Docker (apt or yum source), adds a specified user to the docker group, and ensures the docker daemon is running and enabled at boot.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "- name: Install Docker and configure user access\n  hosts: all\n  become: yes\n  vars:\n    docker_user: \"{{ ansible_user }}\"\n\n  tasks:\n    - name: Install required system packages\n      package:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - curl\n          - gnupg\n          - lsb-release\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker official GPG key (Debian/Ubuntu)\n      apt_key:\n        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker repository (Debian/Ubuntu)\n      apt_repository:\n        repo: \"deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable\"\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install Docker packages (Debian/Ubuntu)\n      apt:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install required system packages (RHEL/CentOS)\n      package:\n        name:\n          - yum-utils\n          - device-mapper-persistent-data\n          - lvm2\n        state: present\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Add Docker repository (RHEL/CentOS)\n      yum_repository:\n        name: docker-ce-stable\n        description: Docker CE Stable - $basearch\n        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable\n        enabled: yes\n        gpgcheck: yes\n        gpgkey: https://download.docker.com/linux/centos/gpg\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Install Docker packages (RHEL/CentOS)\n      yum:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Ensure Docker service is running and enabled\n      service:\n        name: docker\n        state: started\n        enabled: yes\n\n    - name: Add user to docker group\n      user:\n        name: \"{{ docker_user }}\"\n        groups: docker\n        append: yes",
+  "cleaned_response": "- name: Install Docker and configure user access\n  hosts: all\n  become: yes\n  vars:\n    docker_user: \"{{ ansible_user }}\"\n\n  tasks:\n    - name: Install required system packages\n      package:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - curl\n          - gnupg\n          - lsb-release\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker official GPG key (Debian/Ubuntu)\n      apt_key:\n        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker repository (Debian/Ubuntu)\n      apt_repository:\n        repo: \"deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable\"\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install Docker packages (Debian/Ubuntu)\n      apt:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install required system packages (RHEL/CentOS)\n      package:\n        name:\n          - yum-utils\n          - device-mapper-persistent-data\n          - lvm2\n        state: present\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Add Docker repository (RHEL/CentOS)\n      yum_repository:\n        name: docker-ce-stable\n        description: Docker CE Stable - $basearch\n        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable\n        enabled: yes\n        gpgcheck: yes\n        gpgkey: https://download.docker.com/linux/centos/gpg\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Install Docker packages (RHEL/CentOS)\n      yum:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Ensure Docker service is running and enabled\n      service:\n        name: docker\n        state: started\n        enabled: yes\n\n    - name: Add user to docker group\n      user:\n        name: \"{{ docker_user }}\"\n        groups: docker\n        append: yes",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "- name: Install Docker and configure user access\n  hosts: all\n  become: yes\n  vars:\n    docker_user: \"{{ ansible_user }}\"\n\n  tasks:\n    - name: Install required system packages\n      package:\n        name:\n          - apt-transport-https\n          - ca-certificates\n          - curl\n          - gnupg\n          - lsb-release\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker official GPG key (Debian/Ubuntu)\n      apt_key:\n        url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Add Docker repository (Debian/Ubuntu)\n      apt_repository:\n        repo: \"deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable\"\n        state: present\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install Docker packages (Debian/Ubuntu)\n      apt:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"apt\"\n\n    - name: Install required system packages (RHEL/CentOS)\n      package:\n        name:\n          - yum-utils\n          - device-mapper-persistent-data\n          - lvm2\n        state: present\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Add Docker repository (RHEL/CentOS)\n      yum_repository:\n        name: docker-ce-stable\n        description: Docker CE Stable - $basearch\n        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable\n        enabled: yes\n        gpgcheck: yes\n        gpgkey: https://download.docker.com/linux/centos/gpg\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Install Docker packages (RHEL/CentOS)\n      yum:\n        name:\n          - docker-ce\n          - docker-ce-cli\n          - containerd.io\n          - docker-buildx-plugin\n          - docker-compose-plugin\n        state: present\n        update_cache: yes\n      when: ansible_pkg_mgr == \"yum\"\n\n    - name: Ensure Docker service is running and enabled\n      service:\n        name: docker\n        state: started\n        enabled: yes\n\n    - name: Add user to docker group\n      user:\n        name: \"{{ docker_user }}\"\n        groups: docker\n        append: yes",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779727554,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 79,
+      "output_tokens": 625,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 15
+    }
+  },
+  "started_at": "2026-05-25T16:45:48.956885+00:00",
+  "elapsed_seconds": 5.563
+}

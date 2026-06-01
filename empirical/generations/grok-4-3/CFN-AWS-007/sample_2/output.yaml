@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  LambdaFunctionName:
+    Type: String
+    Description: Name of the Lambda function to monitor
+  DashboardName:
+    Type: String
+    Default: Lambda-API-Health-Dashboard
+Resources:
+  LambdaHealthDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Ref DashboardName
+      DashboardBody:
+        Fn::Sub:
+        - |
+          {
+            "widgets": [
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 0,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Invocations", "FunctionName", "${func}" ]
+                  ],
+                  "period": 300,
+                  "stat": "Sum",
+                  "region": "${AWS::Region}",
+                  "title": "Invocations",
+                  "view": "timeSeries"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 12,
+                "y": 0,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Duration", "FunctionName", "${func}", { "stat": "Average" } ]
+                  ],
+                  "period": 300,
+                  "region": "${AWS::Region}",
+                  "title": "Average Duration (ms)",
+                  "view": "timeSeries"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 0,
+                "y": 6,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Errors", "FunctionName", "${func}" ]
+                  ],
+                  "period": 300,
+                  "stat": "Sum",
+                  "region": "${AWS::Region}",
+                  "title": "Errors",
+                  "view": "timeSeries"
+                }
+              },
+              {
+                "type": "metric",
+                "x": 12,
+                "y": 6,
+                "width": 12,
+                "height": 6,
+                "properties": {
+                  "metrics": [
+                    [ "AWS/Lambda", "Throttles", "FunctionName", "${func}" ]
+                  ],
+                  "period": 300,
+                  "stat": "Sum",
+                  "region": "${AWS::Region}",
+                  "title": "Throttles",
+                  "view": "timeSeries"
+                }
+              }
+            ]
+          }
+        - func: !Ref LambdaFunctionName

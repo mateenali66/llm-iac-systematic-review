@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "ANS-008",
+  "language": "ansible",
+  "sample_id": "sample_1",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Ansible playbook installing and configuring a PostgreSQL 15 server: package install, pg_hba.conf with allowed CIDRs, postgresql.conf tuning for production, service start, and a database+user creation step.",
+  "user_message_sent": "Target IaC language: Ansible playbook (YAML)\n\nTask: Write an Ansible playbook installing and configuring a PostgreSQL 15 server: package install, pg_hba.conf with allowed CIDRs, postgresql.conf tuning for production, service start, and a database+user creation step.\n\nOutput only the Ansible playbook (YAML) code, no commentary or markdown fences.",
+  "raw_response": "---\n- name: Install and configure PostgreSQL 15 server\n  become: yes\n  hosts: postgresql_servers\n  vars:\n    postgresql_version: \"15\"\n    postgresql_port: 5432\n    postgresql_allowed_cidrs:\n      - \"127.0.0.1/32\"\n      - \"10.0.0.0/8\"\n    postgresql_database: mydatabase\n    postgresql_username: myuser\n    postgresql_password:mypassword\n  tasks:\n  - name: Install PostgreSQL package\n    apt:\n      name: postgresql-{{ postgresql_version }}\n      state: present\n\n  - name: Configure pg_hba.conf\n    template:\n      src: templates/pg_hba.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Configure postgresql.conf\n    template:\n      src: templates/postgresql.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Start and enable PostgreSQL service\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: started\n      enabled: yes\n\n  - name: Create database and user\n    become_user: postgres\n    become_method: sudo\n    postgresql_db:\n      name: \"{{ postgresql_database }}\"\n      state: present\n\n  - name: Create PostgreSQL user\n    become_user: postgres\n    become_method: sudo\n    postgresql_user:\n      db: \"{{ postgresql_database }}\"\n      name: \"{{ postgresql_username }}\"\n      password: \"{{ postgresql_password }}\"\n      state: present\n      priv: \"ALL\"\n\n  handlers:\n  - name: restart postgresql\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: restarted\n\n---\ntemplates/pg_hba.conf.j2:\nlocal   all             postgres                                peer\nhost    all             all             127.0.0.1/32          md5\nhost    all             all             {{ postgresql_allowed_cidrs[0] }}          md5\nhost    all             all             {{ postgresql_allowed_cidrs[1] }}          md5\n\ntemplates/postgresql.conf.j2:\nlisten_addresses = '*'\nport = {{ postgresql_port }}\nmax_connections = 100\nshared_buffers = 512MB\neffective_cache_size = 1GB\nmaintenance_work_mem = 64MB\nwal_buffers = 16MB\ncheckpoint_completion_target = 0.9\nwal_writer_delay = 10ms\nrandom_page_cost = 1.1\neffective_io_concurrency = 200\nmax_worker_processes = 8\nmax_parallel_workers_per_gather = 4\nmax_parallel_maintenance_workers = 4",
+  "cleaned_response": "---\n- name: Install and configure PostgreSQL 15 server\n  become: yes\n  hosts: postgresql_servers\n  vars:\n    postgresql_version: \"15\"\n    postgresql_port: 5432\n    postgresql_allowed_cidrs:\n      - \"127.0.0.1/32\"\n      - \"10.0.0.0/8\"\n    postgresql_database: mydatabase\n    postgresql_username: myuser\n    postgresql_password:mypassword\n  tasks:\n  - name: Install PostgreSQL package\n    apt:\n      name: postgresql-{{ postgresql_version }}\n      state: present\n\n  - name: Configure pg_hba.conf\n    template:\n      src: templates/pg_hba.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Configure postgresql.conf\n    template:\n      src: templates/postgresql.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Start and enable PostgreSQL service\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: started\n      enabled: yes\n\n  - name: Create database and user\n    become_user: postgres\n    become_method: sudo\n    postgresql_db:\n      name: \"{{ postgresql_database }}\"\n      state: present\n\n  - name: Create PostgreSQL user\n    become_user: postgres\n    become_method: sudo\n    postgresql_user:\n      db: \"{{ postgresql_database }}\"\n      name: \"{{ postgresql_username }}\"\n      password: \"{{ postgresql_password }}\"\n      state: present\n      priv: \"ALL\"\n\n  handlers:\n  - name: restart postgresql\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: restarted\n\n---\ntemplates/pg_hba.conf.j2:\nlocal   all             postgres                                peer\nhost    all             all             127.0.0.1/32          md5\nhost    all             all             {{ postgresql_allowed_cidrs[0] }}          md5\nhost    all             all             {{ postgresql_allowed_cidrs[1] }}          md5\n\ntemplates/postgresql.conf.j2:\nlisten_addresses = '*'\nport = {{ postgresql_port }}\nmax_connections = 100\nshared_buffers = 512MB\neffective_cache_size = 1GB\nmaintenance_work_mem = 64MB\nwal_buffers = 16MB\ncheckpoint_completion_target = 0.9\nwal_writer_delay = 10ms\nrandom_page_cost = 1.1\neffective_io_concurrency = 200\nmax_worker_processes = 8\nmax_parallel_workers_per_gather = 4\nmax_parallel_maintenance_workers = 4",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "---\n- name: Install and configure PostgreSQL 15 server\n  become: yes\n  hosts: postgresql_servers\n  vars:\n    postgresql_version: \"15\"\n    postgresql_port: 5432\n    postgresql_allowed_cidrs:\n      - \"127.0.0.1/32\"\n      - \"10.0.0.0/8\"\n    postgresql_database: mydatabase\n    postgresql_username: myuser\n    postgresql_password:mypassword\n  tasks:\n  - name: Install PostgreSQL package\n    apt:\n      name: postgresql-{{ postgresql_version }}\n      state: present\n\n  - name: Configure pg_hba.conf\n    template:\n      src: templates/pg_hba.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Configure postgresql.conf\n    template:\n      src: templates/postgresql.conf.j2\n      dest: /etc/postgresql/{{ postgresql_version }}/main/postgresql.conf\n      mode: '0640'\n    notify: restart postgresql\n\n  - name: Start and enable PostgreSQL service\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: started\n      enabled: yes\n\n  - name: Create database and user\n    become_user: postgres\n    become_method: sudo\n    postgresql_db:\n      name: \"{{ postgresql_database }}\"\n      state: present\n\n  - name: Create PostgreSQL user\n    become_user: postgres\n    become_method: sudo\n    postgresql_user:\n      db: \"{{ postgresql_database }}\"\n      name: \"{{ postgresql_username }}\"\n      password: \"{{ postgresql_password }}\"\n      state: present\n      priv: \"ALL\"\n\n  handlers:\n  - name: restart postgresql\n    service:\n      name: postgresql@{{ postgresql_version }}-main\n      state: restarted\n\n---\ntemplates/pg_hba.conf.j2:\nlocal   all             postgres                                peer\nhost    all             all             127.0.0.1/32          md5\nhost    all             all             {{ postgresql_allowed_cidrs[0] }}          md5\nhost    all             all             {{ postgresql_allowed_cidrs[1] }}          md5\n\ntemplates/postgresql.conf.j2:\nlisten_addresses = '*'\nport = {{ postgresql_port }}\nmax_connections = 100\nshared_buffers = 512MB\neffective_cache_size = 1GB\nmaintenance_work_mem = 64MB\nwal_buffers = 16MB\ncheckpoint_completion_target = 0.9\nwal_writer_delay = 10ms\nrandom_page_cost = 1.1\neffective_io_concurrency = 200\nmax_worker_processes = 8\nmax_parallel_workers_per_gather = 4\nmax_parallel_maintenance_workers = 4",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723533,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 179,
+      "output_tokens": 601,
+      "raw_input_tokens": 179
+    }
+  },
+  "started_at": "2026-05-25T15:38:51.169152+00:00",
+  "elapsed_seconds": 2.111
+}

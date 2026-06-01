@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "BICEP-AZURE-005",
+  "language": "azure_bicep",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.",
+  "user_message_sent": "Target IaC language: Azure Bicep\n\nTask: Write an Azure Bicep template provisioning an Azure SQL Database with the Standard tier S2 SKU for a production e-commerce application.\n\nOutput only the Azure Bicep code, no commentary or markdown fences.",
+  "raw_response": "param location string = resourceGroup().location\nparam sqlServerName string = 'prodsqlserver'\nparam sqlDatabaseName string = 'prodecommerce'\nparam administratorLogin string = 'sqladmin'\nparam administratorLoginPassword string = 'P@ssw0rd1234'\n\nresource sqlServerResource 'Microsoft.Sql/servers@2021-11-01' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n  }\n}\n\nresource sqlDatabaseResource 'Microsoft.Sql/servers/databases@2021-11-01' = {\n  name: '${sqlServerName}/${sqlDatabaseName}'\n  location: location\n  properties: {\n    edition: 'Standard'\n    requestedServiceObjectiveName: 'S2'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {\n  name: '${sqlServerName}/AllowAzureServices'\n  location: location\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\noutput sqlServerName string = sqlServerName\noutput sqlDatabaseName string = sqlDatabaseName\noutput sqlServerFullyQualifiedDomainName string = sqlServerResource.properties.fullyQualifiedDomainName",
+  "cleaned_response": "param location string = resourceGroup().location\nparam sqlServerName string = 'prodsqlserver'\nparam sqlDatabaseName string = 'prodecommerce'\nparam administratorLogin string = 'sqladmin'\nparam administratorLoginPassword string = 'P@ssw0rd1234'\n\nresource sqlServerResource 'Microsoft.Sql/servers@2021-11-01' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n  }\n}\n\nresource sqlDatabaseResource 'Microsoft.Sql/servers/databases@2021-11-01' = {\n  name: '${sqlServerName}/${sqlDatabaseName}'\n  location: location\n  properties: {\n    edition: 'Standard'\n    requestedServiceObjectiveName: 'S2'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {\n  name: '${sqlServerName}/AllowAzureServices'\n  location: location\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\noutput sqlServerName string = sqlServerName\noutput sqlDatabaseName string = sqlDatabaseName\noutput sqlServerFullyQualifiedDomainName string = sqlServerResource.properties.fullyQualifiedDomainName",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "param location string = resourceGroup().location\nparam sqlServerName string = 'prodsqlserver'\nparam sqlDatabaseName string = 'prodecommerce'\nparam administratorLogin string = 'sqladmin'\nparam administratorLoginPassword string = 'P@ssw0rd1234'\n\nresource sqlServerResource 'Microsoft.Sql/servers@2021-11-01' = {\n  name: sqlServerName\n  location: location\n  properties: {\n    administratorLogin: administratorLogin\n    administratorLoginPassword: administratorLoginPassword\n  }\n}\n\nresource sqlDatabaseResource 'Microsoft.Sql/servers/databases@2021-11-01' = {\n  name: '${sqlServerName}/${sqlDatabaseName}'\n  location: location\n  properties: {\n    edition: 'Standard'\n    requestedServiceObjectiveName: 'S2'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\nresource sqlServerFirewallRule 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {\n  name: '${sqlServerName}/AllowAzureServices'\n  location: location\n  properties: {\n    startIpAddress: '0.0.0.0'\n    endIpAddress: '0.0.0.0'\n  }\n  dependsOn: [\n    sqlServerResource\n  ]\n}\n\noutput sqlServerName string = sqlServerName\noutput sqlDatabaseName string = sqlDatabaseName\noutput sqlServerFullyQualifiedDomainName string = sqlServerResource.properties.fullyQualifiedDomainName",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723569,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 156,
+      "output_tokens": 308,
+      "raw_input_tokens": 156
+    }
+  },
+  "started_at": "2026-05-25T15:39:28.774293+00:00",
+  "elapsed_seconds": 1.198
+}

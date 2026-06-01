@@ -1,0 +1,53 @@
+{
+  "model": "llama-3.3-70b",
+  "model_id": "llama-3.3-70b-versatile",
+  "provider": "abacus-routellm",
+  "family": "open-weight",
+  "prompt_id": "CFN-AWS-009",
+  "language": "cloudformation",
+  "sample_id": "sample_2",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Write a CloudFormation template provisioning an S3 bucket with server-side encryption using AES256 and public access restrictions, plus a CloudFront distribution serving the bucket via Origin Access Identity.",
+  "user_message_sent": "Target IaC language: AWS CloudFormation (YAML)\n\nTask: Write a CloudFormation template provisioning an S3 bucket with server-side encryption using AES256 and public access restrictions, plus a CloudFront distribution serving the bucket via Origin Access Identity.\n\nOutput only the AWS CloudFormation (YAML) code, no commentary or markdown fences.",
+  "raw_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket with server-side encryption and CloudFront distribution.\n\nResources:\n  S3Bucket:\n    Type: 'AWS::S3::Bucket'\n    Properties:\n      BucketName: !Sub 'my-bucket-${AWS::AccountId}'\n      BucketEncryption:\n        ServerSideEncryptionConfiguration:\n          - ServerSideEncryptionByDefault:\n              SSEAlgorithm: AES256\n\n  S3BucketPolicy:\n    Type: 'AWS::S3::BucketPolicy'\n    Properties:\n      Bucket: !Ref S3Bucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: DenyPublicRead\n            Effect: Deny\n            Principal: '*'\n            Action:\n              - 's3:GetObject'\n            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/'*'\n            Condition:\n              StringLike:\n                aws:SourceIp: '*'\n\n  CloudFrontOriginAccessIdentity:\n    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'\n    Properties:\n      CloudFrontOriginAccessIdentityConfig:\n        Comment: !Sub 'origin-access-identity-${AWS::AccountId}'\n\n  CloudFrontDistribution:\n    Type: 'AWS::CloudFront::Distribution'\n    Properties:\n      DistributionConfig:\n        Origins:\n          - DomainName: !Sub 's3.amazonaws.com/${S3Bucket}'\n            Id: S3Origin\n            S3OriginConfig:\n              OriginAccessIdentity: !Sub 'origin-access-identity/${CloudFrontOriginAccessIdentity}'\n        DefaultCacheBehavior:\n          ForwardedValues:\n            QueryString: false\n          TargetOriginId: S3Origin\n        Enabled: true\n        DefaultRootObject: index.html\n\nOutputs:\n  S3BucketName:\n    Value: !Ref S3Bucket\n    Description: Name of the S3 bucket\n  CloudFrontDistributionId:\n    Value: !Ref CloudFrontDistribution\n    Description: ID of the CloudFront distribution\n  CloudFrontDomainName:\n    Value: !GetAtt CloudFrontDistribution.DomainName\n    Description: Domain name of the CloudFront distribution",
+  "cleaned_response": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket with server-side encryption and CloudFront distribution.\n\nResources:\n  S3Bucket:\n    Type: 'AWS::S3::Bucket'\n    Properties:\n      BucketName: !Sub 'my-bucket-${AWS::AccountId}'\n      BucketEncryption:\n        ServerSideEncryptionConfiguration:\n          - ServerSideEncryptionByDefault:\n              SSEAlgorithm: AES256\n\n  S3BucketPolicy:\n    Type: 'AWS::S3::BucketPolicy'\n    Properties:\n      Bucket: !Ref S3Bucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: DenyPublicRead\n            Effect: Deny\n            Principal: '*'\n            Action:\n              - 's3:GetObject'\n            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/'*'\n            Condition:\n              StringLike:\n                aws:SourceIp: '*'\n\n  CloudFrontOriginAccessIdentity:\n    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'\n    Properties:\n      CloudFrontOriginAccessIdentityConfig:\n        Comment: !Sub 'origin-access-identity-${AWS::AccountId}'\n\n  CloudFrontDistribution:\n    Type: 'AWS::CloudFront::Distribution'\n    Properties:\n      DistributionConfig:\n        Origins:\n          - DomainName: !Sub 's3.amazonaws.com/${S3Bucket}'\n            Id: S3Origin\n            S3OriginConfig:\n              OriginAccessIdentity: !Sub 'origin-access-identity/${CloudFrontOriginAccessIdentity}'\n        DefaultCacheBehavior:\n          ForwardedValues:\n            QueryString: false\n          TargetOriginId: S3Origin\n        Enabled: true\n        DefaultRootObject: index.html\n\nOutputs:\n  S3BucketName:\n    Value: !Ref S3Bucket\n    Description: Name of the S3 bucket\n  CloudFrontDistributionId:\n    Value: !Ref CloudFrontDistribution\n    Description: ID of the CloudFront distribution\n  CloudFrontDomainName:\n    Value: !GetAtt CloudFrontDistribution.DomainName\n    Description: Domain name of the CloudFront distribution",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "AWSTemplateFormatVersion: '2010-09-09'\nDescription: Template for S3 bucket with server-side encryption and CloudFront distribution.\n\nResources:\n  S3Bucket:\n    Type: 'AWS::S3::Bucket'\n    Properties:\n      BucketName: !Sub 'my-bucket-${AWS::AccountId}'\n      BucketEncryption:\n        ServerSideEncryptionConfiguration:\n          - ServerSideEncryptionByDefault:\n              SSEAlgorithm: AES256\n\n  S3BucketPolicy:\n    Type: 'AWS::S3::BucketPolicy'\n    Properties:\n      Bucket: !Ref S3Bucket\n      PolicyDocument:\n        Version: '2012-10-17'\n        Statement:\n          - Sid: DenyPublicRead\n            Effect: Deny\n            Principal: '*'\n            Action:\n              - 's3:GetObject'\n            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/'*'\n            Condition:\n              StringLike:\n                aws:SourceIp: '*'\n\n  CloudFrontOriginAccessIdentity:\n    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'\n    Properties:\n      CloudFrontOriginAccessIdentityConfig:\n        Comment: !Sub 'origin-access-identity-${AWS::AccountId}'\n\n  CloudFrontDistribution:\n    Type: 'AWS::CloudFront::Distribution'\n    Properties:\n      DistributionConfig:\n        Origins:\n          - DomainName: !Sub 's3.amazonaws.com/${S3Bucket}'\n            Id: S3Origin\n            S3OriginConfig:\n              OriginAccessIdentity: !Sub 'origin-access-identity/${CloudFrontOriginAccessIdentity}'\n        DefaultCacheBehavior:\n          ForwardedValues:\n            QueryString: false\n          TargetOriginId: S3Origin\n        Enabled: true\n        DefaultRootObject: index.html\n\nOutputs:\n  S3BucketName:\n    Value: !Ref S3Bucket\n    Description: Name of the S3 bucket\n  CloudFrontDistributionId:\n    Value: !Ref CloudFrontDistribution\n    Description: ID of the CloudFront distribution\n  CloudFrontDomainName:\n    Value: !GetAtt CloudFrontDistribution.DomainName\n    Description: Domain name of the CloudFront distribution",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779723730,
+    "model": "llama-3.3-70b-versatile",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 170,
+      "output_tokens": 447,
+      "raw_input_tokens": 170
+    }
+  },
+  "started_at": "2026-05-25T15:42:09.039327+00:00",
+  "elapsed_seconds": 1.944
+}

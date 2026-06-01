@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secure-nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.25.3
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 101
+      runAsGroup: 101
+      capabilities:
+        drop:
+        - ALL
+      readOnlyRootFilesystem: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+    ports:
+    - containerPort: 80
+      protocol: TCP
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+  securityContext:
+    runAsNonRoot: true
+  automountServiceAccountToken: false
+  restartPolicy: Always

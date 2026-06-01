@@ -1,0 +1,166 @@
+{
+	"results": [
+		{
+			"rule_id": "AVD-AWS-0124",
+			"long_id": "aws-ec2-add-description-to-security-group-rule",
+			"rule_description": "Missing description for security group rule.",
+			"rule_provider": "aws",
+			"rule_service": "ec2",
+			"impact": "Descriptions provide context for the firewall rule reasons",
+			"resolution": "Add descriptions for all security groups rules",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/ec2/add-description-to-security-group-rule/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule"
+			],
+			"description": "Security group rule does not have a description.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_security_group.primary_database_sg",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 43,
+				"end_line": 48
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0124",
+			"long_id": "aws-ec2-add-description-to-security-group-rule",
+			"rule_description": "Missing description for security group rule.",
+			"rule_provider": "aws",
+			"rule_service": "ec2",
+			"impact": "Descriptions provide context for the firewall rule reasons",
+			"resolution": "Add descriptions for all security groups rules",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/ec2/add-description-to-security-group-rule/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule"
+			],
+			"description": "Security group rule does not have a description.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_security_group.primary_database_sg",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 36,
+				"end_line": 41
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0104",
+			"long_id": "aws-ec2-no-public-egress-sgr",
+			"rule_description": "An egress security group rule allows traffic to /0.",
+			"rule_provider": "aws",
+			"rule_service": "ec2",
+			"impact": "Your port is egressing data to the internet",
+			"resolution": "Set a more restrictive cidr range",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/ec2/no-public-egress-sgr/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group"
+			],
+			"description": "Security group rule allows egress to multiple public internet addresses.",
+			"severity": "CRITICAL",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_security_group.primary_database_sg",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 47,
+				"end_line": 47
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0178",
+			"long_id": "aws-ec2-require-vpc-flow-logs-for-all-vpcs",
+			"rule_description": "VPC Flow Logs is a feature that enables you to capture information about the IP traffic going to and from network interfaces in your VPC. After you've created a flow log, you can view and retrieve its data in Amazon CloudWatch Logs. It is recommended that VPC Flow Logs be enabled for packet \"Rejects\" for VPCs.",
+			"rule_provider": "aws",
+			"rule_service": "ec2",
+			"impact": "Without VPC flow logs, you risk not having enough information about network traffic flow to investigate incidents or identify security issues.",
+			"resolution": "Enable flow logs for VPC",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/ec2/require-vpc-flow-logs-for-all-vpcs/"
+			],
+			"description": "VPC Flow Logs is not enabled for VPC ",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_vpc.primary_vpc",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 51,
+				"end_line": 53
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0176",
+			"long_id": "aws-rds-enable-iam-auth",
+			"rule_description": "RDS IAM Database Authentication Disabled",
+			"rule_provider": "aws",
+			"rule_service": "rds",
+			"impact": "",
+			"resolution": "Modify the PostgreSQL and MySQL type RDS instances to enable IAM database authentication.",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/rds/enable-iam-auth/"
+			],
+			"description": "Instance does not have IAM Authentication enabled",
+			"severity": "MEDIUM",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_db_instance.primary_database",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 5,
+				"end_line": 24
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0133",
+			"long_id": "aws-rds-enable-performance-insights",
+			"rule_description": "Enable Performance Insights to detect potential problems",
+			"rule_provider": "aws",
+			"rule_service": "rds",
+			"impact": "Without adequate monitoring, performance related issues may go unreported and potentially lead to compromise.",
+			"resolution": "Enable performance insights",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/rds/enable-performance-insights/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/rds_cluster_instance#performance_insights_kms_key_id",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#performance_insights_kms_key_id"
+			],
+			"description": "Instance does not have performance insights enabled.",
+			"severity": "LOW",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_db_instance.primary_database",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 5,
+				"end_line": 24
+			}
+		},
+		{
+			"rule_id": "AVD-AWS-0080",
+			"long_id": "aws-rds-encrypt-instance-storage-data",
+			"rule_description": "RDS encryption has not been enabled at a DB Instance level.",
+			"rule_provider": "aws",
+			"rule_service": "rds",
+			"impact": "Data can be read from RDS instances if compromised",
+			"resolution": "Enable encryption for RDS instances",
+			"links": [
+				"https://aquasecurity.github.io/tfsec/v1.28.13/checks/aws/rds/encrypt-instance-storage-data/",
+				"https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance"
+			],
+			"description": "Instance does not have storage encryption enabled.",
+			"severity": "HIGH",
+			"warning": false,
+			"status": 0,
+			"resource": "aws_db_instance.primary_database",
+			"location": {
+				"filename": "/in/output.tf",
+				"start_line": 5,
+				"end_line": 24
+			}
+		}
+	]
+}

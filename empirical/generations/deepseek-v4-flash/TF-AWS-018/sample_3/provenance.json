@@ -1,0 +1,54 @@
+{
+  "model": "deepseek-v4-flash",
+  "model_id": "deepseek-v4-flash",
+  "provider": "abacus-routellm",
+  "family": "reasoning",
+  "prompt_id": "TF-AWS-018",
+  "language": "terraform",
+  "sample_id": "sample_3",
+  "temperature": 0.2,
+  "max_tokens": 2048,
+  "system_prompt": "You are an expert DevOps engineer. Generate production-quality Infrastructure as Code (IaC) in response to the user's natural-language request. Output ONLY the IaC code (no explanation, no markdown fences) in the language explicitly specified by the user. Apply best practices appropriate to a real production deployment, including security defaults.",
+  "original_prompt": "Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.",
+  "user_message_sent": "Target IaC language: Terraform (HCL .tf format)\n\nTask: Provision an Amazon Route 53 hosted zone for 'mycompany.com' and create A records pointing 'app.mycompany.com' at an Application Load Balancer.\n\nOutput only the Terraform (HCL .tf format) code, no commentary or markdown fences.",
+  "raw_response": "resource \"aws_route53_zone\" \"main\" {\n  name = \"mycompany.com\"\n}\n\nresource \"aws_route53_record\" \"app\" {\n  zone_id = aws_route53_zone.main.zone_id\n  name    = \"app.mycompany.com\"\n  type    = \"A\"\n\n  alias {\n    name                   = aws_lb.main.dns_name\n    zone_id                = aws_lb.main.zone_id\n    evaluate_target_health = true\n  }\n}\n\nresource \"aws_lb\" \"main\" {\n  name               = \"mycompany-app-lb\"\n  internal           = false\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.lb.id]\n  subnets            = var.public_subnet_ids\n}\n\nresource \"aws_security_group\" \"lb\" {\n  name        = \"mycompany-app-lb-sg\"\n  description = \"Security group for Application Load Balancer\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}\n\nvariable \"vpc_id\" {\n  description = \"VPC ID for the ALB\"\n  type        = string\n}\n\nvariable \"public_subnet_ids\" {\n  description = \"List of public subnet IDs for the ALB\"\n  type        = list(string)\n}",
+  "cleaned_response": "resource \"aws_route53_zone\" \"main\" {\n  name = \"mycompany.com\"\n}\n\nresource \"aws_route53_record\" \"app\" {\n  zone_id = aws_route53_zone.main.zone_id\n  name    = \"app.mycompany.com\"\n  type    = \"A\"\n\n  alias {\n    name                   = aws_lb.main.dns_name\n    zone_id                = aws_lb.main.zone_id\n    evaluate_target_health = true\n  }\n}\n\nresource \"aws_lb\" \"main\" {\n  name               = \"mycompany-app-lb\"\n  internal           = false\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.lb.id]\n  subnets            = var.public_subnet_ids\n}\n\nresource \"aws_security_group\" \"lb\" {\n  name        = \"mycompany-app-lb-sg\"\n  description = \"Security group for Application Load Balancer\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}\n\nvariable \"vpc_id\" {\n  description = \"VPC ID for the ALB\"\n  type        = string\n}\n\nvariable \"public_subnet_ids\" {\n  description = \"List of public subnet IDs for the ALB\"\n  type        = list(string)\n}",
+  "provider_meta": {
+    "id": null,
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "resource \"aws_route53_zone\" \"main\" {\n  name = \"mycompany.com\"\n}\n\nresource \"aws_route53_record\" \"app\" {\n  zone_id = aws_route53_zone.main.zone_id\n  name    = \"app.mycompany.com\"\n  type    = \"A\"\n\n  alias {\n    name                   = aws_lb.main.dns_name\n    zone_id                = aws_lb.main.zone_id\n    evaluate_target_health = true\n  }\n}\n\nresource \"aws_lb\" \"main\" {\n  name               = \"mycompany-app-lb\"\n  internal           = false\n  load_balancer_type = \"application\"\n  security_groups    = [aws_security_group.lb.id]\n  subnets            = var.public_subnet_ids\n}\n\nresource \"aws_security_group\" \"lb\" {\n  name        = \"mycompany-app-lb-sg\"\n  description = \"Security group for Application Load Balancer\"\n  vpc_id      = var.vpc_id\n\n  ingress {\n    from_port   = 443\n    to_port     = 443\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  ingress {\n    from_port   = 80\n    to_port     = 80\n    protocol    = \"tcp\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n\n  egress {\n    from_port   = 0\n    to_port     = 0\n    protocol    = \"-1\"\n    cidr_blocks = [\"0.0.0.0/0\"]\n  }\n}\n\nvariable \"vpc_id\" {\n  description = \"VPC ID for the ALB\"\n  type        = string\n}\n\nvariable \"public_subnet_ids\" {\n  description = \"List of public subnet IDs for the ALB\"\n  type        = list(string)\n}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": null,
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        },
+        "native_finish_reason": "stop"
+      }
+    ],
+    "created": 1779729341,
+    "model": "deepseek-v4-flash",
+    "object": null,
+    "service_tier": null,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": null,
+      "prompt_tokens": null,
+      "total_tokens": null,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null,
+      "input_tokens": 74,
+      "output_tokens": 418,
+      "cache_read_input_tokens": 128,
+      "raw_input_tokens": 10
+    }
+  },
+  "started_at": "2026-05-25T17:15:37.781745+00:00",
+  "elapsed_seconds": 3.448
+}
